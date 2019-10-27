@@ -1,0 +1,55 @@
+<import src="../../template/warn/warn-template.wxml" />
+<template wx:if="{{false}}" is="warn-template" data="{{...text_key}}" />
+<view class="container">
+  <form class="page_bd" catchsubmit="formSubmit" catchreset="formReset">
+    <view>
+      <view class="item_container">
+        <text class="label">姓名</text>
+        <view class="inputbox">
+          <input name="goods_owner" placeholder="未知"></input>
+        </view>
+      </view>
+      <view class="item_container">
+        <text class="label">联系电话</text>
+        <view class="inputbox">
+          <input name="phone_number" placeholder="非必填"></input>
+        </view>
+      </view>
+      <view class="item_container">
+        <text class="label">物品种类</text>
+        <view class="inputbox">
+          <input name="goods_type" placeholder="校园卡" value='{{value}}'></input>
+        </view>
+      </view>
+    </view>
+    <view class="type_container">
+      <block wx:for="{{typeArray}}" wx:for-item="item">
+        <view class="type_text" bindtap='onTypeChooseTap' data-id="{{item.id}}">
+          <view class="type_box">{{item.type}}</view>
+        </view>
+      </block>
+    </view>
+    <view>
+      <view class="detail_box">
+        <textarea name="goods_detail" class="advice_text" placeholder-style='font-size:14px' placeholder='添加物品的详细信息，如拾取（丢失）地点，时间，物品的颜色，品牌等，希望都能物归原主'></textarea>
+      </view>
+      <view class="picture_list">
+        <view wx:for="{{upload_picture_list}}" class="picture_item" wx:key="{{index}}">
+          <image wx:if="{{item.upload_percent < 100}}" src="{{item.path}}" mode="aspectFill"></image>
+          <image wx:if="{{item.upload_percent == 100}}" src="{{item.path_server}}" mode="aspectFill"></image>
+          <view class="upload_progress" wx:if="{{item.upload_percent < 100}}" data-index="{{index}}" bindtap="previewImg">{{item.upload_percent}}%</view>
+          <text class='del' bindtap='deleteImg' data-src='{{image}}' style='display:{{isDel}}' data-index="{{index}}">×</text>
+        </view>
+        <view class='picture_item'>
+          <view wx:if="{{pic_status}}" class="add-image" bindtap='uploadpic'>+
+          </view>
+        </view>
+      </view>
+      <button bindtap='uploadimage' class='yes-upload'>确定上传</button>
+      <view class='btn_container'>
+        <button class="submit_btn" form-type='submit'>提交</button>
+        <button class="reset_btn" form-type='reset'>重置</button>
+      </view>
+    </view>
+  </form>
+</view>

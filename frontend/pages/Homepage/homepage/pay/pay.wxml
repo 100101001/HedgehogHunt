@@ -1,0 +1,30 @@
+<view>
+  <view class="user">
+    <image class="avatar" src="../../../../images/images/avatar/1.png"></image>
+    <text class="nickname">Joker\n</text>
+    <text class="wechatid">微信号：wcx5755</text>
+  </view>
+  <view class='userMes'>
+    <block wx:for="{{user_key}}">
+      <view class='users'>
+        <text class="title">{{item.title}}</text>
+        <text class="content">{{item.content}}</text>
+      </view>
+    </block>
+    <button class="btn">完善信息</button>
+  </view>
+  <view class="goodsMes">
+    <block wx:for="{{goods_key}}">
+      <view class='goods'>
+        <text class="goods_type">{{item.goods}}</text>
+        <view class="goods_price">
+          <text>{{item.price}}</text>
+        </view>
+        <view class="goods_num">
+          <text>{{item.num}}</text>
+        </view>
+      </view>
+    </block>
+  </view>
+  <button type="primary" bindtap="onPayTap">微信支付 ￥20</button>
+</view>

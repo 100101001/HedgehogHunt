@@ -1,0 +1,8 @@
+<import src="../template/navigate-bar/navigate-bar-template.wxml" />
+<view class="container">
+<view class="find" bindtap='onFindTap'>拾到东西</view>
+<view class="lost" bindtap='onLostTap'>丢了东西</view>
+</view>
+<view>
+  <template is="navigate-bar-template" data="{{...isSelecteds}}" />
+</view>

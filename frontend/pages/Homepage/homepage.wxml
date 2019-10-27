@@ -1,0 +1,50 @@
+<import src="../template/warn/warn-template.wxml" />
+<view>
+  <video poster='/images/image/指南.png' id="my_video" class="myVideo" controls='true'></video>
+  <template is="warn-template" data="{{...textArray}}" />
+  <view class="horizontal_line"></view>
+  <view class="goods_posts">
+    <view class="title">
+      <text>商\n品\n详\n情</text>
+    </view>
+    <view class="goods_post1" bindtap="onDetailTap" data-id="0"></view>
+    <view class="goods_post" bindtap="onDetailTap" data-id="1"></view>
+    <view class="goods_post" bindtap="onDetailTap" data-id="2"></view>
+    <view class="more" bindtap="onDetailTap" data-id="3">
+      <view class="more_btn">
+        <image src='/images/icons/next_yellow.png'></image>
+        <image class="img2" src='/images/icons/next_yellow.png'></image>
+        <image class="img3" src='/images/icons/next_yellow.png'></image>
+        <view class="more_text">更多</view>
+      </view>
+    </view>
+  </view>
+  <view class="horizontal_line"></view>
+  <view class="operate">
+    <view class="button1" bindtap="onPayTap">
+      <view class="title1">立即购买</view>
+      <view class="next">
+        <image class='next_img1' src='/images/icons/next.png'></image>
+      </view>
+    </view>
+    <view class="horizontal_line"></view>
+    <view class="button1" bindtap="onAdviceTap">
+      <view class="title1">意见反馈</view>
+      <view class="next">
+        <image class='next_img1' src='/images/icons/next.png'></image>
+      </view>
+    </view>
+    <view class="horizontal_line"></view>
+    <view class="button1" bindtap="onAboutUsTap">
+      <view class="title1">关于我们</view>
+      <view class="next">
+        <image class='next_img1' src='/images/icons/next.png'></image>
+      </view>
+    </view>
+    <view class="horizontal_line"></view>
+  </view>
+</view>
+<import src="../template/navigate-bar/navigate-bar-template.wxml" />
+<view>
+  <template is="navigate-bar-template" data="{{...isSelecteds}}" />
+</view>

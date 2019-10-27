@@ -1,0 +1,23 @@
+{
+  "pages": [
+    "pages/Find/Find",
+    "pages/Release/find/Release",
+    "pages/Mine/Mine",
+    "pages/Homepage/homepage",
+    "pages/Release/Release",
+    "pages/Release/lost/Release-lost",
+    "pages/Mine/Mine-item-modify/Mine-item-modify",
+    "pages/Release/remind/remind",
+    "pages/Find/Find-detail/Find-detail",
+    "pages/Homepage/homepage/advice/advice",
+    "pages/Homepage/homepage/commodity/commodity",
+    "pages/Homepage/homepage/pay/pay",
+    "pages/Homepage/homepage/aboutus/aboutus",
+    "pages/Lost/Lost"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#f7931e",
+    "navigationBarTitleText": "同济大学失物招领"
+  },
+  "sitemapLocation": "sitemap.json"
+}

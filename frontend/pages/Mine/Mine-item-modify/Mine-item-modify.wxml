@@ -1,0 +1,67 @@
+<!--用block读取数据来控制显隐-->
+<!--姓名修改页面-->
+<view class="name_container" wx:if="{{status0}}">
+  <view class="name_innercontainer">
+    <text class="title">真实姓名</text>
+    <input type="text" bindconfirm="onBindConfirm" bindinput="onBindInput" confirm-type='done' class="name_box" value="{{userinfo.name}}" placeholder='真实姓名'></input>
+  </view>
+  <button class="btn" bindtap="onSubmit">保存</button>
+</view>
+
+<!--电话修改页面-->
+<view class="name_container" wx:if="{{status1}}">
+  <view class="name_innercontainer">
+    <text class="title">电话</text>
+    <input type="number" bindconfirm="onBindConfirm" confirm-type='done' class="name_box" value="{{userinfo.tel}}" placeholder='真实姓名'></input>
+  </view>
+  <button class="btn" bindtap="onSubmit">保存</button>
+</view>
+
+<!--地址修改页面-->
+<view wx:if="{{status2}}">
+  <view class="address_container">
+    <view>
+      <view class="userinfo_container" bindtap='onChooseAddrTap'>
+        <view class="area">所在地区</view>
+        <view class="next">
+          <image class='next_img' src='/images/icons/下一级.png'></image>
+        </view>
+      </view>
+    </view>
+    <!--view class="address_innercontainer">
+      <text>详细地址</text>
+      <textarea class="address_box" value="{{address}}" placeholder='请输入详细地址，如道路、门牌号、小区、楼栋号等'></textarea>
+    </view-->
+  </view>
+  <button class="btn" form-type='submit'>保存</button>
+</view>
+
+
+<!--二维码显示及下载页面-->
+<view class="container" wx:if="{{status3}}">
+  <view class="qrcode_container">
+    <image class="qrcode" src="/images/image/QRcode.jpg"></image>
+  </view>
+  <button class="btn" bindtap='onSaveImgTap'>保存到相册</button>
+</view>
+
+<!--授权设置-->
+<view class="switch_container" wx:if="{{status5}}">
+  <block wx:for="{{set_title}}" wx:for-item="item">
+    <view class="switch_innercontainer">
+      <text class="switch_title">{{item.title}}</text>
+      <switch class="switch_switch" checked bindchange="switch1Change"></switch>
+    </view>
+  </block>
+  <view class="switch_innercontainer" bindtap='onClearStorage'>清除缓存</view>
+</view>
+
+<!--账户充值页面-->
+<view class="name_container" wx:if="{{status4}}">
+  <view class="name_innercontainer">
+    <text class="title">账户余额</text>
+    <text class="money_box">{{userinfo.balance}}</text>
+  </view>
+  <button class="btn" bindtap='onPayTap'>充值</button>
+  <button class="btn" bindtap='onRePayTap' type="primary">提现</button>
+</view>

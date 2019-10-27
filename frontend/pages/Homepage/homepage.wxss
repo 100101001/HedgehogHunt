@@ -1,0 +1,121 @@
+@import "../template/warn/warn-template.wxss";
+@import "../template/navigate-bar/navigate-bar-template.wxss";
+
+.my_video {
+  margin-left: 35rpx;
+  margin-top: 30rpx;
+  width: 680rpx;
+  height: 340rpx;
+  justify-content: center;
+  align-items: center;
+}
+/*横线*/
+.horizontal_line{
+border-bottom:1rpx  #bbbbbb solid;
+width: 680rpx;
+margin-top: 10rpx;
+height: 1rpx;
+margin-left: 35rpx;
+}
+.goods_posts{
+  display: flex;
+  flex-direction: row;
+  margin-top: 40rpx;
+  margin-bottom: 50rpx;
+}
+.title{
+  color: #f7931e;
+  width: 130rpx;
+  height: 270rpx;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.goods_post1{
+  opacity: 0.7;
+  width: 130rpx;
+  height: 270rpx;
+  border: 0.5px  #f7931e solid;
+  margin-left: -15rpx;
+}
+
+.goods_post{
+  opacity: 0.7;
+  width: 130rpx;
+  height: 270rpx;
+  border: 0.5px  #f7931e solid;
+  margin-left: 20rpx;
+}
+
+.more{
+  opacity: 0.7;
+  width: 130rpx;
+  height: 270rpx;
+  border: 0.5px  #f7931e solid;
+  color: #f7931e;
+  margin-left: 20rpx;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.more_btn{
+  display: flex;
+  flex-direction: row;
+  margin-left: 20rpx;
+  font-size: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.more image{
+  height: 40rpx;
+  width: 45rpx;
+  margin-left: -30rpx;
+}
+
+.img2{
+  opacity: 0.7;
+}
+
+.img3{
+  opacity: 0.4;
+}
+
+.more_text{
+  margin-left: -10rpx;
+}
+
+/*底部按钮*/
+.button1 {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  margin-left: 45rpx;
+  width: 542rpx;
+  margin-bottom: 15rpx;
+}
+
+.next {
+  display: flex;
+  flex: 1;
+  position: absolute;
+  align-items: center;
+  right: 40rpx;
+}
+
+.next_img1 {
+  width: 40rpx;
+  height: 50rpx;
+  margin-top: 15rpx;
+}
+.title1 {
+  margin-left: 10rpx;
+  font-size: 12px;
+  margin-top: 10rpx;
+}

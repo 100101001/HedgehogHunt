@@ -1,0 +1,47 @@
+
+.userinfo_container {
+  display: flex;
+  flex-direction: row;
+  margin-left: 20rpx;
+  margin-top: 20rpx;
+  border-bottom: 1px solid #ededed;
+}
+
+/*条目图片样式
+.item_img {
+  margin-bottom: 25rpx;
+  width: 50rpx;
+  height: 50rpx;
+  opacity: 0.8;
+}
+*/
+
+.userinfo_item {
+  justify-content: center;
+  align-items: center;
+}
+
+.title {
+  margin-left: 60rpx;
+  font-size: 16px;
+}
+
+.next {
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
+  margin-right: 60rpx;
+}
+
+.next_img {
+  margin-bottom: 25rpx;
+  margin-top: -5rpx;
+  width: 50rpx;
+  height: 50rpx;
+}
+
+.content {
+  right: 50rpx;
+  font-size: 16px;
+  color: #999;
+}

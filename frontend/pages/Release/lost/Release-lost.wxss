@@ -1,0 +1,130 @@
+@import "../../template/warn/warn-template.wxss";
+.container {
+  margin: 40rpx 40rpx 0 40rpx;
+  right: 40rpx;
+}
+
+.item_container {
+  display: flex;
+  flex-direction: row;
+  margin-top: 20rpx;
+  font-size: 34rpx;
+}
+
+.label {
+  opacity: 0.9;
+  margin-top: 10rpx;
+}
+
+.inputbox {
+  border: 1px solid #1296db;
+  padding: 5rpx;
+  border-radius: 10rpx;
+  margin-left: 40rpx;
+}
+
+.type_container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.type_text {
+  margin-left: 25rpx;
+  margin-top: 50rpx;
+  border: 1px solid #1296db;
+  padding: 15rpx;
+  border-radius: 20rpx;
+}
+
+.detail_box {
+  margin-top: 50rpx;
+  margin-bottom: 30rpx;
+  display: flex;
+  flex-direction: column;
+  height: 400rpx;
+}
+.submit_btn {
+  background-color: #f7931e;
+  color: #fff;
+  width: 340rpx;
+  height: 90rpx;
+}
+
+.reset_btn {
+  margin-left:20rpx;
+  width: 340rpx;
+  height: 90rpx;
+}
+
+.advice_text {
+  width: 100%;
+}
+
+
+/*拷贝的上传图片样式*/
+.add-image, .up-pic image {
+  margin-top: 2%;
+  margin-left: 2%;
+  width: 150rpx;
+  height: 150rpx;
+  color: #ddd;
+  font-size: 144rpx;
+  line-height: 95%;
+  text-align: center;
+  background-color: #fff;
+  cursor: pointer;
+  border-radius: 10rpx;
+}
+
+.picture_list {
+  padding: 20rpx;
+  margin-left: 12%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+  align-content: flex-start;
+}
+
+.picture_item {
+  margin: 10px;
+  margin-left: 0;
+  position: relative;
+  width: 160rpx;
+  height: 160rpx;
+}
+
+.picture_item .del {
+  position: absolute;
+  top: -11rpx;
+  right: -11rpx;
+  color: #fff;
+  border-radius: 50%;
+  width: 40rpx;
+  height: 40rpx;
+  z-index: 2;
+  line-height: 35rpx;
+  text-align: center;
+  background-color: #f00;
+}
+
+.upload_progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0.7;
+  border-radius: 8rpx;
+  background-color: #000;
+  color: #fff;
+  width: 160rpx;
+  height: 160rpx;
+  text-align: center;
+  line-height: 160rpx;
+  font-size: 12px;
+}
+.picture_item image {
+  width: 160rpx;
+  height: 160rpx;
+}
