@@ -1,0 +1,12 @@
+<template name="mine-item-template">
+  <view class="userinfo_container" data-id="{{id}}" bindtap="onCatchTap">
+    <!--<image class="goods_img" src="{{item.img}}"></image>-->
+    <view class="userinfo_item">
+      <text class="title">{{title}}</text>
+    </view>
+    <view class="next">
+      <text class="content">{{content}}</text>
+      <image class='next_img' src='/images/icons/下一级.png'></image>
+    </view>
+  </view>
+</template>

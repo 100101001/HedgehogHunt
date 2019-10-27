@@ -1,0 +1,115 @@
+@import "../template/goods-item/goods-item-template.wxss";
+@import "../template/navigate-bar/navigate-bar-template.wxss";
+
+page {
+  /*背景图片*/
+  background-image: url("https://console.changshunlive.com/static/img/20190308185846.png");
+  background-attachment: fixed;
+}
+
+.all_container {
+  display: flex;
+  justify-content: center;
+}
+
+.search_container {
+  align-items: center;
+  position: fixed;
+  display: flex;
+  flex-direction: row;
+  padding: 5px;
+  background-color: #f7931e;
+  width: 750rpx;
+  top: 0;
+}
+
+.search_box1 {
+  margin-left: 30rpx;
+  align-items: center;
+  border-radius: 25rpx;
+  width: 260rpx;
+  font-size: 22rpx;
+  display: flex;
+  flex-direction: row;
+  background-color: #fff;
+  height: 50rpx;
+}
+
+.search_box2 {
+  margin-left: 10rpx;
+  align-items: center;
+  border-radius: 25rpx;
+  width: 260rpx;
+  font-size: 22rpx;
+  display: flex;
+  flex-direction: row;
+  background-color: #fff;
+  height: 50rpx;
+}
+
+.search_text_box {
+  margin-left: 20rpx;
+  height: 35rpx;
+  width: 190rpx;
+  color: #f7931e;
+}
+
+.search_icon{
+  margin-left: 12rpx;
+}
+
+.search_button {
+  color: #fff;
+  padding: 5rpx 30rpx 5rpx 30rpx;
+  border: 2px #fff solid;
+  border-radius: 30rpx;
+  font-size: 22rpx;
+  margin-left: 30rpx;
+}
+
+.search_history {
+  margin-top: 90rpx;
+  height: 150rpx;
+  white-space: nowrap;
+  word-break: break-all;
+}
+
+.history_title {
+  margin-left: 30rpx;
+  opacity: 0.6;
+  font-size: 34rpx;
+  font-weight: 500;
+  margin-top: 50rpx;
+}
+
+.history_item {
+  flex-wrap: wrap;
+  margin-left: 30rpx;
+  margin-top: 40rpx;
+  display: flex;
+  flex-direction: row;
+}
+
+.name_history {
+  margin-left: 20rpx;
+  padding: 10rpx;
+  border-radius: 10rpx;
+  text-align: center;
+  border: 1px solid red;
+}
+
+.type {
+  margin-top: 50rpx;
+  margin-left: 30rpx;
+}
+
+.type_history {
+  padding: 10rpx;
+  border-radius: 10rpx;
+  text-align: center;
+  border: 1px solid #1296db;
+}
+
+.message_container {
+  margin-top: 60rpx;
+}

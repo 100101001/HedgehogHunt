@@ -1,0 +1,40 @@
+
+.textbox{
+  display: flex;
+  flex-direction: column;
+  height: 400rpx;
+  border-bottom: 1px solid #ededed;
+}
+
+.advice_img{
+  margin-left: 10rpx;
+  margin-top: 20rpx;
+  border:2px dotted #ededed;
+  display: flex;
+  flex-direction: column;
+  height: 160rpx;
+  width: 160rpx;
+}
+
+.photo{
+  margin-left: 50rpx;
+  width: 60rpx;
+  height: 50rpx;
+  margin-top: 30rpx;
+  opacity: 0.6;
+}
+.img_text{
+  font-size: 12px;
+  opacity: 0.4;
+  margin-left: 34rpx;
+  margin-top: 20rpx;
+}
+.btn{
+  color: #fff;
+  opacity: 0.8;
+  width: 750rpx;
+  height: 90rpx;
+}
+.advice_text{
+  width: 100%;
+}

@@ -1,0 +1,10 @@
+<view>
+  <view class="textbox">
+    <textarea class="advice_text" placeholder-style='font-size:14px' maxlength="-1" placeholder='小程序和产品都还不完善，如果有建议或者意见。欢迎随时向我们进行反馈，失物招领生态，共建共享^=^'></textarea>
+    <view class="advice_img" catchtap='onAddPhotoTap'>
+      <image class='photo' src="/images/icons/添加照片.png"></image>
+      <text class='img_text'>添加图片</text>
+    </view>
+  </view>
+  <button class="btn" bindtap="onSubmitTap">提交</button>
+</view>

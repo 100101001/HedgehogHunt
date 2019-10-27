@@ -1,0 +1,72 @@
+<import src="../template/mine-item/mine-item-template.wxml" />
+<view class="user">
+  <image class="avatar" src="/images/images/avatar/1.png"></image>
+  <view class="nickname">爱丢东西的TAC</view>
+  <!--view class="wechatid">微信号：wcx5755</view-->
+</view>
+
+<view class="userinfo">
+  <view class="fundation_message">基本信息</view>
+  <view class="userinfo_container" data-id="0" bindtap="onCatchTap">
+    <!--<image class="goods_img" src="{{item.img}}"></image>-->
+    <view class="title">姓名</view>
+    <view class="next">
+      <view class="content">{{userinfo.name}}</view>
+      <image class='next_img' src='/images/icons/write.png'></image>
+    </view>
+  </view>
+
+  <view class="userinfo_container" data-id="1" bindtap="onCatchTap">
+    <!--<image class="goods_img" src="{{item.img}}"></image>-->
+    <view class="title">电话</view>
+    <view class="next">
+      <view class="content">{{userinfo.tel}}</view>
+      <image class='next_img' src='/images/icons/write.png'></image>
+    </view>
+  </view>
+
+  <view class="userinfo_container" data-id="2" bindtap="onChooseAddresTap">
+    <!--<image class="goods_img" src="{{item.img}}"></image>-->
+    <view class="title">地址</view>
+    <view class="next">
+      <view class="content">{{userinfo.address}}</view>
+      <image class='next_img' src='/images/icons/write.png'></image>
+    </view>
+  </view>
+
+  <view class="userinfo_container" data-id="3" bindtap="onCatchTap">
+    <!--<image class="goods_img" src="{{item.img}}"></image>-->
+    <view class="title">二维码</view>
+    <view class="next">
+      <view class="content">{{userinfo.qrcode}}</view>
+      <view class="recharge_btn">获取</view>
+    </view>
+  </view>
+
+
+  <view class="fundation_message">账户</view>
+  <view class="userinfo_container" data-id="4" bindtap="onCatchTap">
+    <!--<image class="goods_img" src="{{item.img}}"></image>-->
+    <view class="title">账户</view>
+    <view class="next">
+      <view class="content">{{userinfo.balance}}</view>
+      <view class="recharge_btn">充值</view>
+    </view>
+  </view>
+
+
+  <view class="userinfo">
+    <view class="userinfo_container1" data-id="5" bindtap="onCatchTap">
+      <!--<image class="goods_img" src="{{item.img}}"></image>-->
+      <view class="title1">设置</view>
+      <view class="next">
+        <image class='next_img1' src='/images/icons/next.png'></image>
+      </view>
+    </view>
+  </view>
+</view>
+
+<import src="../template/navigate-bar/navigate-bar-template.wxml" />
+<view>
+  <template is="navigate-bar-template" data="{{...isSelecteds}}" />
+</view>

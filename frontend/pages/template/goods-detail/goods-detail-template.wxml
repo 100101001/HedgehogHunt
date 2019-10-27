@@ -1,0 +1,28 @@
+<template name="goods-detail-template">
+  <view class="goods_message_ontainer">
+    <view class="auther_data">
+      <image class="auther_avatar" src="{{avatarSrc}}"></image>
+      <view class="auther_message">
+        <text class="auther_name">{{autherName}}</text>
+        <text class="release_date">{{releaseDate.year}}年{{releaseDate.month}}月{{releaseDate.day}}日    {{dateTime}}</text>
+      </view>
+      <view class="connect_button" style="color:red" bindtap='onConnectTap'>联系Ta</view>
+    </view>
+    <view class="summary_container">
+      <view class="content_container">
+        <text class="message_type">#失物招领#</text>
+        <text class="goods_content">{{goodsDetail}}</text>
+      </view>
+    </view>
+    <view class="goods_message">
+      <text class="goods_type">{{goodsType}}</text>
+      <text class="goods_owner">{{goodsOwner}}</text>
+      <image class="share_icon" catchtap='onShareTap' src="/images/icons/share_selected.png"></image>
+    </view>
+    <image class="goods_image" src="{{imageSrc}}"></image>
+    <view class="location_container" catchtap='onLocateTap'>
+      <image class="location_icon" src="/images/icons/coordinates.png"></image>
+      <text class="location_text">上海市杨浦区1239号同济大学</text>
+    </view>
+  </view>
+</template>

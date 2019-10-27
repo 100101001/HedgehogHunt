@@ -1,0 +1,37 @@
+<template name="goodsItem">
+  <view class="goods_container">
+    <view class="auther_data">
+      <image class="auther_avatar" src="{{avatarSrc}}"></image>
+      <view class="auther_message">
+        <text class="auther_name">{{autherName}}</text>
+        <text class="release_date">{{releaseDate.year}}年{{releaseDate.month}}月{{releaseDate.day}}日    {{dateTime}}</text>
+      </view>
+    </view>
+    <view class="content_container" catchtap='onDetailTap' data-id="{{id}}">
+      <image class="goods_image" src="{{imageSrc}}" mode="aspectFill"></image>
+      <view class="summary_container">
+        <view class="goods_message">
+          <text style='color: #f7931e; font-size:20rpx'>#拾得#</text>
+          <view class="goods_owner">{{goodsType}}</view>
+          <view class="goods_owner">{{goodsOwner}}</view>
+        </view>
+        <view class="location_container">
+          <image class="location_icon" src="/images/icons/locate.png"></image>
+          <text class="location_text">上海市杨浦区1239号同济大学</text>
+        </view>
+        <view class="goods_content">{{content}}</view>
+        <view class="horizon"></view>
+        <view class="operate">
+          <view catchtap='onConnectTap' class="operate_view">
+            <image class="connect_icon" src="/images/icons/connect.png"></image>
+            <view class="operate_text">联系TA</view>
+          </view>
+          <view catchtap='onShareTap' class="operate_view">
+            <image class="share_icon" src="/images/icons/share.png"></image>
+            <view class="operate_text">分享</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>

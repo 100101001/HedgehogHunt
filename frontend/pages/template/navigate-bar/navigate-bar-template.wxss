@@ -1,0 +1,55 @@
+.navigate_icon_container {
+  padding-top: 20rpx;
+  padding-bottom: 10rpx;
+  position: fixed;
+  bottom: 0;
+  width: 750rpx;
+  display: flex;
+  flex-direction: row;
+  background-color: #fff;
+}
+
+.icon_container {
+  margin-left: 70rpx;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.home_icon_container {
+  margin-left: 50rpx;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.find_icon_container {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  margin-left: 220rpx;
+}
+
+.icon_text {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  text-align: center;
+}
+
+.release_icon_container {
+  position: fixed;
+  bottom: 10rpx;
+  left: 305rpx;
+  align-items: center;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.release_icon {
+  margin-bottom: 25rpx;
+}
+
+.release_text {
+  font-size: 22rpx;
+}

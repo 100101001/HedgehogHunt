@@ -1,0 +1,30 @@
+@import "../template/navigate-bar/navigate-bar-template.wxss";
+
+.container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.find{
+  text-align: center;
+  margin-top: 80rpx;
+  border-radius: 50rpx;
+  height: 400rpx;
+  width: 600rpx;
+  color: #fff;
+  font-size: 46rpx;
+  background-color: #1296db;
+}
+
+.lost{
+  text-align: center;
+  justify-content: center;
+  margin-top: 50rpx;
+  border-radius: 50rpx;
+  height: 400rpx;
+  width: 600rpx;
+  color: #fff;
+  font-size: 46rpx;
+  background-color: #f7931e;
+}
