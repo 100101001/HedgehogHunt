@@ -47,7 +47,7 @@ Page({
         id: 2
       },
     ];
-
+    //todo:后台接口
     var goodsList = goodsData.goodsList;
 
     //截取前14个字当做概况
