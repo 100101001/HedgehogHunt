@@ -3,7 +3,7 @@ Page({
   data:{
 
   },
-  onLoad:function(event){
+  onLoad: function (event) {
     //设置底部导航栏
     var [isSelecteds, urls] = util.onNavigateTap(3);
     this.setData({
