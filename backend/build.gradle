@@ -22,10 +22,18 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    swagger = [
+        version : '2.9.2'
+    ]
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter'
     compileOnly 'org.projectlombok:lombok'
+    compile "io.springfox:springfox-swagger2:${swagger.version}"
+    compile "io.springfox:springfox-swagger-ui:${swagger.version}"
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     annotationProcessor 'org.projectlombok:lombok'
