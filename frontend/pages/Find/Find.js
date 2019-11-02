@@ -7,7 +7,7 @@ Page({
     name: "",
     type: "",
     pageIndex: 0,
-    pageDataCount: 10
+    pageCount: 10
   },
 
   //点击搜索框的取消键
@@ -157,7 +157,22 @@ Page({
   //上滑加载
   onReachBottom: function (event) {
     this.data.pageIndex += 1
-    wx.request(HedgeHogClient.GetFindListRequest(this.data.pageIndex))
+    var pageId = this.data.pageIndex
+    var pageCount = this.data.pageCount
+    var onLoadMoreSuccess = this.appendGoodsToGoodsList
+    wx.request(HedgeHogClient.GetFindListRequest(pageId, pageCount, onLoadMoreSuccess))
+  },
+
+  /**
+   * 把增量獲取的數據追加到尾部
+   * @param {*} res 
+   */
+  appendGoodsToGoodsList: function (res) {
+    var newGoodsList = this.data.goodsList
+    newGoodsList.push.apply(newGoodsList, res.data)
+    this.setData({
+      goodsList: newGoodsList
+    })
   },
 
   onScroll: function (event) {
