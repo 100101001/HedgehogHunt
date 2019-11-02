@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("find")
-public class FindController {
+public class FoundController {
 
     @GetMapping("test")
     @ApiOperation(value="获取寻物发布项")
