@@ -21,50 +21,48 @@ Page({
   },
 
   onLoad: function (options) {
-    var typeArray = [{
-      type: "钱包",
-      id: 0
-    },
-    {
-      type: "钥匙",
-      id: 1
-    },
-    {
-      type: "校园卡",
-      id: 2
-    },
-    {
-      type: "U盘",
-      id: 3
-    },
-    ];
-    var nameArray = [{
-      name: "韦朝旭",
-      id: 0
-    },
-    {
-      name: "路飞",
-      id: 1
-    },
-    {
-      name: "XX",
-      id: 2
-    },
-    ];
+    // var typeArray = [{
+    //   type: "钱包",
+    //   id: 0
+    // },
+    // {
+    //   type: "钥匙",
+    //   id: 1
+    // },
+    // {
+    //   type: "校园卡",
+    //   id: 2
+    // },
+    // {
+    //   type: "U盘",
+    //   id: 3
+    // },
+    // ];
+    // var nameArray = [{
+    //   name: "韦朝旭",
+    //   id: 0
+    // },
+    // {
+    //   name: "路飞",
+    //   id: 1
+    // },
+    // {
+    //   name: "XX",
+    //   id: 2
+    // },
+    // ];
     //todo:后台接口
-    var goodsList = goodsData.goodsList;
 
-    //截取前14个字当做概况
-    for (var i in goodsList) {
-      goodsList[i].content = goodsList[i].goodsDetail.substring(0, 14) + "...";
-    }
+    wx.request({})
+    var goodsList = goodsData.goodsList;
+    
     //设置底部导航栏
     var [isSelecteds, urls] = util.onNavigateTap(1);
     this.setData({
       isSelecteds: isSelecteds,
       goodsList: goodsList,
-      typeArray: typeArray,
-      nameArray: nameArray,
+      // typeArray: typeArray,
+      // nameArray: nameArray,
       messageCardShow: true,
       searchPanelShow: false,
       name: "",
