@@ -1,9 +1,9 @@
 package edu.tongji.ciwei.controller;
-import	java.awt.print.Pageable;
-import java.math.BigDecimal;
 
 import edu.tongji.ciwei.pojo.dto.response.UserInfo;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
 
 /**
  * @author 100101001
@@ -16,12 +16,11 @@ public class UserController {
 
     @GetMapping("{id}")
     public UserInfo getUserInfo(@PathVariable Integer id) {
-        UserInfo userInfo = UserInfo.builder().
+        return UserInfo.builder().
                 username("李依璇").
                 address("同濟大學嘉定校區").
                 telephone("17717090831").
                 qrCode("待生成").
                 accountBalance(new BigDecimal(5.1)).build();
-        return userInfo;
     }
 }
