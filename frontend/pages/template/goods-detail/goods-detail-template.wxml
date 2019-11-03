@@ -22,7 +22,7 @@
     <image class="goods_image" src="{{imageSrc}}"></image>
     <view class="location_container" catchtap='onLocateTap'>
       <image class="location_icon" src="/images/icons/coordinates.png"></image>
-      <text class="location_text">上海市杨浦区1239号同济大学</text>
+      <text class="location_text">{{location}}</text>
     </view>
   </view>
 </template>
