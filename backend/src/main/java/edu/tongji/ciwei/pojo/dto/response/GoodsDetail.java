@@ -10,7 +10,11 @@ import lombok.Data;
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class GoodsDetail {
+public class GoodsDetail implements Cloneable{
+
+    @JsonProperty(value = "id")
+    private Integer goodsListIndex;
+
     @JsonProperty(value = "avatarSrc")
     private String avatarUrl;
 
@@ -37,4 +41,9 @@ public class GoodsDetail {
 
     @JsonProperty(value = "goodsDetail" )
     private String goodsDescription;
+
+    @Override
+    public GoodsDetail clone() throws CloneNotSupportedException {
+        return (GoodsDetail) super.clone();
+    }
 }

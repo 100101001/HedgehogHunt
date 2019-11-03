@@ -1,13 +1,19 @@
-var goodsData = require("../../data/posts-data.js");
 var util = require("../../utils/util.js");
 var HedgeHogClient = require('../../utils/api').HedgeHogClient
 
 Page({
   data: {
+    pageIndex: -1,
+    pageCount: 10,
+    goodsList: [],
+    messageCardShow: true, //顯示列表
+    searchPanelShow: false, //顯示搜索背景
+    searchShow: true,  //顯示搜索框
+    searchName: "",
+    searchGoodsType: "",
     name: "",
     type: "",
-    pageIndex: 0,
-    pageCount: 10
+    isSelecteds: {}, //底部標籤項是否選中
   },
 
   //点击搜索框的取消键
@@ -52,15 +58,12 @@ Page({
     // },
     // ];
     //todo:后台接口
+    this.loadMoreGoodsData()
 
-    wx.request({})
-    var goodsList = goodsData.goodsList;
-    
     //设置底部导航栏
     var [isSelecteds, urls] = util.onNavigateTap(1);
     this.setData({
       isSelecteds: isSelecteds,
-      goodsList: goodsList,
       // typeArray: typeArray,
       // nameArray: nameArray,
       messageCardShow: true,
@@ -119,7 +122,7 @@ Page({
   onDetailTap: function (event) {
     var id = event.currentTarget.dataset.id;
     wx.navigateTo({
-      url: 'Find-detail/Find-detail?id=' + id,
+      url: 'Find-detail/Find-detail?id='+id
     })
   },
 
@@ -154,22 +157,32 @@ Page({
 
   //上滑加载
   onReachBottom: function (event) {
-    this.data.pageIndex += 1
-    var pageId = this.data.pageIndex
-    var pageCount = this.data.pageCount
-    var onLoadMoreSuccess = this.appendGoodsToGoodsList
+    this.loadMoreGoodsData()
+  },
+
+  /**
+   * 從後端追加獲取一頁的物品列表到前台進行顯示，觸發時機
+   * 1、在頁面新加載
+   * 2、用戶滑到底部時
+   */
+  loadMoreGoodsData: function () {
+    var pageId = this.data.pageIndex === undefined ? 0 : this.data.pageIndex + 1
+    var pageCount = this.data.pageCount === undefined ? 10 : this.data.pageCount
+    var onLoadMoreSuccess = this.onLoadMoreSuccess
     wx.request(HedgeHogClient.GetFindListRequest(pageId, pageCount, onLoadMoreSuccess))
   },
 
   /**
-   * 把增量獲取的數據追加到尾部
+   * 把獲取的數據追加到尾部
    * @param {*} res 
    */
-  appendGoodsToGoodsList: function (res) {
-    var newGoodsList = this.data.goodsList
+  onLoadMoreSuccess: function (res) {
+    var pageIndex = this.data.pageIndex + 1
+    var newGoodsList = this.data.goodsList === undefined ? [] : this.data.goodsList
     newGoodsList.push.apply(newGoodsList, res.data)
     this.setData({
-      goodsList: newGoodsList
+      goodsList: newGoodsList,
+      pageIndex: pageIndex
     })
   },
 
