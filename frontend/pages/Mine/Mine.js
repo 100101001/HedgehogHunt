@@ -1,27 +1,30 @@
-//从写的假数据里面加载的数据
-var Data = require("../../data/posts-data.js");
 var util = require("../../utils/util.js");
+const HedgeHogClient = require('../../utils/api').HedgeHogClient
 Page({
   data: {
 
   },
-  onLoad: function() {
-    var userinfo = Data.userinfo;
+  onLoad: function () {
+    var that = this
+    wx.request(HedgeHogClient.GetUserInfoRequest(1, function (res) {
+      that.setData({
+        userinfo: res.data
+      })
+    }))
     var [isSelecteds, urls] = util.onNavigateTap(4);
     this.setData({
-      isSelecteds: isSelecteds,
-      userinfo: userinfo,
+      isSelecteds: isSelecteds
     })
   },
 
   //改导航栏名称
-  onReady: function() {
+  onReady: function () {
     wx.setNavigationBarTitle({
       title: "个人信息"
     })
   },
 
-  onChooseAddresTap: function(event) {
+  onChooseAddresTap: function (event) {
     var id = event.currentTarget.dataset.id;
     wx.chooseAddress({
       success(res) {
@@ -37,16 +40,16 @@ Page({
     })
   },
 
-  onCatchTap: function(event) {
+  onCatchTap: function (event) {
     {
-    var id = event.currentTarget.dataset.id;
+      var id = event.currentTarget.dataset.id;
       wx.navigateTo({
         url: 'Mine-item-modify/Mine-item-modify?id=' + id,
       })
     }
   },
   //点击导航
-  onNavigateTap: function(event) {
+  onNavigateTap: function (event) {
     var id = event.currentTarget.dataset.id * 1; //乘1强制转换成数字
     var [isSelecteds, urls] = util.onNavigateTap(id);
     this.setData({
