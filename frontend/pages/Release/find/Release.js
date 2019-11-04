@@ -6,7 +6,7 @@ Page({
     countIndex: 0,
     isEmpty: true,
     list: '',
-
+    goodsTypes: [],
     imgs: [],
     upload_picture_list: [],
     count: 1,
@@ -14,89 +14,100 @@ Page({
     notli: false,
     pic_status: true
   },
-  onLoad: function(options) {
+  onLoad: function (options) {
     var textArray = {
       text1: "温馨提示：信息填写得越完整，物归原主的几率越大",
       text2: "辛苦了"
     };
     var inputTextArray = [{
-        labelText: "失主姓名",
-        placeholderText: "未知",
-      },
-      {
-        labelText: "联系方式",
-        placeholderText: "电话号码，可以不填",
-      },
-      {
-        labelText: "放置位置",
-        placeholderText: "物品预计放置位置",
-      },
-      {
-        labelText: "物品种类",
-        placeholderText: "输入物品",
-        value: ""
-      },
+      labelText: "失主姓名",
+      placeholderText: "未知",
+    },
+    {
+      labelText: "联系方式",
+      placeholderText: "电话号码，可以不填",
+    },
+    {
+      labelText: "放置位置",
+      placeholderText: "物品预计放置位置",
+    },
+    {
+      labelText: "物品种类",
+      placeholderText: "输入物品",
+      value: ""
+    },
     ];
-    var typeArray = [{
-        type: "钱包",
-        id: 0
-      },
-      {
-        type: "钥匙",
-        id: 1
-      },
-      {
-        type: "校园卡",
-        id: 2
-      },
-      {
-        type: "书",
-        id: 3
-      },
-      {
-        type: "雨伞",
-        id: 4
-      },
-    ];
+    // var goodsTypes = [{
+    //   type: "钱包",
+    //   id: 0
+    // },
+    // {
+    //   type: "钥匙",
+    //   id: 1
+    // },
+    // {
+    //   type: "校园卡",
+    //   id: 2
+    // },
+    // {
+    //   type: "书",
+    //   id: 3
+    // },
+    // {
+    //   type: "雨伞",
+    //   id: 4
+    // },
+    // ];
+
+    var goodsTypes = ["钱包", "钥匙", "校园卡", "书", "雨伞"];
 
     this.setData({
       inputTextArray: inputTextArray,
-      typeArray: typeArray
+      goodsTypes: goodsTypes
     });
   },
-  onReady: function(event) {
+  onReady: function (event) {
     wx.setNavigationBarTitle({
       title: '失物招领信息发布',
     })
   },
 
-  formSubmit: function(event) {
+  formSubmit: function (event) {
     console.log("提交数据为：", event.detail.value);
     console.log("图片连接：", this.data.upload_picture_list);
-    //数据提交成功后显示提示页面
+    //todo 後台存儲Found,和通知失主
     wx.navigateTo({
       url: '../remind/remind',
     })
   },
 
-  formReset: function(event) {
+  formReset: function (event) {
     console.log("执行Reset事件")
   },
 
   //点击物品种类
-  onTypeChooseTap: function(event) {
-    wx.showModal({
-      title: '选择物品',
-      content: '',
-    })
-    var id = event.currentTarget.dataset.id;
-    var type = this.data.typeArray[id].type;
+  onTypeChooseTap: function (event) {
     this.setData({
-      value: type
+      buttonClicked: true
     })
+    var goodsTypes = this.data.goodsTypes
+    var that = this
+    wx.showActionSheet({
+      itemList: goodsTypes,
+      success: function (res) {
+        if (!res.cancel) {
+          that.setData({
+            value: goodsTypes[res.tapIndex],
+            buttonClicked: false
+          })
+          wx.hideKeyboard({})
+        }
+      }
+    });
   },
 
-  onChooseLocation: function(event) {
+
+  onChooseLocation: function (event) {
     wx.openLocation({
       latitude: 31.2854,
       longitude: 121.49854,
@@ -105,7 +116,7 @@ Page({
   },
 
   //预览图片
-  previewImage: function(e) {
+  previewImage: function (e) {
     var current = e.target.dataset.src;
     wx.previewImage({
 
@@ -115,7 +126,7 @@ Page({
   },
 
   //选择图片方法
-  uploadpic: function(e) {
+  uploadpic: function (e) {
     var that = this //获取上下文
     var upload_picture_list = that.data.upload_picture_list
     //选择图片
@@ -123,14 +134,14 @@ Page({
       count: 9 - that.data.upload_picture_list.length,
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
-      success: function(res) {
+      success: function (res) {
         wx.showToast({
           //没有真正的上传数据
           title: '正在上传...',
           icon: 'loading',
           mask: true,
           duration: 2000,
-          success: function(res) {
+          success: function (res) {
             console.log('成功加载动画');
           }
         })
@@ -147,7 +158,7 @@ Page({
         });
         if (upload_picture_list.length >= 9) {
           that.setData({
-            pic_status : false,
+            pic_status: false,
           });
         } else {
           console.log("已经超过了九张")
@@ -159,7 +170,7 @@ Page({
     })
   },
   //点击上传事件
-  uploadimage: function() {
+  uploadimage: function () {
     var page = this
     var upload_picture_list = page.data.upload_picture_list
     //循环把图片上传到服务器 并显示进度       
@@ -170,7 +181,7 @@ Page({
     }
   },
   // 删除图片
-  deleteImg: function(e) {
+  deleteImg: function (e) {
     let upload_picture_list = this.data.upload_picture_list;
     let index = e.currentTarget.dataset.index;
     upload_picture_list.splice(index, 1);
