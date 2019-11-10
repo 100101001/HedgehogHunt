@@ -24,7 +24,10 @@ repositories {
 
 ext {
     swagger = [
-        version : '2.9.2'
+            version : '2.9.2'
+    ]
+    hutool = [
+            version: '5.0.3'
     ]
 }
 
@@ -34,6 +37,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     compile "io.springfox:springfox-swagger2:${swagger.version}"
     compile "io.springfox:springfox-swagger-ui:${swagger.version}"
+    compile "cn.hutool:hutool-all:${hutool.version}"
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     annotationProcessor 'org.projectlombok:lombok'
