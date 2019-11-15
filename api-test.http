@@ -1,0 +1,17 @@
+GET http://localhost:8080/found/test
+
+###
+POST http://localhost:8080/found/release
+Content-Type:  application/json
+
+{
+    "goods_detail": "",
+    "goods_owner": "李依璇",
+    "goods_type": "钥匙",
+    "phone_number": "17717090831",
+    "set_location": "食堂"
+}
+
+###
+GET http://localhost:8080/user/qrcode/0
+#<img src="data:image/jpeg;base64,{result}">

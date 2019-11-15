@@ -40,7 +40,7 @@
 <!--二维码显示及下载页面-->
 <view class="container" wx:if="{{status3}}">
   <view class="qrcode_container">
-    <image class="qrcode" src="/images/image/QRcode.jpg"></image>
+    <image class="qrcode" src="{{userinfo.qrcode}}" alt = "/images/image/QRcode.jpg"></image>
   </view>
   <button class="btn" bindtap='onSaveImgTap'>保存到相册</button>
 </view>

@@ -21,25 +21,18 @@
           <input name="set_location" placeholder="物品预计放置位置"></input>
         </view>
       </view>
-      <view class="item_container">
+      <view class="item_container" id="typeInput">
         <text class="label">物品种类</text>
         <view class="inputbox">
-          <input name="goods_type" placeholder="校园卡" value='{{value}}'></input>
+          <input name="goods_type" bindtap="onTypeChooseTap" placeholder="校园卡" value='{{value}}' bindkeyboardheightchange="wx.hideKeyboard({})" disabled="buttonClicked"></input>
         </view>
       </view>
-    </view>
-    <view class="goods_type_container">
-      <block wx:for="{{typeArray}}" wx:for-item="item">
-        <view class="type_text" bindtap='onTypeChooseTap' data-id="{{item.id}}">
-          <view class="type_box">{{item.type}}</view>
-        </view>
-      </block>
     </view>
     <view>
       <view class="detail_box">
         <textarea name="goods_detail" class="advice_text" placeholder-style='font-size:14px' placeholder='添加物品的详细信息，如拾取（丢失）地点，时间，物品的颜色，品牌等，希望都能物归原主'></textarea>
       </view>
-      <view class="picture_list">
+      <!-- <view class="picture_list">
         <view wx:for="{{upload_picture_list}}" class="picture_item" wx:key="{{index}}">
           <image wx:if="{{item.upload_percent < 100}}" src="{{item.path}}" mode="aspectFill"></image>
           <image wx:if="{{item.upload_percent == 100}}" src="{{item.path_server}}" mode="aspectFill"></image>
@@ -51,7 +44,7 @@
           </view>
         </view>
       </view>
-      <button bindtap='uploadimage' class='yes-upload'>确定上传</button>
+      <button bindtap='uploadimage' class='yes-upload'>确定上传</button> -->
       <view class='btn_container'>
         <button class="submit_btn" form-type='submit'>提交</button>
         <button class="reset_btn" form-type='reset'>重置</button>

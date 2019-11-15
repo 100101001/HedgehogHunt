@@ -17,7 +17,7 @@
         </view>
         <view class="location_container">
           <image class="location_icon" src="/images/icons/locate.png"></image>
-          <text class="location_text">上海市杨浦区1239号同济大学</text>
+          <text class="location_text">{{location}}</text>
         </view>
         <view class="goods_content">{{content}}</view>
         <view class="horizon"></view>
