@@ -1,0 +1,65 @@
+<import src="../template/info-auth-data/info-auth-template.wxml" />
+
+<view class="container">
+<loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
+  <!--回首页的按钮，用于用户从分享的信息回首页时-->
+  <!--<button wx:if="{{false}}" class="go-home-view" bindtap="goHome">回首页</button>-->
+  <!--发布者信息-->
+  <template is="info-auth-template" data="{{...report_auth_info}}" wx:if="{{check_report}}"/>
+  <template is="info-auth-template" data="{{...info}}"/>
+  <!--商品轮播图-->
+  <view class="swiper-container">
+    <swiper class="swiper_box" autoplay="{{autoplay}}" interval="{{interval}}" duration="{{duration}}" bindchange="swiperchange" circular="true">
+      <block wx:for="{{info.pics}}" wx:key="{{index}}">
+        <swiper-item>
+          <image src="{{item}}" bindtap="previewItemImage" data-index="{{index}}" class="slide-image" width="355" height="150" mode="aspectFit" lazy-load="true" />
+        </swiper-item>
+      </block>
+    </swiper>
+    <view class="dots">
+      <block wx:for="{{info.pics}}" wx:key="unique" >
+        <view class="dot{{index == swiperCurrent ? ' active' : ''}}"></view>
+      </block>
+    </view>
+  </view>
+  <!--商品基本介绍-->
+  <view class="goods-info">
+    <view class="goods-title">
+      <text wx:if="{{info.business_type}}" style="color: #e64340;">#出闲置#</text>
+      <text wx:if="{{!info.business_type}}" style="color: #009587;">#求购#</text> {{info.goods_name}}
+    </view>
+    <view class="goods-price" style="padding-left:35rpx;">¥ {{info.target_price}}</view>
+    <view class="goods-price" style="color:#999;font-size:24rpx;">浏览{{info.view_count}}次</view>
+    <view class="goods-price" style="color:#e64340;font-size:26rpx;">库存:{{info.stock}} </view>
+  </view>
+          <!--授权登陆-->
+      <button class="login-btn" open-type="getUserInfo" bindgetuserinfo="login" wx:if="{{ regFlag==false}}">授权登录</button>
+  <view class="location">
+    <image class="loc_icon" src="/images/icons/location-red.png"></image>
+    <text class="loc_text">{{info.location}}</text>
+  </view>
+  <!--二维码容器框-->
+  <view class="qr_code-container" wx:if="{{show_qr_code}}">
+    <view class="tips-views">扫微信二维码联系发布者~~</view>
+    <image class="qr_code" src="{{ info.qr_code_list[0] }}" bindtap="previewImage" mode="aspectFit"></image>
+  </view>
+  <view class="goods-des-info">
+    <view class="label-title">详情介绍<text style="color:#e64340;"> 《:::{{info.type_name}}:::》</text>{{info.goods_name}}</view>
+    <view class="goods-text">
+      <text>{{info.summary}}</text>
+    </view>
+  </view>
+
+  <!--底部-->
+  <view class="footer-box">
+    <view class="shop-cart-btn" catchtap="goHome">
+      <image src="/images/nav/home-on.png"></image>
+      <view style='position:absolute;bottom:10rpx;margin-top:10rpx;'> 回首页 </view>
+    </view>
+    <view class="join-shop-cart" catchtap="goRelease">去发布信息</view>
+    <view class="now-buy" catchtap="showQrCode">
+      <text wx:if="{{!show_qr_code}}">联系发布者</text>
+      <text wx:if="{{show_qr_code}}">关闭二维码</text>
+    </view>
+  </view>
+</view>

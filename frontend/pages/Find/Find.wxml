@@ -2,34 +2,19 @@
 <import src="../template/navigate-bar/navigate-bar-template.wxml" />
 
 <view class="all_container">
-  <view class="search_container" wx:if="{{searchShow}}">
+  <view class="search_container">
     <view class="search_box1">
       <icon type="search" class='search_icon' size='15' color="#f7931e"></icon>
       <input value='{{name}}' bindfocus='onBindFocus' bindinput="onBindNameInput" class='search_text_box' type="text" placeholder='姓名' placeholder-style='color:#f7931e;'></input>
     </view>
     <view class="search_box2">
-      <input value="{{type}}" bindfocus='onBindFocus' bindinput="onBindGoodsTypeInput" class='search_text_box' type="text" placeholder='物品种类' placeholder-style='color:#f7931e;  '></input>
+      <input value="{{type}}" bindfocus='onBindFocus' bindinput="onBindGoodsTypeInput" class='search_text_box' type="text" placeholder='物品种类' placeholder-style='color:#f7931e; '></input>
       <icon wx:if="{{searchPanelShow}}" bindtap='onCancelTap' type="cancel" class='search_icon' size='15' color="#f7931e"></icon>
     </view>
     <view class="search_button" bindtap="onBindConfirm">搜索</view>
   </view>
-  <view wx:if="{{searchPanelShow}}" class="search_history">
-    <!-- <text class='history_title'>搜索历史：</text>
-    <view class='history_item'>
-      <block wx:for="{{nameArray}}" wx:key="name" wx:for-item="item">
-        <view class="type" bindtap='onNameChooseTap' data-id="{{item.id}}">
-          <text class="name_history">{{item.name}}</text>
-        </view>
-      </block>
-      <block wx:for="{{typeArray}}" wx:key="type" wx:for-item="item">
-        <view class="type" bindtap='onTypeChooseTap' data-id="{{item.id}}">
-          <text class="type_history">{{item.type}}</text>
-        </view>
-      </block>
-    </view> -->
-  </view>
-  <view class="message_container" wx:if="{{messageCardShow}}">
-    <block wx:for="{{goodsList}}">
+  <view class="message_container">
+    <block wx:for="{{goodsList}}" wx:key="index">
       <view class="goods_message">
         <template is="goodsItem" data="{{...item}}" />
       </view>

@@ -19,8 +19,8 @@
 }
 
 .auther_avatar {
-  height: 60rpx;
-  width: 60rpx;
+  height: 70rpx;
+  width: 70rpx;
   margin-top: 20rpx;
 }
 
@@ -37,8 +37,28 @@
 
 .release_date {
   color: #999;
-  font-size: 12.5rpx;
+  font-size: 20rpx;
   margin-top: -30rpx;
+}
+
+
+.report{
+  width: 35rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  margin-top: 20rpx;
+  margin-left: 300rpx;
+}
+.report image{
+  height: 40rpx;
+  width: 36rpx;
+}
+.report text{
+  font-size: 18rpx;
+  color: #e64340;
+  margin-top: -20rpx;
 }
 
 .telcontainer {
@@ -59,13 +79,13 @@
 }
 
 .location_icon {
-  height: 22rpx;
-  width: 22rpx;
+  height: 25rpx;
+  width: 25rpx;
   margin-top: 10rpx;
 }
 
 .location_text {
-  font-size: 15rpx;
+  font-size: 20rpx;
   color: #b3b3b3;
   margin-left: 10rpx;
   margin-top: 10rpx;
@@ -83,45 +103,47 @@
   margin-left: 40rpx;
   display: flex;
   flex-direction: column;
+  margin-top: 5rpx;
 }
 
 .goods_message {
   align-items: center;
   display: flex;
   flex-direction: row;
-  font-size: 20rpx;
-
+  font-size: 22rpx;
 }
 
 .goods_owner {
-  margin-left: 20rpx;
+  display: flex;
   padding: 3rpx 20rpx 3rpx 20rpx;
+  margin-left: 20rpx;
   border-radius: 40rpx;
   align-items: center;
   text-align: center;
   color: #fff;
+  justify-content: center;
   background-color: #f7931e;
 }
 
 .content_container {
   display: flex;
   flex-direction: row;
-  margin-top: -20rpx;
+  margin-top: -10rpx;
 }
 
 .goods_content {
-  margin-top: 35rpx;
+  margin-top: 20rpx;
   color: #b3b3b3;
-  font-size: 20rpx;
+  font-size: 24rpx;
   width: 370rpx;
 }
 
 .horizon{
   background-color:  #f7931e;
-  height: 0.5px;
+  height: 1px;
   border-radius: 2px;
   width: 365rpx;
-  margin-top: 40rpx;
+  margin-top: 10rpx;
 }
 
 .operate{
