@@ -4,11 +4,9 @@ import cn.hutool.core.codec.Base64Encoder;
 import edu.tongji.ciwei.pojo.dto.response.UserInfo;
 import edu.tongji.ciwei.service.rest3rd.WxService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.Base64;
 
 /**
  * @author 100101001

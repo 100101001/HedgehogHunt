@@ -1,7 +1,6 @@
 package edu.tongji.ciwei.service.rest3rd;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -9,7 +8,6 @@ import edu.tongji.ciwei.config.constant.WxConstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.Charset;
 import java.util.Map;
 
 /**
