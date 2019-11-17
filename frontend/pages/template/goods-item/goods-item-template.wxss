@@ -57,7 +57,7 @@
 }
 .report text{
   font-size: 18rpx;
-  color: #e64340;
+  color: #f7931e;
   margin-top: -20rpx;
 }
 

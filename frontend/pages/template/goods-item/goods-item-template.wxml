@@ -1,10 +1,10 @@
 <template name="goodsItem">
   <view class="goods_container">
     <view class="auther_data">
-      <image class="auther_avatar" src="{{avatarSrc}}"></image>
+      <image class="auther_avatar" src="{{avatar}}"></image>
       <view class="auther_message">
-        <text class="auther_name">{{autherName}}</text>
-        <text class="release_date">{{releaseDate.year}}年{{releaseDate.month}}月{{releaseDate.day}}日    {{dateTime}}</text>
+        <text class="auther_name">{{auther_name}}</text>
+        <text class="release_date">{{updated_time}}</text>
       </view>
       <view class="report" catchtap="toReport" data-id="{{id}}">
         <image src="/images/icons/report.png"></image>
@@ -12,12 +12,12 @@
       </view>
     </view>
     <view class="content_container" catchtap='onDetailTap' data-id="{{id}}">
-      <image class="goods_image" src="{{imageSrc}}" mode="aspectFill"></image>
+      <image class="goods_image" src="{{main_image}}" mode="aspectFill"></image>
       <view class="summary_container">
         <view class="goods_message">
           <text style='color: #f7931e; font-size:20rpx'>#拾得#</text>
-          <view class="goods_owner">{{goodsType}}</view>
-          <view class="goods_owner">{{goodsOwner}}</view>
+          <view class="goods_owner">{{goods_name}}</view>
+          <view class="goods_owner">{{onwer_name}}</view>
         </view>
         <view class="goods_content">{{content}}</view>
         <view class="horizon"></view>

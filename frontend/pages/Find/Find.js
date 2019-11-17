@@ -20,7 +20,7 @@ Page({
     var goodsList = goodsData.goodsList;
     //截取前14个字当做概况
     for (var i in goodsList) {
-      goodsList[i].content = goodsList[i].goodsDetail.substring(0, 27) + "...";
+      goodsList[i].content = goodsList[i].summary.substring(0, 27) + "...";
     }
     //设置底部导航栏
     var [isSelecteds,urls]=util.onNavigateTap(1);
@@ -83,7 +83,7 @@ Page({
   onDetailTap: function(event) {
     var id = event.currentTarget.dataset.id;
     wx.navigateTo({
-      url: 'Find-detail/Find-detail?id=' + id,
+      url: 'info/info',
     })
   },
 

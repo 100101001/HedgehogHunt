@@ -8,6 +8,26 @@ Page({
         interval: 3000,
         duration: 1000,
         swiperCurrent: 0,
+      loadingHidden: true,
+
+      info: {
+        "auther_name": "韦朝旭",
+        "avatar": "https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTJLMa7CuCcoXicK6SpMA9E0IHxPgLYibKFbeCkUo3IicyyDr8ssosTEaaptIL2Xjic6LXEC2OmjwmXMmQ/132",
+        "business_type": 1,//捡到东西还是丢了东西，捡到是1，丢了是0
+        "goods_name": "钱包",
+        "onwer_name":"韦朝旭",
+        "id": 23,//发布的记录的id
+        "is_auth": false,//当前用户是否是消息的发布者
+        "location": "图书馆",
+        "main_image": "https://jmall.opencs.cn/static/upload/20191030/81f2f83ff3ea43e797a3cf6144e9afba.jpg",//主图
+        "pics": [
+          "https://jmall.opencs.cn/static/upload/20191030/81f2f83ff3ea43e797a3cf6144e9afba.jpg"
+        ],//组图
+        "summary": "\u5168\u65b0\uff0c\u57fa\u672c\u6ca1\u5199\u5b57",//详情介绍
+        "updated_time": "2019-10-30 12:20:40",//更新时间
+        "view_count": 39,//浏览量
+      }
+
     },
     onShareAppMessage: function (Options) {
         var business_type = this.data.info.business_type;
@@ -50,7 +70,7 @@ Page({
         }
     },
     onLoad: function (options) {
-        var goods_id = options.goods_id;
+        var goods_id =23;
         var check_report = app.globalData.check_report;
         this.setData({
             check_report: check_report
@@ -62,9 +82,8 @@ Page({
         if (check_report) {
             this.getReportInfo(goods_id);
         } else {
-            this.getGoodsInfo(goods_id);
+            //this.getGoodsInfo(goods_id);
         }
-
     },
     onShow:function(){
       var regFlag = app.globalData.regFlag;
@@ -214,7 +233,7 @@ Page({
         })}
         else{
           app.alert({
-            "content":"授权登录后才能联系发布者！"
+            "content":"为了防止冒领，授权登陆实名认证之后才能查看地址！"
           });
         }
     },

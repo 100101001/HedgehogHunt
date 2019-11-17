@@ -9,7 +9,6 @@
     </view>
     <view class="search_box2">
       <input value="{{type}}" bindfocus='onBindFocus' bindinput="onBindGoodsTypeInput" class='search_text_box' type="text" placeholder='物品种类' placeholder-style='color:#f7931e; '></input>
-      <icon wx:if="{{searchPanelShow}}" bindtap='onCancelTap' type="cancel" class='search_icon' size='15' color="#f7931e"></icon>
     </view>
     <view class="search_button" bindtap="onBindConfirm">搜索</view>
   </view>

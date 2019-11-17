@@ -4,7 +4,7 @@
       <image style="width: 100rpx; height: 100rpx;  border-radius: 50%;" src="{{avatar}}"></image>
     </view>
     <view style="width:550rpx;float:left;margin-left:35rpx;" class="auth-item">
-      <view>{{auther_name}}</view>
+      <view class="auther-name">{{auther_name}}</view>
       <view class="updated-time">{{updated_time}}</view>
     </view>
     <view class="report" catchtap="toReport" data-id="{{id}}" wx:if="{{!is_auth && !check_report}}">

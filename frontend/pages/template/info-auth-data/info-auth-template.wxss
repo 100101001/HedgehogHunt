@@ -24,11 +24,17 @@
   margin-left: 10rpx;
 }
 
+.auther-name{
+  font-size:34rpx;
+}
+
 .updated-time{
   color: #B0B0B0;
   font-size:24rpx;
-  margin-top:5rpx;
+  margin-top:15rpx;
 }
+
+
 .report{
   width: 70rpx;
   margin-right: 40rpx;
@@ -43,6 +49,6 @@
 }
 .report text{
   font-size: 20rpx;
-  color: #e64340;
+  color: #f7931e;
   margin-top: 4rpx;
 }
