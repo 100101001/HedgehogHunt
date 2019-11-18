@@ -1,0 +1,38 @@
+<import src="../../template/mine-item/mine-item-template.wxml" />
+<view class="user">
+  <image class="avatar" src="/images/images/avatar/1.png"></image>
+  <view class="nickname">爱丢东西的TAC</view>
+  <!--view class="wechatid">微信号：wcx5755</view-->
+</view>
+
+<view class="userinfo">
+  <view class="fundation_message">基本信息</view>
+  <block wx:for="{{items}}" wx:key="index">
+    <view class="userinfo_container" bindtap="{{item.act}}">
+      <view class="title">{{item.name}}</view>
+      <view class="next">
+        <view class="content">{{item.value}}</view>
+        <image class='next_img' src='{{item.src}}'></image>
+      </view>
+    </view>
+  </block>
+  <view class="userinfo_container" data-id="3" bindtap="onCatchTap">
+    <view class="title">二维码</view>
+    <view class="next">
+      <view class="recharge_btn">获取</view>
+      <!-- <view class="recharge_btn">查看</view> -->
+    </view>
+  </view>
+  <view class="fundation_message">账户</view>
+  <view class="userinfo_container" data-id="4" bindtap="onCatchTap">
+    <!--<image class="goods_img" src="{{item.img}}"></image>-->
+    <view class="title">账户</view>
+    <view class="next">
+      <view class="recharge_btn">充值</view>
+    </view>
+  </view>
+  <import src="../template/navigate-bar/navigate-bar-template.wxml" />
+  <view>
+    <template is="navigate-bar-template" data="{{...isSelecteds}}" />
+  </view>
+</view>

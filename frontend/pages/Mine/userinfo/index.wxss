@@ -1,5 +1,5 @@
-@import "../template/mine-item/mine-item-template.wxss";
-@import "../template/navigate-bar/navigate-bar-template.wxss";
+@import "../../template/mine-item/mine-item-template.wxss";
+@import "../../template/navigate-bar/navigate-bar-template.wxss";
 
 page{
   background-color: #fff;
@@ -29,7 +29,6 @@ page{
   display: flex;
   flex-direction: column;
   background-color: #fff;
-  margin-bottom: 200rpx;
 }
 
 .fundation_message{
@@ -70,7 +69,7 @@ page{
 */
 .title {
   margin-left: 30rpx;
-  font-size: 28rpx;
+  font-size: 24rpx;
   font-weight: 600;
   margin-top: -20rpx;
   width: 170rpx;
@@ -86,25 +85,20 @@ page{
 }
 
 .next_img {
-  width: 32rpx;
-  height: 30rpx;
+  width: 22rpx;
+  height: 20rpx;
   margin-top: 5rpx;
   margin-right: 20rpx;
 }
 
 .content {
-  font-size: 20rpx;
+  margin-top: -20rpx;
+  font-size: 24rpx;
   font-weight: 600;
-  color: #fff;
-  margin: -35rpx 0 0 -50rpx;
-  background-color: #f7931e;
-  height: 30rpx;
-  width: 30rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  border-radius: 50%;
+  color: #999;
+  width: 350rpx;
+  text-align:left;
+  margin-left: 20rpx;
 }
 
 /*账户信息*/

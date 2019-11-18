@@ -6,7 +6,6 @@
   margin-top: 30rpx;
   background-color: #fff;
   padding-bottom: 5px;
-  
   height: 325rpx;
   width: 678rpx;
 }
@@ -56,7 +55,7 @@
   width: 36rpx;
 }
 .report text{
-  font-size: 18rpx;
+  font-size: 14rpx;
   color: #f7931e;
   margin-top: -20rpx;
 }

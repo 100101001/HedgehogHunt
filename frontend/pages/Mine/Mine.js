@@ -2,51 +2,102 @@ var util = require("../../utils/util.js");
 const HedgeHogClient = require('../../utils/api').HedgeHogClient
 Page({
   data: {
+    items1: [
+      {
+        label: "个人信息",
+        icons: "/images/icons/next.png",
+        act: "goUserInfo",
+      },
+      {
+      label: "反馈建议",
+      icons: "/images/icons/next.png",
+      act: "goFeedback",
+    },
+    {
+      label: "联系我们",
+      icons: "/images/icons/next.png",
+      act: "goConnect",
+    },
+    ],
+    items2:[
+      {
+        label: "发布记录",
+        icons: "/images/icons/next.png",
+        act: "goRecord",
+      },
+      {
+        label: "认领记录",
+        icons: "/images/icons/next.png",
+        act: "goRecord",
+      },
+      {
+        label: "匹配推送",
+        icons: "/images/icons/next.png",
+        value: 99,//value值是新推送的，未查看过的记录数，按时间来划分
+        act: "goRecord",
+      }
 
+    ]
   },
   onLoad: function () {
     var that = this
-    wx.request(HedgeHogClient.GetUserInfoRequest(1, function (res) {
-      that.setData({
-        userinfo: res.data
-      })
-    }))
+    // wx.request(HedgeHogClient.GetUserInfoRequest(1, function (res) {
+    //   that.setData({
+    //     userinfo: res.data
+    //   })
+    // }))
     var [isSelecteds, urls] = util.onNavigateTap(4);
     this.setData({
       isSelecteds: isSelecteds
     })
   },
-
-  //改导航栏名称
-  onReady: function () {
-    wx.setNavigationBarTitle({
-      title: "个人信息"
-    })
-  },
-
   onChooseAddresTap: function (event) {
-    var id = event.currentTarget.dataset.id;
+    var that = this;
+    var items=that.data.items;
     wx.chooseAddress({
       success(res) {
-        console.log(res.userName)
-        console.log(res.postalCode)
-        console.log(res.provinceName)
-        console.log(res.cityName)
-        console.log(res.countyName)
-        console.log(res.detailInfo)
-        console.log(res.nationalCode)
-        console.log(res.telNumber)
+        console.log(res)
+        items[0].value = res.userName;
+        items[1].value = res.telNumber;
+        items[2].value = res.cityName + res.countyName + res.detailInfo;
+        that.setData({
+          items:items
+        })
+        // console.log(res.userName)
+        // console.log(res.postalCode)
+        // console.log(res.provinceName)
+        // console.log(res.cityName)
+        // console.log(res.countyName)
+        // console.log(res.detailInfo)
+        // console.log(res.nationalCode)
+        // console.log(res.telNumber)
       }
     })
   },
-
-  onCatchTap: function (event) {
-    {
-      var id = event.currentTarget.dataset.id;
-      wx.navigateTo({
-        url: 'Mine-item-modify/Mine-item-modify?id=' + id,
-      })
-    }
+  goControls: function () {
+    wx.navigateTo({
+      url: 'controls/index',
+    })
+  },
+  goUserInfo: function () {
+    wx.navigateTo({
+      url: 'userinfo/index',
+    })
+  },
+  goConnect: function () {
+    wx.navigateTo({
+      url: 'connect/index',
+    })
+  },
+  goFeedback: function () {
+    wx.navigateTo({
+      url: 'controls/feedback/index',
+    })
+  },
+  goRecord: function () {
+    wx.navigateTo({
+      url: '/pages/jmall/record/index',
+    })
   },
   //点击导航
   onNavigateTap: function (event) {

@@ -35,6 +35,19 @@ App({
   globalData: {
     userInfo: null,
     domain: "https://jmall.opencs.cn/api",
+    objectArray: [{
+      id: 0,
+      name: '待认领'
+    },
+    {
+      id: 1,
+      name: '预认领'
+    },
+    {
+      id: 2,
+      name: '已认领'
+    },
+    ],
   },
   tip: function (params) {
     var that = this;

@@ -1,0 +1,48 @@
+.container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.pics-item{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 50rpx;
+}
+
+.title{
+  font-size: 28rpx;
+  font-weight: 600;
+  height: 40rpx;
+  width: 500rpx;
+  background-color: #f7931e;
+  border-radius: 20rpx;
+  color: #fff;
+  text-align: center;
+}
+
+.title1{
+  font-size: 28rpx;
+  font-weight: 600;
+  height: 40rpx;
+  width: 500rpx;
+  background-color: #009578;
+  border-radius: 20rpx;
+  color: #fff;
+  text-align: center;
+}
+
+.qr_code{
+  height: 500rpx;
+  width: 500rpx;
+}
+
+.tips-views{
+  font-size: 24rpx;
+  justify-content: center;
+  align-content: center;
+  margin-top: 20rpx;
+}

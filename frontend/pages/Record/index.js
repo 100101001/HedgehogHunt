@@ -1,12 +1,9 @@
 var goodsData = require("../../data/posts-data.js");
 var util = require("../../utils/util.js");
-var app = getApp();
 Page({
   data: {
     name: "",
-    type: "",
-    banners: ["/images/goods/camera.jpg", "/images/goods/ear_phone.jpg"],
-    activeCategoryId:-1,
+    type: ""
   },
 
   //点击搜索框的取消键
@@ -27,37 +24,17 @@ Page({
     }
     //设置底部导航栏
     var [isSelecteds,urls]=util.onNavigateTap(1);
-    var cat_ori = [{
-      id: -1,
-      name: '全部'
-    }];
-    var cat_all = app.globalData.objectArray;
-    var cats = cat_ori.concat(cat_all);
     this.setData({
       isSelecteds: isSelecteds,
       goodsList: goodsList,
+      messageCardShow: true,
+      searchPanelShow: false,
       name: "",
       type: "",
       searchShow: true,
-      categories: cats,
     })
   },
-  //事件处理函数
-  swiperchange: function (e) {
-    this.setData({
-      swiperCurrent: e.detail.current
-    })
-  },
-  catClick: function (e) {
-    //选择一次分类时返回选中值
-    this.setData({
-      activeCategoryId: e.currentTarget.id,
-      p: 1,
-      goods_list: [],
-      loadingMoreHidden: true
-    });
-    // this.getGoodsList();
-  },
+
   //点击搜索按钮或者点击键盘完成键
   onBindNameInput: function(event) {
     this.setData({
