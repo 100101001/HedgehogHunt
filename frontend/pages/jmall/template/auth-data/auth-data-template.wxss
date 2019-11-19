@@ -1,0 +1,68 @@
+.auth{
+
+}
+.auther-data {
+  display: flex;
+  flex-direction: row;
+  line-height: 60rpx;
+  margin: 0 0rpx 10rpx 10rpx;
+  
+}
+
+.auther-avatar {
+  height: 80rpx;
+  width: 80rpx;
+  margin-top: 25rpx;
+  border-radius: 50%;
+}
+
+.auther-message {
+  display: flex;
+  flex-direction: column;
+  margin-left: 10rpx;
+  width:200rpx;
+}
+
+.auther-name {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+}
+
+.release-date {
+  color: #999;
+  font-size: 16rpx;
+  margin-top: -30rpx;
+}
+
+.report{
+  width: 35rpx;
+  display: flex;
+  flex-direction: column;
+  margin-top: 20rpx;
+  margin-left: -10rpx;
+}
+.report image{
+  height: 30rpx;
+  width: 30rpx;
+}
+.report text{
+  font-size: 16rpx;
+  color: #e64340;
+}
+
+.loc_icon{
+  width: 20rpx;
+  height: 20rpx;
+}
+.location{
+  display: flex;
+  align-content: center;
+  align-items:center;
+  margin-top: -40rpx;
+}
+.loc_text{
+  margin-left: 8rpx;
+  font-size: 16rpx;
+  font-weight: 600;
+  opacity: 0.4;
+}

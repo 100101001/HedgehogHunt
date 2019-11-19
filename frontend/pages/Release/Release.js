@@ -20,13 +20,13 @@ Page({
 
   onFindTap:function(event){
     wx.navigateTo({
-      url: 'find/Release',
+      url: 'release/index?business_type=1',
     })
   },
 
     onLostTap: function (event) {
     wx.navigateTo({
-      url: 'lost/Release-lost',
+      url: 'release/index?business_type=0',
     })
   }
 })

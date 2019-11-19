@@ -1,23 +1,25 @@
 {
   "pages": [
-    "pages/Find/Find",
-    "pages/Release/find/Release",
+        "pages/Find/Find",
     "pages/Mine/Mine",
-    "pages/Homepage/homepage",
+    "pages/Mine/connect/index",
     "pages/Release/Release",
-    "pages/Release/lost/Release-lost",
-    "pages/Mine/Mine-item-modify/Mine-item-modify",
+    "pages/Find/info/info",
+    "pages/Homepage/homepage",
+    "pages/Release/release/index",
     "pages/Release/remind/remind",
     "pages/Find/Find-detail/Find-detail",
     "pages/Homepage/homepage/advice/advice",
     "pages/Homepage/homepage/commodity/commodity",
     "pages/Homepage/homepage/pay/pay",
     "pages/Homepage/homepage/aboutus/aboutus",
-    "pages/Lost/Lost"
+    "pages/Lost/Lost",
+    "pages/Mine/userinfo/index",
+    "pages/Record/index"
   ],
   "window": {
     "navigationBarBackgroundColor": "#f7931e",
-    "navigationBarTitleText": "同济大学失物招领"
+    "navigationBarTitleText": "刺猬寻物"
   },
   "sitemapLocation": "sitemap.json"
 }

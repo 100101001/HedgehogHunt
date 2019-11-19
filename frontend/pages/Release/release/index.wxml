@@ -1,0 +1,39 @@
+<!--import src="../template/upload-pics/upload-pics-template.wxml" /-->
+<view class="container">
+  <loading hidden="{{loadingHidden}}" wx:if="{{ !upload_qrcode }}">上传第{{i}}张图片..</loading>
+  <form class="goods-box" bindsubmit="formSubmit">
+    <view class="price-and-location">
+      <block wx:for="{{items}}" wx:key="{{index}}">
+        <view class="hrz"></view>
+        <view class="item-container">
+          <image src="{{item.icons}}" mode="aspectFit"></image>
+          <view class="label">{{item.label}}</view>
+          <view class="inputbox">
+            <input name="{{item.name}}" placeholder="{{item.placeholder}}" value="{{item.value}}" type="{{item.kb_type}}"></input>
+          </view>
+        </view>
+      </block>
+      <view class="hrz"></view>
+    </view>
+    <view class="tips-views" wx:if="{{ business_type }}">物品图，默认第一张图片为主图</view>
+    <view class="tips-views" wx:if="{{ !business_type }}">默认图，选你要找的商品类似图后可以删除</view>
+    <!--上传图片的模板-->
+    <view class="pics-list">
+      <view wx:for="{{imglist}}" class="pics-item" wx:key="{{index}}">
+        <image src="{{item}}" mode="aspectFill" bindtap="previewImage" data-index="{{index}}"></image>
+        <view class='del' bindtap="deleteImg" style='display:{{isDel}}' data-index="{{index}}">×</view>
+      </view>
+      <view class="add-view" wx:if="{{pic_status}}" bindtap='chooseLoadPics'>
+        <image class="add-pic-icon" src="/images/icons/add-pics.png"></image>
+      </view>
+    </view>
+    <view class="tips-views" wx:if="{{business_type==0}}">发布寻物启事前可以先去首页看看有没有人发布失物招领~</view>
+    <view class="tips-views" wx:if="{{business_type==1}}">发布失物招领前可以先去首页看看有没有人发布寻物启事~</view>
+    <view class="hrz"></view>
+    <view class="summary-container">
+      <view class="tips-views">物品描述</view>
+      <textarea class="summary" maxlength="{{false}}" name="summary" placeholder="{{summary_placeholder}}" value="{{summary_value}}"></textarea>
+    </view>
+    <button class="submit-btn" form-type="submit">提交发布</button>
+  </form>
+</view>

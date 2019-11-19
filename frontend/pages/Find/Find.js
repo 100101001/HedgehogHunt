@@ -1,6 +1,7 @@
 var util = require("../../utils/util.js");
 var HedgeHogClient = require('../../utils/api').HedgeHogClient
 
+var app = getApp();
 Page({
   data: {
     pageIndex: -1,
@@ -14,6 +15,8 @@ Page({
     name: "",
     type: "",
     isSelecteds: {}, //底部標籤項是否選中
+    banners: ["/images/goods/camera.jpg", "/images/goods/ear_phone.jpg"],
+    activeCategoryId:-1,
   },
 
   //点击搜索框的取消键
@@ -27,53 +30,42 @@ Page({
   },
 
   onLoad: function (options) {
-    // var typeArray = [{
-    //   type: "钱包",
-    //   id: 0
-    // },
-    // {
-    //   type: "钥匙",
-    //   id: 1
-    // },
-    // {
-    //   type: "校园卡",
-    //   id: 2
-    // },
-    // {
-    //   type: "U盘",
-    //   id: 3
-    // },
-    // ];
-    // var nameArray = [{
-    //   name: "韦朝旭",
-    //   id: 0
-    // },
-    // {
-    //   name: "路飞",
-    //   id: 1
-    // },
-    // {
-    //   name: "XX",
-    //   id: 2
-    // },
-    // ];
-    //todo:后台接口
+
     this.loadMoreGoodsData()
 
     //设置底部导航栏
-    var [isSelecteds, urls] = util.onNavigateTap(1);
+    var [isSelecteds,urls]=util.onNavigateTap(1);
+    var cat_ori = [{
+      id: -1,
+      name: '全部'
+    }];
+    var cat_all = app.globalData.objectArray;
+    var cats = cat_ori.concat(cat_all);
     this.setData({
       isSelecteds: isSelecteds,
-      // typeArray: typeArray,
-      // nameArray: nameArray,
-      messageCardShow: true,
-      searchPanelShow: false,
+      goodsList: goodsList,
       name: "",
       type: "",
       searchShow: true,
+      categories: cats,
     })
   },
-
+  //事件处理函数
+  swiperchange: function (e) {
+    this.setData({
+      swiperCurrent: e.detail.current
+    })
+  },
+  catClick: function (e) {
+    //选择一次分类时返回选中值
+    this.setData({
+      activeCategoryId: e.currentTarget.id,
+      p: 1,
+      goods_list: [],
+      loadingMoreHidden: true
+    });
+    // this.getGoodsList();
+  },
   //点击搜索按钮或者点击键盘完成键
   onBindNameInput: function (event) {
     this.setData({
@@ -122,7 +114,7 @@ Page({
   onDetailTap: function (event) {
     var id = event.currentTarget.dataset.id;
     wx.navigateTo({
-      url: 'Find-detail/Find-detail?id='+id
+      url: 'info/info',
     })
   },
 

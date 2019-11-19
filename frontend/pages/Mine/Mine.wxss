@@ -29,14 +29,15 @@ page{
   display: flex;
   flex-direction: column;
   background-color: #fff;
+  margin-bottom: 200rpx;
 }
 
 .fundation_message{
-  margin-left: 104rpx;
+  margin-left: 64rpx;
   display: flex;
   flex-direction: column;
   margin-top: 70rpx;
-  width: 542rpx;
+  width: 642rpx;
   height: 54rpx;
   justify-content: center;
   align-items: center;
@@ -53,8 +54,8 @@ page{
   align-items: center;
   display: flex;
   flex-direction: row;
-  margin-left: 104rpx;
-  width: 542rpx;
+  margin-left: 64rpx;
+  width: 642rpx;
   border-bottom: 1px solid #ededed;
   text-align: center;
 }
@@ -68,10 +69,12 @@ page{
 }
 */
 .title {
-  margin-left: 10rpx;
-  font-size: 24rpx;
+  margin-left: 30rpx;
+  font-size: 28rpx;
   font-weight: 600;
   margin-top: -20rpx;
+  width: 170rpx;
+  text-align:left;
 }
 
 .next {
@@ -83,17 +86,25 @@ page{
 }
 
 .next_img {
-  width: 22rpx;
-  height: 20rpx;
-   margin-top: 5rpx;
+  width: 32rpx;
+  height: 30rpx;
+  margin-top: 5rpx;
+  margin-right: 20rpx;
 }
 
 .content {
-  margin-top: -20rpx;
-  margin-right: 20rpx;
-  font-size: 24rpx;
+  font-size: 20rpx;
   font-weight: 600;
-  color: #999;
+  color: #fff;
+  margin: -35rpx 0 0 -50rpx;
+  background-color: #f7931e;
+  height: 30rpx;
+  width: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-radius: 50%;
 }
 
 /*账户信息*/

@@ -1,0 +1,64 @@
+@import "../template/items/item-template.wxss";
+.container{
+  min-height: 100%;
+  overflow: hidden;
+  overflow-y: hidden;
+}
+.userinfo {
+	display: flex;
+	flex-direction: column;
+	padding: 50rpx 0;
+	align-items: center;
+	background: #e64340;
+  width: 750rpx;
+}
+
+.userinfo-avatar {
+	width: 160rpx;
+	height: 160rpx;
+	margin: 20rpx;
+	border-radius: 50%;
+}
+
+.userinfo-nickname {
+  margin-top: 20rpx;
+  color: #FFF;
+}
+
+.userinfo-member-id{
+  margin-top: 20rpx;
+  color: #FFF;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.version {
+  width:100%;
+  height: 40rpx;
+	line-height: 40rpx;
+	font-size: 24rpx;
+	text-align: center;  
+  padding: 40rpx;
+}
+.qr_code-container{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  font-size: 30rpx;
+  background-color: #fff;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+.tips-views{
+  display: flex;
+  font-size: 30rpx;
+  justify-content: center;
+  opacity: 0.7;
+  align-content: center;
+}
+
+.qr_code{
+  width: 400rpx;
+  height: 400rpx;
+}
+

@@ -1,0 +1,73 @@
+@import "../template/goods-item/goods-item-template.wxss";
+@import "../template/navigate-bar/navigate-bar-template.wxss";
+
+page {
+  /*背景图片*/
+  background-image: url("https://console.changshunlive.com/static/img/20190308185846.png");
+  background-attachment: fixed;
+}
+
+.all_container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 200rpx;
+}
+
+.search_container {
+  align-items: center;
+  position: fixed;
+  display: flex;
+  flex-direction: row;
+  padding: 5px;
+  background-color: #f7931e;
+  width: 750rpx;
+  top: 0;
+}
+
+.search_box1 {
+  margin-left: 30rpx;
+  align-items: center;
+  border-radius: 25rpx;
+  width: 260rpx;
+  font-size: 22rpx;
+  display: flex;
+  flex-direction: row;
+  background-color: #fff;
+  height: 50rpx;
+}
+
+.search_box2 {
+  margin-left: 10rpx;
+  align-items: center;
+  border-radius: 25rpx;
+  width: 260rpx;
+  font-size: 22rpx;
+  display: flex;
+  flex-direction: row;
+  background-color: #fff;
+  height: 50rpx;
+}
+
+.search_text_box {
+  margin-left: 20rpx;
+  height: 35rpx;
+  width: 190rpx;
+  color: #f7931e;
+}
+
+.search_icon{
+  margin-left: 12rpx;
+}
+
+.search_button {
+  color: #fff;
+  padding: 5rpx 30rpx 5rpx 30rpx;
+  border: 2px #fff solid;
+  border-radius: 30rpx;
+  font-size: 22rpx;
+  margin-left: 30rpx;
+}
+
+.message_container {
+  margin-top: 60rpx;
+}
