@@ -1,8 +1,9 @@
 {
   "pages": [
-    "pages/Record/index",
-    "pages/Mine/Mine",
     "pages/Find/Find",
+    "pages/Record/index",
+    "pages/Record/info/info",
+    "pages/Mine/Mine",
     "pages/Find/info/info",
     "pages/Mine/connect/index",
     "pages/Release/Release",

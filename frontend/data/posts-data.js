@@ -7,6 +7,7 @@ var localDataBase = [{
     auther_name: "韦朝旭",
     onwer_name: "韦朝旭",
     goods_name: "钱包",
+    selected:false,
   },
   {
     avatar: "/images/images/avatar/2.png",
@@ -18,6 +19,7 @@ var localDataBase = [{
     auther_name: "萧",
     onwer_name: "索隆",
     goods_name: "校园卡",
+    selected: false,
   },
   {
     avatar: "/images/images/avatar/3.png",
@@ -29,6 +31,7 @@ var localDataBase = [{
     auther_name: "韦朝旭",
     onwer_name: "乌索普",
     goods_name: "锤子",
+    selected: false,
   },
   {
     avatar: "/images/images/avatar/4.png",
@@ -40,6 +43,7 @@ var localDataBase = [{
     auther_name: "韦朝旭",
     onwer_name: "乔巴",
     goods_name: "药箱",
+    selected: false,
   },
   {
     avatar: "/images/images/avatar/5.png",
@@ -51,6 +55,7 @@ var localDataBase = [{
     auther_name: "萧",
     onwer_name: "路飞",
     goods_name: "帽子",
+    selected: false,
   },
   {
     avatar: "/images/images/avatar/3.png",
@@ -62,6 +67,7 @@ var localDataBase = [{
     auther_name: "朝旭",
     onwer_name: "香吉士",
     goods_name: "菜刀",
+    selected: false,
   },
 ]
 

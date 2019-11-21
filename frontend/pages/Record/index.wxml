@@ -2,30 +2,31 @@
 
 <!--index.wxml-->
 <view class="container">
-  <view class="list-top" wx:if="{{ goodsList.length }}">
-    <view class="label">购物车</view>
-    <view class="edit-btn" hidden="{{!saveHidden}}" bindtap="editTap">编辑</view>
-    <view class="edit-btn" hidden="{{saveHidden}}" bindtap="saveTap">完成</view>
+    <view class="search_container" wx:if="{{list.length}}">
+    <view class="search_box1">
+      <icon type="search" class='search_icon' size='15' color="#f7931e"></icon>
+      <input value='{{name}}' bindfocus='onBindFocus' bindinput="onBindNameInput" class='search_text_box' type="text" placeholder='姓名' placeholder-style='color:#f7931e;'></input>
+    </view>
+    <view class="search_box2">
+      <input value="{{type}}" bindfocus='onBindFocus' bindinput="onBindGoodsTypeInput" class='search_text_box' type="text" placeholder='物品种类' placeholder-style='color:#f7931e; '></input>
+    </view>
+    <view class="search_button" bindtap="onBindConfirm">搜索</view>
+    
+    <view class="search_button" hidden="{{!saveHidden}}" bindtap="editTap">编辑</view>
+    <view class="search_button" hidden="{{saveHidden}}" bindtap="saveTap">完成</view>
   </view>
-
   <view class="message_container">
-    <block wx:for="{{goodsList}}" wx:key="index">
-      <view class="a-goods-conts {{item.active? 'active':''}}" bindtap="selectTap" data-index="{{index}}"></view>
+    <block wx:for="{{list}}" wx:key="index">
       <view class="goods_message">
+        <radio class="radio" hidden="{{saveHidden}}" data-index="{{index}}" bindtap="selectTap" checked="{{item.selected}}" />
         <template is="goodsItem" data="{{...item}}" />
       </view>
     </block>
   </view>
-  <view class="jiesuan-box" wx:if="{{ goodsList.length }}">
+  <view class="jiesuan-box" wx:if="{{ list.length }}" hidden="{{saveHidden}}">
     <view class="left-price">
-      <view class="all-selected  {{allSelect?'active':''}}" bindtap="bindAllSelect">全选</view>
-      <view class="total" hidden="{{noSelect}}">合计：¥ {{totalPrice}}</view>
+      <radio class="radio"  bindtap="bindAllSelect"  checked="{{allSelect}}">全选</radio>
     </view>
-    <view class="to-pay-btn {{noSelect?'no-select':''}}" hidden="{{!saveHidden}}" bindtap="toPayOrder">去结算</view>
-    <view class="to-pay-btn {{noSelect?'no-select':''}}" hidden="{{saveHidden}}" bindtap="deleteSelected">删除</view>
+    <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected">删除</view>
   </view>
-</view>
-
-
-<view class="all_container">
 </view>
