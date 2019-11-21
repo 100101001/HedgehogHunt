@@ -24,17 +24,20 @@ Page({
         label: "发布记录",
         icons: "/images/icons/next.png",
         act: "goRecord",
+        record_status:"1"
       },
       {
         label: "认领记录",
         icons: "/images/icons/next.png",
         act: "goRecord",
+        record_status: "2"
       },
       {
         label: "匹配推送",
         icons: "/images/icons/next.png",
         value: 99,//value值是新推送的，未查看过的记录数，按时间来划分
         act: "goRecord",
+        record_status: "3"
       }
 
     ]
@@ -96,7 +99,7 @@ Page({
   },
   goRecord: function () {
     wx.navigateTo({
-      url: '/pages/jmall/record/index',
+      url: '../Record/index',
     })
   },
   //点击导航

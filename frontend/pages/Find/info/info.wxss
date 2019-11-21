@@ -102,6 +102,28 @@ swiper-item image {
   background-color: #f7931e;
 }
 
+.goods-status{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.status-container {
+  margin-left: 400rpx;
+  color: #f7931e;
+  font-size: 30rpx;
+  font-weight: 600;
+  border: 8rpx #f7931e solid;
+  border-radius: 50rpx;
+  height: 60rpx;
+  width: 150rpx;
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  text-align: center;
+}
+
 .goods-price{
   margin-top: 10rpx;
 }

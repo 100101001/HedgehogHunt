@@ -1,13 +1,16 @@
 var goodsData = require("../../data/posts-data.js");
 var util = require("../../utils/util.js");
+var app = getApp();
 Page({
   data: {
     name: "",
-    type: ""
+    type: "",
+    banners: ["/images/goods/camera.jpg", "/images/goods/ear_phone.jpg"],
+    activeCategoryId: -1,
   },
 
   //点击搜索框的取消键
-  onCancelTap: function(event) {
+  onCancelTap: function (event) {
     this.setData({
       messageCardShow: true,
       searchPanelShow: false,
@@ -16,29 +19,49 @@ Page({
     })
   },
 
-  onLoad: function(options) {
+  onLoad: function (options) {
     var goodsList = goodsData.goodsList;
     //截取前14个字当做概况
     for (var i in goodsList) {
       goodsList[i].content = goodsList[i].summary.substring(0, 27) + "...";
     }
     //设置底部导航栏
-    var [isSelecteds,urls]=util.onNavigateTap(1);
+    var [isSelecteds, urls] = util.onNavigateTap(1);
+    var cat_ori = [{
+      id: -1,
+      name: '全部'
+    }];
+    var cat_all = app.globalData.objectArray;
+    var cats = cat_ori.concat(cat_all);
     this.setData({
       isSelecteds: isSelecteds,
       goodsList: goodsList,
-      messageCardShow: true,
-      searchPanelShow: false,
       name: "",
       type: "",
       searchShow: true,
+      categories: cats,
     })
   },
-
-  //点击搜索按钮或者点击键盘完成键
-  onBindNameInput: function(event) {
+  //事件处理函数
+  swiperchange: function (e) {
     this.setData({
-      searchName:event.detail.value
+      swiperCurrent: e.detail.current
+    })
+  },
+  catClick: function (e) {
+    //选择一次分类时返回选中值
+    this.setData({
+      activeCategoryId: e.currentTarget.id,
+      p: 1,
+      goods_list: [],
+      loadingMoreHidden: true
+    });
+    // this.getGoodsList();
+  },
+  //点击搜索按钮或者点击键盘完成键
+  onBindNameInput: function (event) {
+    this.setData({
+      searchName: event.detail.value
     })
   },
   onBindGoodsTypeInput: function (event) {
@@ -47,32 +70,32 @@ Page({
     })
   },
 
-  onBindConfirm:function(event){
-    util.showMessage('获取值',this.data.searchName+"和"+this.data.searchGoodsType);
+  onBindConfirm: function (event) {
+    util.showMessage('获取值', this.data.searchName + "和" + this.data.searchGoodsType);
   },
 
   //点击名字搜索历史
-  onNameChooseTap: function(event) {
+  onNameChooseTap: function (event) {
     var id = event.currentTarget.dataset.id;
     var name = this.data.nameArray[id].name;
     this.setData({
       name: name,
-      searchName:name
+      searchName: name
     })
   },
 
   //点击物品搜索历史
-  onTypeChooseTap: function(event) {
+  onTypeChooseTap: function (event) {
     var id = event.currentTarget.dataset.id;
     var type = this.data.typeArray[id].type;
     this.setData({
       type: type,
-      searchGoodsType:type
+      searchGoodsType: type
     })
   },
 
   //点击输入框
-  onBindFocus: function(event) {
+  onBindFocus: function (event) {
     this.setData({
       messageCardShow: false,
       searchPanelShow: true,
@@ -80,7 +103,7 @@ Page({
   },
 
   //点击信息卡查看详情
-  onDetailTap: function(event) {
+  onDetailTap: function (event) {
     var id = event.currentTarget.dataset.id;
     wx.navigateTo({
       url: 'info/info',
@@ -88,11 +111,11 @@ Page({
   },
 
   //点击联系之后
-  onConnectTap: function(event) {
+  onConnectTap: function (event) {
     util.showMessage('点击联系', '需要让用户自己联系吗？存在诈骗风险');
   },
 
-  onShareTap: function(event) {
+  onShareTap: function (event) {
     var itemList = [
       "分享给微信好友",
       "分享到朋友圈",
@@ -102,7 +125,7 @@ Page({
     wx.showActionSheet({
       itemList: itemList,
       itemColor: "#405f80",
-      success: function(res) {
+      success: function (res) {
         //res.cancel
         //res.tapIndex
         util.showMessage('用户 ' + itemList[res.tapIndex], res.cancel ? "取消分享" : "分享成功");
@@ -111,17 +134,17 @@ Page({
   },
 
   //下拉刷新
-  onPullDownRefresh: function(event) {
+  onPullDownRefresh: function (event) {
     util.showMessage("下拉刷新函数", "已经写好");
     wx.stopPullDownRefresh();
   },
 
   //上滑加载
-  onReachBottom: function(event) {
+  onReachBottom: function (event) {
     util.showMessage("上滑加载", "已经写好");
   },
 
-  onScroll: function(event) {
+  onScroll: function (event) {
     var deltaY = event.detail.deltaY;
     if (deltaY <= 0) {
       var serchShow = false
@@ -132,13 +155,13 @@ Page({
       searchShow: serchShow
     })
   },
-  
+
   //点击导航图标
-  onNavigateTap: function(event) {
-    var id = event.currentTarget.dataset.id*1;//乘1强制转换成数字
-    var [isSelecteds,urls]= util.onNavigateTap(id,2);
+  onNavigateTap: function (event) {
+    var id = event.currentTarget.dataset.id * 1;//乘1强制转换成数字
+    var [isSelecteds, urls] = util.onNavigateTap(id, 2);
     this.setData({
-      isSelecteds:isSelecteds
+      isSelecteds: isSelecteds
     })
     wx.redirectTo({
       url: urls[id],

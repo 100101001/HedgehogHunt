@@ -1,10 +1,11 @@
 {
   "pages": [
-        "pages/Find/Find",
+    "pages/Record/index",
     "pages/Mine/Mine",
+    "pages/Find/Find",
+    "pages/Find/info/info",
     "pages/Mine/connect/index",
     "pages/Release/Release",
-    "pages/Find/info/info",
     "pages/Homepage/homepage",
     "pages/Release/release/index",
     "pages/Release/remind/remind",
@@ -14,8 +15,7 @@
     "pages/Homepage/homepage/pay/pay",
     "pages/Homepage/homepage/aboutus/aboutus",
     "pages/Lost/Lost",
-    "pages/Mine/userinfo/index",
-    "pages/Record/index"
+    "pages/Mine/userinfo/index"
   ],
   "window": {
     "navigationBarBackgroundColor": "#f7931e",

@@ -14,19 +14,20 @@
   display: flex;
   flex-direction: row;
   line-height: 60rpx;
+  align-items: center;
   margin: 0 0rpx 20rpx 30rpx;
 }
 
 .auther_avatar {
   height: 70rpx;
   width: 70rpx;
-  margin-top: 20rpx;
 }
 
 .auther_message {
   display: flex;
   flex-direction: column;
   margin-left: 15rpx;
+  width: 280rpx;
 }
 
 .auther_name {
@@ -48,7 +49,7 @@
   justify-content: center;
   text-align: center;
   margin-top: 20rpx;
-  margin-left: 300rpx;
+  margin-left: 60rpx;
 }
 .report image{
   height: 40rpx;
@@ -58,17 +59,7 @@
   font-size: 14rpx;
   color: #f7931e;
   margin-top: -20rpx;
-}
-
-.telcontainer {
-  padding: 10rpx;
-  border-radius: 20rpx;
-  height: 50rpx;
-  vertical-align: middle;
-  border: 1px solid red;
-  font-size: 32rpx;
-  margin-top: 10rpx;
-  margin-left: 172rpx;
+  font-weight: 600;
 }
 
 .location_container {
@@ -175,5 +166,22 @@
 .operate_text{
   color: #f7931e;
   margin-left: 10rpx;
+}
+
+/*账户信息*/
+.status-container {
+  margin-left: 30rpx;
+  color: #f7931e;
+  font-size: 24rpx;
+  font-weight: 600;
+  border: 4rpx #f7931e solid;
+  border-radius: 30rpx;
+  height: 40rpx;
+  width: 100rpx;
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  text-align: center;
 }
 

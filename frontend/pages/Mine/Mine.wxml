@@ -25,7 +25,7 @@
 
   <view class="fundation_message">记录</view>
   <block wx:for="{{items2}}" wx:key="index">
-    <view class="userinfo_container" bindtap="{{item.act}}">
+    <view class="userinfo_container" bindtap="{{item.act}}" data-record_status="{{item.record_status}}">
       <view class="title">{{item.label}}</view>
       <view class="content" wx:if="{{item.value}}">{{item.value}}</view>
       <view class="next">

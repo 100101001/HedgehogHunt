@@ -6,6 +6,7 @@
         <text class="auther_name">{{auther_name}}</text>
         <text class="release_date">{{updated_time}}</text>
       </view>
+      <view class="status-container">待认领</view>
       <view class="report" catchtap="toReport" data-id="{{id}}">
         <image src="/images/icons/report.png"></image>
         <text>举报</text>
