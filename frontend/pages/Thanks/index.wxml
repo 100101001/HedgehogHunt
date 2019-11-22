@@ -1,0 +1,13 @@
+<view class="container">
+  <view class='header'>
+    <image src='/images/icons/wechat.png'></image>
+  </view>
+  <view class='content'>
+    <form bindsubmit="formSubmit">
+      <textarea class="summary" maxlength="{{false}}" name="summary" placeholder="请输入答谢的文字"></textarea>
+      <button class='bottom' form-type="submit" type='primary' bindtap="wordsThanks">文字答谢</button>
+    </form>
+    <button class='bottom' type='primary' bindtap="moneyThanks">红包答谢</button>
+    <button class='bottom' bindtap="goHome">回首页</button>
+  </view>
+</view>

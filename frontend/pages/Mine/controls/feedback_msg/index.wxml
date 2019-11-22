@@ -10,7 +10,7 @@
     </scroll-view>
 </view>
 
-<block wx:for="{{feedback_list}}">
+<block wx:for="{{feedback_list}}" wx:if="{{feedback_list.length}}">
   <view class="container" bindtap='toFeedBackDetail' data-id="{{item.id}}">
     <image class="image" src="{{item.main_image}}" mode="aspectFill"></image>
     <view class="text_container">
@@ -22,7 +22,7 @@
     <view wx:if="{{item.status==1}}" class="no-read">未读</view>
     <view wx:if="{{item.status==0}}" class="read">已阅</view>
   </view>
-    <view class="hrz"></view>
+  <view class="hrz"></view>
 </block>
 <view class="tips-views" wx:if="{{!loadingMoreHidden}}">没有更多记录了~</view>
-  <view class="tips-views" wx:if="{{loadingMoreHidden}}">上滑加载更多～</view>
+<view class="tips-views" wx:if="{{loadingMoreHidden}}">上滑加载更多～</view>

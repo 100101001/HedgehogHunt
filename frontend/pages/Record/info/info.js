@@ -201,14 +201,14 @@ Page({
             }
         });
     },
-    goHome: function (e) {
-        wx.switchTab({
-            url: "../goods/index",
-        })
-    },
-    goRelease: function (e) {
-        wx.switchTab({
-            url: "../release/index",
+  goHome: function (e) {
+    wx.navigateTo({
+      url: "../../Find/Find",
+    })
+  },
+  goThanks: function (e) {
+        wx.navigateTo({
+            url: "../../Thanks/index",
         })
     },
     showQrCode: function () {

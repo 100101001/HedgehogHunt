@@ -9,9 +9,10 @@ Page({
     duration: 1000,
     swiperCurrent: 0,
     loadingHidden: true,
-
+    show_location:false,
     info: {
       "auther_name": "韦朝旭",
+      "mobile":18385537403,
       "avatar": "https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTJLMa7CuCcoXicK6SpMA9E0IHxPgLYibKFbeCkUo3IicyyDr8ssosTEaaptIL2Xjic6LXEC2OmjwmXMmQ/132",
       "business_type": 1, //捡到东西还是丢了东西，捡到是1，丢了是0
       "goods_name": "钱包",
@@ -72,11 +73,13 @@ Page({
   onLoad: function(options) {
     var goods_id = 23;
     var info = this.data.info;
+    //如果是认领过的用户，或是系统推荐给用户的信息，则直接打开显示地址
     this.setData({
       infos: {
         info: info,
         loadingHidden: true,
-        op_status: 0
+        op_status: 0,
+        show_location:true
       }
     });
     //this.getGoodsInfo(goods_id);
@@ -227,27 +230,30 @@ Page({
     });
   },
   goHome: function(e) {
-    wx.switchTab({
-      url: "../goods/index",
+    wx.navigateTo({
+      url: "../../Find/Find",
     })
   },
   goRelease: function(e) {
-    wx.switchTab({
-      url: "../release/index",
+    wx.navigateTo({
+      url: "../../Release/release/index",
     })
   },
-  showQrCode: function() {
+  toApplicate: function() {
     var regFlag = app.globalData.regFlag;
-    if (regFlag) {
-      var show_qr_code = !this.data.show_qr_code;
-      this.setData({
-        show_qr_code: show_qr_code
-      })
-    } else {
-      app.alert({
-        "content": "为了防止冒领，授权登陆实名认证之后才能查看地址！"
-      });
+    if (!regFlag) {
+      app.loginTip();
+      return;
     }
+    var show_location = !this.data.show_location;
+    var infos=this.data.infos;
+    infos['show_location'] = show_location;
+    this.setData({
+        infos: infos
+    })
+    app.alert({
+      'content':"认领成功，可到  '我的——认领记录'   中查看"
+    });
   },
   //预览图片
   previewImage: function(e) {
@@ -271,79 +277,5 @@ Page({
     wx.navigateTo({
       url: 'edit/edit',
     })
-  },
-  toBlockMember: function(e) {
-    //选择操作的用户id
-    var that = this;
-    var select_member_id = e.currentTarget.dataset.id;
-    var auth_id = this.data.info.member_id;
-    var report_member_id = this.data.report_auth_info.member_id;
-    var goods_id = this.data.info.id;
-    var report_id = this.data.report_id;
-    wx.showModal({
-      title: '操作提示',
-      content: '确认拉黑？',
-      success: function(res) {
-        wx.request({
-          url: app.buildUrl("/report/block"),
-          header: app.getRequestHeader(),
-          data: {
-            select_member_id: select_member_id,
-            goods_id: goods_id,
-            report_id: report_id,
-            auth_id: auth_id,
-            report_member_id: report_member_id
-          },
-          success: function(res) {
-            wx.hideLoading();
-            wx.showToast({
-              title: '拉黑用户成功！',
-              icon: 'success',
-              duration: 2000
-            });
-            wx.switchTab({
-              url: '../record/index',
-            })
-          },
-          fail: function(res) {
-            wx.hideLoading();
-            wx.showToast({
-              title: '系统繁忙，拉黑失败！',
-              duration: 2000
-            });
-          }
-        });
-      }
-    });
-  },
-  noRule: function(e) {
-    var id = this.data.info.id;
-    var report_id = this.data.report_id;
-    wx.request({
-      url: app.buildUrl("/report/no-rule"),
-      header: app.getRequestHeader(),
-      data: {
-        id: id,
-        report_id: report_id
-      },
-      success: function(res) {
-        wx.hideLoading();
-        wx.showToast({
-          title: '解放商品成功！',
-          icon: 'success',
-          duration: 2000
-        });
-        wx.switchTab({
-          url: '../record/index',
-        })
-      },
-      fail: function(res) {
-        wx.hideLoading();
-        wx.showToast({
-          title: '系统繁忙，解放失败！',
-          duration: 2000
-        });
-      }
-    });
   },
 });

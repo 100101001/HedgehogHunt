@@ -109,30 +109,6 @@ Page({
       url: 'info/info',
     })
   },
-
-  //点击联系之后
-  onConnectTap: function(event) {
-    util.showMessage('点击联系', '需要让用户自己联系吗？存在诈骗风险');
-  },
-
-  onShareTap: function(event) {
-    var itemList = [
-      "分享给微信好友",
-      "分享到朋友圈",
-      "分享到QQ",
-      "分享到微博"
-    ]
-    wx.showActionSheet({
-      itemList: itemList,
-      itemColor: "#405f80",
-      success: function(res) {
-        //res.cancel
-        //res.tapIndex
-        util.showMessage('用户 ' + itemList[res.tapIndex], res.cancel ? "取消分享" : "分享成功");
-      }
-    })
-  },
-
   //下拉刷新
   onPullDownRefresh: function(event) {
     util.showMessage("下拉刷新函数", "已经写好");
@@ -143,7 +119,6 @@ Page({
   onReachBottom: function(event) {
     util.showMessage("上滑加载", "已经写好");
   },
-
   onScroll: function(event) {
     var deltaY = event.detail.deltaY;
     if (deltaY <= 0) {
@@ -155,7 +130,6 @@ Page({
       searchShow: serchShow
     })
   },
-  
   //点击导航图标
   onNavigateTap: function(event) {
     var id = event.currentTarget.dataset.id*1;//乘1强制转换成数字
@@ -166,5 +140,63 @@ Page({
     wx.redirectTo({
       url: urls[id],
     })
-  }
+  },
+  toReport: function (e) {
+    var regFlag = app.globalData.regFlag;
+    if (!regFlag) {
+      app.loginTip();
+      return;
+    }
+    var id = e.currentTarget.dataset.id;
+    var that = this;
+    wx.showModal({
+      title: "违规举报",
+      content: "为维护平台环境，欢迎举报色情及诈骗、恶意广告等违规信息！同时，恶意举报将会被封号，请谨慎操作，确认举报？",
+      success: function (res) {
+        if (res.confirm) { //点击确定,获取操作用户id以及商品id,从用户token里面获取id
+          wx.showLoading({
+            title: '信息提交中..'
+          });
+          wx.request({
+            url: app.buildUrl("/goods/report"),
+            header: app.getRequestHeader(),
+            data: {
+              id: id
+            },
+            success: function (res) {
+              var resp = res.data;
+              if (resp.code != 200) {
+                app.alert({
+                  'content': resp.msg
+                });
+                return
+              }
+              wx.hideLoading();
+              wx.showToast({
+                title: '举报成功，感谢！',
+                icon: 'success',
+                duration: 2000
+              });
+            },
+            fail: function (res) {
+              wx.hideLoading();
+              wx.showToast({
+                title: '系统繁忙，反馈失败，还是感谢！',
+                duration: 2000
+              });
+            },
+            complete: function () {
+              wx.hideLoading();
+            }
+          });
+          that.setData({
+            p: 1,
+            goods_list: [],
+            loadingMoreHidden: true
+          });
+          that.getGoodsList();
+        }
+      }
+    });
+  },
 })

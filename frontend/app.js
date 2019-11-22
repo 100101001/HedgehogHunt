@@ -20,7 +20,6 @@ App({
             success: res => {
               // 可以将 res 发送给后台解码出 unionId
               this.globalData.userInfo = res.userInfo
-
               // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
               // 所以此处加入 callback 以防止这种情况
               if (this.userInfoReadyCallback) {
@@ -35,6 +34,7 @@ App({
   globalData: {
     userInfo: null,
     domain: "https://jmall.opencs.cn/api",
+    regFlag:true,
     objectArray: [{
       id: 0,
       name: '待认领'
@@ -48,6 +48,21 @@ App({
       name: '已认领'
     },
     ],
+    is_adm:true
+  },
+  loginTip: function () {
+    wx.showModal({
+      title: '提示',
+      content: '该功能需要授权登录！请授权登录',
+      success(res) {
+        if (res.confirm) {
+          wx.navigateTo({
+            url: '/pages/login/index',
+          })
+        } else if (res.cancel) {
+        }
+      }
+    })
   },
   tip: function (params) {
     var that = this;

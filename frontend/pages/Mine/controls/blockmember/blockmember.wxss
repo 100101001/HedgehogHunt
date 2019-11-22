@@ -41,7 +41,8 @@
 }
 
 .type-item-on {
-  border-bottom: 4rpx solid #e64340;
+  border-bottom: 4rpx solid #f7931e;
+  color: #f7931e;
 }
 
 .summary{

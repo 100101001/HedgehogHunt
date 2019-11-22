@@ -43,7 +43,7 @@ Page({
         label: "物主答谢",
         icons: "/images/icons/next.png",
         value: 99,//value值是新推送的，未查看过的用户答谢数，按时间来划分
-        act: "goThanks",
+        act: "goThanksList",
         record_status: "3"
       }
 
@@ -107,6 +107,11 @@ Page({
   goRecord: function () {
     wx.navigateTo({
       url: '../Record/index',
+    })
+  },
+  goThanksList: function () {
+    wx.navigateTo({
+      url: '../Thanks/record/record',
     })
   },
   //点击导航

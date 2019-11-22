@@ -1,7 +1,10 @@
 {
   "pages": [
     "pages/Find/Find",
+    "pages/Thanks/record/record",
+    "pages/Thanks/index",
     "pages/Report/index",
+    "pages/login/index",
     "pages/Record/index",
     "pages/Record/info/info",
     "pages/Report/info/info",
