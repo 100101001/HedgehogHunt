@@ -38,6 +38,13 @@ Page({
         value: 99,//value值是新推送的，未查看过的记录数，按时间来划分
         act: "goRecord",
         record_status: "3"
+      },
+      {
+        label: "物主答谢",
+        icons: "/images/icons/next.png",
+        value: 99,//value值是新推送的，未查看过的用户答谢数，按时间来划分
+        act: "goThanks",
+        record_status: "3"
       }
 
     ]

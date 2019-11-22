@@ -8,8 +8,6 @@ Page({
         interval: 3000,
         duration: 1000,
         swiperCurrent: 0,
-      loadingHidden: true,
-
       info: {
         "auther_name": "韦朝旭",
         "avatar": "https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTJLMa7CuCcoXicK6SpMA9E0IHxPgLYibKFbeCkUo3IicyyDr8ssosTEaaptIL2Xjic6LXEC2OmjwmXMmQ/132",
@@ -26,8 +24,7 @@ Page({
         "summary": "\u5168\u65b0\uff0c\u57fa\u672c\u6ca1\u5199\u5b57",//详情介绍
         "updated_time": "2019-10-30 12:20:40",//更新时间
         "view_count": 39,//浏览量
-      }
-
+      },
     },
     onShareAppMessage: function (Options) {
         var business_type = this.data.info.business_type;
@@ -71,19 +68,16 @@ Page({
     },
     onLoad: function (options) {
         var goods_id =23;
-        var check_report = app.globalData.check_report;
+        var info=this.data.info;
         this.setData({
-            check_report: check_report
+          infos: {
+            info: info,
+            loadingHidden: true,
+            op_status:1
+          }
         });
-        var that = this;
-        that.setData({
-            show_qr_code: false,
-        });
-        if (check_report) {
-            this.getReportInfo(goods_id);
-        } else {
-            //this.getGoodsInfo(goods_id);
-        }
+        //this.getGoodsInfo(goods_id);
+
     },
     onShow:function(){
       var regFlag = app.globalData.regFlag;
@@ -91,13 +85,6 @@ Page({
         regFlag: regFlag
       });
    
-    },
-    login: function (e) {
-      app.login(e);
-      var regFlag = app.globalData.regFlag;
-      this.setData({
-        regFlag: regFlag
-      });
     },
     getReportInfo: function (id) {
         var that = this;

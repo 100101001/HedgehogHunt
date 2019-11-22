@@ -47,7 +47,7 @@ Page({
     }
     console.log(!check_report);
     wx.navigateTo({
-      url: '/pages/jmall/record/index',
+      url: '/pages/Report/index',
     })
   },
   toCheckStat:function(){

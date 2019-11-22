@@ -1,4 +1,0 @@
-<import src="/pages/template/goods-detail/goods-detail-template.wxml" />
-<view>
-  <template is="goods-detail-template" data="{{...goodsDetail}}" />
-</view>

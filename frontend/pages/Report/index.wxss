@@ -68,11 +68,62 @@ page {
   margin-left: 30rpx;
 }
 
+/*顶部导航栏*/
+.type-container{
+  display: flex;
+  flex-direction: row;
+  position: fixed;
+  top:70rpx;
+  left: 0;
+  width: 750rpx;
+  background-color: #fff;
+}
+
+.type-navbar {
+  white-space: nowrap;
+  height: 68rpx;
+  width: 375rpx;
+  background-color: #fff;
+}
+
+.type-navbar-check-report {
+  white-space: nowrap;
+  height: 68rpx;
+  width: 750rpx;
+  background-color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  color: transparent;
+}
+
+.type-box {
+  width: 187rpx;
+  box-sizing: content-box;
+  font-size: 24rpx;
+  line-height: 64rpx;
+  text-align: center;
+  display: inline-block;
+  overflow: hidden;
+}
+
+.type-navbar-item {
+  border-bottom: 4rpx solid #fff;
+}
+
+.type-item-on {
+  border-bottom: 4rpx solid #f7931e;
+  color: #f7931e;
+}
+
+
 .message_container {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  margin-top: 70rpx;
+  margin-top: 140rpx;
 }
 
 .goods_message{

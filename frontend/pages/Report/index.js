@@ -5,7 +5,6 @@ Page({
   data: {
     name: "",
     type: "",
-    banners: ["/images/goods/camera.jpg", "/images/goods/ear_phone.jpg"],
     reportStatusId: 3,
     saveHidden: true,
     check_report_cat: [
@@ -70,10 +69,12 @@ Page({
     util.showMessage("下拉刷新函数", "已经写好");
     wx.stopPullDownRefresh();
   },
+
   //上滑加载
   onReachBottom: function(event) {
     util.showMessage("上滑加载", "已经写好");
   },
+
   selectTap: function(e) {
     var index = e.currentTarget.dataset.index;
     var list = this.data.list;
@@ -192,6 +193,16 @@ Page({
 
         that.setPageData(that.getSaveHide(), that.totalPrice(), that.allSelect(), that.noSelect(), that.data.list);
       }
+    });
+  },
+  checkReportClick: function (e) {
+    //选择一次分类时返回选中值
+    this.setData({
+      reportStatusId: e.currentTarget.id,
+      p: 1,
+      goods_list: [],
+      loadingMoreHidden: true,
+      processing: false
     });
   },
 })
