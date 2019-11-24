@@ -78,10 +78,18 @@ page{
 
 .next {
   display: flex;
-  flex: 1;
   justify-content: flex-end center;
   align-items: center;
   margin-right: 20rpx;
+}
+
+.qrcode-op{
+  display: flex;
+  flex-direction: column;
+  justify-content:center;
+  align-items: center;
+  margin-right: 20rpx;
+  
 }
 
 .next_img {
@@ -136,5 +144,13 @@ page{
   font-weight: 600;
   margin-top: 10rpx;
 }
+
+.qr_code{
+  margin-top: 20rpx;
+  margin-left: 125rpx;
+  height: 500rpx;
+  width: 500rpx;
+}
+
 
 

@@ -5,26 +5,6 @@ Page({
   data: {
     name: "",
     type: "",
-    reportStatusId: 3,
-    saveHidden: true,
-    check_report_cat: [
-      {
-        id: 3,
-        name: '未处理'
-      },
-      {
-        id: 4,
-        name: '发布者'
-      },
-      {
-        id: 5,
-        name: '举报者'
-      },
-      {
-        id: 6,
-        name: '无违规'
-      }
-    ]
   },
 
   onLoad: function(options) {
@@ -33,21 +13,31 @@ Page({
     for (var i in goodsList) {
       goodsList[i].content = goodsList[i].summary.substring(0, 27) + "...";
     }
-    //设置底部导航栏
-    var [isSelecteds, urls] = util.onNavigateTap(1);
-    var cat_ori = [{
-      id: -1,
-      name: '全部'
-    }];
-    var cat_all = app.globalData.objectArray;
-    var cats = cat_ori.concat(cat_all);
     this.setData({
-      isSelecteds: isSelecteds,
-      list: goodsList,
-      name: "",
-      type: "",
-      searchShow: true,
-      categories: cats,
+      infos:{
+        list: goodsList,
+        saveHidden: true,
+        check_status_id: 3,
+        check_cat: [
+          {
+            id: 3,
+            name: '未处理'
+          },
+          {
+            id: 4,
+            name: '发布者'
+          },
+          {
+            id: 5,
+            name: '举报者'
+          },
+          {
+            id: 6,
+            name: '无违规'
+          }
+        ]
+      },
+      check_status_id:3
     })
   },
   //点击信息卡查看详情
@@ -69,7 +59,6 @@ Page({
     util.showMessage("下拉刷新函数", "已经写好");
     wx.stopPullDownRefresh();
   },
-
   //上滑加载
   onReachBottom: function(event) {
     util.showMessage("上滑加载", "已经写好");
@@ -77,7 +66,7 @@ Page({
 
   selectTap: function(e) {
     var index = e.currentTarget.dataset.index;
-    var list = this.data.list;
+    var list = this.data.infos.list;
     if (index !== "" && index != null) {
       list[index].selected = !list[index].selected;
       this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), list);
@@ -85,7 +74,7 @@ Page({
   },
   //计算是否全选了
   allSelect: function() {
-    var list = this.data.list;
+    var list = this.data.infos.list;
     var allSelect = false;
     for (var i = 0; i < list.length; i++) {
       var curItem = list[i];
@@ -100,7 +89,7 @@ Page({
   },
   //计算是否都没有选
   noSelect: function() {
-    var list = this.data.list;
+    var list = this.data.infos.list;
     var noSelect = 0;
     for (var i = 0; i < list.length; i++) {
       var curItem = list[i];
@@ -116,8 +105,8 @@ Page({
   },
   //全选和全部选按钮
   bindAllSelect: function() {
-    var currentAllSelect = this.data.allSelect;
-    var list = this.data.list;
+    var currentAllSelect = this.data.infos.allSelect;
+    var list = this.data.infos.list;
     for (var i = 0; i < list.length; i++) {
       if (currentAllSelect) {
         list[i].selected = false;
@@ -129,7 +118,7 @@ Page({
   },
   //编辑默认全不选
   editTap: function() {
-    var list = this.data.list;
+    var list = this.data.infos.list;
     for (var i = 0; i < list.length; i++) {
       var curItem = list[i];
       curItem.active = false;
@@ -138,7 +127,7 @@ Page({
   },
   //选中完成默认全选
   saveTap: function() {
-    var list = this.data.list;
+    var list = this.data.infos.list;
     for (var i = 0; i < list.length; i++) {
       var curItem = list[i];
       curItem.active = true;
@@ -146,19 +135,25 @@ Page({
     this.setPageData(!this.getSaveHide(), this.allSelect(), this.noSelect(), list);
   },
   getSaveHide: function() {
-    return this.data.saveHidden;
+    return this.data.infos.saveHidden;
   },
   setPageData: function(saveHidden, allSelect, noSelect, list) {
+    var check_cat = this.data.infos.check_cat;
+    var check_status_id=this.data.check_status_id;
     this.setData({
+      infos:{
       list: list,
       saveHidden: saveHidden,
       allSelect: allSelect,
       noSelect: noSelect,
+      check_cat: check_cat,
+      check_status_id: check_status_id
+      },
     });
   },
   //选中删除的数据
   deleteSelected: function() {
-    var list = this.data.list;
+    var list = this.data.infos.list;
     var id_list=[];
     for (var i = 0; i < list.length; i++) {
       var curItem = list[i];
@@ -196,13 +191,15 @@ Page({
     });
   },
   checkReportClick: function (e) {
+    var list = this.data.infos.list;
     //选择一次分类时返回选中值
     this.setData({
-      reportStatusId: e.currentTarget.id,
+      check_status_id: e.currentTarget.id,
       p: 1,
       goods_list: [],
       loadingMoreHidden: true,
       processing: false
     });
+    this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(),list);
   },
 })

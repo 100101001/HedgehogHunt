@@ -2,8 +2,8 @@
   "pages": [
     "pages/Find/Find",
     "pages/Thanks/record/record",
-    "pages/Thanks/index",
     "pages/Report/index",
+    "pages/Thanks/index",
     "pages/login/index",
     "pages/Record/index",
     "pages/Record/info/info",

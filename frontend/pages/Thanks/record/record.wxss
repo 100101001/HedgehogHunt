@@ -1,4 +1,5 @@
 @import "../../template/info-auth-data/info-auth-template.wxss";
+@import "../../template/search-bar/search-bar-template.wxss";
 page {
   /*背景图片*/
   background-image: url("https://console.changshunlive.com/static/img/20190308185846.png");
@@ -8,6 +9,62 @@ page {
 .all_container {
   display: flex;
   justify-content: center;
+}
+/*顶部导航栏*/
+.type-container{
+  display: flex;
+  flex-direction: row;
+  position: fixed;
+  top:70rpx;
+  left: 0;
+  width: 750rpx;
+  background-color: #fff;
+}
+
+.type-navbar {
+  white-space: nowrap;
+  height: 68rpx;
+  width: 375rpx;
+  background-color: #fff;
+}
+
+.type-navbar-check-report {
+  white-space: nowrap;
+  height: 68rpx;
+  width: 750rpx;
+  background-color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  color: transparent;
+}
+
+.type-box {
+  width: 375rpx;
+  box-sizing: content-box;
+  font-size: 24rpx;
+  line-height: 64rpx;
+  text-align: center;
+  display: inline-block;
+  overflow: hidden;
+}
+
+.type-navbar-item {
+  border-bottom: 4rpx solid #fff;
+}
+
+.type-item-on {
+  border-bottom: 4rpx solid #f7931e;
+  color: #f7931e;
+}
+
+.container{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-top: 70rpx;
 }
 
 .goods_container {
@@ -102,65 +159,6 @@ page {
   padding: 15rpx;
 }
 
-
-
-.search_container {
-  align-items: center;
-  position: fixed;
-  display: flex;
-  flex-direction: row;
-  padding: 5px;
-  background-color: #f7931e;
-  width: 750rpx;
-  top: 0;
-  z-index:500;
-}
-
-.search_box1 {
-  margin-left: 30rpx;
-  align-items: center;
-  border-radius: 25rpx;
-  width: 260rpx;
-  font-size: 22rpx;
-  display: flex;
-  flex-direction: row;
-  background-color: #fff;
-  height: 50rpx;
-}
-
-.search_box2 {
-  margin-left: 10rpx;
-  align-items: center;
-  border-radius: 25rpx;
-  width: 150rpx;
-  font-size: 22rpx;
-  display: flex;
-  flex-direction: row;
-  background-color: #fff;
-  height: 50rpx;
-}
-
-.search_text_box {
-  margin-left: 20rpx;
-  height: 35rpx;
-  width: 150rpx;
-  color: #f7931e;
-}
-
-.search_icon{
-  margin-left: 12rpx;
-}
-
-.search_button {
-  color: #fff;
-  padding: 5rpx 30rpx 5rpx 30rpx;
-  border: 2px #fff solid;
-  border-radius: 30rpx;
-  font-size: 22rpx;
-  margin-left: 30rpx;
-}
-
-
 .message_container {
   display: flex;
   flex-direction: column;
@@ -205,42 +203,4 @@ radio .wx-radio-input.wx-radio-input-checked::before {
 .list-top .edit-btn{
     color: #f7931e;
     height: 100%;
-}
-.jiesuan-box{
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    height: 100rpx;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    border-bottom:1px solid #eee; 
-    border-top:1px solid #eee; 
-    background-color: #fff;
-}
-.jiesuan-box .to-pay-btn{
-    width:240rpx;
-    text-align: center;
-    line-height: 100rpx;
-    background-color: #f7931e;
-    font-size:32rpx;
-    color:#ffffff;
-}
-.jiesuan-box .to-pay-btn.no-select{
-    background-color: #ccc;
-}
-
-.jiesuan-box  .left-price{
-    display: flex;
-    width: 510rpx;
-    margin-left: 30rpx;
-    justify-content: space-between;
-    line-height: 100rpx;
-    padding: 0 30rpx 0 0;
-    font-size:28rpx;
-    box-sizing: border-box;
-}
-.jiesuan-box .all-selected{
-    padding-left: 90rpx;
-    color:#000000;
 }

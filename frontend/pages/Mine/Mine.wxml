@@ -33,14 +33,6 @@
       </view>
     </view>
   </block>
-
-  <view class="userinfo_container" data-id="3" bindtap="onCatchTap">
-    <view class="title">二维码</view>
-    <view class="next">
-      <view class="recharge_btn">获取</view>
-      <!-- <view class="recharge_btn">查看</view> -->
-    </view>
-  </view>
   <import src="../template/navigate-bar/navigate-bar-template.wxml" />
   <view>
     <template is="navigate-bar-template" data="{{...isSelecteds}}" />
