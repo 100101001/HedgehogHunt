@@ -63,7 +63,12 @@ page {
 
 .search_button {
   color: #fff;
-  padding: 5rpx 30rpx 5rpx 30rpx;
+  background-color: #f7931e;
+  height: 50rpx;
+  display: flex;
+  align-items: center;
+  padding-left:30rpx;
+  padding-right: 30rpx;
   border: 2px #fff solid;
   border-radius: 30rpx;
   font-size: 22rpx;

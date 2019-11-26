@@ -1,1 +1,2 @@
 @import "../template/navigate-bar/navigate-bar-template.wxss";
+@import "../Find/Find.wxss";

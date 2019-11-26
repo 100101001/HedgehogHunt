@@ -3,20 +3,26 @@ var util = require("../../utils/util.js");
 var app = getApp();
 Page({
   data: {
-    name: "",
-    type: "",
     banners: ["/images/goods/camera.jpg", "/images/goods/ear_phone.jpg"],
     activeCategoryId:-1,
-  },
-
-  //点击搜索框的取消键
-  onCancelTap: function(event) {
-    this.setData({
-      messageCardShow: true,
-      searchPanelShow: false,
-      name: "",
-      type: ""
-    })
+    categories: [
+      {
+        id: -1,
+        name: '全部',
+      },
+      {
+      id: 0,
+      name: '待认领'
+    },
+    {
+      id: 1,
+      name: '预认领'
+    },
+    {
+      id: 2,
+      name: '已认领'
+    },
+    ],
   },
 
   onLoad: function(options) {
@@ -27,19 +33,9 @@ Page({
     }
     //设置底部导航栏
     var [isSelecteds,urls]=util.onNavigateTap(1);
-    var cat_ori = [{
-      id: -1,
-      name: '全部'
-    }];
-    var cat_all = app.globalData.objectArray;
-    var cats = cat_ori.concat(cat_all);
     this.setData({
       isSelecteds: isSelecteds,
-      goodsList: goodsList,
-      name: "",
-      type: "",
-      searchShow: true,
-      categories: cats,
+      goodsList: goodsList
     })
   },
   //事件处理函数
@@ -58,48 +54,9 @@ Page({
     });
     // this.getGoodsList();
   },
-  //点击搜索按钮或者点击键盘完成键
-  onBindNameInput: function(event) {
-    this.setData({
-      searchName:event.detail.value
-    })
-  },
-  onBindGoodsTypeInput: function (event) {
-    this.setData({
-      searchGoodsType: event.detail.value
-    })
-  },
 
   onBindConfirm:function(event){
     util.showMessage('获取值',this.data.searchName+"和"+this.data.searchGoodsType);
-  },
-
-  //点击名字搜索历史
-  onNameChooseTap: function(event) {
-    var id = event.currentTarget.dataset.id;
-    var name = this.data.nameArray[id].name;
-    this.setData({
-      name: name,
-      searchName:name
-    })
-  },
-
-  //点击物品搜索历史
-  onTypeChooseTap: function(event) {
-    var id = event.currentTarget.dataset.id;
-    var type = this.data.typeArray[id].type;
-    this.setData({
-      type: type,
-      searchGoodsType:type
-    })
-  },
-
-  //点击输入框
-  onBindFocus: function(event) {
-    this.setData({
-      messageCardShow: false,
-      searchPanelShow: true,
-    })
   },
 
   //点击信息卡查看详情
@@ -119,17 +76,7 @@ Page({
   onReachBottom: function(event) {
     util.showMessage("上滑加载", "已经写好");
   },
-  onScroll: function(event) {
-    var deltaY = event.detail.deltaY;
-    if (deltaY <= 0) {
-      var serchShow = false
-    } else {
-      var serchShow = true
-    }
-    this.setData({
-      searchShow: serchShow
-    })
-  },
+
   //点击导航图标
   onNavigateTap: function(event) {
     var id = event.currentTarget.dataset.id*1;//乘1强制转换成数字

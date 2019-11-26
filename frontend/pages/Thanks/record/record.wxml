@@ -1,8 +1,18 @@
 <import src="../../template/search-bar/search-bar-template.wxml" />
-  <template is="search-bar-template" data="{{...infos}}" />
+<template is="search-bar-template" data="{{...infos}}" />
 <!--index.wxml-->
 <view class="container">
   <view class="message_container">
+    <!--检查举报-->
+    <view class="type-container">
+      <scroll-view class="type-navbar-check-report">
+        <view class="type-box" wx:for-items="{{infos.check_cat}}" wx:for-item="cat" wx:key="{{index}}">
+          <view id="{{cat.id}}" class="type-navbar-item {{infos.check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="checkReportClick">
+            {{cat.name}}
+          </view>
+        </view>
+      </scroll-view>
+    </view>
     <block wx:for="{{infos.list}}" wx:key="index">
       <view class="goods_message">
         <radio class="radio" hidden="{{infos.saveHidden}}" data-index="{{index}}" bindtap="selectTap" checked="{{item.selected}}" />

@@ -43,7 +43,7 @@ Page({
   //点击信息卡查看详情
   onDetailTap: function(event) {
     var id = event.currentTarget.dataset.id;
-    var saveHidden=this.data.saveHidden;
+    var saveHidden=this.data.infos.saveHidden;
     if(!saveHidden){
       app.alert({
         'content':"请先完成编辑再查看详情~"

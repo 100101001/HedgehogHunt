@@ -1,4 +1,52 @@
+<import src="../template/goods-item/goods-item-template.wxml" />
 <import src="../template/navigate-bar/navigate-bar-template.wxml" />
+<view class="all_container">
+  <form bindsubmit="formSubmit">
+    <view class="search_container">
+      <view class="search_box1">
+        <icon type="search" class='search_icon' size='15' color="#f7931e"></icon>
+        <input value='{{name}}' bindfocus='onBindFocus' bindinput="onBindNameInput" class='search_text_box' type="text" placeholder='姓名' placeholder-style='color:#f7931e;'></input>
+      </view>
+      <view class="search_box2">
+        <input value="{{type}}" bindfocus='onBindFocus' bindinput="onBindGoodsTypeInput" class='search_text_box' type="text" placeholder='物品种类' placeholder-style='color:#f7931e; '></input>
+      </view>
+      <button class="search_button" form-type="submit" bindtap="onBindConfirm">搜索</button>
+    </view>
+  </form>
+  <!--轮播图-->
+  <view class="swiper-container">
+    <swiper class="swiper_box" autoplay="{{autoplay}}" interval="{{interval}}" duration="{{duration}}" bindchange="swiperchange" circular="true">
+      <block wx:for="{{banners}}" wx:key="{{index}}">
+        <swiper-item>
+          <image bindtap="previewImage" data-index="{{index}}" src="{{item}}" class="slide-image" width="750rpx" height="562.5rpx" mode="aspectFill" />
+        </swiper-item>
+      </block>
+    </swiper>
+    <view class="dots">
+      <block wx:for="{{banners}}" wx:key="unique" wx:key="{{index}}">
+        <view class="dot{{index == swiperCurrent ? ' active' : ''}}"></view>
+      </block>
+    </view>
+  </view>
+  <!--分类展示-->
+  <view class="type-container">
+    <scroll-view class="type-navbar" scroll-x="true">
+      <view class="type-box" wx:for-items="{{categories}}" wx:for-item="cat">
+        <view id="{{cat.id}}" class="type-navbar-item {{activeCategoryId == cat.id ? 'type-item-on' : ''}}" bindtap="catClick">
+          {{cat.name}}
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="message_container">
+    <block wx:for="{{goodsList}}" wx:key="index">
+      <view class="goods_message">
+        <template is="goodsItem" data="{{...item}}" />
+      </view>
+    </block>
+  </view>
+</view>
 
 <view>
   <template is="navigate-bar-template" data="{{...isSelecteds}}" />

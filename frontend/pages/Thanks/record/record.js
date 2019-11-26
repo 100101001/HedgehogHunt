@@ -15,7 +15,7 @@ Page({
           "mobile": 18385537403,
           "avatar": "https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTJLMa7CuCcoXicK6SpMA9E0IHxPgLYibKFbeCkUo3IicyyDr8ssosTEaaptIL2Xjic6LXEC2OmjwmXMmQ/132",
           "summary": "谢谢你的反馈，我找回了钱包,钱包里面的很多证件对我很重要，真的真的十分感谢", //详情介绍
-          // "reward": "酬金：3000",
+          //"reward": "酬金：3000",
           "updated_time": "2019-10-30 12:20:40", //更新时间
           "id": 1
         }],
@@ -24,20 +24,20 @@ Page({
         check_cat: [
           {
             id: 0,
-            name: '未读'
+            name: '收到'
           },
           {
             id: 1,
-            name: '已读',
-          }]
+            name: '发出',
+          }
+          ]
       },
-      check_status_id: 3
     })
   },
   //点击信息卡查看详情
   onDetailTap: function (event) {
     var id = event.currentTarget.dataset.id;
-    var saveHidden = this.data.saveHidden;
+    var saveHidden = this.data.infos.saveHidden;
     if (!saveHidden) {
       app.alert({
         'content': "请先完成编辑再查看详情~"

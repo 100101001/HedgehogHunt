@@ -4,6 +4,7 @@
       <view class="label">添加管理员</view>
       <image src="/images/icons/next.png" mode="aspectFit"></image>
     </view>
+        <view class="hrz"></view>
         <view class="item-container" bindtap="toReleaseAdv" wx:if="{{is_adm}}">
       <view class="label">发布广告</view>
       <image src="/images/icons/next.png" mode="aspectFit"></image>
