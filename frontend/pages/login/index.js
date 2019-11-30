@@ -12,7 +12,6 @@ Page({
   },
   login: function (e) {
     app.login(e);
-    wx.navigateBack({});
   },
   getPhoneNumber(e) {
     console.log(e.detail.errMsg)

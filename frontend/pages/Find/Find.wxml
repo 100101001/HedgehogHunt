@@ -3,19 +3,18 @@
 <view class="all_container">
   <form bindsubmit="formSubmit">
     <view class="search_container">
-      <view class="search_box1">
-        <icon type="search" class='search_icon' size='15' color="#f7931e"></icon>
-        <input value='{{name}}' bindfocus='onBindFocus' bindinput="onBindNameInput" class='search_text_box' type="text" placeholder='姓名' placeholder-style='color:#f7931e;'></input>
-      </view>
-      <view class="search_box2">
-        <input value="{{type}}" bindfocus='onBindFocus' bindinput="onBindGoodsTypeInput" class='search_text_box' type="text" placeholder='物品种类' placeholder-style='color:#f7931e; '></input>
-      </view>
+      <block wx:for="{{items}}" wx:key="{{index}}">
+        <view class="search_box">
+          <icon type="search" class='{{iem.icons}}' wx:if="{{item.icons}}" size='15' style="margin-left:5rpx;" color="#f7931e"></icon>
+          <input name="{{item.name}}" class='search_text_box' type="text" placeholder="{{item.placeholder}}" placeholder-style='color:#f7931e;'></input>
+        </view>
+      </block>
       <button class="search_button" form-type="submit" bindtap="onBindConfirm">搜索</button>
     </view>
   </form>
   <!--轮播图-->
   <view class="swiper-container">
-    <swiper class="swiper_box" autoplay="{{autoplay}}" interval="{{interval}}" duration="{{duration}}" bindchange="swiperchange" circular="true">
+    <swiper class="swiper_box" autoplay="true" interval="3000" duration="1000" indicator-dots="true"  circular="true">
       <block wx:for="{{banners}}" wx:key="{{index}}">
         <swiper-item>
           <image bindtap="previewImage" data-index="{{index}}" src="{{item}}" class="slide-image" width="750rpx" height="562.5rpx" mode="aspectFill" />
@@ -40,7 +39,7 @@
   </view>
 
   <view class="message_container">
-    <block wx:for="{{goodsList}}" wx:key="index">
+    <block wx:for="{{goods_list}}" wx:key="index">
       <view class="goods_message">
         <template is="goodsItem" data="{{...item}}" />
       </view>

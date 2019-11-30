@@ -18,9 +18,9 @@
         <view class="goods_message">
           <text style='color: #f7931e; font-size:20rpx'>#拾得#</text>
           <view class="goods_owner">{{goods_name}}</view>
-          <view class="goods_owner">{{onwer_name}}</view>
+          <view class="goods_owner">{{owner_name}}</view>
         </view>
-        <view class="goods_content">{{content}}</view>
+        <view class="goods_content">{{summary}}</view>
         <view class="horizon"></view>
         <view class="location_container">
           <image class="location_icon" src="/images/icons/locate.png"></image>

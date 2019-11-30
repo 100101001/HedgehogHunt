@@ -1,5 +1,40 @@
 //app.js
 App({
+  globalData: {
+    userInfo: null,
+    domain: "https://jmall.opencs.cn/api",
+    adv_info: {},
+    info: {},
+    is_adm: false,
+    is_user: false,
+    has_qrcode: false,
+    qr_code_list: [],
+    location: '',
+    has_info: false,
+    userInfo: null,
+    version: "1.0",
+    regFlag: false,
+    shopName: "济旦财闲置交易平台",
+    //domain: "https://jmall.tongji.xn--6qq986b3xl/api",
+    // domain: "https://jmall.opencs.cn/api",
+    domain: "http://127.0.0.1:8999/api",
+    // domain:"https://all.opencs.cn.w.kunlungr.com/api",
+    member_status: 1,
+    objectArray: [{
+      id: 0,
+      name: '待认领'
+    },
+    {
+      id: 1,
+      name: '预认领'
+    },
+    {
+      id: 2,
+      name: '已认领'
+    },
+    ],
+    is_adm: true
+  },
   onLaunch: function () {
     // 展示本地存储能力
     var logs = wx.getStorageSync('logs') || []
@@ -30,25 +65,6 @@ App({
         }
       }
     })
-  },
-  globalData: {
-    userInfo: null,
-    domain: "https://jmall.opencs.cn/api",
-    regFlag:true,
-    objectArray: [{
-      id: 0,
-      name: '待认领'
-    },
-    {
-      id: 1,
-      name: '预认领'
-    },
-    {
-      id: 2,
-      name: '已认领'
-    },
-    ],
-    is_adm:true
   },
   loginTip: function () {
     wx.showModal({
@@ -264,6 +280,7 @@ App({
           that.alert({
             'content': '登录失败，请再次登录～～'
           });
+          return;
         }
         data['code'] = res.code;
         //用wx.request方法来提交数据，类似于ajax
@@ -282,8 +299,12 @@ App({
             that.setCache("token", res.data.data.token);
             that.checkLogin();
             that.alert({
-              'content': '登录成功～'
+              'content': '登录成功,5秒后自动返回之前页面，欢迎继续使用～'
             });
+            setTimeout(function () {
+              wx.navigateBack({})
+            }, 5000
+            );
           },
           fail: function (res) {
             that.serverBusy();

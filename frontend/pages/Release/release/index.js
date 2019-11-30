@@ -118,9 +118,7 @@ Page({
         //获取商品的id,之后用于提交图片
         var id = resp.id;
         var img_list_status = resp.img_list_status;
-        //地址提交过之后更新全局地址变量
-        app.globalData.location = data.location;
-        that.updateQrCode(id, img_list, img_list_status);
+        that.uploadImage(id, img_list, img_list_status);
       },
       fail: function(res) {
         app.serverBusy();
@@ -230,8 +228,8 @@ Page({
           icon: 'success',
           duration: 2000
         });
-        wx.switchTab({
-          url: '../goods/index',
+        wx.navigateTo({
+          url: '../../Find/Find',
         });
       },
       fail: function(res) {
@@ -282,7 +280,7 @@ Page({
         {
           name: "mobile",
           placeholder: "高危非必填",
-          value:"高危非必填",
+          value:"无",
           label: "联系电话",
           icons: "/images/icons/goods_type.png",
         }
