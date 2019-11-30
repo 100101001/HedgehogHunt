@@ -22,7 +22,7 @@
       </block>
     </swiper>
     <view class="dots">
-      <block wx:for="{{banners}}" wx:key="unique" wx:key="{{index}}">
+      <block wx:for="{{banners}}" wx:key="{{index}}">
         <view class="dot{{index == swiperCurrent ? ' active' : ''}}"></view>
       </block>
     </view>
@@ -30,7 +30,7 @@
   <!--分类展示-->
   <view class="type-container">
     <scroll-view class="type-navbar" scroll-x="true">
-      <view class="type-box" wx:for-items="{{categories}}" wx:for-item="cat">
+      <view class="type-box" wx:for="{{categories}}" wx:for-item="cat" wx:key="{{index}}">
         <view id="{{cat.id}}" class="type-navbar-item {{activeCategoryId == cat.id ? 'type-item-on' : ''}}" bindtap="catClick">
           {{cat.name}}
         </view>
