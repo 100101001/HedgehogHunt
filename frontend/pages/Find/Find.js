@@ -23,6 +23,69 @@ Page({
       },
     ],
   },
+  onLoad: function (options) {
+    var [isSelecteds, urls] = util.onNavigateTap(1);
+    // var business_type = options.business_type;
+    var business_type = 1;
+    if (business_type == 0) {
+      var categories = [{
+        id: -1,
+        name: '全部',
+      },
+      {
+        id: 1,
+        name: '待找回'
+      },
+      {
+        id: 2,
+        name: '预找回'
+      },
+      {
+        id: 3,
+        name: '已找回'
+      },
+      ]
+    }
+    else {
+      var categories = [{
+        id: -1,
+        name: '全部',
+      },
+      {
+        id: 1,
+        name: '待领取'
+      },
+      {
+        id: 2,
+        name: '预领取'
+      },
+      {
+        id: 3,
+        name: '已领取'
+      },
+      ]
+
+    }
+    this.setData({
+      isSelecteds: isSelecteds,
+      filter_address: '',
+      business_type: business_type,
+      categories: categories,
+      goods_name: '',
+      owner_name: '',
+      filter_address: '',
+      loadingMoreHidden: true,
+    });
+  },
+  onShow: function () {
+    var regFlag = app.globalData.regFlag;
+    this.setData({
+      regFlag: regFlag
+    });
+    this.setInitData();
+    this.onPullDownRefresh();
+    // this.getBanners();
+  },
   catClick: function(e) {
     //选择一次分类时返回选中值
     this.setData({
@@ -56,69 +119,6 @@ Page({
     wx.redirectTo({
       url: urls[id],
     })
-  },
-  onLoad: function(options) {
-    var [isSelecteds, urls] = util.onNavigateTap(1);
-    // var business_type = options.business_type;
-    var business_type=1;
-    if (business_type == 0) {
-      var categories=[{
-          id: -1,
-          name: '全部',
-        },
-        {
-          id: 1,
-          name: '待找回'
-        },
-        {
-          id: 2,
-          name: '预找回'
-        },
-        {
-          id: 3,
-          name: '已找回'
-        },
-      ]
-    }
-    else {
-     var categories=[{
-          id: -1,
-          name: '全部',
-        },
-        {
-          id: 1,
-          name: '待领取'
-        },
-        {
-          id: 2,
-          name: '预领取'
-        },
-        {
-          id: 3,
-          name: '已领取'
-        },
-      ]
-
-    }
-    this.setData({
-      isSelecteds: isSelecteds,
-      filter_address: '',
-      business_type: business_type,
-      categories: categories,
-      goods_name: '',
-      owner_name: '',
-      filter_address: '',
-      loadingMoreHidden: true,
-    });
-  },
-  onShow: function() {
-    var regFlag = app.globalData.regFlag;
-    this.setData({
-      regFlag: regFlag
-    });
-    this.setInitData();
-    this.onPullDownRefresh();
-    // this.getBanners();
   },
   onShareAppMessage: function(Options) {
     return {
@@ -164,9 +164,6 @@ Page({
     wx.navigateTo({
       url: '../adv/info/adv-info?id=' + adv_id,
     })
-  },
-  toSearch: function(e) {
-    this.onPullDownRefresh();
   },
   //举报按钮
   toReport: function(e) {

@@ -10,19 +10,25 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/web/controllers/api/Goods.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="387">
-              <caret line="153" lean-forward="true" selection-start-line="153" selection-end-line="153" />
+            <state relative-caret-position="375">
+              <caret line="15" selection-start-line="15" selection-end-line="15" selection-end-column="26" />
+              <folding>
+                <element signature="e#2393#3687#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/web/controllers/api/Record.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="273">
+              <caret line="51" selection-start-line="51" selection-end-line="51" />
               <folding>
                 <element signature="e#65#110#0" expanded="true" />
-                <element signature="e#2393#3687#0" />
-                <element signature="e#4632#7500#0" />
-                <element signature="e#7566#9128#0" />
-                <element signature="e#9183#11063#0" />
-                <element signature="e#11147#12430#0" />
-                <element signature="e#12516#14495#0" />
               </folding>
             </state>
           </provider>
@@ -31,7 +37,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/common/models/ciwei/Goods.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="236">
+            <state relative-caret-position="550">
               <caret line="25" column="13" selection-start-line="25" selection-start-column="4" selection-end-line="25" selection-end-column="13" />
             </state>
           </provider>
@@ -46,6 +52,7 @@
         <option value="$PROJECT_DIR$/common/models/ciwei/Member.py" />
         <option value="$PROJECT_DIR$/common/models/ciwei/Goods.py" />
         <option value="$PROJECT_DIR$/web/controllers/api/Goods.py" />
+        <option value="$PROJECT_DIR$/web/controllers/api/Record.py" />
       </list>
     </option>
   </component>
@@ -55,7 +62,7 @@
     <other-services-enabled>true</other-services-enabled>
     <auto-save>true</auto-save>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds" extendedState="7">
     <option name="x" value="350" />
     <option name="y" value="40" />
     <option name="width" value="1045" />
@@ -78,20 +85,20 @@
             <path>
               <item name="ciwei" type="b2602c69:ProjectViewProjectNode" />
               <item name="ciwei" type="462c0819:PsiDirectoryNode" />
-              <item name="common" type="462c0819:PsiDirectoryNode" />
+              <item name="web" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="ciwei" type="b2602c69:ProjectViewProjectNode" />
               <item name="ciwei" type="462c0819:PsiDirectoryNode" />
-              <item name="common" type="462c0819:PsiDirectoryNode" />
-              <item name="models" type="462c0819:PsiDirectoryNode" />
+              <item name="web" type="462c0819:PsiDirectoryNode" />
+              <item name="controllers" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="ciwei" type="b2602c69:ProjectViewProjectNode" />
               <item name="ciwei" type="462c0819:PsiDirectoryNode" />
-              <item name="common" type="462c0819:PsiDirectoryNode" />
-              <item name="models" type="462c0819:PsiDirectoryNode" />
-              <item name="ciwei" type="462c0819:PsiDirectoryNode" />
+              <item name="web" type="462c0819:PsiDirectoryNode" />
+              <item name="controllers" type="462c0819:PsiDirectoryNode" />
+              <item name="api" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -134,17 +141,18 @@
       <workItem from="1575103196984" duration="4708000" />
       <workItem from="1575118650239" duration="4719000" />
       <workItem from="1575166799384" duration="4717000" />
+      <workItem from="1575252825605" duration="5039000" />
+      <workItem from="1575273076208" duration="707000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="14144000" />
+    <option name="totallyTimeSpent" value="19890000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.19436997" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.1997319" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -158,7 +166,7 @@
       <window_info anchor="bottom" id="Version Control" order="8" />
       <window_info anchor="bottom" id="Database Changes" order="9" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="11" visible="true" weight="0.052333806" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="11" visible="true" weight="0.301273" />
       <window_info anchor="bottom" id="Python Console" order="12" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -185,25 +193,29 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/web/controllers/api/Goods.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="375">
+          <caret line="15" selection-start-line="15" selection-end-line="15" selection-end-column="26" />
+          <folding>
+            <element signature="e#2393#3687#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/common/models/ciwei/Goods.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="236">
+        <state relative-caret-position="550">
           <caret line="25" column="13" selection-start-line="25" selection-start-column="4" selection-end-line="25" selection-end-column="13" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/web/controllers/api/Goods.py">
+    <entry file="file://$PROJECT_DIR$/web/controllers/api/Record.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="387">
-          <caret line="153" lean-forward="true" selection-start-line="153" selection-end-line="153" />
+        <state relative-caret-position="273">
+          <caret line="51" selection-start-line="51" selection-end-line="51" />
           <folding>
             <element signature="e#65#110#0" expanded="true" />
-            <element signature="e#2393#3687#0" />
-            <element signature="e#4632#7500#0" />
-            <element signature="e#7566#9128#0" />
-            <element signature="e#9183#11063#0" />
-            <element signature="e#11147#12430#0" />
-            <element signature="e#12516#14495#0" />
           </folding>
         </state>
       </provider>

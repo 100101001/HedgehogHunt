@@ -114,3 +114,11 @@ radio .wx-radio-input.wx-radio-input-checked::before {
     color: #f7931e;
     height: 100%;
 }
+
+.no-more-goods {
+  margin-top: 40rpx;
+  text-align: center;
+  font-size: 24rpx;
+  padding-bottom: 228rpx;
+  color: #999;
+}

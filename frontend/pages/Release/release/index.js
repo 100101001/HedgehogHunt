@@ -315,6 +315,7 @@ Page({
       var summary_placeholder = "添加寻物描述：物品丢失大致时间、地点，记号等...";
       var imglist = ['/images/icons/wanted.png'];
     }
+    console.log("hhhhhhh");
     var summary_value = "";
     var business_type = this.data.business_type;
     this.setData({

@@ -1,5 +1,6 @@
 <import src="../template/goods-item/goods-item-template.wxml" />
 <import src="../template/search-bar/search-bar-template.wxml" />
+<loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
 <!--index.wxml-->
 <view class="container">
     <template is="search-bar-template" data="{{...infos}}" />
@@ -11,4 +12,6 @@
       </view>
     </block>
   </view>
+<view wx:if="{{!loadingMoreHidden}}" class="no-more-goods">没有更多记录了~</view>
+<view wx:if="{{loadingMoreHidden}}" class="no-more-goods">上滑加载更多～</view>
 </view>

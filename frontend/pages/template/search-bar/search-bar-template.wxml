@@ -3,10 +3,10 @@
     <view class="search_container">
       <view class="search_box1">
         <icon type="search" class='search_icon' size='15' color="#f7931e"></icon>
-        <input value='{{name}}' bindfocus='onBindFocus' bindinput="onBindNameInput" class='search_text_box' type="text" placeholder='姓名' placeholder-style='color:#f7931e;'></input>
+        <input value='{{name}}' bindfocus='onBindFocus' bindinput="listenerNameInput" class='search_text_box' type="text" placeholder='姓名' placeholder-style='color:#f7931e;'></input>
       </view>
       <view class="search_box2">
-        <input value="{{type}}" bindfocus='onBindFocus' bindinput="onBindGoodsTypeInput" class='search_text_box' type="text" placeholder='物品种类' placeholder-style='color:#f7931e; '></input>
+        <input value="{{type}}" bindfocus='onBindFocus' bindinput="listenerGoodsNameInput" class='search_text_box' type="text" placeholder='物品' placeholder-style='color:#f7931e; '></input>
       </view>
       <button class="search_button" form-type="submit" bindtap="onBindConfirm">搜索</button>
       <button class="search_button" hidden="{{!saveHidden}}" bindtap="editTap">编辑</button>
@@ -16,7 +16,7 @@
    <!--检查举报-->
     <view class="type-container">
       <scroll-view class="type-navbar-check-report">
-        <view class="type-box" wx:for-items="{{check_cat}}" wx:for-item="cat" wx:key="{{index}}">
+        <view class="type-box" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="{{index}}">
           <view id="{{cat.id}}" class="type-navbar-item {{check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="checkReportClick">
             {{cat.name}}
           </view>

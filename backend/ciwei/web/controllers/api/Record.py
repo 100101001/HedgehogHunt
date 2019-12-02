@@ -9,6 +9,7 @@ from common.models.ciwei.Report import Report
 from web.controllers.api import route_api
 from flask import request,jsonify,g
 from application import app,db
+from sqlalchemy import or_
 from common.libs.Helper import getCurrentDate
 from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
@@ -35,36 +36,51 @@ def recordSearch():
 
     #获取用户的发布信息
     query=Good.query.filter_by(member_id=member_info.id)
-    business_type = int(req['business_type']) if 'business_type' in req else 'nono'
-    if business_type==0 or business_type==1:
-        query = query.filter_by(business_type=business_type)
-
-    status=req['status'] if 'status' in req else "nonono"
-    if business_type==0 or business_type==1:
+    req = request.values
+    status = int(req['status']) if ('status' in req and req['status']) else 0
+    if status == 0:
+        resp['code'] = -1
+        resp['msg'] = '商品状态码错误'
+        return jsonify(resp)
+    else:
         query = query.filter_by(status=status)
 
-    goods_list=query.order_by(Good.updated_time.desc()).offset(offset).limit(10).all()
-    #将对应的用户信息取出来，组合之后返回
-    # goods_list=goods_list_onshow+goods_list_hide
+    owner_name = req['owner_name'] if 'owner_name' in req else ''
+    if owner_name:
+        rule = or_(Good.owner_name.ilike("%{0}%".format(owner_name)))
+        query = query.filter(rule)
+
+    mix_kw = str(req['mix_kw']) if 'mix_kw' in req else ''
+    if mix_kw:
+        fil_str = "%{0}%".format(mix_kw[0])
+        for i in mix_kw[1:]:
+            fil_str = fil_str + "%{0}%".format(i)
+        rule = or_(Good.name.ilike("%{0}%".format(fil_str)), Good.member_id.ilike("%{0}%".format(mix_kw)))
+        query = query.filter(rule)
+
+    # #将对应的用户信息取出来，组合之后返回
+    goods_list = query.order_by(Good.id.desc()).offset(offset).limit(10).all()
     data_goods_list = []
     if goods_list:
         for item in goods_list:
             tmp_data = {
                 "id": item.id,
-                "goods_name":item.name,
-                "created_time":str(item.created_time),
-                "updated_time":str(item.updated_time),
-                "business_type":item.business_type,
-                "target_price":str(item.target_price),
-                "main_image":UrlManager.buildImageUrl(item.main_image),
-                "status":item.status
+                "goods_name": item.name,
+                "owner_name": item.owner_name,
+                "updated_time": str(item.updated_time),
+                "business_type": item.business_type,
+                "summary": item.summary,
+                "main_image": UrlManager.buildImageUrl(item.main_image),
+                "auther_name": member_info.nickname,
+                "avatar": member_info.avatar,
+                "selected": False,
+                "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
             }
             data_goods_list.append(tmp_data)
 
-    resp['data']['list']=data_goods_list
-    resp['data']['has_more']=0 if len(data_goods_list)<page_size else 1
+    resp['data']['list'] = data_goods_list
+    resp['data']['has_more'] = 0 if len(data_goods_list) < page_size else 1
     return jsonify(resp)
-
 #上架与下架
 @route_api.route("/record/change-status",methods=['GET','POST'])
 def recordChangeStatus():

@@ -1,9 +1,9 @@
 {
   "pages": [
-    "pages/Record/index",
-    "pages/Find/Find",
-    "pages/Find/info/info",
     "pages/index/index",
+    "pages/Find/Find",
+    "pages/Record/index",
+    "pages/Find/info/info",
     "pages/Release/Release",
     "pages/Thanks/record/record",
     "pages/Report/index",

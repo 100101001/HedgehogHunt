@@ -20,22 +20,22 @@ Page({
   },
 
   onFindTap: function(event) {
-    var regFlag = app.globalData.regFlag;
-    if (!regFlag) {
-      app.loginTip();
-      return;
-    }
+    // var regFlag = app.globalData.regFlag;
+    // if (!regFlag) {
+    //   app.loginTip();
+    //   return;
+    // }
     wx.navigateTo({
       url: 'release/index?business_type=1',
     })
   },
 
   onLostTap: function(event) {
-    var regFlag = app.globalData.regFlag;
-    if (!regFlag) {
-      app.loginTip();
-      return;
-    }
+    // var regFlag = app.globalData.regFlag;
+    // if (!regFlag) {
+    //   app.loginTip();
+    //   return;
+    // }
     wx.navigateTo({
       url: 'release/index?business_type=0',
     })

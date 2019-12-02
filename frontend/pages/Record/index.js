@@ -8,33 +8,60 @@ Page({
   },
 
   onLoad: function (options) {
-    var goodsList = app.cutStr(goodsData.goodsList);
-    //截取前14个字当做概况
-    for (var i in goodsList) {
-      goodsList[i].content = goodsList[i].summary.substring(0, 27) + "...";
-    }
     this.setData({
       infos: {
-        list: goodsList,
+        list: {},
         saveHidden: true,
-        check_status_id: 3,
+        check_status_id: 2,
         check_cat: [
           {
-            id: 3,
+            id: 2,
             name: '待取回'
           },
           {
-            id: 4,
+            id: 3,
             name: '已取回',
           },
           {
-            id: 5,
+            id: 4,
             name: '已答谢',
           },
-        ]
+        ],
       },
-      check_status_id: 3
+      check_status_id: 2,
+      owner_name: "",
+      goods_name: "",
     })
+    this.onPullDownRefresh();
+  },
+  onShow: function () {
+    var regFlag = app.globalData.regFlag;
+    this.setData({
+      regFlag: regFlag
+    });
+    this.onPullDownRefresh();
+    // this.getBanners();
+  },
+  //下拉刷新
+  onPullDownRefresh: function (event) {
+    var infos=this.data.infos;
+    infos.list=[];
+    this.setData({
+      p: 1,
+      infos:infos,
+      loadingMoreHidden: true
+    });
+    this.getGoodsList();
+  },
+  listenerNameInput: function (e) {
+    this.setData({
+      owner_name: e.detail.value
+    });
+  },
+  listenerGoodsNameInput: function (e) {
+    this.setData({
+      goods_name: e.detail.value
+    });
   },
   //点击信息卡查看详情
   onDetailTap: function (event) {
@@ -51,13 +78,75 @@ Page({
     }
   },
   //下拉刷新
-  onPullDownRefresh: function (event) {
-    util.showMessage("下拉刷新函数", "已经写好");
-    wx.stopPullDownRefresh();
+  onReachBottom: function (e) {
+    var that = this;
+    //延时500ms处理函数
+    setTimeout(function () {
+      that.setData({
+        loadingHidden: true
+      });
+      that.getGoodsList();
+    }, 500);
   },
-  //上滑加载
-  onReachBottom: function (event) {
-    util.showMessage("上滑加载", "已经写好");
+  formSubmit: function (e) {
+    this.onPullDownRefresh();
+  },
+  //获取信息列表
+  getGoodsList: function (e) {
+    var that = this;
+    if (!that.data.loadingMoreHidden) {
+      return;
+    }
+    if (that.data.processing) {
+      return;
+    }
+    that.setData({
+      processing: true,
+      loadingHidden: false
+    });
+    wx.request({
+      url: app.buildUrl("/record/search"),
+      header: app.getRequestHeader(),
+      data: {
+        status: that.data.check_status_id,
+        mix_kw: that.data.goods_name,
+        owner_name: that.data.owner_name,
+        p: that.data.p,
+        business_type: that.data.business_type,
+      },
+      success: function (res) {
+        var resp = res.data;
+        if (resp.code !== 200) {
+          app.alert({
+            'content': resp.msg
+          });
+          return
+        }
+        var goods_list = resp.data.list;
+        goods_list = app.cutStr(goods_list);
+        goods_list=that.data.infos.list.concat(goods_list),
+        //修改save的状态
+        that.setData({
+          p: that.data.p + 1,
+        });
+        if (resp.data.has_more === 0) {
+          that.setData({
+            loadingMoreHidden: false,
+          })
+        }
+        that.setPageData(that.getSaveHide(), that.allSelect(), that.noSelect(), goods_list);
+      },
+      fail: function (res) {
+        app.serverBusy();
+        return;
+      },
+      complete: function (res) {
+        that.setData({
+          processing: false,
+          loadingHidden: true
+        });
+      },
+    })
   },
 
   selectTap: function (e) {
@@ -187,15 +276,13 @@ Page({
     });
   },
   checkReportClick: function (e) {
-    var list = this.data.infos.list;
     //选择一次分类时返回选中值
     this.setData({
       check_status_id: e.currentTarget.id,
       p: 1,
-      goods_list: [],
       loadingMoreHidden: true,
       processing: false
     });
-    this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), list);
+    this.onPullDownRefresh();
   },
 })

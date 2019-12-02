@@ -14,7 +14,7 @@ App({
     userInfo: null,
     version: "1.0",
     regFlag: true,
-    shopName: "济旦财闲置交易平台",
+    shopName: "刺猬寻物",
     //domain: "https://jmall.tongji.xn--6qq986b3xl/api",
     // domain: "https://jmall.opencs.cn/api",
     domain: "http://127.0.0.1:8999/api",
