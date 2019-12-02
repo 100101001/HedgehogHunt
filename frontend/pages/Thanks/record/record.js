@@ -15,7 +15,7 @@ Page({
           "mobile": 18385537403,
           "avatar": "https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTJLMa7CuCcoXicK6SpMA9E0IHxPgLYibKFbeCkUo3IicyyDr8ssosTEaaptIL2Xjic6LXEC2OmjwmXMmQ/132",
           "summary": "谢谢你的反馈，我找回了钱包,钱包里面的很多证件对我很重要，真的真的十分感谢", //详情介绍
-          //"reward": "酬金：3000",
+          "reward": "酬金：3000",
           "updated_time": "2019-10-30 12:20:40", //更新时间
           "id": 1
         }],

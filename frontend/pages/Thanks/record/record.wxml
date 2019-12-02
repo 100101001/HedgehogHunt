@@ -18,10 +18,12 @@
         <radio class="radio" hidden="{{infos.saveHidden}}" data-index="{{index}}" bindtap="selectTap" checked="{{item.selected}}" />
         <view class=".goods_container">
           <view class="auther_data">
-            <image class="auther_avatar" src="{{item.avatar}}"></image>
-            <view class="auther_message">
-              <text class="auther_name">{{item.auther_name}}</text>
-              <text class="release_date">{{item.updated_time}}</text>
+            <view class="auther_container">
+              <image class="auther_avatar" src="{{item.avatar}}"></image>
+              <view class="auther_message">
+                <text class="auther_name">{{item.auther_name}}</text>
+                <text class="release_date">{{item.updated_time}}</text>
+              </view>
             </view>
             <view class="status-container" wx:if="{{item.reward}}">{{item.reward}}</view>
             <view class="report" catchtap="toReport" data-id="{{id}}">
