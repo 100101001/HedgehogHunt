@@ -79,8 +79,6 @@ Page({
   //表单提交
   formSubmit: function(e) {
     var data = e.detail.value;
-    app.globalData.location = data['location'];
-    app.globalData.business_type = this.data.business_type;
     var tips_obj = this.data.tips_obj;
     var is_empty = app.judgeEmpty(data, tips_obj);
     if (is_empty) {
@@ -200,9 +198,6 @@ Page({
   },
   endCreate: function(id) {
     var that = this;
-    that.setData({
-      flush: false
-    });
     wx.request({
       url: app.buildUrl("/goods/end-create"),
       method: 'POST',
@@ -219,9 +214,6 @@ Page({
           });
           return
         }
-        that.setData({
-          change_qrcode: false,
-        });
         that.setInitData();
         wx.showToast({
           title: '提交成功',

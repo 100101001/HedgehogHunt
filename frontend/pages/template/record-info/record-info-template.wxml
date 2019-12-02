@@ -6,7 +6,7 @@
     <template is="info-auth-template" data="{{...info}}" />
     <!--商品轮播图-->
     <view class="swiper-container">
-      <swiper class="swiper_box" autoplay="{{autoplay}}" interval="{{interval}}" duration="{{duration}}" bindchange="swiperchange" circular="true">
+      <swiper class="swiper_box" autoplay="true" interval="3000" duration="1000"  circular="true">
         <block wx:for="{{info.pics}}" wx:key="{{index}}">
           <swiper-item>
             <image src="{{item}}" bindtap="previewItemImage" data-index="{{index}}" class="slide-image" width="355" height="150" mode="aspectFit" lazy-load="true" />
@@ -25,11 +25,11 @@
         <text wx:if="{{info.business_type}}" style="color: #f7931e;">#拾得#</text>
         <text wx:if="{{!info.business_type}}" style="color: #f7931e;">#丢失#</text>
         <view class="goods_owner">{{info.goods_name}}</view>
-        <view class="goods_owner">{{info.onwer_name}}</view>
+        <view class="goods_owner">{{info.owner_name}}</view>
       </view>
       <view class="goods-status">
         <view class="goods-price" style="color:#999;font-size:24rpx;">浏览{{info.view_count}}次</view>
-        <view class="status-container">待认领</view>
+        <view class="status-container">{{info.status_desc}}</view>
       </view>
     </view>
     <view class="location" wx:if="{{show_location}}">
@@ -37,6 +37,7 @@
         <image class="loc_icon" src="/images/icons/locate.png"></image>
         <text class="loc_text">{{info.location}}</text>
       </view>
+      <view class="hrz"></view>
       <view>
         <image class="loc_icon" src="/images/icons/mobile.png"></image>
         <text class="loc_text">电话：{{info.mobile}}</text>

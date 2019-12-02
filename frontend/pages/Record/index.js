@@ -8,7 +8,7 @@ Page({
   },
 
   onLoad: function (options) {
-    var goodsList = goodsData.goodsList;
+    var goodsList = app.cutStr(goodsData.goodsList);
     //截取前14个字当做概况
     for (var i in goodsList) {
       goodsList[i].content = goodsList[i].summary.substring(0, 27) + "...";

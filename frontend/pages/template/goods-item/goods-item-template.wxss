@@ -100,13 +100,14 @@
   align-items: center;
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
   font-size: 22rpx;
 }
 
 .goods_owner {
   display: flex;
-  padding: 3rpx 20rpx 3rpx 20rpx;
-  margin-left: 20rpx;
+  padding: 3rpx 10rpx 3rpx 10rpx;
+  margin-left: 10rpx;
   border-radius: 40rpx;
   align-items: center;
   text-align: center;
@@ -123,9 +124,12 @@
 
 .goods_content {
   margin-top: 20rpx;
+  height: 74rpx;
+  width: 365rpx;
+  word-break:break-all;/*文本换行*/ 
   color: #b3b3b3;
   font-size: 24rpx;
-  width: 370rpx;
+  line-break: true;
 }
 
 .horizon{

@@ -11,7 +11,7 @@ page {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  margin-bottom: 200rpx;
+  margin-bottom: 40rpx;
 }
 
 .search_container {
@@ -29,7 +29,6 @@ page {
 .search_box {
   display: flex;
   justify-content: center;
-  text-align: center;
   margin-left: 20rpx;
   align-items: center;
   border-radius: 25rpx;
@@ -43,7 +42,7 @@ page {
   margin-left: 10rpx;
 }
 .search_text_box {
-  margin-left: -60rpx;
+  margin-left: 25rpx;
   height: 35rpx;
   width: 160rpx;
   color: #f7931e;
@@ -148,4 +147,11 @@ swiper-item image {
   border-bottom: 4rpx solid #f7931e;
   color: #f7931e;
   font-weight: 600rpx;
+}
+
+.no-more-goods {
+  text-align: center;
+  font-size: 24rpx;
+  padding-bottom: 228rpx;
+  color: #999;
 }

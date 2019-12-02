@@ -4,51 +4,28 @@ var app = getApp();
 
 Page({
   data: {
-    autoplay: true,
-    interval: 3000,
-    duration: 1000,
-    swiperCurrent: 0,
     loadingHidden: true,
-    show_location:false,
-    info: {
-      "auther_name": "韦朝旭",
-      "mobile":18385537403,
-      "avatar": "https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTJLMa7CuCcoXicK6SpMA9E0IHxPgLYibKFbeCkUo3IicyyDr8ssosTEaaptIL2Xjic6LXEC2OmjwmXMmQ/132",
-      "business_type": 1, //捡到东西还是丢了东西，捡到是1，丢了是0
-      "goods_name": "钱包",
-      "onwer_name": "韦朝旭",
-      "id": 23, //发布的记录的id
-      "is_auth": false, //当前用户是否是消息的发布者
-      "location": "图书馆",
-      "main_image": "https://jmall.opencs.cn/static/upload/20191030/81f2f83ff3ea43e797a3cf6144e9afba.jpg", //主图
-      "pics": [
-        "https://jmall.opencs.cn/static/upload/20191030/81f2f83ff3ea43e797a3cf6144e9afba.jpg"
-      ], //组图
-      "summary": "\u5168\u65b0\uff0c\u57fa\u672c\u6ca1\u5199\u5b57", //详情介绍
-      "updated_time": "2019-10-30 12:20:40", //更新时间
-      "view_count": 39, //浏览量
-    }
-
+    show_location: false,
   },
   onShareAppMessage: function(Options) {
     var business_type = this.data.info.business_type;
     if (business_type == 1) {
-      var type_name = "出闲置" + this.data.info.goods_name;
-      var end = "。你需要吗？快来看看吧";
+      var type_name = "失物招领：" + this.data.info.goods_name;
+      var end = "有你或者你朋友丢失的东西吗？快来看看吧";
     } else {
-      var type_name = "求购" + this.data.info.goods_name;
-      var end = "。你有吗？快来看看吧";
+      var type_name = "寻物启事：" + this.data.info.goods_name;
+      var end = "你有看到过吗？帮忙看看吧";
     }
     var is_auth = this.data.info.is_auth;
     if (is_auth) {
-      var start = "我在济人济市"
+      var start = "我在刺猬寻物"
     } else {
-      var start = "有人在济人济市"
+      var start = "有人在刺猬寻物"
     }
     var title_msg = start + type_name + end;
     return {
       title: title_msg,
-      path: '/pages/jmall/index/index?goods_id=' + this.data.info.id,
+      path: '/pages/index/index?goods_id=' + this.data.info.id,
       success: function(res) {
         wx.request({
           url: app.buildUrl('/member/share'),
@@ -71,19 +48,9 @@ Page({
     }
   },
   onLoad: function(options) {
-    var goods_id = 23;
-    var info = this.data.info;
-    //如果是认领过的用户，或是系统推荐给用户的信息，则直接打开显示地址
-    this.setData({
-      infos: {
-        info: info,
-        loadingHidden: true,
-        op_status: 0,
-        show_location:true
-      }
-    });
-    //this.getGoodsInfo(goods_id);
-
+    // var goods_id = options.goods_id;
+    var goods_id =2;
+    this.getGoodsInfo(goods_id);
   },
   onShow: function() {
     var regFlag = app.globalData.regFlag;
@@ -91,13 +58,6 @@ Page({
       regFlag: regFlag
     });
 
-  },
-  login: function(e) {
-    app.login(e);
-    var regFlag = app.globalData.regFlag;
-    this.setData({
-      regFlag: regFlag
-    });
   },
   getReportInfo: function(id) {
     var that = this;
@@ -155,7 +115,14 @@ Page({
           return;
         }
         that.setData({
-          info: resp.data.info
+          //认领过的则直接显示地址
+          //op_status是操作的代码，商品详情就是0
+          infos: {
+            info: resp.data.info,
+            loadingHidden: true,
+            op_status: 0,
+            show_location: resp.data.show_location,
+          }
         });
       },
       fail: function(res) {
@@ -167,12 +134,6 @@ Page({
           loadingHidden: true
         });
       },
-    })
-  },
-  //事件处理函数
-  swiperchange: function(e) {
-    this.setData({
-      swiperCurrent: e.detail.current
     })
   },
   toReport: function(e) {
@@ -217,7 +178,7 @@ Page({
             fail: function(res) {
               wx.hideLoading();
               wx.showToast({
-                title: '系统繁忙，反馈失败，还是感谢！',
+                title: '系统繁忙，反馈失败！',
                 duration: 2000
               });
               app.serverBusy();
@@ -239,43 +200,90 @@ Page({
       url: "../../Release/release/index",
     })
   },
+  //申领的按钮
   toApplicate: function() {
+    var that = this;
     var regFlag = app.globalData.regFlag;
     if (!regFlag) {
       app.loginTip();
       return;
     }
-    var show_location = !this.data.show_location;
-    var infos=this.data.infos;
-    infos['show_location'] = show_location;
-    this.setData({
-        infos: infos
-    })
-    app.alert({
-      'content':"认领成功，可到  '我的——认领记录'   中查看"
-    });
-  },
-  //预览图片
-  previewImage: function(e) {
-    var current = e.target.dataset.src;
-    wx.previewImage({
-      current: current, // 当前显示图片的http链接
-      urls: this.data.info.qr_code_list,
+    // var is_auth=that.data.infos.info.is_auth;
+    // if (is_auth){
+    //   app.alert({
+    //     'content':"发布者不可操作自己的记录"
+    //   })
+    //   return;
+    // }
+
+    var show_location=that.data.infos.show_location;
+    // if (show_location){
+    //   if(this.data.infos.business_type){
+    //     var content ="您已认领过物品,请到对应地址取回物品";
+    //   }else{
+    //     var content = "您已归还过物品,请勿重复操作";
+    //   }
+    //   app.alert({
+    //     'content':content
+    //   })
+    //   return;
+    // }
+    wx.showModal({
+      title: '提示',
+      content: '申领后会在平台留下个人信息备查，是否确定申领？',
+      success(res) {
+        if (res.confirm) {
+        that.setData({
+          loadingHidden: false
+        });
+        wx.request({
+          url: app.buildUrl("/goods/applicate"),
+          header: app.getRequestHeader(),
+          data: {
+            id: that.data.infos.info.id,
+          },
+          success: function(res) {
+            var resp = res.data;
+            if (resp.code !== 200) {
+              return;
+            }
+
+            var infos = that.data.infos;
+            infos['show_location'] = resp.data.show_location;
+            that.setData({
+              infos: infos
+            })
+            app.alert({
+              'content': "认领成功，可到  '我的——认领记录'   中查看"
+            });
+          },
+          fail: function(res) {
+            app.serverBusy();
+            return;
+          },
+          complete: function(res) {
+            that.setData({
+              loadingHidden: true
+            });
+          },
+        })
+        }
+      },
     })
   },
   previewItemImage: function(e) {
     var index = e.currentTarget.dataset.index;
     console.log(index);
     wx.previewImage({
-      current: this.data.info.pics[index], // 当前显示图片的http链接
-      urls: this.data.info.pics // 需要预览的图片http链接列表
+      current: this.data.infos.info.pics[index], // 当前显示图片的http链接
+      urls: this.data.infos.info.pics // 需要预览的图片http链接列表
     })
   },
   toEdit: function(event) {
-    var info = this.data.info;
+    var info = this.data.infos.info;
     app.globalData.info = info;
     wx.navigateTo({
-      url: 'edit/edit',
+      url: '../edit/edit',
     })
   },
 });

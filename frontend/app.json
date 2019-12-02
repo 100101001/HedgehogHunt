@@ -1,17 +1,17 @@
 {
   "pages": [
-    "pages/index/index",
+    "pages/Record/index",
     "pages/Find/Find",
+    "pages/Find/info/info",
+    "pages/index/index",
     "pages/Release/Release",
     "pages/Thanks/record/record",
-    "pages/Record/index",
     "pages/Report/index",
     "pages/Thanks/index",
     "pages/login/index",
     "pages/Record/info/info",
     "pages/Report/info/info",
     "pages/Mine/Mine",
-    "pages/Find/info/info",
     "pages/Mine/connect/index",
     "pages/Homepage/homepage",
     "pages/Release/release/index",
@@ -21,7 +21,8 @@
     "pages/Homepage/homepage/pay/pay",
     "pages/Homepage/homepage/aboutus/aboutus",
     "pages/Lost/Lost",
-    "pages/Mine/userinfo/index"
+    "pages/Mine/userinfo/index",
+    "pages/Find/edit/edit"
   ],
   "window": {
     "navigationBarBackgroundColor": "#f7931e",

@@ -1,0 +1,48 @@
+.submit-btn{
+  background-color:#009578;
+  font-size: 26rpx;
+  font-weight: 600;
+  text-align: center;
+  color:#fff;
+  position:fixed;
+  left:430rpx;
+  top:40rpx;
+  padding: 3rpx 30rpx 3rpx 30rpx;
+  border-radius: 40rpx;
+}
+
+.auth-data{
+  width: 100%;
+  background-color: #ffffff;
+  bottom: 20rpx;  
+  display: flex;  
+  justify-content: center;
+}
+
+.auth-item{
+  margin-top: 20rpx;
+  margin-left: 10rpx;
+}
+
+.updated-time{
+  color: #B0B0B0;
+  font-size:24rpx;
+  margin-top:5rpx;
+}
+.report{
+  width: 70rpx;
+  margin-right: 40rpx;
+  margin-top: 28rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.report image{
+  height: 50rpx;
+  width: 50rpx;
+}
+.report text{
+  font-size: 20rpx;
+  color: #e64340;
+  margin-top: 4rpx;
+}

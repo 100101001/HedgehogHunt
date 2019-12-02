@@ -1,0 +1,17 @@
+<!--pages/jmall/my/controls/feedback/index.wxml-->
+<view>
+<view class="tips-views" wx:if="{{show_qr_code}}">只能有一张二维码，所以如果要更新请删除后重新上传~</view>
+<view class="tips-views" wx:if="{{!show_qr_code}}">请添加用于联系的二维码</view>
+  <form class="goods-box" bindsubmit="formSubmit">
+    <view class="pics-list">
+      <view class="pics-item" wx:if="{{show_qr_code}}">
+        <image src="{{qr_code_list[0]}}" mode="aspectFill" bindtap="previewQrCodeImage"></image>
+        <text class='del' bindtap='deleteQrcode' style='display:{{isDel}}'>×</text>
+      </view>
+      <view class="add-view"  bindtap='chooseQrcode'>
+        <image class="add-pic-icon" src="/images/icons/add-pics.png"></image>
+      </view>
+    </view>
+    <button class="submit-btn" form-type="submit">确认修改</button>
+  </form>
+</view>

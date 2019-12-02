@@ -1,0 +1,73 @@
+/* pages/jmall/my/controls/feedback/index.wxss */
+.tips-views{
+  margin-top: 50rpx;
+  margin-left: 30rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  justify-content: center;
+  opacity: 0.7;
+  align-content: center;
+}
+.add-view{
+  background-color: #efefef;
+   margin: 10px;
+  position: relative;
+  margin-left: 10rpx;
+  height: 200rpx;
+  width: 200rpx;
+  border-radius: 10rpx;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+}
+.add-pic-icon{
+  width: 100rpx;
+  height: 100rpx;
+}
+.pics-list {
+  padding: 20rpx;
+  display: flex;
+  flex-direction: row;
+}
+
+.pics-item {
+  margin: 10px;
+  position: relative;
+  margin-left: 10rpx;
+  height: 200rpx;
+  width: 200rpx;
+  border-radius: 10rpx;
+}
+
+.pics-item .del {
+  position: absolute;
+  top: -11rpx;
+  right: -11rpx;
+  color: #fff;
+  border-radius: 50%;
+  width: 40rpx;
+  height: 40rpx;
+  z-index: 2;
+  line-height: 35rpx;
+  text-align: center;
+  background-color: #f00;
+}
+
+.pics-item image {
+  border-radius: 10rpx;
+  height: 200rpx;
+  width: 200rpx;
+}
+
+.submit-btn{
+  background-color:#e64340;
+  font-size: 26rpx;
+  font-weight: 600;
+  text-align: center;
+  color:#fff;
+  position:fixed;
+  left:530rpx;
+  top:770rpx;
+  padding: 3rpx 30rpx 3rpx 30rpx;
+  border-radius: 40rpx;
+}

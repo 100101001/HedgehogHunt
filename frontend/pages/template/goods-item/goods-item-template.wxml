@@ -6,7 +6,7 @@
         <text class="auther_name">{{auther_name}}</text>
         <text class="release_date">{{updated_time}}</text>
       </view>
-      <view class="status-container">待认领</view>
+      <view class="status-container">{{status_desc}}</view>
       <view class="report" catchtap="toReport" data-id="{{id}}">
         <image src="/images/icons/report.png"></image>
         <text>举报</text>
@@ -16,7 +16,8 @@
       <image class="goods_image" src="{{main_image}}" mode="aspectFill"></image>
       <view class="summary_container">
         <view class="goods_message">
-          <text style='color: #f7931e; font-size:20rpx'>#拾得#</text>
+          <text wx:if="{{business_type}}" style='color: #f7931e; font-size:20rpx'>#拾得#</text>
+          <text wx:if="{{!business_type}}" style='color: #f7931e; font-size:20rpx'>#丢失#</text>
           <view class="goods_owner">{{goods_name}}</view>
           <view class="goods_owner">{{owner_name}}</view>
         </view>

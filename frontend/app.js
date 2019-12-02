@@ -13,7 +13,7 @@ App({
     has_info: false,
     userInfo: null,
     version: "1.0",
-    regFlag: false,
+    regFlag: true,
     shopName: "济旦财闲置交易平台",
     //domain: "https://jmall.tongji.xn--6qq986b3xl/api",
     // domain: "https://jmall.opencs.cn/api",
@@ -135,14 +135,17 @@ App({
     //截取前14个字当做概况
     for (var i in items) {
       var item = items[i];
-      if (item.auther_name && item.auther_name.length > 6) {
-        item.auther_name = item.auther_name.substring(0, 7) + "...";
+      if (item.auther_name && item.auther_name.length > 16) {
+        item.auther_name = item.auther_name.substring(0, 15) + "...";
       }
-      if (item.location && item.location.length > 8) {
-        item.location = item.location.substring(0, 8) + "...";
+      if (item.owner_name && item.owner_name.length >4) {
+        item.owner_name = item.owner_name.substring(0, 4) + "...";
       }
-      if (item.goods_name && item.goods_name.length > 8) {
-        item.goods_name = item.goods_name.substring(0, 10) + "...";
+      if (item.goods_name && item.goods_name.length > 6) {
+        item.goods_name = item.goods_name.substring(0, 4) + "...";
+      }
+      if (item.summary && item.summary.length >27) {
+        item.summary = item.summary.substring(0,27) + "...";
       }
       items[i] = item;
     }

@@ -1,0 +1,26 @@
+<!--start.wxml-->
+
+<view class="container">
+  <view class="remind-box" wx:if="{{remind}}">
+    <image class="remind-img" src="/images/more/loading.gif"></image>
+  </view>
+  <block wx:else>
+    <image class="title" src="/images/more/title.png" mode="aspectFill"></image>
+    <view class="content">
+      <view class="hd" style="transform:rotateZ({{angle}}deg);">
+        <image class="logo" src="/images/more/tongji-logo.png" mode="aspectFill"></image>
+        <image class="wave" src="/images/more/wave.png" mode="aspectFill"></image>
+        <image class="wave wave-bg" src="/images/more/wave.png" mode="aspectFill"></image>
+      </view>
+        <view class="bd">
+         <image class="smalltitle" src="/images/more/confirm-word.png"></image>
+           <view class="confirm-btn" bindtap='goToIndex'>
+           <text >逛一逛</text>
+         </view>
+          <button class="confirm-btn"  open-type="getUserInfo" bindgetuserinfo="login" wx:if="{{ regFlag==false}}">授权登录</button>
+          <view class="warn"  wx:if="{{member_status==0}}">该账号（会员id:{{id}}）疑似违规被管理员限制登录！若有疑问请发送邮件到：1651168@tongji.edu.cn进行咨询</view>
+          <text class="copyright">©1651168@tongji.edu.cn</text>
+      </view>
+    </view>
+  </block>
+</view>

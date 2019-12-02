@@ -1,0 +1,65 @@
+{
+  "pages": [
+    "pages/jmall/index/index",
+    "pages/jmall/release/index",
+
+    "pages/jmall/my/controls/add_adm/index",
+    "pages/jmall/goods/index",
+    "pages/jmall/my/controls/index",
+    "pages/jmall/my/index",
+    "pages/jmall/my/controls/feedback_msg/index",
+    "pages/jmall/my/controls/blockmember/blockmember",
+    "pages/jmall/my/controls/feedback_msg/info",
+    "pages/jmall/my/controls/feedback/index",
+    
+    "pages/jmall/goods/info",
+    "pages/jmall/goods/edit/edit",
+    "pages/jmall/record/index",
+    "pages/jmall/my/controls/report/index",
+    "pages/jmall/my/controls/static/index",
+    "pages/jmall/my/connect/qr_code/index"
+    
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#dd2424",
+    "navigationBarTitleText": "WeChat",
+    "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "color": "#6e6d6b",
+    "selectedColor": "#e64340",
+    "borderStyle": "white",
+    "backgroundColor": "#fff",
+    "list": [
+      {
+        "pagePath": "pages/jmall/goods/index",
+        "iconPath": "images/nav/home-off.png",
+        "selectedIconPath": "images/nav/home-on.png",
+        "text": "首页"
+      },
+      {
+          "pagePath": "pages/jmall/release/index",
+          "iconPath": "images/nav/add-off.png",
+          "selectedIconPath": "images/nav/add-on.png",
+          "text": "发布"
+      },
+      {
+        "pagePath": "pages/jmall/record/index",
+        "iconPath": "images/nav/record-off.png",
+        "selectedIconPath": "images/nav/record-on.png",
+        "text": "发布记录"
+      },
+      {
+        "pagePath": "pages/jmall/my/index",
+        "iconPath": "images/nav/my-off.png",
+        "selectedIconPath": "images/nav/my-on.png",
+        "text": "我的"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "networkTimeout": {
+    "request": 40000
+  }
+}

@@ -34,20 +34,11 @@ Page({
   onDetailTap: function(event) {
     var id = event.currentTarget.dataset.id;
     wx.navigateTo({
-      url: 'info/info？goods_id=' + id,
+      url: 'info/info?goods_id=' + id,
     })
   },
-  //下拉刷新
+  //刷新
   onPullDownRefresh: function(event) {
-    this.setData({
-      p: 1,
-      goods_list: [],
-      loadingMoreHidden: true
-    });
-    this.getGoodsList();
-  },
-  //下拉刷新
-  onRefresh: function (event) {
     this.setData({
       p: 1,
       goods_list: [],
@@ -76,15 +67,15 @@ Page({
           name: '全部',
         },
         {
-          id: 0,
+          id: 1,
           name: '待找回'
         },
         {
-          id: 1,
+          id: 2,
           name: '预找回'
         },
         {
-          id: 2,
+          id: 3,
           name: '已找回'
         },
       ]
@@ -95,15 +86,15 @@ Page({
           name: '全部',
         },
         {
-          id: 0,
+          id: 1,
           name: '待领取'
         },
         {
-          id: 1,
+          id: 2,
           name: '预领取'
         },
         {
-          id: 2,
+          id: 3,
           name: '已领取'
         },
       ]
@@ -117,8 +108,8 @@ Page({
       goods_name: '',
       owner_name: '',
       filter_address: '',
+      loadingMoreHidden: true,
     });
-    this.onRefresh();
   },
   onShow: function() {
     var regFlag = app.globalData.regFlag;
@@ -126,6 +117,7 @@ Page({
       regFlag: regFlag
     });
     this.setInitData();
+    this.onPullDownRefresh();
     // this.getBanners();
   },
   onShareAppMessage: function(Options) {
@@ -245,14 +237,17 @@ Page({
           name: 'owner_name',
           placeholder: '姓名',
           icons: 'search_icon',
+          act:"listenerNameInput",
         },
         {
           name: "goods_name",
           placeholder: "物品",
+          act: "listenerGoodsNameInput",
         },
         {
           name: "filter_address",
           placeholder: "地址",
+          act: "listenerAddressInput",
         }
       ]
     });
@@ -310,12 +305,28 @@ Page({
       that.getGoodsList();
     }, 500);
   },
-  onBindConfirm: function (e) {
-    var data = e.detail.value;
+  listenerNameInput: function (e) {
+    this.setData({
+      owner_name: e.detail.value
+    });
+  },
+  listenerGoodsNameInput: function (e) {
+    this.setData({
+      goods_name: e.detail.value
+    });
+  },
+  listenerAddressInput: function (e) {
+    this.setData({
+      filter_address: e.detail.value
+    });
+  },
+  formSubmit: function (e) {
+    var data = e.detail.value
+    console.log(data);
     this.setData({
       owner_name: data['owner_name'],
       goods_name: data['goods_name'],
-      filter_address: date['filter_address']
+      filter_address: data['filter_address']
     })
     this.onPullDownRefresh();
   },
@@ -338,8 +349,8 @@ Page({
       header: app.getRequestHeader(),
       data: {
         status: that.data.activeCategoryId,
-        mix_kw: that.data.owner_name,
-        goods_name:that.data.goods_name,
+        mix_kw: that.data.goods_name,
+        owner_name:that.data.owner_name,
         p: that.data.p,
         business_type: that.data.business_type,
         filter_address: that.data.filter_address

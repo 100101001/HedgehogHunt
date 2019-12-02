@@ -26,7 +26,6 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-top: 20rpx;
 }
 
 .loc_text{
@@ -34,7 +33,6 @@
   font-size: 28rpx;
   opacity: 0.8;
   font-weight: 500;
-  margin-top:8rpx;
 }
 .container {
   background-color: #F2f2f2;
@@ -92,12 +90,13 @@ swiper-item image {
   font-size: 32rpx;
   line-height: 1.4;
   color: #000;
+  flex-wrap: wrap;
   padding: 0 30rpx 0 30rpx;
 }
 
-
 .goods-status{
   display: flex;
+  margin-top:30rpx;
   flex-direction: row;
   align-items: center;
 }
@@ -125,8 +124,8 @@ swiper-item image {
 
 .goods_owner {
   display: flex;
-  padding: 3rpx 20rpx 3rpx 20rpx;
-  margin-left: 20rpx;
+  padding: 3rpx 10rpx 3rpx 10rpx;
+  margin-left: 10rpx;
   border-radius: 40rpx;
   align-items: center;
   text-align: center;
@@ -162,6 +161,7 @@ swiper-item image {
   font-size:28rpx;
   color:#000000;
   padding: 30rpx;
+  margin-bottom: -30rpx;
 }
 .goods-text{
   font-size:28rpx;
@@ -169,6 +169,8 @@ swiper-item image {
   line-height: 56rpx;
   margin-bottom: 30rpx;
   padding: 30rpx;
+  word-break:break-all;/*文本换行*/ 
+  line-break: true;
 }
 .des-imgs{
   width:100%;
@@ -253,4 +255,11 @@ swiper-item image {
   padding: 3rpx 30rpx 3rpx 30rpx;
   border-radius: 40rpx;
 }
+
+.hrz {
+  border: 0.5px solid #ededed;
+  margin-top: 20rpx;
+  margin-bottom: 20rpx;
+}
+
 

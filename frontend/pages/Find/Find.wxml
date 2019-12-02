@@ -1,15 +1,16 @@
 <import src="../template/goods-item/goods-item-template.wxml" />
 <import src="../template/navigate-bar/navigate-bar-template.wxml" />
 <view class="all_container">
+  <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
   <form bindsubmit="formSubmit">
     <view class="search_container">
       <block wx:for="{{items}}" wx:key="{{index}}">
         <view class="search_box">
           <icon type="search" class='{{iem.icons}}' wx:if="{{item.icons}}" size='15' style="margin-left:5rpx;" color="#f7931e"></icon>
-          <input name="{{item.name}}" class='search_text_box' type="text" placeholder="{{item.placeholder}}" placeholder-style='color:#f7931e;'></input>
+          <input name="{{item.name}}" class='search_text_box' type="text" placeholder="{{item.placeholder}}" placeholder-style='color:#f7931e;' bindinput="{{item.act}}"></input>
         </view>
       </block>
-      <button class="search_button" form-type="submit" bindtap="onBindConfirm">搜索</button>
+      <button class="search_button" form-type="submit">搜索</button>
     </view>
   </form>
   <!--轮播图-->
@@ -46,6 +47,10 @@
     </block>
   </view>
 </view>
+
+<view wx:if="{{business_type && !loadingMoreHidden}}" class="no-more-goods">没有更多待领物品了~可以去发布寻物</view>
+<view wx:if="{{!business_type && !loadingMoreHidden}}" class="no-more-goods">没有更多待寻物品了~可以去发布待领</view>
+<view wx:if="{{loadingMoreHidden}}" class="no-more-goods">上滑加载更多～</view>
 
 <view>
   <template is="navigate-bar-template" data="{{...isSelecteds}}" />
