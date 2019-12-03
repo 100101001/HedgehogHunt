@@ -1,5 +1,6 @@
+DROP DATABASE IF EXISTS `ciwei_db`;
 CREATE DATABASE `ciwei_db` DEFAULT CHARACTER SET = `utf8mb4`;
-
+USE `ciwei_db`;
 #flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables member  --outfile "common/models/jmall/Member.py"  --flask
 DROP TABLE IF EXISTS `user`;
 
