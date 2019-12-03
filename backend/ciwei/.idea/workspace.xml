@@ -62,7 +62,7 @@
     <other-services-enabled>true</other-services-enabled>
     <auto-save>true</auto-save>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="350" />
     <option name="y" value="40" />
     <option name="width" value="1045" />
@@ -142,12 +142,12 @@
       <workItem from="1575118650239" duration="4719000" />
       <workItem from="1575166799384" duration="4717000" />
       <workItem from="1575252825605" duration="5039000" />
-      <workItem from="1575273076208" duration="707000" />
+      <workItem from="1575273076208" duration="1285000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="19890000" />
+    <option name="totallyTimeSpent" value="20468000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />

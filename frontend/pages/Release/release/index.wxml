@@ -9,7 +9,7 @@
           <image src="{{item.icons}}" mode="aspectFit"></image>
           <view class="label">{{item.label}}</view>
           <view class="inputbox">
-            <input name="{{item.name}}" placeholder="{{item.placeholder}}" value="{{item.value}}" type="{{item.kb_type}}"></input>
+            <input name="{{item.name}}" bindfocus="{{item.act}}" placeholder="{{item.placeholder}}" value="{{item.value}}" type="{{item.kb_type}}"></input>
           </view>
         </view>
       </block>
