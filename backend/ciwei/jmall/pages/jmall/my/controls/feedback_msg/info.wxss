@@ -1,6 +1,0 @@
-@import "../../../template/info-auth-data/info-auth-template.wxss";
-@import "../feedback/index.wxss";
-
-.summary{
-  font-size:28rpx;
-}
