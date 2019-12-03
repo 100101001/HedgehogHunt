@@ -5,7 +5,8 @@ Page({
     imglist: [],
   },
   onLoad: function(options) {
-    var business_type=options.business_type;
+    // var business_type=options.business_type;
+    var business_type=1;
     this.setData({
       business_type:business_type
     });
@@ -13,6 +14,24 @@ Page({
   },
   onShow: function() {
 
+  },
+  //获取位置的方法
+  getLocation:function(){
+    var that=this;
+    wx.showModal({
+      title: '提示',
+      content: '是否打开地图选择地址？点击取消则手动输入地址',
+      success(res) {
+        if (res.confirm) {
+          wx.chooseLocation({
+            success: function(res) {
+              console.log(res.name);
+            },
+          })
+        } else if (res.cancel) {
+        }
+      }
+    })
   },
   //预览图片
   previewImage: function(e) {
@@ -263,18 +282,19 @@ Page({
           value:"未知",
         },
         {
+          name: "mobile",
+          placeholder: "高危非必填",
+          value: "无",
+          label: "联系电话",
+          icons: "/images/icons/goods_type.png",
+        },
+        {
           name: "location",
           placeholder: "例:同济大学四平校区南楼301",
           label: "放置位置",
           value: location,
           icons: "/images/icons/location.png",
-        },
-        {
-          name: "mobile",
-          placeholder: "高危非必填",
-          value:"无",
-          label: "联系电话",
-          icons: "/images/icons/goods_type.png",
+          act:"getLocation",
         }
       ];
     } else {
@@ -298,18 +318,19 @@ Page({
           icons: "/images/icons/discount_price.png",
         },
         {
-          name: "location",
-          placeholder: "例:同济大学四平校区西北三",
-          label: "住址",
-          value: location,
-          icons: "/images/icons/location.png",
-        },
-        {
           name: "mobile",
           placeholder: "高危非必填",
           label: "联系电话",
           value: "高危非必填",
           icons: "/images/icons/goods_type.png",
+        },
+        {
+          name: "location",
+          placeholder: "例:同济大学四平校区西北三",
+          label: "住址",
+          act: "getLocation",
+          value: location,
+          icons: "/images/icons/location.png",
         }
       ];
       var summary_placeholder = "添加寻物描述：物品丢失大致时间、地点，记号等...";
