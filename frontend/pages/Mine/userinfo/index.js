@@ -25,7 +25,7 @@ Page({
     qr_code_list: [
       "/images/more/wcx.jpg",
     ],
-    has_qrcode: true,
+    has_qrcode: false,
     show_qrcode: false
 
   },
@@ -65,6 +65,28 @@ Page({
       app.alert({
         'content': "从网页获取二维码"
       });
+      wx.request({
+        url: app.buildUrl('/member/share'),
+        success: function(res) {
+          var resp = res.data;
+          if (resp.code != 200) {
+            app.alert({
+              'content': resp.msg
+            });
+            return;
+          }
+          wx.showToast({
+            title: '分享成功！',
+            icon: 'success',
+            content: '积分+5',
+            duration: 3000
+          })
+        },
+        fail: function(res) {
+          app.serverBusy();
+          return;
+        }
+      })
     }
   },
   checkQrCode:function(){

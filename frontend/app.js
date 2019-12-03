@@ -17,7 +17,7 @@ App({
     shopName: "刺猬寻物",
     //domain: "https://jmall.tongji.xn--6qq986b3xl/api",
     // domain: "https://jmall.opencs.cn/api",
-    domain: "http://127.0.0.1:8999/api",
+    domain: "http://ubuntu:8999/api",
     // domain:"https://all.opencs.cn.w.kunlungr.com/api",
     member_status: 1,
     objectArray: [{
