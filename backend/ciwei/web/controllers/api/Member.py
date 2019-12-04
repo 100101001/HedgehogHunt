@@ -6,6 +6,7 @@ from web.controllers.api import route_api
 from flask import request, jsonify, g
 from application import app, db
 import requests
+import base64
 import json
 from common.models.ciwei.Member import Member
 from common.models.ciwei.User import User
@@ -14,6 +15,8 @@ from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
 from common.libs.UploadService import UploadService
 from common.models.ciwei.Goods import Good
+import time
+
 
 @route_api.route("/member/login", methods=['GET', 'POST'])
 def login():
@@ -75,24 +78,24 @@ def checkReg():
     member_info = Member.query.filter_by(openid=openid).first()
     if not member_info:
         resp['code'] = -1
-        resp['member_status']=-2
+        resp['member_status'] = -2
         resp['msg'] = "binding information not queried"
         return jsonify(resp)
 
     # 查询是否是管理员
     is_adm = False
     is_user = False
-    has_qrcode=False
+    has_qrcode = False
     user_info = User.query.filter_by(member_id=member_info.id).first()
     if user_info:
         if user_info.level == 1:
             is_adm = True
-            is_user=True
+            is_user = True
         elif user_info.level > 1:
             is_user = True
 
-    #济人济市的openid if openid=="o9zh35M5dMt3SUeUcUcbASOLaZIQ":
-    #uni-济旦财的openid if openid=="o1w1e5egBOLj5SjvPkNIsA3jpZFI":
+    # 济人济市的openid if openid=="o9zh35M5dMt3SUeUcUcbASOLaZIQ":
+    # uni-济旦财的openid if openid=="o1w1e5egBOLj5SjvPkNIsA3jpZFI":
     if openid == "o9zh35M5dMt3SUeUcUcbASOLaZIQ":
         is_adm = True
         is_user = True
@@ -127,7 +130,7 @@ def memberInfo():
         resp['msg'] = "没有相关用户信息"
         return jsonify(resp)
 
-    has_qrcode=False
+    has_qrcode = False
     if member_info.qr_code:
         qr_code_url = UrlManager.buildImageUrl(member_info.qr_code)
         qr_code_list = [qr_code_url]
@@ -140,13 +143,14 @@ def memberInfo():
         'qr_code_list': qr_code_list,
         'member_id': member_info.id,
         "credits": member_info.credits,
-        "has_qrcode":has_qrcode
+        "has_qrcode": has_qrcode
     }
     return jsonify(resp)
 
+
 @route_api.route("/member/add-qrcode", methods=['GET', 'POST'])
 def addQrcode():
-    resp = {'code':200,'state': 'add qrcode success','data':{}}
+    resp = {'code': 200, 'state': 'add qrcode success', 'data': {}}
 
     member_info = g.member_info
     if not member_info:
@@ -154,7 +158,7 @@ def addQrcode():
         resp['msg'] = "用户信息异常"
         return jsonify(resp)
 
-    #是否修改了二维码
+    # 是否修改了二维码
     images_target = request.files
     image = images_target['file'] if 'file' in images_target else None
 
@@ -171,14 +175,52 @@ def addQrcode():
         resp['state'] = "上传失败" + ret['msg']
         return jsonify(resp)
 
-    #将返回的本地链接加到列表，并且保存为字符串
-    pic_url=ret['data']['file_key']
+    # 将返回的本地链接加到列表，并且保存为字符串
+    pic_url = ret['data']['file_key']
     member_info.qr_code = pic_url
-    member_info.updated_time=getCurrentDate()
+    member_info.updated_time = getCurrentDate()
     db.session.add(member_info)
     db.session.commit()
     resp['msg'] = "change qr_code successfully"
     return jsonify(resp)
+
+
+@route_api.route("/member/qrcode", methods=['GET', 'POST'])
+def getQrcode():
+    resp = {'code': 200, 'msg': 'getQrcode', 'data': {}}
+    # query db if token expires
+    if not hasattr(g, 'token'):
+        setattr(g, 'token', {})
+    token = g.token
+    if not token or token['expires'] > time.time() - 5 * 60 * 1000:
+        # get new token
+        url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={}&secret={}".format(
+            app.config['OPENCS_APP']['appid'], app.config['OPENCS_APP']['appkey'])
+        wxResp = requests.get(url)
+        if wxResp.status_code != 200:
+            resp['code'] = -1
+            resp['msg'] = "failed to get token!"
+            resp['data'] = {}
+            return jsonify(resp)
+        else:
+            data = wxResp.json()
+            token['token'] = data['access_token']
+            token['expires'] = data['expires_in'] + time.time()
+            g.token = token
+
+    wxResp = requests.post(
+        "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}".format(token['token']), json={'scene': 'a=1', 'width': 280})
+
+    if wxResp.status_code != 200:
+        data = wxResp.json()
+        resp['code'] = data['errcode']
+        resp['msg'] = data['errmsg']
+    else:
+        resp['code'] = 200
+        resp['data'] = str(base64.b64encode(wxResp.content), 'utf-8')
+
+    return jsonify(resp)
+
 
 @route_api.route("/member/block-search", methods=['GET', 'POST'])
 def blockMemberSearch():
@@ -211,7 +253,7 @@ def blockMemberSearch():
                 "status": item.status,
                 # 用户信息
                 "member_id": item.id,
-                "auther_name": item.nickname+"#####@id:"+str(item.id),
+                "auther_name": item.nickname + "#####@id:" + str(item.id),
                 "avatar": item.avatar,
             }
             # 如果已经被处理过
@@ -220,6 +262,7 @@ def blockMemberSearch():
     resp['data']['list'] = data_member_list
     resp['data']['has_more'] = 0 if len(data_member_list) < page_size else 1
     return jsonify(resp)
+
 
 # 恢复会员
 @route_api.route('/member/restore-member')
@@ -245,6 +288,7 @@ def restoreMember():
 
     return jsonify(resp)
 
+
 @route_api.route('/member/share')
 def memberShare():
     resp = {'code': 200, 'msg': 'operate successfully(get info)', 'data': {}}
@@ -254,8 +298,8 @@ def memberShare():
         resp['msg'] = "用户信息异常"
         return jsonify(resp)
 
-    member_info.credits=member_info.credits+5
-    member_info.updated_time=getCurrentDate()
+    member_info.credits = member_info.credits + 5
+    member_info.updated_time = getCurrentDate()
 
     db.session.add(member_info)
     db.session.commit()
