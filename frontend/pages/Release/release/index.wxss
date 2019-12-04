@@ -63,6 +63,29 @@
   margin-left: 80rpx;
 }
 
+.location-name{
+  font-size: 26rpx;
+  font-weight: 500;
+  margin-left: 30rpx;
+  margin-top: 10rpx;
+  width: 660rpx;
+  background-color: #ededed;
+  border-radius: 10rpx;
+  padding: 10rpx;
+}
+
+.get-location{
+  background-color: #f7931e;
+  font-size: 30rpx;
+  font-weight: 600;
+  text-align: center;
+  color: #fff;
+  width: 280rpx;
+  margin: 20rpx 0 20rpx 30rpx;
+  padding: 10rpx;
+  border-radius: 10rpx;
+}
+
 .add-view {
   background-color: #efefef;
   margin: 10px;
