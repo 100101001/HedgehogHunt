@@ -21,7 +21,7 @@
         <view class="get-location" bindtap="getLocation">获取位置</view>
       </view>
       <view class="location-name">
-        <input name="location_name" placeholder="请输入详细地址"></input>
+        <input name="location" bindinput="lisentLocationInput" value="{{location[1]}}" placeholder="若获取的地址不够精确可手动输入完善"></input>
       </view>
       <view class="hrz"></view>
     </view>

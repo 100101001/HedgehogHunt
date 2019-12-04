@@ -6,7 +6,7 @@
     <template is="info-auth-template" data="{{...info}}" />
     <!--商品轮播图-->
     <view class="swiper-container">
-      <swiper class="swiper_box" autoplay="true" interval="3000" duration="1000"  circular="true">
+      <swiper class="swiper_box" autoplay="true" interval="3000" duration="1000" circular="true">
         <block wx:for="{{info.pics}}" wx:key="{{index}}">
           <swiper-item>
             <image src="{{item}}" bindtap="previewItemImage" data-index="{{index}}" class="slide-image" width="355" height="150" mode="aspectFit" lazy-load="true" />
@@ -33,9 +33,12 @@
       </view>
     </view>
     <view class="location" wx:if="{{show_location}}">
-      <view>
-        <image class="loc_icon" src="/images/icons/locate.png"></image>
-        <text class="loc_text">{{info.location}}</text>
+      <view bindtap="toNavigate" class="navigate-container">
+        <view>
+          <image class="loc_icon" src="/images/icons/locate.png"></image>
+          <text class="loc_text">{{info.location[1]}}</text>
+        </view>
+        <image class="loc_icon" src="/images/icons/navigate.png"></image>
       </view>
       <view class="hrz"></view>
       <view>

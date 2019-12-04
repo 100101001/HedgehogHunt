@@ -77,6 +77,12 @@ Page({
       loadingMoreHidden: true,
     });
   },
+  //轮播图变化
+  swiperchange: function (e) {
+    this.setData({
+      swiperCurrent: e.detail.current
+    })
+  },
   onShow: function () {
     var regFlag = app.globalData.regFlag;
     this.setData({

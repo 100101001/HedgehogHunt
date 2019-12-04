@@ -1,7 +1,6 @@
 //index.js
 //获取应用实例
 var app = getApp();
-
 Page({
   data: {
     loadingHidden: true,
@@ -49,7 +48,7 @@ Page({
   },
   onLoad: function(options) {
     // var goods_id = options.goods_id;
-    var goods_id =2;
+    var goods_id =4;
     this.getGoodsInfo(goods_id);
   },
   onShow: function() {
@@ -58,6 +57,16 @@ Page({
       regFlag: regFlag
     });
 
+  },
+  //打开位置导航
+  toNavigate:function(){
+    var location=this.data.infos.info.location;
+        wx.openLocation({//​使用微信内置地图查看位置。
+          latitude:location[2],//要去的纬度-地址
+          longitude:location[3],//要去的经度-地址
+          name: location[1],
+          address: location[0],
+        })
   },
   getReportInfo: function(id) {
     var that = this;

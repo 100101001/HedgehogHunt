@@ -47,10 +47,12 @@ def createGoods():
         resp['msg'] = "交易类型错误"
         resp['data'] = req
         return jsonify(resp)
-        # 修改用户的地址
+
+    # 商品地址,同时保存有经纬度
+    location=req["location"]
+    model_goods.location="###".join(location.split(","))
     model_goods.owner_name=req['owner_name']
     model_goods.summary=req['summary']
-    model_goods.location=req['location']
     model_goods.business_type=business_type
     model_goods.status=7#创建未完成
     model_goods.mobile=req['mobile']
@@ -322,6 +324,10 @@ def goodsInfo():
     else:
         is_auth = False
 
+    #处理地址
+    location_list=goods_info.location.split("###")
+    location_list[2]=eval(location_list[2])
+    location_list[3]=eval(location_list[3])
     #浏览量加一
     goods_info.view_count = goods_info.view_count + 1
     resp['data']['info']={
@@ -334,7 +340,7 @@ def goodsInfo():
         "target_price":str(goods_info.target_price),
         "pics":[UrlManager.buildImageUrl(i) for i in goods_info.pics.split(",")],
         "updated_time": str(goods_info.updated_time),
-        "location":goods_info.location,
+        "location":location_list,
         "business_type":goods_info.business_type,
         "mobile":goods_info.mobile,
         "status_desc": str(goods_info.status_desc),
