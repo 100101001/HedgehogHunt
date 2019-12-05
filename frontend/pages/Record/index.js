@@ -13,10 +13,7 @@ Page({
   },
   onLoadSetData:function(op_status){
     if (op_status==1){
-
-    }
-    else{
-      var infos={
+      var infos = {
         list: {},
         saveHidden: true,
         check_status_id: 2,
@@ -34,13 +31,36 @@ Page({
             name: '已答谢',
           },
         ],
-      },
-      var check_status_id=2,
+      };
+      var check_status_id = 2;
+    }else{
+      var infos={
+        list: {},
+        saveHidden: true,
+        check_status_id: 1,
+        check_cat: [
+          {
+            id: 1,
+            name: '待认领/找回'
+          },
+          {
+            id: 2,
+            name: '预认领/找回',
+          },
+          {
+            id: 3,
+            name: '已认领/找回',
+          },
+        ],
+      };
+      var check_status_id=1;
     }
     this.setData({
       owner_name: "",
       goods_name: "",
-      business_type: ""
+      business_type: "",
+      check_status_id:check_status_id,
+      infos:infos
     })
     this.onPullDownRefresh();
 

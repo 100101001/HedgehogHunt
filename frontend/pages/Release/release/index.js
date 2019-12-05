@@ -20,7 +20,6 @@ Page({
     var that = this;
     wx.chooseLocation({
       success: function(res) {
-        console.log(res);
         var location = [
           res.address,
           res.name,
@@ -250,7 +249,7 @@ Page({
         });
         var business_type=that.data.business_type;
         wx.navigateTo({
-          url: '../../Find/Find?businesss_type='+business_type,
+          url: '../../Find/Find?business_type='+business_type,
         });
       },
       fail: function(res) {
@@ -331,7 +330,6 @@ Page({
       var imglist = ['/images/icons/wanted.png'];
     }
     var summary_value = "";
-    var business_type = this.data.business_type;
     this.setData({
       imglist: imglist,
       count: imglist.length,

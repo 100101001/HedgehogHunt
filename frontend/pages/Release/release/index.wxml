@@ -16,8 +16,8 @@
       <view class="hrz"></view>
       <view class="item-container">
         <image src="/images/icons/location.png" mode="aspectFit"></image>
-        <view class="label" wx:if="{{ business_type }}">放置位置</view>
-        <view class="label" wx:if="{{!business_type }}">住址</view>
+        <view class="label" wx:if="{{business_type==1}}">放置位置</view>
+        <view class="label" wx:if="{{business_type==0}}">住址</view>
         <view class="get-location" bindtap="getLocation">获取位置</view>
       </view>
       <view class="location-name">
@@ -25,8 +25,8 @@
       </view>
       <view class="hrz"></view>
     </view>
-    <view class="tips-views" wx:if="{{ business_type }}">物品图，默认第一张图片为主图</view>
-    <view class="tips-views" wx:if="{{ !business_type }}">默认图，选你要找的商品类似图后可以删除</view>
+    <view class="tips-views" wx:if="{{ business_type==1 }}">物品图，默认第一张图片为主图</view>
+    <view class="tips-views" wx:if="{{ business_type==0 }}">默认图，选你要找的商品类似图后可以删除</view>
     <!--上传图片的模板-->
     <view class="pics-list">
       <view wx:for="{{imglist}}" class="pics-item" wx:key="{{index}}">

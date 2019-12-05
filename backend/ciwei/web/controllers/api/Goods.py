@@ -274,7 +274,7 @@ def goodsApplicate():
 
     #更新用户认领消息的id表
     member_mark_id = member_info.mark_id
-    if goods_mark_id:
+    if member_mark_id:
         member_mark_id_list = member_mark_id.split('#')
         member_mark_id_list.append(str(goods_info.id))
         member_info.mark_id = "#".join(member_mark_id_list)
@@ -286,6 +286,7 @@ def goodsApplicate():
     db.session.commit()
 
     resp['data']['show_location']=True
+    resp['data']['status_desc']=goods_info.status_desc
     db.session.add(goods_info)
     db.session.commit()
 
@@ -309,7 +310,7 @@ def goodsInfo():
     mark_id=goods_info.mark_id
     if mark_id:
         mark_id_list=mark_id.split('#')
-        if member_info.id in mark_id_list:
+        if str(member_info.id) in mark_id_list:
             show_location=True
 
     auther_info = Member.query.filter_by(id=goods_info.member_id).first()

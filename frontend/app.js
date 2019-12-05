@@ -13,7 +13,7 @@ App({
     has_info: false,
     userInfo: null,
     version: "1.0",
-    regFlag: true,
+    regFlag: false,
     shopName: "刺猬寻物",
     // domain: "http://ubuntu:8999/api",
     domain: "http://127.0.0.1:8999/api",

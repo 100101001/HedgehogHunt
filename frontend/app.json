@@ -1,8 +1,8 @@
 {
   "pages": [
+    "pages/index/index",
     "pages/Mine/Mine",
     "pages/Record/index",
-    "pages/index/index",
     "pages/Find/Find",
     "pages/Find/info/info",
     "pages/Release/release/index",

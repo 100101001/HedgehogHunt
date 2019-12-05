@@ -96,7 +96,7 @@ Page({
       url: 'controls/feedback/index',
     })
   },
-  goRecord: function () {
+  goRecord: function (event) {
     var op_status = event.currentTarget.dataset.op_status* 1;
     wx.navigateTo({
       url: '../Record/index?op_status=' + op_status,
