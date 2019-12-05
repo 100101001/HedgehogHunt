@@ -8,8 +8,15 @@ Page({
   },
 
   onLoad: function (options) {
-    this.setData({
-      infos: {
+    var op_status=options.op_status;
+    this.onLoadSetData(op_status);
+  },
+  onLoadSetData:function(op_status){
+    if (op_status==1){
+
+    }
+    else{
+      var infos={
         list: {},
         saveHidden: true,
         check_status_id: 2,
@@ -28,11 +35,15 @@ Page({
           },
         ],
       },
-      check_status_id: 2,
+      var check_status_id=2,
+    }
+    this.setData({
       owner_name: "",
       goods_name: "",
+      business_type: ""
     })
     this.onPullDownRefresh();
+
   },
   onShow: function () {
     var regFlag = app.globalData.regFlag;
@@ -77,7 +88,7 @@ Page({
       })
     }
   },
-  //下拉刷新
+  //下滑加载
   onReachBottom: function (e) {
     var that = this;
     //延时500ms处理函数
@@ -270,7 +281,6 @@ Page({
           allSelect: true,
           noSelect: false
         });
-
         that.setPageData(that.getSaveHide(), that.totalPrice(), that.allSelect(), that.noSelect(), that.data.list);
       }
     });

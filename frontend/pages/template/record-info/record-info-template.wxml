@@ -34,11 +34,8 @@
     </view>
     <view class="location" wx:if="{{show_location}}">
       <view bindtap="toNavigate" class="navigate-container">
-        <view>
-          <image class="loc_icon" src="/images/icons/locate.png"></image>
-          <text class="loc_text">{{info.location[1]}}</text>
-        </view>
-        <image class="loc_icon" src="/images/icons/navigate.png"></image>
+          <image class="loc_icon" src="/images/icons/navigate.png"></image>
+          <view class="loc_text">{{info.location[1]}}<text style="font-size:24rpx;opacity:0.7;">(点击地址可导航)</text></view>
       </view>
       <view class="hrz"></view>
       <view>
@@ -67,7 +64,7 @@
     </view>
 
     <!--底部  查看物品详情推荐-->
-    <view class="footer-box" wx:if="{{op_status==0}}">
+    <view class="footer-box" wx:if="{{op_status==0 || op_status==2}}">
       <view class="shop-cart-btn" catchtap="goHome">
         <image src="/images/icons/home_select.png"></image>
         <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'> 回首页 </view>

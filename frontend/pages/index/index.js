@@ -30,7 +30,7 @@ Page({
       });
     } else {
       wx.navigateTo({
-        url: '/pages/Find/Find',
+        url: '/pages/Find/Find?business_type=1',
       });
     }
   },
@@ -47,12 +47,13 @@ Page({
       title: app.globalData.shopName
     });
     app.checkLogin();
-    var goods_id = options.goods_id;
-    if (goods_id) {
-      this.setData({
-        goods_id: goods_id,
-      })
-    }
+    this.goToIndex();
+    // var goods_id = options.goods_id;
+    // if (goods_id) {
+    //   this.setData({
+    //     goods_id: goods_id,
+    //   })
+    // }
   },
   onShow: function() {
 

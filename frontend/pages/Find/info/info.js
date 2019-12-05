@@ -47,8 +47,8 @@ Page({
     }
   },
   onLoad: function(options) {
-    // var goods_id = options.goods_id;
-    var goods_id =4;
+    var goods_id = options.goods_id;
+    // var goods_id =5;
     this.getGoodsInfo(goods_id);
   },
   onShow: function() {

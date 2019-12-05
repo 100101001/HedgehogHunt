@@ -452,7 +452,11 @@ def editGoods():
     goods_info.name=name
     goods_info.owner_name=req['owner_name']
     goods_info.summary=req['summary']
-    goods_info.location=req['location']
+
+    #位置信息
+    location=req['location'].split(",")
+    goods_info.location="###".join(location)
+
     goods_info.business_type=business_type
     goods_info.mobile=req['mobile']
     goods_info.updated_time=getCurrentDate()

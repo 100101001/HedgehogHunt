@@ -24,9 +24,12 @@ Page({
     ],
   },
   onLoad: function (options) {
-    var [isSelecteds, urls] = util.onNavigateTap(1);
-    // var business_type = options.business_type;
-    var business_type = 1;
+    var business_type = options.business_type;
+    if (business_type==1){
+      var [isSelecteds, urls] = util.onNavigateTap(1);
+    }else{
+      var [isSelecteds, urls] = util.onNavigateTap(3);
+    }
     if (business_type == 0) {
       var categories = [{
         id: -1,

@@ -5,8 +5,7 @@ Page({
     imglist: [],
   },
   onLoad: function(options) {
-    // var business_type=options.business_type;
-    var business_type = 1;
+    var business_type=options.business_type;
     this.setData({
       business_type: business_type,
       location: ""
@@ -249,8 +248,9 @@ Page({
           icon: 'success',
           duration: 2000
         });
+        var business_type=that.data.business_type;
         wx.navigateTo({
-          url: '../../Find/Find',
+          url: '../../Find/Find?businesss_type='+business_type,
         });
       },
       fail: function(res) {
@@ -326,14 +326,6 @@ Page({
           value: "高危非必填",
           icons: "/images/icons/goods_type.png",
         },
-        {
-          name: "location",
-          placeholder: "例:同济大学四平校区西北三",
-          label: "住址",
-          act: "getLocation",
-          value: location,
-          icons: "/images/icons/location.png",
-        }
       ];
       var summary_placeholder = "添加寻物描述：物品丢失大致时间、地点，记号等...";
       var imglist = ['/images/icons/wanted.png'];

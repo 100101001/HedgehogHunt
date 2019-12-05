@@ -24,9 +24,7 @@
 
 .navigate-container{
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  width: 670rpx;
+  flex-direction: column;
 }
 .location view{
   display: flex;
@@ -39,6 +37,7 @@
   font-size: 28rpx;
   opacity: 0.8;
   font-weight: 500;
+  width:630rpx;
 }
 .container {
   background-color: #F2f2f2;
