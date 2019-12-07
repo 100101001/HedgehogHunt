@@ -8,7 +8,7 @@
       <view class="search_box2">
         <input value="{{type}}" bindfocus='onBindFocus' bindblur="onPullDownRefresh" bindinput="listenerGoodsNameInput" class='search_text_box' type="text" placeholder='物品' placeholder-style='color:#f7931e; '></input>
       </view>
-        <radio class="radio" value="buying"  bindtap="radioChange" checked="{{only_new}}">仅新增</radio>
+      <radio class="radio" value="buying"  bindtap="radioChange" checked="{{only_new}}">仅新增</radio>
       <button class="search_button" hidden="{{!saveHidden}}" bindtap="editTap">编辑</button>
       <button class="search_button" hidden="{{saveHidden}}" bindtap="editTap">完成</button>
     </view>

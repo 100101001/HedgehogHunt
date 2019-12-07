@@ -227,7 +227,7 @@ Page({
 
     var show_location=that.data.infos.show_location;
     if (show_location){
-      if(this.data.infos.business_type){
+      if(this.data.infos.info.business_type==1){
         var content ="您已认领过物品,请到对应地址取回物品";
       }else{
         var content = "您已归还过物品,请勿重复操作";

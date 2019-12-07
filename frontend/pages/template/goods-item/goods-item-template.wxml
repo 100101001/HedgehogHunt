@@ -26,7 +26,7 @@
         <view class="location_container">
           <image class="location_icon" src="/images/icons/locate.png"></image>
           <text class="location_text">实名认证之后可查看</text>
-          <view class="new_item" wx:if="{{item.new==0}}">NEW</view>
+          <view class="new_item" wx:if="{{item.new!=0}}">NEW</view>
         </view>
         <!--
         <view class="operate">

@@ -66,13 +66,15 @@ page {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
   margin-top: 140rpx;
 }
 
-.goods_message{
+.item_message{
   display: flex;
   flex-direction: row;
   justify-content: center;
+  align-items: center;
 }
 
 
@@ -119,6 +121,6 @@ radio .wx-radio-input.wx-radio-input-checked::before {
   margin-top: 40rpx;
   text-align: center;
   font-size: 24rpx;
-  padding-bottom: 228rpx;
+  padding-bottom: 128rpx;
   color: #999;
 }

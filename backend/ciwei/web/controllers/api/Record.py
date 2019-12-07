@@ -54,7 +54,7 @@ def recordSearch():
     #获取操作值，看用户是查看哪种信息
     op_status=int(req['op_status']) if 'op_status' in req else ''
     if op_status==0:
-        query=query.filter_by(id=member_info.id)
+        query=query.filter_by(member_id=member_info.id)
     #找出推荐列表里面的所有物品信息
     elif op_status==1:
         if member_info.mark_id:
@@ -76,8 +76,6 @@ def recordSearch():
             return jsonify(resp)
 
     goods_list = query.order_by(Good.id.desc()).offset(offset).limit(10).all()
-    # resp['list']=len(goods_list)
-    # return jsonify(resp)
     # #将对应的用户信息取出来，组合之后返回
     data_goods_list = []
     if goods_list:

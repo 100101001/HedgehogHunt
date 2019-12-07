@@ -63,7 +63,8 @@ Page({
       business_type: "",
       check_status_id:check_status_id,
       infos:infos,
-      op_status:op_status
+      op_status:op_status,
+      only_new:false
     })
     this.onPullDownRefresh();
 
