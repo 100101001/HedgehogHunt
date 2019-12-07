@@ -145,7 +145,6 @@ Page({
         owner_name: that.data.owner_name,
         p: that.data.p,
         op_status:that.data.op_status,
-        business_type: that.data.business_type,
       },
       success: function (res) {
         var resp = res.data;

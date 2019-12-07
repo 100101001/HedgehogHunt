@@ -38,10 +38,10 @@ def recordSearch():
     status = int(req['status']) if ('status' in req and req['status']) else 0
     query = Good.query.filter_by(status=status)
 
-    # owner_name = req['owner_name'] if 'owner_name' in req else ''
-    # if owner_name:
-    #     rule = or_(Good.owner_name.ilike("%{0}%".format(owner_name)))
-    #     query = query.filter(rule)
+    owner_name = req['owner_name'] if 'owner_name' in req else ''
+    if owner_name:
+        rule = or_(Good.owner_name.ilike("%{0}%".format(owner_name)))
+        query = query.filter(rule)
 
     mix_kw = str(req['mix_kw']) if 'mix_kw' in req else ''
     if mix_kw:
@@ -52,26 +52,30 @@ def recordSearch():
         query = query.filter(rule)
 
     #获取操作值，看用户是查看哪种信息
-    goods_list = []
     op_status=int(req['op_status']) if 'op_status' in req else ''
     if op_status==0:
         query=query.filter_by(id=member_info.id)
-        goods_list = query.order_by(Good.id.desc()).offset(offset).limit(10).all()
-
     #找出推荐列表里面的所有物品信息
     elif op_status==1:
         if member_info.mark_id:
             mark_id_list=member_info.mark_id.split('#')
-            for i in mark_id_list:
-                tmp_goods=query.filter_by(id=int(i)).first()
-                goods_list.append(tmp_goods)
+            mark_id_list_int=[int(i) for i in mark_id_list]
+            query=query.filter(Good.id.in_(mark_id_list_int))
+        else:
+            resp['data']['list'] = []
+            resp['data']['has_more'] = 0
+            return jsonify(resp)
     elif op_status==2:
         if member_info.recommend_id:
             recommend_id_list = member_info.recommend_id.split('#')
-            for i in recommend_id_list:
-                tmp_goods = query.filter_by(id=int(i)).first()
-                goods_list.append(tmp_goods)
+            recommend_id_list_int = [int(i) for i in recommend_id_list]
+            query = query.filter(Good.id.in_(recommend_id_list_int))
+        else:
+            resp['data']['list'] = []
+            resp['data']['has_more'] = 0
+            return jsonify(resp)
 
+    goods_list = query.order_by(Good.id.desc()).offset(offset).limit(10).all()
     # resp['list']=len(goods_list)
     # return jsonify(resp)
     # #将对应的用户信息取出来，组合之后返回
