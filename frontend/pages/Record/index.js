@@ -15,6 +15,7 @@ Page({
     if (op_status==1){
       var infos = {
         list: {},
+        only_new: false,
         saveHidden: true,
         check_status_id: 2,
         check_cat: [
@@ -38,6 +39,7 @@ Page({
         list: {},
         saveHidden: true,
         check_status_id: 1,
+        only_new:false,
         check_cat: [
           {
             id: 1,
@@ -145,6 +147,7 @@ Page({
         owner_name: that.data.owner_name,
         p: that.data.p,
         op_status:that.data.op_status,
+        only_new:that.data.only_new
       },
       success: function (res) {
         var resp = res.data;
@@ -321,4 +324,15 @@ Page({
     });
     this.onPullDownRefresh();
   },
+  radioChange:function(){
+    //选择一次分类时返回选中值
+    var infos = this.data.infos;
+    infos.only_new = !this.data.only_new;
+    console.log(infos);
+    this.setData({
+      infos: infos,
+      only_new: infos.only_new,
+    });
+    this.onPullDownRefresh();
+  }
 })

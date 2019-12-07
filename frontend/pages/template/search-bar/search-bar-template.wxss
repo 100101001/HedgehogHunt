@@ -57,7 +57,11 @@
   border: 2px #fff solid;
   border-radius: 30rpx;
   font-size: 22rpx;
-  margin-left: 30rpx;
+  margin-left: 50rpx;
+}
+.radio{
+  margin-left: 20rpx;
+  color: #fff;
 }
 
 .edit_button{

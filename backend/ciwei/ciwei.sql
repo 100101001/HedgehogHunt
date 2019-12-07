@@ -40,6 +40,7 @@ CREATE TABLE `member` (
   `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   `mark_id` varchar(1000) NOT NULL DEFAULT '' COMMENT '用户认领的物品id,字符串',
   `recommend_id` varchar(1000) NOT NULL DEFAULT '' COMMENT '系统推荐的物品id,字符串',
+  `recommend_id_status` varchar(1000) NOT NULL DEFAULT '' COMMENT '系统推荐的物品id对应的状态，是否读过，0为new,字符串',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='会员表';
 
