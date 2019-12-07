@@ -111,11 +111,11 @@ swiper-item image {
   opacity: 0.5;
 }
 
-.swiper-container .dots .dot .active {
+.swiper-container .dots .dot.active {
   width: 14rpx;
-  background: #fff;
   opacity: 1;
 }
+
 
 .type-navbar {
   white-space: nowrap;

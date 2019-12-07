@@ -3,8 +3,8 @@ var util = require("../../utils/util.js");
 var app = getApp();
 Page({
   data: {
-    name: "",
-    type: "",
+    owner_name:"",
+    goods_name:""
   },
 
   onLoad: function (options) {
@@ -60,7 +60,8 @@ Page({
       goods_name: "",
       business_type: "",
       check_status_id:check_status_id,
-      infos:infos
+      infos:infos,
+      op_status:op_status
     })
     this.onPullDownRefresh();
 
@@ -143,6 +144,7 @@ Page({
         mix_kw: that.data.goods_name,
         owner_name: that.data.owner_name,
         p: that.data.p,
+        op_status:that.data.op_status,
         business_type: that.data.business_type,
       },
       success: function (res) {
@@ -269,6 +271,7 @@ Page({
   },
   //选中删除的数据
   deleteSelected: function () {
+    var that=this;
     var list = this.data.infos.list;
     var id_list = [];
     for (var i = 0; i < list.length; i++) {
@@ -277,41 +280,45 @@ Page({
         id_list.push(curItem.id);
       }
     }
-    //获取到有改动的记录的id
-    console.log(id_list);
-    // this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), list);
-  },
-  getCartList: function () {
-    var that = this;
     wx.request({
-      url: app.buildUrl("/cart/index"),
+      url: app.buildUrl("/record/delete"),
       header: app.getRequestHeader(),
+      data: {
+        op_status: that.data.op_status,
+        id_list:id_list
+      },
       success: function (res) {
         var resp = res.data;
-        if (resp.code != 200) {
+        if (resp.code !== 200) {
           app.alert({
-            "content": resp.msg
+            'content': resp.msg
           });
-          return;
+          return
         }
+        that.onPullDownRefresh();
+      },
+      fail: function (res) {
+        app.serverBusy();
+        return;
+      },
+      complete: function (res) {
         that.setData({
-          list: resp.data.list,
-          saveHidden: true,
-          totalPrice: 0.00,
-          allSelect: true,
-          noSelect: false
+          processing: false,
+          loadingHidden: true
         });
-        that.setPageData(that.getSaveHide(), that.totalPrice(), that.allSelect(), that.noSelect(), that.data.list);
-      }
-    });
+      },
+    })
+    // //获取到有改动的记录的id
+    // console.log(id_list);
+    // this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), list);
   },
   checkReportClick: function (e) {
     //选择一次分类时返回选中值
+    var infos=this.data.infos;
+    infos.check_status_id=e.currentTarget.id;
     this.setData({
+      infos:infos,
       check_status_id: e.currentTarget.id,
-      p: 1,
-      loadingMoreHidden: true,
-      processing: false
     });
     this.onPullDownRefresh();
   },

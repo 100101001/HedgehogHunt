@@ -261,8 +261,9 @@ def goodsApplicate():
     goods_mark_id=goods_info.mark_id
     if goods_mark_id:
         goods_mark_id_list=goods_mark_id.split('#')
-        goods_mark_id_list.append(str(member_info.id))
-        goods_info.mark_id="#".join(goods_mark_id_list)
+        if  str(member_info.id) not in goods_mark_id:
+            goods_mark_id_list.append(str(member_info.id))
+            goods_info.mark_id="#".join(goods_mark_id_list)
     else:
         goods_info.mark_id=str(member_info.id)
     #申领量加一
@@ -307,10 +308,10 @@ def goodsInfo():
     member_info=g.member_info
     #用户能否看到地址,如果是在mark列表或者发布者可以看到地址和电话
     show_location=False
-    mark_id=goods_info.mark_id
-    if mark_id:
-        mark_id_list=mark_id.split('#')
-        if str(member_info.id) in mark_id_list:
+    mark_goods_id=member_info.mark_id
+    if mark_goods_id:
+        mark_id_list=mark_goods_id.split('#')
+        if str(goods_info.id) in mark_id_list:
             show_location=True
 
     auther_info = Member.query.filter_by(id=goods_info.member_id).first()
