@@ -1,7 +1,7 @@
 backend/ciwei/jmall/
 backend/ciwei/Lib/
 backend/ciwei/Scripts/
-backend/ciwei/__pycache__/
+__pycache__/
 backend/ciwei/venv/
 backend/ciwei/.idea/
 *.cfg
