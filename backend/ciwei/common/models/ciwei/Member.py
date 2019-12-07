@@ -23,5 +23,4 @@ class Member(db.Model):
     updated_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
     created_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
     mark_id = db.Column(db.String(1000), nullable=False, server_default=db.FetchedValue())
-    recommend_id = db.Column(db.String(1000), nullable=False, server_default=db.FetchedValue())
-    recommend_id_status = db.Column(db.String(1000), nullable=False, server_default=db.FetchedValue())
+    recommend_id = db.Column(db.String(3000), nullable=False, server_default=db.FetchedValue())

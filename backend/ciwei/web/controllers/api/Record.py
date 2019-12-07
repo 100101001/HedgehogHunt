@@ -51,6 +51,8 @@ def recordSearch():
         rule = or_(Good.name.ilike("%{0}%".format(fil_str)), Good.member_id.ilike("%{0}%".format(mix_kw)))
         query = query.filter(rule)
 
+    #状态值的字典，先置空
+    recommend_dict={}
     #获取操作值，看用户是查看哪种信息
     op_status=int(req['op_status']) if 'op_status' in req else ''
     if op_status==0:
@@ -67,8 +69,9 @@ def recordSearch():
             return jsonify(resp)
     elif op_status==2:
         if member_info.recommend_id:
-            recommend_id_list = member_info.recommend_id.split('#')
-            recommend_id_list_int = [int(i) for i in recommend_id_list]
+            #获取推荐列表的字典，格式{id:0或者1}{1000：0}表示id为1000的数据未读
+            recommend_dict=MemberService.getRecommendDict(member_info.recommend_id)
+            recommend_id_list_int=recommend_dict.keys()
             query = query.filter(Good.id.in_(recommend_id_list_int))
         else:
             resp['data']['list'] = []
@@ -82,6 +85,7 @@ def recordSearch():
         for item in goods_list:
             tmp_data = {
                 "id": item.id,
+                "new":recommend_dict[item.id] if recommend_dict else 1,#不存在时置1
                 "goods_name": item.name,
                 "owner_name": item.owner_name,
                 "updated_time": str(item.updated_time),

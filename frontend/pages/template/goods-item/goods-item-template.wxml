@@ -26,7 +26,8 @@
         <view class="location_container">
           <image class="location_icon" src="/images/icons/locate.png"></image>
           <text class="location_text">实名认证之后可查看</text>
-          <view class="new_item" wx:if="{{item.new!=0}}">NEW</view>
+          <!--推荐记录中用于识别是否是未读记录的-->
+          <view class="new_item" wx:if="{{new==0}}">NEW</view>
         </view>
         <!--
         <view class="operate">

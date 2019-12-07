@@ -151,6 +151,9 @@ def endCreate():
     if goods_info.status==7:
         goods_info.status=1
     goods_info.updated_time=getCurrentDate()
+
+    #创建或者修改完成时，对用户进行推荐
+    MemberService.recommendGoods(goods_info)
     db.session.add(goods_info)
     db.session.commit()
 

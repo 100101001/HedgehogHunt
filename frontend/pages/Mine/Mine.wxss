@@ -73,7 +73,7 @@ page{
   font-size: 28rpx;
   font-weight: 600;
   margin-top: -20rpx;
-  width: 170rpx;
+  width: 200rpx;
   text-align:left;
 }
 
@@ -96,7 +96,7 @@ page{
   font-size: 20rpx;
   font-weight: 600;
   color: #fff;
-  margin: -35rpx 0 0 -50rpx;
+  margin: -35rpx 0 0 -80rpx;
   background-color: #f7931e;
   height: 30rpx;
   width: 30rpx;
