@@ -23,5 +23,5 @@
       <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode}}">查看</view>
     </view>
   </view>
-  <image class="qr_code" src="{{qr_code_list[0]}}" bindtap="previewImage" data-id="0" wx:if="{{show_qrcode}}"></image>
+  <image class="qr_code" src="{{qrCode}}" bindtap="previewImage" data-id="0" wx:if="{{show_qrcode}}"></image>
 </view>
