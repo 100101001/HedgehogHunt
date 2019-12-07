@@ -3,14 +3,19 @@ var util = require("../../utils/util.js");
 var app = getApp();
 Page({
   data: {
-    name: "",
-    type: "",
+    owner_name:"",
+    goods_name:""
   },
 
   onLoad: function (options) {
-    this.setData({
-      infos: {
+    var op_status=options.op_status;
+    this.onLoadSetData(op_status);
+  },
+  onLoadSetData:function(op_status){
+    if (op_status==1){
+      var infos = {
         list: {},
+        only_new: false,
         saveHidden: true,
         check_status_id: 2,
         check_cat: [
@@ -27,12 +32,42 @@ Page({
             name: '已答谢',
           },
         ],
-      },
-      check_status_id: 2,
+      };
+      var check_status_id = 2;
+    }else{
+      var infos={
+        list: {},
+        saveHidden: true,
+        check_status_id: 1,
+        only_new:false,
+        check_cat: [
+          {
+            id: 1,
+            name: '待认领/找回'
+          },
+          {
+            id: 2,
+            name: '预认领/找回',
+          },
+          {
+            id: 3,
+            name: '已认领/找回',
+          },
+        ],
+      };
+      var check_status_id=1;
+    }
+    this.setData({
       owner_name: "",
       goods_name: "",
+      business_type: "",
+      check_status_id:check_status_id,
+      infos:infos,
+      op_status:op_status,
+      only_new:false
     })
     this.onPullDownRefresh();
+
   },
   onShow: function () {
     var regFlag = app.globalData.regFlag;
@@ -77,7 +112,7 @@ Page({
       })
     }
   },
-  //下拉刷新
+  //下滑加载
   onReachBottom: function (e) {
     var that = this;
     //延时500ms处理函数
@@ -112,7 +147,8 @@ Page({
         mix_kw: that.data.goods_name,
         owner_name: that.data.owner_name,
         p: that.data.p,
-        business_type: that.data.business_type,
+        op_status:that.data.op_status,
+        only_new:that.data.only_new
       },
       success: function (res) {
         var resp = res.data;
@@ -238,6 +274,7 @@ Page({
   },
   //选中删除的数据
   deleteSelected: function () {
+    var that=this;
     var list = this.data.infos.list;
     var id_list = [];
     for (var i = 0; i < list.length; i++) {
@@ -246,43 +283,57 @@ Page({
         id_list.push(curItem.id);
       }
     }
-    //获取到有改动的记录的id
-    console.log(id_list);
-    // this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), list);
-  },
-  getCartList: function () {
-    var that = this;
     wx.request({
-      url: app.buildUrl("/cart/index"),
+      url: app.buildUrl("/record/delete"),
       header: app.getRequestHeader(),
+      data: {
+        op_status: that.data.op_status,
+        id_list:id_list
+      },
       success: function (res) {
         var resp = res.data;
-        if (resp.code != 200) {
+        if (resp.code !== 200) {
           app.alert({
-            "content": resp.msg
+            'content': resp.msg
           });
-          return;
+          return
         }
+        that.onPullDownRefresh();
+      },
+      fail: function (res) {
+        app.serverBusy();
+        return;
+      },
+      complete: function (res) {
         that.setData({
-          list: resp.data.list,
-          saveHidden: true,
-          totalPrice: 0.00,
-          allSelect: true,
-          noSelect: false
+          processing: false,
+          loadingHidden: true
         });
-
-        that.setPageData(that.getSaveHide(), that.totalPrice(), that.allSelect(), that.noSelect(), that.data.list);
-      }
-    });
+      },
+    })
+    // //获取到有改动的记录的id
+    // console.log(id_list);
+    // this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), list);
   },
   checkReportClick: function (e) {
     //选择一次分类时返回选中值
+    var infos=this.data.infos;
+    infos.check_status_id=e.currentTarget.id;
     this.setData({
+      infos:infos,
       check_status_id: e.currentTarget.id,
-      p: 1,
-      loadingMoreHidden: true,
-      processing: false
     });
     this.onPullDownRefresh();
   },
+  radioChange:function(){
+    //选择一次分类时返回选中值
+    var infos = this.data.infos;
+    infos.only_new = !this.data.only_new;
+    console.log(infos);
+    this.setData({
+      infos: infos,
+      only_new: infos.only_new,
+    });
+    this.onPullDownRefresh();
+  }
 })

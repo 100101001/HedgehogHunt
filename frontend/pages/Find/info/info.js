@@ -1,7 +1,6 @@
 //index.js
 //获取应用实例
 var app = getApp();
-
 Page({
   data: {
     loadingHidden: true,
@@ -48,8 +47,8 @@ Page({
     }
   },
   onLoad: function(options) {
-    // var goods_id = options.goods_id;
-    var goods_id =2;
+    var goods_id = options.goods_id;
+    // var goods_id =5;
     this.getGoodsInfo(goods_id);
   },
   onShow: function() {
@@ -58,6 +57,16 @@ Page({
       regFlag: regFlag
     });
 
+  },
+  //打开位置导航
+  toNavigate:function(){
+    var location=this.data.infos.info.location;
+        wx.openLocation({//​使用微信内置地图查看位置。
+          latitude:location[2],//要去的纬度-地址
+          longitude:location[3],//要去的经度-地址
+          name: location[1],
+          address: location[0],
+        })
   },
   getReportInfo: function(id) {
     var that = this;
@@ -208,26 +217,26 @@ Page({
       app.loginTip();
       return;
     }
-    // var is_auth=that.data.infos.info.is_auth;
-    // if (is_auth){
-    //   app.alert({
-    //     'content':"发布者不可操作自己的记录"
-    //   })
-    //   return;
-    // }
+    var is_auth=that.data.infos.info.is_auth;
+    if (is_auth){
+      app.alert({
+        'content':"发布者不可操作自己的记录"
+      })
+      return;
+    }
 
     var show_location=that.data.infos.show_location;
-    // if (show_location){
-    //   if(this.data.infos.business_type){
-    //     var content ="您已认领过物品,请到对应地址取回物品";
-    //   }else{
-    //     var content = "您已归还过物品,请勿重复操作";
-    //   }
-    //   app.alert({
-    //     'content':content
-    //   })
-    //   return;
-    // }
+    if (show_location){
+      if(this.data.infos.info.business_type==1){
+        var content ="您已认领过物品,请到对应地址取回物品";
+      }else{
+        var content = "您已归还过物品,请勿重复操作";
+      }
+      app.alert({
+        'content':content
+      })
+      return;
+    }
     wx.showModal({
       title: '提示',
       content: '申领后会在平台留下个人信息备查，是否确定申领？',
@@ -250,6 +259,7 @@ Page({
 
             var infos = that.data.infos;
             infos['show_location'] = resp.data.show_location;
+            infos.info.status_desc=resp.data.status_desc;
             that.setData({
               infos: infos
             })

@@ -71,7 +71,6 @@ page {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-
 }
 
 .swiper-container {
@@ -115,6 +114,7 @@ swiper-item image {
   width: 14rpx;
   opacity: 1;
 }
+
 
 .type-navbar {
   white-space: nowrap;

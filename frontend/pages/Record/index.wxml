@@ -6,7 +6,7 @@
     <template is="search-bar-template" data="{{...infos}}" />
   <view class="message_container">
     <block wx:for="{{infos.list}}" wx:key="index">
-      <view class="goods_message">
+      <view class="item_message">
         <radio class="radio" hidden="{{infos.saveHidden}}" data-index="{{index}}" bindtap="selectTap" checked="{{item.selected}}" />
         <template is="goodsItem" data="{{...item}}" />
       </view>

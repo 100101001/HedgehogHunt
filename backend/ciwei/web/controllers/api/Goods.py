@@ -47,10 +47,12 @@ def createGoods():
         resp['msg'] = "交易类型错误"
         resp['data'] = req
         return jsonify(resp)
-        # 修改用户的地址
+
+    # 商品地址,同时保存有经纬度
+    location=req["location"]
+    model_goods.location="###".join(location.split(","))
     model_goods.owner_name=req['owner_name']
     model_goods.summary=req['summary']
-    model_goods.location=req['location']
     model_goods.business_type=business_type
     model_goods.status=7#创建未完成
     model_goods.mobile=req['mobile']
@@ -259,8 +261,9 @@ def goodsApplicate():
     goods_mark_id=goods_info.mark_id
     if goods_mark_id:
         goods_mark_id_list=goods_mark_id.split('#')
-        goods_mark_id_list.append(str(member_info.id))
-        goods_info.mark_id="#".join(goods_mark_id_list)
+        if  str(member_info.id) not in goods_mark_id:
+            goods_mark_id_list.append(str(member_info.id))
+            goods_info.mark_id="#".join(goods_mark_id_list)
     else:
         goods_info.mark_id=str(member_info.id)
     #申领量加一
@@ -272,7 +275,7 @@ def goodsApplicate():
 
     #更新用户认领消息的id表
     member_mark_id = member_info.mark_id
-    if goods_mark_id:
+    if member_mark_id:
         member_mark_id_list = member_mark_id.split('#')
         member_mark_id_list.append(str(goods_info.id))
         member_info.mark_id = "#".join(member_mark_id_list)
@@ -284,6 +287,7 @@ def goodsApplicate():
     db.session.commit()
 
     resp['data']['show_location']=True
+    resp['data']['status_desc']=goods_info.status_desc
     db.session.add(goods_info)
     db.session.commit()
 
@@ -304,10 +308,10 @@ def goodsInfo():
     member_info=g.member_info
     #用户能否看到地址,如果是在mark列表或者发布者可以看到地址和电话
     show_location=False
-    mark_id=goods_info.mark_id
-    if mark_id:
-        mark_id_list=mark_id.split('#')
-        if member_info.id in mark_id_list:
+    mark_goods_id=member_info.mark_id
+    if mark_goods_id:
+        mark_id_list=mark_goods_id.split('#')
+        if str(goods_info.id) in mark_id_list:
             show_location=True
 
     auther_info = Member.query.filter_by(id=goods_info.member_id).first()
@@ -322,6 +326,10 @@ def goodsInfo():
     else:
         is_auth = False
 
+    #处理地址
+    location_list=goods_info.location.split("###")
+    location_list[2]=eval(location_list[2])
+    location_list[3]=eval(location_list[3])
     #浏览量加一
     goods_info.view_count = goods_info.view_count + 1
     resp['data']['info']={
@@ -334,7 +342,7 @@ def goodsInfo():
         "target_price":str(goods_info.target_price),
         "pics":[UrlManager.buildImageUrl(i) for i in goods_info.pics.split(",")],
         "updated_time": str(goods_info.updated_time),
-        "location":goods_info.location,
+        "location":location_list,
         "business_type":goods_info.business_type,
         "mobile":goods_info.mobile,
         "status_desc": str(goods_info.status_desc),
@@ -446,7 +454,11 @@ def editGoods():
     goods_info.name=name
     goods_info.owner_name=req['owner_name']
     goods_info.summary=req['summary']
-    goods_info.location=req['location']
+
+    #位置信息
+    location=req['location'].split(",")
+    goods_info.location="###".join(location)
+
     goods_info.business_type=business_type
     goods_info.mobile=req['mobile']
     goods_info.updated_time=getCurrentDate()

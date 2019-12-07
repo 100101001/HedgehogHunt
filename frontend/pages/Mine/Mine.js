@@ -24,27 +24,27 @@ Page({
         label: "发布记录",
         icons: "/images/icons/next.png",
         act: "goRecord",
-        record_status:"1"
+        op_status:"0"
       },
       {
-        label: "认领记录",
+        label: "认领/归还记录",
         icons: "/images/icons/next.png",
         act: "goRecord",
-        record_status: "2"
+        op_status: "1"
       },
       {
         label: "匹配推送",
         icons: "/images/icons/next.png",
         value: 99,//value值是新推送的，未查看过的记录数，按时间来划分
         act: "goRecord",
-        record_status: "3"
+        op_status: "2"
       },
       {
         label: "物主答谢",
         icons: "/images/icons/next.png",
         value: 99,//value值是新推送的，未查看过的用户答谢数，按时间来划分
         act: "goThanksList",
-        record_status: "3"
+        op_status: "3"
       }
 
     ]
@@ -96,9 +96,10 @@ Page({
       url: 'controls/feedback/index',
     })
   },
-  goRecord: function () {
+  goRecord: function (event) {
+    var op_status = event.currentTarget.dataset.op_status* 1;
     wx.navigateTo({
-      url: '../Record/index',
+      url: '../Record/index?op_status=' + op_status,
     })
   },
   goThanksList: function () {

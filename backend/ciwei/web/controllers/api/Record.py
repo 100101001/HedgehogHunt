@@ -35,15 +35,8 @@ def recordSearch():
     offset=(p-1)*page_size
 
     #获取用户的发布信息
-    query=Good.query.filter_by(member_id=member_info.id)
-    req = request.values
     status = int(req['status']) if ('status' in req and req['status']) else 0
-    if status == 0:
-        resp['code'] = -1
-        resp['msg'] = '商品状态码错误'
-        return jsonify(resp)
-    else:
-        query = query.filter_by(status=status)
+    query = Good.query.filter_by(status=status)
 
     owner_name = req['owner_name'] if 'owner_name' in req else ''
     if owner_name:
@@ -58,8 +51,32 @@ def recordSearch():
         rule = or_(Good.name.ilike("%{0}%".format(fil_str)), Good.member_id.ilike("%{0}%".format(mix_kw)))
         query = query.filter(rule)
 
-    # #将对应的用户信息取出来，组合之后返回
+    #获取操作值，看用户是查看哪种信息
+    op_status=int(req['op_status']) if 'op_status' in req else ''
+    if op_status==0:
+        query=query.filter_by(member_id=member_info.id)
+    #找出推荐列表里面的所有物品信息
+    elif op_status==1:
+        if member_info.mark_id:
+            mark_id_list=member_info.mark_id.split('#')
+            mark_id_list_int=[int(i) for i in mark_id_list]
+            query=query.filter(Good.id.in_(mark_id_list_int))
+        else:
+            resp['data']['list'] = []
+            resp['data']['has_more'] = 0
+            return jsonify(resp)
+    elif op_status==2:
+        if member_info.recommend_id:
+            recommend_id_list = member_info.recommend_id.split('#')
+            recommend_id_list_int = [int(i) for i in recommend_id_list]
+            query = query.filter(Good.id.in_(recommend_id_list_int))
+        else:
+            resp['data']['list'] = []
+            resp['data']['has_more'] = 0
+            return jsonify(resp)
+
     goods_list = query.order_by(Good.id.desc()).offset(offset).limit(10).all()
+    # #将对应的用户信息取出来，组合之后返回
     data_goods_list = []
     if goods_list:
         for item in goods_list:
@@ -81,10 +98,10 @@ def recordSearch():
     resp['data']['list'] = data_goods_list
     resp['data']['has_more'] = 0 if len(data_goods_list) < page_size else 1
     return jsonify(resp)
-#上架与下架
-@route_api.route("/record/change-status",methods=['GET','POST'])
-def recordChangeStatus():
-    resp={'code':200,'msg':'search record successfully(search)','data':{}}
+#将商品移除自己的列表
+@route_api.route("/record/delete",methods=['GET','POST'])
+def recordDelete():
+    resp={'code':200,'msg':'delete record successfully','data':{}}
     req=request.values
 
     member_info = g.member_info
@@ -93,21 +110,33 @@ def recordChangeStatus():
         resp['msg'] = "没有相关用户信息"
         return jsonify(resp)
 
-    id=req['id'] if 'id' in req else 0
-    goods_info = Good.query.filter_by(id=id).first()
-    if not goods_info:
-        resp['code'] = -1
-        resp['msg'] = '没有找到该条记录'
-        return jsonify(resp)
-    goods_info.updated_time=getCurrentDate()
+    """
+    op_status=0,用户的发布记录
+    op_statis=1,用户的认领记录
+    op_status=2,用户的推荐列表
+    """
+    op_status = int(req['op_status']) if 'op_status' in req else ''
+    id_list=req['id_list'][1:-1].split(',')
 
-    if goods_info.status==1:
-        goods_info.status=0
-    elif goods_info.status==0:
-        goods_info.status=1
-    else:
-        pass
-
-    db.session.add(goods_info)
+    if op_status==0:
+        for i in id_list:
+            goods_info = Good.query.filter_by(id=int(i)).first()
+            goods_info.status=7
+            db.session.add(goods_info)
+            db.session.commit()
+    elif op_status==1:
+        mark_id_list=member_info.mark_id.split('#')
+        for i in id_list:
+            # resp['id']=i
+            # resp['mark_id_list']=mark_id_list
+            # return jsonify(resp)
+            mark_id_list.remove(i)
+            member_info.mark_id='#'.join(mark_id_list)
+    elif op_status==2:
+        recommend_id_list=member_info.recommend_id.split('#')
+        for i in id_list:
+            recommend_id_list.remove(i)
+            member_info.recommend_id='#'.join(recommend_id_list)
+    db.session.add(member_info)
     db.session.commit()
     return jsonify(resp)

@@ -1,28 +1,28 @@
 <template name="search-bar-template">
-    <form bindsubmit="formSubmit">
+  <form bindsubmit="formSubmit">
     <view class="search_container">
       <view class="search_box1">
         <icon type="search" class='search_icon' size='15' color="#f7931e"></icon>
-        <input value='{{name}}' bindfocus='onBindFocus' bindinput="listenerNameInput" class='search_text_box' type="text" placeholder='姓名' placeholder-style='color:#f7931e;'></input>
+        <input value='{{name}}' bindblur="onPullDownRefresh" bindfocus='onBindFocus' bindinput="listenerNameInput" class='search_text_box' type="text" placeholder='姓名' placeholder-style='color:#f7931e;'></input>
       </view>
       <view class="search_box2">
-        <input value="{{type}}" bindfocus='onBindFocus' bindinput="listenerGoodsNameInput" class='search_text_box' type="text" placeholder='物品' placeholder-style='color:#f7931e; '></input>
+        <input value="{{type}}" bindfocus='onBindFocus' bindblur="onPullDownRefresh" bindinput="listenerGoodsNameInput" class='search_text_box' type="text" placeholder='物品' placeholder-style='color:#f7931e; '></input>
       </view>
-      <button class="search_button" form-type="submit" bindtap="onBindConfirm">搜索</button>
+      <radio class="radio" value="buying"  bindtap="radioChange" checked="{{only_new}}">仅新增</radio>
       <button class="search_button" hidden="{{!saveHidden}}" bindtap="editTap">编辑</button>
       <button class="search_button" hidden="{{saveHidden}}" bindtap="editTap">完成</button>
     </view>
   </form>
-   <!--检查举报-->
-    <view class="type-container">
-      <scroll-view class="type-navbar-check-report">
-        <view class="type-box" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="{{index}}">
-          <view id="{{cat.id}}" class="type-navbar-item {{check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="checkReportClick">
-            {{cat.name}}
-          </view>
+  <!--检查举报-->
+  <view class="type-container">
+    <scroll-view class="type-navbar-check-report">
+      <view class="type-box" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="{{index}}">
+        <view id="{{cat.id}}" class="type-navbar-item {{check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="checkReportClick">
+          {{cat.name}}
         </view>
-      </scroll-view>
-    </view>
+      </view>
+    </scroll-view>
+  </view>
   <view class="jiesuan-box" wx:if="{{ list.length }}" hidden="{{saveHidden}}">
     <view class="left-price">
       <radio class="radio" bindtap="bindAllSelect" checked="{{allSelect}}">全选</radio>

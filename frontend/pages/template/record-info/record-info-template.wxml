@@ -6,7 +6,7 @@
     <template is="info-auth-template" data="{{...info}}" />
     <!--商品轮播图-->
     <view class="swiper-container">
-      <swiper class="swiper_box" autoplay="true" interval="3000" duration="1000"  circular="true">
+      <swiper class="swiper_box" autoplay="true" interval="3000" duration="1000" circular="true">
         <block wx:for="{{info.pics}}" wx:key="{{index}}">
           <swiper-item>
             <image src="{{item}}" bindtap="previewItemImage" data-index="{{index}}" class="slide-image" width="355" height="150" mode="aspectFit" lazy-load="true" />
@@ -33,9 +33,9 @@
       </view>
     </view>
     <view class="location" wx:if="{{show_location}}">
-      <view>
-        <image class="loc_icon" src="/images/icons/locate.png"></image>
-        <text class="loc_text">{{info.location}}</text>
+      <view bindtap="toNavigate" class="navigate-container">
+          <image class="loc_icon" src="/images/icons/navigate.png"></image>
+          <view class="loc_text">{{info.location[1]}}<text style="font-size:24rpx;opacity:0.7;">(点击地址可导航)</text></view>
       </view>
       <view class="hrz"></view>
       <view>
@@ -64,7 +64,7 @@
     </view>
 
     <!--底部  查看物品详情推荐-->
-    <view class="footer-box" wx:if="{{op_status==0}}">
+    <view class="footer-box" wx:if="{{op_status==0 || op_status==2}}">
       <view class="shop-cart-btn" catchtap="goHome">
         <image src="/images/icons/home_select.png"></image>
         <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'> 回首页 </view>

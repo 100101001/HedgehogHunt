@@ -8,6 +8,31 @@ Page({
     this.onLoadSetData(info);
   },
   onShow: function() {},
+  //获取位置的方法
+  getLocation: function (e) {
+    var that = this;
+    wx.chooseLocation({
+      success: function (res) {
+        var location = [
+          res.address,
+          res.name,
+          res.latitude,
+          res.longitude,
+        ]
+        that.setData({
+          location: location
+        })
+      },
+    })
+  },
+  //监听输入框
+  lisentLocationInput: function (e) {
+    var location = this.data.location;
+    location[1] = e.detail.value;
+    this.setData({
+      location: location
+    });
+  },
   onLoadSetData: function(info) {
     var business_type = info.business_type;
     var imglist = info.pics;
@@ -33,13 +58,6 @@ Page({
           label: "失主姓名",
           icons: "/images/icons/discount_price.png",
           value: info.owner_name,
-        },
-        {
-          name: "location",
-          placeholder: "例:同济大学四平校区南楼301",
-          label: "放置位置",
-          value: info.location,
-          icons: "/images/icons/location.png",
         },
         {
           name: "mobile",
@@ -72,13 +90,6 @@ Page({
           icons: "/images/icons/discount_price.png",
         },
         {
-          name: "location",
-          placeholder: "例:同济大学四平校区西北三",
-          label: "住址",
-          value: info.location,
-          icons: "/images/icons/location.png",
-        },
-        {
           name: "mobile",
           placeholder: "高危非必填",
           label: "联系电话",
@@ -100,6 +111,7 @@ Page({
       summary_value: summary_value,
       tips_obj: tips_obj,
       goods_id: info.id,
+      location:info.location,
     })
   },
   //预览图片
@@ -166,6 +178,7 @@ Page({
       return;
     }
     data['img_list'] = img_list;
+    data['location']=this.data.location;
     var url = "/goods/edit";
     data['id'] = this.data.goods_id;
     this.uploadData(data, url, img_list);

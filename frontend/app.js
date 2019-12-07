@@ -13,26 +13,11 @@ App({
     has_info: false,
     userInfo: null,
     version: "1.0",
-    regFlag: true,
+    regFlag: false,
     shopName: "刺猬寻物",
-    //domain: "https://jmall.tongji.xn--6qq986b3xl/api",
-    // domain: "https://jmall.opencs.cn/api",
-    domain: "http://ubuntu:8999/api",
-    // domain:"https://all.opencs.cn.w.kunlungr.com/api",
+    // domain: "http://ubuntu:8999/api",
+    domain: "http://127.0.0.1:8999/api",
     member_status: 1,
-    objectArray: [{
-      id: 0,
-      name: '待认领'
-    },
-    {
-      id: 1,
-      name: '预认领'
-    },
-    {
-      id: 2,
-      name: '已认领'
-    },
-    ],
     is_adm: true
   },
   onLaunch: function () {
