@@ -51,7 +51,7 @@ def getQrcodeFromWx():
 
     wxResp = requests.post(
         "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}".format(token['token']),
-        json={'scene': 'a=1', 'width': 280, 'path': 'pages/Find/info/info'})
+        json={'scene': 'a=1', 'width': 280, 'path': 'pages/QrCode?id=1'})
 
     if len(wxResp.content) < 80:
         data = wxResp.json()
@@ -62,13 +62,12 @@ def getQrcodeFromWx():
         return Response(status=500)
     else:
         # save compressed qr code to db
-        db.session.add(
-            QrCode(member_id=params['memberId'], order_id=params['orderId'], name=params['username'],
-                   qr_code=wxResp.content))
+        db.session.add(QrCode(qr_code=wxResp.content))
         db.session.commit()
-        app.logger.info('member: %s name: %s order: %s get qr code successfully', params['memberId'],
-                        params['username'],
-                        params['orderId'])
+        # app.logger.info('member: %s name: %s order: %s get qr code successfully', params['memberId'],
+        #                 params['username'],
+        #                 params['orderId'])
+        app.logger.info('get qr code successfully')
         # resp['code'] = 200
         # resp['data'] = str(base64.b64encode(wxResp.content), 'utf-8')
         # return Response(response=wxResp.content, status=200, mimetype='image/jpeg')
@@ -78,9 +77,67 @@ def getQrcodeFromWx():
 
 @route_api.route("/qrcode/db", methods=['GET', 'POST'])
 def getQrcodeFromDb():
+    """
+    get qr code from db by member id
+    :return:
+    """
     params = request.get_json()
     qrCode = QrCode.query.filter_by(member_id=params['memberId']).first()
     if qrCode is None:
         app.logger.info("member id: %s has no qr code stored in db", params['memberId'])
         return Response(status=201)
     return Response(response=str(base64.b64encode(qrCode.qr_code), 'utf8'), status=200)
+
+@route_api.route("/qrcode/scan", methods=['GET','POST'])
+def scanQrcode():
+    """
+    scan qr code {qrcode id} , return whether the qr code id has been registered
+    :return:
+    """
+    params = request.get_json()
+    codeId = params['id']
+    # check whether user is a member
+    qrcode = QrCode.query.filter_by(id=codeId).first()
+    if qrcode is None:
+        app.logger.error("failed to get qr code")
+        return Response(status=500)
+    if qrcode.member_id is None:
+        return Response(response=False, status=200)
+    else:
+        return Response(response=True, status=200)
+
+@route_api.route("/qrcode/buy", methods=['GET', 'POST'])
+def buyQrcode():
+    """
+    fill in  order_id to a qrcode record with specific id
+    :return:
+    """
+    params = request.get_json()
+    codeId = params['codeId']
+    orderId = params['orderId']
+    app.logger.info("code: %s is bought successfully, order: %s ", codeId, orderId)
+    pass
+
+@route_api.route("/qrcode/reg", methods=['GET', 'POST'])
+def regQrcode():
+    """
+    add member recorder
+    fill in  member_id to a qrcode record with specific id
+    :return:
+    """
+    params = request.get_json()
+    codeId = params['codeId']
+    memberId = params['memberId']
+    app.logger.info("code: %s is registered successfully by member: %s ", codeId, memberId)
+    pass
+
+@route_api.route("/qrcode/publish", methods=['GET', 'POST'])
+def pubQrcode():
+    """
+    scan a registered qr code to
+    :return:
+    """
+    params = request.get_json()
+    codeId = params['id']
+    app.logger.info("codeId: %s is been found , and scanned to publish lost goods ", codeId)
+    pass
