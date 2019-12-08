@@ -134,7 +134,7 @@ def regQrcode():
 @route_api.route("/qrcode/publish", methods=['GET', 'POST'])
 def pubQrcode():
     """
-    scan a registered qr code to
+    scan a registered qr code to publish goods
     :return:
     """
     params = request.get_json()
