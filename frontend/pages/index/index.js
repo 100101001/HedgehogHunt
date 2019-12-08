@@ -7,21 +7,21 @@ Page({
     angle: 0,
     userInfo: {},
     member_status: 1,
-    goods_id:0
+    goods_id: 0
   },
-  goToIndex: function() {
+  goToIndex: function () {
     var goods_id = this.data.goods_id;
     var member_status = app.globalData.member_status;
     if (member_status == 0) {
       return;
     }
-    var id=app.globalData.id;
+    var id = app.globalData.id;
     this.setData({
       member_status: member_status,
     });
-    if(id){
+    if (id) {
       this.setData({
-        id:id
+        id: id
       });
     }
     if (goods_id) {
@@ -34,14 +34,14 @@ Page({
       });
     }
   },
-  test: function() {
+  test: function () {
     wx.request({
       url: app.buildUrl("/test"),
       header: app.getRequestHeader(),
-      success: function(res) {}
+      success: function (res) { }
     })
   },
-  onLoad: function(options) {
+  onLoad: function (options) {
     //this.test();
     wx.setNavigationBarTitle({
       title: app.globalData.shopName
@@ -49,6 +49,44 @@ Page({
     app.checkLogin();
     app.getNewRecommend();
     this.goToIndex();
+
+    //later will use index page for redirect
+    if (options.id) {
+      wx.navigateTo({
+        url: "/pages/Qrcode/index?id=" + options.id
+      })
+      wx.request({
+        method: 'post',
+        url: app.buildUrl("/qrcode/scan"),
+        data: {
+          id: options.id
+        },
+        success: function (res) {
+          if (res.data == true) {
+            wx.navigateTo({
+              url: "/pages/Release/release/index"
+            })
+          } else {
+            wx.navigateTo({
+              url: "/pages/Qrcode/Register/index"
+            })
+          }
+        },
+        fail: function (res) {
+          app.serverBusy()
+        }
+      })
+    } else {
+      //comment code for debug scan qrcode
+      //this.goToIndex();
+    }
+
+    //only for debug scan qr code
+    wx.navigateTo({
+      url: "/pages/Qrcode/index?id=" + 1
+    })
+
+    //this.goToIndex();
     // var goods_id = options.goods_id;
     // if (goods_id) {
     //   this.setData({
@@ -56,17 +94,17 @@ Page({
     //   })
     // }
   },
-  onShow: function() {
+  onShow: function () {
 
   },
-  onReady: function() {
+  onReady: function () {
     var that = this;
-    setTimeout(function() {
+    setTimeout(function () {
       that.setData({
         remind: ''
       });
     }, 1000);
-    wx.onAccelerometerChange(function(res) {
+    wx.onAccelerometerChange(function (res) {
       var angle = -(res.x * 30).toFixed(1);
       if (angle > 14) {
         angle = 14;
