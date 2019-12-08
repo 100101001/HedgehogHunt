@@ -4,40 +4,71 @@ const HedgeHogClient = require('../../../utils/api').HedgeHogClient
 Page({
   data: {
     items: [{
-        name: "姓名",
-        value: "韦朝旭",
-      },
-      {
-        name: "电话",
-        value: "18385537403",
-      },
-      {
-        name: "收件地址",
-        value: "上海市杨浦区四平路1239号",
-      },
-      {
-        name: "编辑个人信息",
-        value: "",
-        act: "onChooseAddresTap",
-        src: '/images/icons/write.png',
-      }
+      name: "姓名",
+      value: "韦朝旭",
+    },
+    {
+      name: "电话",
+      value: "18385537403",
+    },
+    {
+      name: "收件地址",
+      value: "上海市杨浦区四平路1239号",
+    },
+    {
+      name: "编辑个人信息",
+      value: "",
+      act: "onChooseAddresTap",
+      src: '/images/icons/write.png',
+    }
     ],
-    qr_code_list: [
-      "/images/more/wcx.jpg",
-    ],
+    // qr_code_list: [
+    //   "/images/more/wcx.jpg",
+    // ],
+    userInfo: {},
     has_qrcode: false,
-    show_qrcode: false
-
+    show_qrcode: false,
+    qrCode: ""
   },
-  onLoad: function() {
-    var that = this
-    // wx.request(HedgeHogClient.GetUserInfoRequest(1, function (res) {
-    //   that.setData({
-    //     userinfo: res.data
-    //   })
-    // }))
+  onLoad: function () {
+    var that = this;
+    //尝试获取数据库存储的该会员的二维码，根据状态码
+    //判断是否获取到了，以此
+    //设置页面数据has_qrcode，和qrCode
+    wx.request({
+      method: 'post',
+      url: app.buildUrl('/qrcode/db'),
+      data: {
+        memberId: 1
+      },
+      success: function (res) {
+        if (res.statusCode == 200) {
+          console.log("获取到了数据库的qrcode")
+          that.setData({
+            qrCode: "data:image/jpeg;base64," + res.data,
+            has_qrcode: true
+          })
+        } else if(res.statusCode == 201) {
+          console.log("没获取到")
+          that.setData({
+            has_qrcode: false
+          })
+        } else if(res.statusCode == 500){
+          app.serverInternalError()
+        }
+      },
+      fail: function (res) {
+        app.serverBusy()
+      }
+    })
+    while (app.globalData.userInfo == null) {
+      //app 还没获取到userInfo，空等待  
+    }
+    this.setData({
+      userInfo: app.globalData.userInfo
+    });
   },
-  onChooseAddresTap: function(event) {
+  onChooseAddresTap: function (event) {
     var that = this;
     var items = that.data.items;
     wx.chooseAddress({
@@ -49,58 +80,51 @@ Page({
         that.setData({
           items: items
         })
-        // console.log(res.userName)
-        // console.log(res.postalCode)
-        // console.log(res.provinceName)
-        // console.log(res.cityName)
-        // console.log(res.countyName)
-        // console.log(res.detailInfo)
-        // console.log(res.nationalCode)
-        // console.log(res.telNumber)
       }
     })
   },
-  getQrCode: function() {
+  getQrCode: function () {
     var that = this
     if (!this.data.has_qrcode) {
       wx.request({
-        method:'post',
-        url: app.buildUrl('/member/qrcode'),
-        header: { 
-          'content-type': 'application/json' 
-        }, 
+        method: 'post',
+        url: app.buildUrl('/qrcode/wx'),
+        header: {
+          'content-type': 'application/json'
+        },
         data: {
-          memberId:1,
-          orderId:1,
-          username:"lyx1"
-        }, 
-        success: function(res) {
+          memberId: 1,
+          orderId: 1,
+          username: "lyx1"
+        },
+        success: function (res) {
           console.log(res)
-          if(res.statusCode === 200){
+          if (res.statusCode === 200) {
             var resp = res.data;
             that.setData({
               // qrCode:"data:image/jpeg;base64,"+wx.arrayBufferToBase64(resp),
-              qrCode:"data:image/jpeg;base64,"+resp,
-              has_qrcode:true,
-              show_qrcode:true
+              qrCode: "data:image/jpeg;base64," + resp,
+              has_qrcode: true,
+              show_qrcode: true
             })
           }
-          else{
+          else {
             app.serverInternalError()
           }
         },
-        fail: function(res) {
+        fail: function (res) {
           app.serverBusy()
         }
       })
-    }else {
+    } else {
       //从db直接拿
     }
   },
-  checkQrCode:function(){
-    var show_qrcode=!this.data.show_qrcode;
+  checkQrCode: function () {
+    var show_qrcode = !this.data.show_qrcode;
+    console.log("点了查看 "+show_qrcode)
     this.setData({
-      show_qrcode:show_qrcode
+      show_qrcode: show_qrcode
     });
   },
   //预览图片
