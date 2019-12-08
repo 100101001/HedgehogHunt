@@ -17,6 +17,7 @@ from web.controllers.api.test import *
 from web.controllers.api.Feedback import *
 from web.controllers.api.Static import *
 from web.controllers.api.Adv import *
+from web.controllers.api.QrCode import *
 
 @route_api.route("/")
 def index():

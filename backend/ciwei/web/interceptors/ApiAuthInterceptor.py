@@ -3,8 +3,7 @@ from application import app
 from flask import request,g,jsonify
 
 from common.models.ciwei.Member import Member
-from common.libs.MemberService import MemberService
-import  re
+import re
 
 '''
 api认证
