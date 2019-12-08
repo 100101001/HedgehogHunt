@@ -19,3 +19,10 @@ GET http://localhost:8080/user/qrcode/0
 ###
 GET  http://ubuntu:8999/api/qrcode/wx
 
+###
+GET http://ubuntu:8999/api/qrcode/sms
+Content-Type: application/json
+
+{
+    "phone":"17717090831"
+}

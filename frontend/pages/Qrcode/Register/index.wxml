@@ -5,6 +5,7 @@
     </view>
     <form bindsubmit="formSubmit">
         <view class="input-area">
+          <image src="/images/icons/ciwei_hl.png"/>
           <input id="username" name="username" maxlength='11' type="text" placeholder="手机号" bindchange="getPhoneNum"/>
           <view class="smsCode">
             <input id="smsCode" name="smsCode" maxlength='6' type="text" placeholder="验证码" />
