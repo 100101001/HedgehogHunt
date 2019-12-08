@@ -2,6 +2,7 @@ DROP DATABASE IF EXISTS `ciwei_db`;
 CREATE DATABASE `ciwei_db` DEFAULT CHARACTER SET = `utf8mb4`;
 USE `ciwei_db`;
 #flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables member  --outfile "common/models/jmall/Member.py"  --flask
+#flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables qr_code  --outfile "common/models/QrCode.py" --flask
 DROP TABLE IF EXISTS `user`;
 
 CREATE TABLE `user` (
@@ -48,9 +49,9 @@ ALTER TABLE member AUTO_INCREMENT = 100000;
 
 CREATE TABLE `qr_code` (
   `id` int(11) unsigned NOT NULL  AUTO_INCREMENT,
-  `member_id` int(11) unsigned NOT NULL  COMMENT '二维码注册会员id',
+  `member_id` int(11) unsigned COMMENT '二维码注册会员id',
   `mobile` varchar(20) NOT NULL DEFAULT '' COMMENT '注册会员手机号码',
-  `order_id` int(11) unsigned NOT NULL  COMMENT '微信支付的订单id',
+  `order_id` int(11) unsigned COMMENT '微信支付的订单id',
   `name` varchar(20) NOT NULL DEFAULT '' COMMENT '注册会员的姓名，用于后期做匹配',
   `location` varchar(255) NOT NULL DEFAULT '' COMMENT '注册会员收货地址',
   `qr_code` blob NOT NULL COMMENT '会员的小程序二维码图片',
