@@ -47,6 +47,7 @@ Page({
       title: app.globalData.shopName
     });
     app.checkLogin();
+    app.getNewRecommend();
     this.goToIndex();
     // var goods_id = options.goods_id;
     // if (goods_id) {

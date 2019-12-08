@@ -2,13 +2,17 @@ var app=getApp();
 var util = require("../../utils/util.js");
 Page({
   onLoad: function(event) {
+    //设置底部导航栏
     var [isSelecteds, urls] = util.onNavigateTap(2);
+    var total_new = app.globalData.total_new;
+    isSelecteds['total_new'] = total_new;
     this.setData({
       isSelecteds: isSelecteds,
     });
   },
 
   onNavigateTap: function(event) {
+    app.getNewRecommend();
     var id = event.currentTarget.dataset.id * 1; //乘1强制转换成数字
     var [isSelecteds, urls] = util.onNavigateTap(id, 2);
     this.setData({

@@ -1,4 +1,5 @@
 var util = require("../../utils/util.js");
+var app=getApp();
 Page({
   onLoad:function(){
     var textArray={
@@ -37,6 +38,8 @@ Page({
     ]
     //设置底部导航栏
     var [isSelecteds, urls] = util.onNavigateTap(0);
+    var total_new = app.globalData.total_new;
+    isSelecteds['total_new'] = total_new;
     this.setData({
       isSelecteds: isSelecteds,
       goodsInfo: goodsInfo,
@@ -72,6 +75,7 @@ Page({
   },
   //点击导航
   onNavigateTap: function (event) {
+    app.getNewRecommend();
     var id = event.currentTarget.dataset.id * 1; //乘1强制转换成数字
     var [isSelecteds, urls]= util.onNavigateTap(id);
     this.setData({

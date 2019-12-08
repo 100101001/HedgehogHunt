@@ -53,3 +53,18 @@
 .release_text {
   font-size: 22rpx;
 }
+
+.content_tip {
+  font-size: 20rpx;
+  font-weight: 600;
+  color: #fff;
+  margin: -105rpx 0 0 70rpx;
+  background-color: #f7931e;
+  height: 30rpx;
+  width: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-radius: 50%;
+}

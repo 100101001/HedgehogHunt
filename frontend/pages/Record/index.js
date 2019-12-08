@@ -12,6 +12,7 @@ Page({
     this.onLoadSetData(op_status);
   },
   onLoadSetData:function(op_status){
+    var recommend=app.globalData.recommend;
     if (op_status==1){
       var infos = {
         list: {},
@@ -43,15 +44,18 @@ Page({
         check_cat: [
           {
             id: 1,
-            name: '待认领/找回'
+            name: '待认领/找回',
+            value: recommend.wait,
           },
           {
             id: 2,
             name: '预认领/找回',
+            value: recommend.doing,
           },
           {
             id: 3,
             name: '已认领/找回',
+            value: recommend.done,
           },
         ],
       };
@@ -86,6 +90,7 @@ Page({
       infos:infos,
       loadingMoreHidden: true
     });
+    app.getNewRecommend();
     this.getGoodsList();
   },
   listenerNameInput: function (e) {
@@ -148,6 +153,7 @@ Page({
         owner_name: that.data.owner_name,
         p: that.data.p,
         op_status:that.data.op_status,
+        //仅获取还未处理过的列表
         only_new:that.data.only_new
       },
       success: function (res) {
