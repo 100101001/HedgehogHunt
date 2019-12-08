@@ -32,35 +32,51 @@ Page({
   },
   onLoad: function () {
     var that = this;
-    //尝试获取数据库存储的该会员的二维码，根据状态码
-    //判断是否获取到了，以此
-    //设置页面数据has_qrcode，和qrCode
-    wx.request({
-      method: 'post',
-      url: app.buildUrl('/qrcode/db'),
-      data: {
-        memberId: 1
-      },
-      success: function (res) {
-        if (res.statusCode == 200) {
-          console.log("获取到了数据库的qrcode")
-          that.setData({
-            qrCode: "data:image/jpeg;base64," + res.data,
-            has_qrcode: true
-          })
-        } else if(res.statusCode == 201) {
-          console.log("没获取到")
-          that.setData({
-            has_qrcode: false
-          })
-        } else if(res.statusCode == 500){
-          app.serverInternalError()
+    var base64code = wx.getStorageSync('qrcode')
+    if (base64code) {
+      console.log("获取到了缓存的qrcode")
+      // Do something with return value
+      this.setData({
+        qrCode: base64code,
+        has_qrcode: true
+      })
+    } else {
+      //尝试获取数据库存储的该会员的二维码，根据状态码
+      //判断是否获取到了，以此
+      //设置页面数据has_qrcode，和qrCode
+      wx.request({
+        method: 'post',
+        url: app.buildUrl('/qrcode/db'),
+        data: {
+          memberId: 1
+        },
+        success: function (res) {
+          if (res.statusCode == 200) {
+            console.log("获取到了数据库的qrcode,存到缓存")
+            wx.setStorage({
+              key: "qrcode",
+              data: "data:image/jpeg;base64," + res.data
+            })
+            that.setData({
+              qrCode: "data:image/jpeg;base64," + res.data,
+              has_qrcode: true
+            })
+          } else if (res.statusCode == 201) {
+            console.log("没获取到")
+            that.setData({
+              has_qrcode: false
+            })
+          } else if (res.statusCode == 500) {
+            app.serverInternalError()
+          }
+        },
+        fail: function (res) {
+          app.serverBusy()
         }
-      },
-      fail: function (res) {
-        app.serverBusy()
-      }
-    })
+      })
+    }
+
+
     while (app.globalData.userInfo == null) {
       //app 还没获取到userInfo，空等待  
     }
@@ -122,7 +138,7 @@ Page({
   },
   checkQrCode: function () {
     var show_qrcode = !this.data.show_qrcode;
-    console.log("点了查看 "+show_qrcode)
+    console.log("点了查看 " + show_qrcode)
     this.setData({
       show_qrcode: show_qrcode
     });
