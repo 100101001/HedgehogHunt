@@ -35,6 +35,12 @@ OPENCS_APP = {
     'appkey': 'bd8a906e46adc59dd0e7e3110e90c46c'
 }
 
+TWILIO_SERVICE = {
+    'accountSID': 'AC11e40a4fac01008a5f6841be60ceb9e1',
+    'authToken': '037c7506ccf5936c6da0effb00531e94',
+    'twilioNumber': '+14088377012'
+}
+
 UPLOAD = {
     'ext': ['jpg', 'bmp', 'jpeg', 'png'],
     'prefix_path': '/web/static/upload/',

@@ -4,8 +4,10 @@ import time
 
 import requests
 from flask import request, Response, g
+from twilio.rest import Client
 
 from application import app, db
+from common.libs import QrCodeService
 from common.models.ciwei.QrCode import QrCode
 from web.controllers.api import route_api
 
@@ -96,8 +98,10 @@ def scanQrcode():
         app.logger.error("failed to get qr code")
         return Response(status=500)
     if qrcode.member_id is None:
+        app.logger.info("go to register qr code: %s", codeId)
         return Response(response={'data': False}, status=200)
     else:
+        app.logger.info("go to publish qr code: %s", codeId)
         return Response(response={'data': True}, status=200)
 
 
@@ -114,6 +118,54 @@ def regQrcode():
     codeId = params['codeId']
     memberId = params['memberId']
     app.logger.info("code: %s is registered successfully by member: %s ", codeId, memberId)
+    pass
+
+
+@route_api.route("/qrcode/sms", methods=['GET', 'POST'])
+def getSmsCode():
+    """
+    verify phone number through sms code
+    example request body
+    {
+        phone:177*****081
+    }
+    :return:
+     200 when code sent
+     500 when error occurs
+    """
+    params = request.get_json()
+    number = '+86' + params['phone']
+    smsCode = QrCodeService.generateSmsVerCode()
+    # save to db or phone-smsCode cache used by checkSmsCode
+
+    # send sms
+    message = "[刺猬寻物] Your verification code is: " + smsCode
+    client = Client(app.config['TWILIO_SERVICE']['accountSID'], app.config['TWILIO_SERVICE']['authToken'])
+    try:
+        client.messages.create(body=message, from_=app.config['TWILIO_SERVICE']['twilioNumber'], to=number)
+    except Exception:
+        app.logger.error("failed to send sms code to phone %s", number)
+        return Response(status=500)
+    app.logger.info("send sms code to phone %s successfuly", number)
+    return Response(status=200)
+
+
+@route_api.route("/qrcode/check/sms", methods=['GET', 'POST'])
+def checkSms():
+    """
+    check input sms is right
+    :return:
+     200 when code is right
+     500 when code is wrong
+    """
+    params = request.get_json()
+    phone = params['phone']
+    inputCode = params['code']
+
+    # retrieve sms code use phone
+
+    # compare sms code with inputCode
+
     pass
 
 
