@@ -1,7 +1,7 @@
 <import src="../../template/mine-item/mine-item-template.wxml" />
 <view class="user">
-  <image class="avatar" src="/images/images/avatar/1.png"></image>
-  <view class="nickname">爱丢东西的TAC</view>
+  <image class="avatar" src="{{userInfo.avatarUrl}}"></image>
+  <view class="nickname">{{userInfo.nickname}}</view>
   <!--view class="wechatid">微信号：wcx5755</view-->
 </view>
 

@@ -1,8 +1,7 @@
 //app.js
 App({
   globalData: {
-    userInfo: null,
-    domain: "https://jmall.opencs.cn/api",
+    // domain: "https://jmall.opencs.cn/api",
     adv_info: {},
     info: {},
     is_adm: false,
@@ -17,8 +16,9 @@ App({
     shopName: "刺猬寻物",
     // domain: "http://ubuntu:8999/api",
     domain: "http://ubuntu:8999/api",
+    member_id:null,
     member_status: 1,
-    is_adm: true
+    is_adm: true,
   },
   onLaunch: function () {
     // 展示本地存储能力
