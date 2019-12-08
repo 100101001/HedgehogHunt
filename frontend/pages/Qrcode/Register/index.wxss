@@ -1,0 +1,31 @@
+/* pages/Qrcode/Register/index.wxss */
+.content{text-align: center}
+.logo{margin-top: 100rpx;margin-bottom: 120rpx}
+.logo image{width:400rpx;height: 60rpx}
+.input-area{
+    background-color: #fff;
+    text-align: left;
+    padding-left: 10%;
+    border-bottom:1px solid #ddd;
+    border-top:1px solid #ddd
+}
+.input-area input{height:100rpx;line-height: 100rpx;}
+#username{border-bottom:1px solid #ddd}
+.btn-area{width: 80%;margin: 0 auto}
+.btn-area button{
+    /*background-color: #ff9900;*/
+    margin-top: 40rpx;
+    color: #fff
+}
+.txt-area{
+    margin-top: 30rpx;
+    display: flex;
+    justify-content:space-between;
+    font-size: 30rpx
+}
+.forgot-password{color: #888}
+.register{color:#ff9900}
+.forgot-password:active,.register:active{opacity: 0.7}
+.smsCode{display: flex;justify-content:space-between;border-bottom: 1px solid #ddd;padding-right: 10%}
+.smsCode input{width: 336rpx;}
+.smsCode .getSmsCodeBtn{font-size: 30rpx; color:#fff;width:216rpx;box-sizing: border-box; height: 80rpx;line-height: 80rpx;margin-top: 10rpx;margin-right: 0}
