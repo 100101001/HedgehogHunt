@@ -23,33 +23,10 @@ Page({
       },
     ],
   },
-  onLoad: function (options) {
+  onLoad: function(options) {
     var business_type = options.business_type;
-    if (business_type==1){
+    if (business_type == 1) {
       var [isSelecteds, urls] = util.onNavigateTap(1);
-    }else{
-      var [isSelecteds, urls] = util.onNavigateTap(3);
-    }
-    if (business_type == 0) {
-      var categories = [{
-        id: -1,
-        name: '全部',
-      },
-      {
-        id: 1,
-        name: '待找回'
-      },
-      {
-        id: 2,
-        name: '预找回'
-      },
-      {
-        id: 3,
-        name: '已找回'
-      },
-      ]
-    }
-    else {
       var categories = [{
         id: -1,
         name: '全部',
@@ -67,29 +44,49 @@ Page({
         name: '已领取'
       },
       ]
-
-    }
+    } else {
+      var [isSelecteds, urls] = util.onNavigateTap(3);
+      var categories = [{
+        id: -1,
+        name: '全部',
+      },
+      {
+        id: 1,
+        name: '待找回'
+      },
+      {
+        id: 2,
+        name: '预找回'
+      },
+      {
+        id: 3,
+        name: '已找回'
+      },
+      ]
+    };
+    var total_new = app.globalData.total_new;
+    isSelecteds['total_new'] = total_new;
     this.setData({
-      isSelecteds: isSelecteds,
-      filter_address: '',
-      business_type: business_type,
-      categories: categories,
-      goods_name: '',
-      owner_name: '',
-      filter_address: '',
-      loadingMoreHidden: true,
-    });
+        isSelecteds: isSelecteds,
+        filter_address: '',
+        business_type: business_type,
+        categories: categories,
+        goods_name: '',
+        owner_name: '',
+        filter_address: '',
+        loadingMoreHidden: true,
+      });
   },
   //轮播图变化
-  swiperchange: function (e) {
+  swiperchange: function(e) {
     this.setData({
       swiperCurrent: e.detail.current
     })
   },
-  onShow: function () {
+  onShow: function() {
     var regFlag = app.globalData.regFlag;
     this.setData({
-      regFlag: regFlag
+      regFlag: regFlag,
     });
     this.setInitData();
     this.onPullDownRefresh();
@@ -120,6 +117,8 @@ Page({
   },
   //点击导航图标
   onNavigateTap: function(event) {
+    //更新一下新列表
+    app.getNewRecommend();
     var id = event.currentTarget.dataset.id * 1; //乘1强制转换成数字
     var [isSelecteds, urls] = util.onNavigateTap(id, 2);
     this.setData({
@@ -239,11 +238,11 @@ Page({
       goods: [],
       scrollTop: "0",
       processing: false,
-      items:[{
+      items: [{
           name: 'owner_name',
           placeholder: '姓名',
           icons: 'search_icon',
-          act:"listenerNameInput",
+          act: "listenerNameInput",
         },
         {
           name: "goods_name",
@@ -311,22 +310,22 @@ Page({
       that.getGoodsList();
     }, 500);
   },
-  listenerNameInput: function (e) {
+  listenerNameInput: function(e) {
     this.setData({
       owner_name: e.detail.value
     });
   },
-  listenerGoodsNameInput: function (e) {
+  listenerGoodsNameInput: function(e) {
     this.setData({
       goods_name: e.detail.value
     });
   },
-  listenerAddressInput: function (e) {
+  listenerAddressInput: function(e) {
     this.setData({
       filter_address: e.detail.value
     });
   },
-  formSubmit: function (e) {
+  formSubmit: function(e) {
     var data = e.detail.value
     console.log(data);
     this.setData({
@@ -356,7 +355,7 @@ Page({
       data: {
         status: that.data.activeCategoryId,
         mix_kw: that.data.goods_name,
-        owner_name:that.data.owner_name,
+        owner_name: that.data.owner_name,
         p: that.data.p,
         business_type: that.data.business_type,
         filter_address: that.data.filter_address

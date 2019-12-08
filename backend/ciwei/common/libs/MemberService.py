@@ -130,7 +130,7 @@ class MemberService():
     @staticmethod
     def addRecommendGoods(member_info,goods_id):
         if member_info.recommend_id:
-            recommend_id_dict=MemberService.getRecommendDict(member_info.recommend_id)
+            recommend_id_dict=MemberService.getRecommendDict(member_info.recommend_id,False)
             recommend_id_list=recommend_id_dict.keys()
             #考虑到信息编辑更新时如果之前已经推荐过就不再推荐了
             if str(goods_id) not in recommend_id_list:
@@ -142,12 +142,16 @@ class MemberService():
         db.session.commit()
 
     @staticmethod
-    def getRecommendDict(recommend_id):
+    def getRecommendDict(recommend_id,only_new):
         re_list=recommend_id.split('#')
         re_dict={}
         for i in re_list:
             id=int(i.split(':')[0])
             status=int(i.split(':')[1])
-            re_dict[id]=status
+            if only_new:
+                if status==0:
+                    re_dict[id]=status
+            else:
+                re_dict[id] = status
 
         return re_dict
