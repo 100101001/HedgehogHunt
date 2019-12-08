@@ -5,4 +5,5 @@ flask-debugtoolbar
 mysqlclient
 flask_script
 requests
+twilio
 # uwsgi

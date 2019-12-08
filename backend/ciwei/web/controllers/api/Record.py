@@ -70,7 +70,8 @@ def recordSearch():
     elif op_status==2:
         if member_info.recommend_id:
             #获取推荐列表的字典，格式{id:0或者1}{1000：0}表示id为1000的数据未读
-            recommend_dict=MemberService.getRecommendDict(member_info.recommend_id)
+            only_new=req['only_new']
+            recommend_dict=MemberService.getRecommendDict(member_info.recommend_id,only_new)
             recommend_id_list_int=recommend_dict.keys()
             query = query.filter(Good.id.in_(recommend_id_list_int))
         else:

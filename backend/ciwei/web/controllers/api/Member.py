@@ -17,8 +17,8 @@ from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
 from common.libs.UploadService import UploadService
 from common.models.ciwei.Goods import Good
+from common.models.ciwei.Thanks import Thank
 import time
-
 
 @route_api.route("/member/login", methods=['GET', 'POST'])
 def login():
@@ -58,7 +58,6 @@ def login():
     resp['data'] = {'token': token}
     resp['req'] = req
     return jsonify(resp)
-
 
 @route_api.route("/member/check-reg", methods=['GET', 'POST'])
 def checkReg():
@@ -121,7 +120,6 @@ def checkReg():
     }
     return jsonify(resp)
 
-
 @route_api.route("/member/info")
 def memberInfo():
     resp = {'code': 200, 'msg': 'get_member_info successfully(share)', 'data': {}}
@@ -149,6 +147,46 @@ def memberInfo():
     }
     return jsonify(resp)
 
+@route_api.route("/member/get-new-recommend")
+def getNewRecommend():
+    resp = {'code': 200, 'msg': 'get_member_info successfully(share)', 'data': {}}
+
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "没有相关用户信息"
+        return jsonify(resp)
+    #都先置零
+    recommend_status_2=recommend_status_3=recommend_status_1=0
+    recommend_new=thanks_new=0
+    if member_info.recommend_id:
+        recommend_dict=MemberService.getRecommendDict(member_info.recommend_id,True)
+        query=Good.query.filter(Good.id.in_(recommend_dict.keys()))
+        recommend_status_1=len(query.filter_by(status=1).all())
+        recommend_status_2=len(query.filter_by(status=2).all())
+        recommend_status_3=len(query.filter_by(status=3).all())
+        recommend_new=len(recommend_dict) if len(recommend_dict)<=99 else 99
+
+    #未读的答谢记录
+    query=Thank.query.filter_by(member_id=member_info.id)
+    thanks_list=query.filter_by(status=0).all()
+    if thanks_list:
+        thanks_new=len(thanks_list) if len(thanks_list)<=99 else 99
+
+    total_new=recommend_new+thanks_new
+    total_new=total_new if total_new<=99 else 99
+
+    resp['data']= {
+        'total_new': total_new,
+        'recommend_new': recommend_new,
+        'thanks_new': thanks_new,
+        'recommend':{
+            'wait':recommend_status_1 if recommend_status_1<=99 else 99,
+            'doing':recommend_status_2 if recommend_status_2<=99 else 99,
+            'done':recommend_status_3 if recommend_status_3<=99 else 99,
+        }
+    }
+    return jsonify(resp)
 
 @route_api.route("/member/add-qrcode", methods=['GET', 'POST'])
 def addQrcode():
@@ -227,7 +265,6 @@ def blockMemberSearch():
     resp['data']['has_more'] = 0 if len(data_member_list) < page_size else 1
     return jsonify(resp)
 
-
 # 恢复会员
 @route_api.route('/member/restore-member')
 def restoreMember():
@@ -251,7 +288,6 @@ def restoreMember():
     db.session.commit()
 
     return jsonify(resp)
-
 
 @route_api.route('/member/share')
 def memberShare():

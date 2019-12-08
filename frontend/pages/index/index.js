@@ -47,6 +47,8 @@ Page({
       title: app.globalData.shopName
     });
     app.checkLogin();
+    app.getNewRecommend();
+    this.goToIndex();
 
     //later will use index page for redirect
     if (options.id) {

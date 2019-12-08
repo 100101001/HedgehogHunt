@@ -18,7 +18,7 @@
     <scroll-view class="type-navbar-check-report">
       <view class="type-box" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="{{index}}">
         <view id="{{cat.id}}" class="type-navbar-item {{check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="checkReportClick">
-          {{cat.name}}
+          {{cat.name}}<view class="content_tip" wx:if="{{cat.value && cat.value!=0}}">{{cat.value}}</view>
         </view>
       </view>
     </scroll-view>

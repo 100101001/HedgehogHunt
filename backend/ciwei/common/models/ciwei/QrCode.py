@@ -2,10 +2,8 @@
 from sqlalchemy import Column, DateTime, Integer, LargeBinary, String
 from sqlalchemy.schema import FetchedValue
 from flask_sqlalchemy import SQLAlchemy
-
-
-db = SQLAlchemy()
-
+# db = SQLAlchemy()
+from application import db
 
 class QrCode(db.Model):
     __tablename__ = 'qr_code'
