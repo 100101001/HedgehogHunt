@@ -1,13 +1,17 @@
 const app = getApp()
 // pages/Qrcode/Qrcode.js
+
+/**
+ * this page is a temporary test page
+ */
 Page({
 
   /**
    * 页面的初始数据
    */
   data: {
-    register:false,
-    release:false
+    register: false,
+    release: false
   },
 
   /**
@@ -16,27 +20,29 @@ Page({
   onLoad: function (options) {
     console.log("扫了二维码")
     console.log(options)
-    wx.request({
-      method:"post",
-      url:app.buildUrl("/qrcode/scan"),
-      data: {
-        id:options.id
-      },
-      success: function(res) {
-        if(res.data == true){
-          wx.navigateTo({
-            url: "/pages/Release/release/index"
-          })
-        }else {
-          wx.navigateTo({
-            url: "/pages/Qrcode/register/index"
-          })
+    if (options.id) {
+      wx.request({
+        method: 'post',
+        url: app.buildUrl("/qrcode/scan"),
+        data: {
+          id: options.id
+        },
+        success: function (res) {
+          if (res.data == true) {
+            wx.navigateTo({
+              url: "/pages/Release/release/index"
+            })
+          } else {
+            wx.navigateTo({
+              url: "/pages/Qrcode/Register/index"
+            })
+          }
+        },
+        fail: function (res) {
+          app.serverBusy()
         }
-      },
-      fail:function(res) {
-        app.serverBusy()
-      }
-    })
+      })
+    }
   },
 
   /**

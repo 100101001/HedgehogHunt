@@ -17,11 +17,5 @@ GET http://localhost:8080/user/qrcode/0
 #<img src="data:image/jpeg;base64,{result}">
 
 ###
-POST  http://ubuntu:8999/api/member/qrcode
-Content-Type: application/json
+GET  http://ubuntu:8999/api/qrcode/wx
 
-{
-    "memberId":2,
-    "order_id":2,
-    "username":"lyx2",
-}
