@@ -57,8 +57,19 @@ function onNavigateTap(id) {
   ]
   return [isSelecteds,urls];
 }
+
+//检查电话号码
+function regexConfig(){
+  var reg = {
+    email:/^(\w-*\.*)+@(\w-?)+(\.\w{2,})+$/,
+    phone:/^1(3|4|5|7|8)\d{9}$/
+  }
+  return reg;
+}
+
 module.exports = {
   formatTime: formatTime,
   showMessage: showMessage,
   onNavigateTap: onNavigateTap,
+  regexConfig:regexConfig
 }

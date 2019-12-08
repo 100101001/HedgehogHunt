@@ -22,7 +22,9 @@
     "pages/Homepage/homepage/aboutus/aboutus",
     "pages/Lost/Lost",
     "pages/Mine/userinfo/index",
-    "pages/Find/edit/edit"
+    "pages/Find/edit/edit",
+    "pages/Qrcode/index",
+    "pages/Qrcode/Register/index"
   ],
   "window": {
     "navigationBarBackgroundColor": "#f7931e",
