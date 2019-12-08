@@ -61,32 +61,40 @@ Page({
     })
   },
   getQrCode: function() {
+    var that = this
     if (!this.data.has_qrcode) {
-      app.alert({
-        'content': "从网页获取二维码"
-      });
       wx.request({
-        url: app.buildUrl('/member/share'),
+        method:'post',
+        url: app.buildUrl('/member/qrcode'),
+        header: { 
+          'content-type': 'application/json' 
+        }, 
+        data: {
+          memberId:1,
+          orderId:1,
+          username:"lyx1"
+        }, 
         success: function(res) {
-          var resp = res.data;
-          if (resp.code != 200) {
-            app.alert({
-              'content': resp.msg
-            });
-            return;
+          console.log(res)
+          if(res.statusCode === 200){
+            var resp = res.data;
+            that.setData({
+              // qrCode:"data:image/jpeg;base64,"+wx.arrayBufferToBase64(resp),
+              qrCode:"data:image/jpeg;base64,"+resp,
+              has_qrcode:true,
+              show_qrcode:true
+            })
           }
-          wx.showToast({
-            title: '分享成功！',
-            icon: 'success',
-            content: '积分+5',
-            duration: 3000
-          })
+          else{
+            app.serverInternalError()
+          }
         },
         fail: function(res) {
-          app.serverBusy();
-          return;
+          app.serverBusy()
         }
       })
+    }else {
+      //从db直接拿
     }
   },
   checkQrCode:function(){

@@ -16,7 +16,7 @@ App({
     regFlag: false,
     shopName: "刺猬寻物",
     // domain: "http://ubuntu:8999/api",
-    domain: "http://127.0.0.1:8999/api",
+    domain: "http://ubuntu:8999/api",
     member_status: 1,
     is_adm: true
   },
@@ -210,6 +210,12 @@ App({
   serverBusy: function () {
     this.alert({
       'content': '服务器响应超时，请稍后重试'
+    });
+    return;
+  },
+  serverInternalError:function(){
+    this.alert({
+      'content': '服务器内部异常，请稍后重试'
     });
     return;
   },
