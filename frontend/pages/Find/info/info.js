@@ -210,6 +210,12 @@ Page({
       url: "../../Release/release/index",
     })
   },
+  goReturn: function (e) {
+    var auther_id=this.data.infos.info.auther_id;
+    wx.navigateTo({
+      url: "../../Release/release/index?auther_id="+auther_id,
+    })
+  },
   //申领的按钮
   toApplicate: function() {
     var that = this;

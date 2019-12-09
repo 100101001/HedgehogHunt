@@ -410,6 +410,7 @@ def goodsInfo():
         "status_desc": str(goods_info.status_desc),
         "status":goods_info.status,
 
+        "auther_id":auther_info.id,
         "auther_name": auther_info.nickname,
         "avatar": auther_info.avatar,
         "is_auth":is_auth

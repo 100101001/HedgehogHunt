@@ -5,7 +5,15 @@ Page({
     imglist: [],
   },
   onLoad: function(options) {
-    var business_type=options.business_type;
+    var auther_id=options.auther_id;
+    if (auther_id){
+      var business_type=1;
+      this.setData({
+        auther_id:auther_idb 
+      })
+    }else{
+      var business_type = options.business_type;
+    }
     this.setData({
       business_type: business_type,
       location: ""
