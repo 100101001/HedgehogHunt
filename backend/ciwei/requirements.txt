@@ -6,4 +6,5 @@ mysqlclient
 flask_script
 requests
 twilio
+Flask-Caching
 # uwsgi

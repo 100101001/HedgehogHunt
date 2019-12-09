@@ -6,7 +6,7 @@ import requests
 from flask import request, Response, g
 from twilio.rest import Client
 
-from application import app, db
+from application import app, db, cache
 from common.libs import QrCodeService
 from common.models.ciwei.QrCode import QrCode
 from web.controllers.api import route_api
@@ -131,42 +131,53 @@ def getSmsCode():
     }
     :return:
      200 when code sent
+     400 when user request for code to frequently
      500 when error occurs
     """
     params = request.get_json()
-    number = '+86' + params['phone']
-    smsCode = QrCodeService.generateSmsVerCode()
-    # save to db or phone-smsCode cache used by checkSmsCode
-
-    # send sms
-    message = "[刺猬寻物] Your verification code is: " + smsCode
-    client = Client(app.config['TWILIO_SERVICE']['accountSID'], app.config['TWILIO_SERVICE']['authToken'])
-    try:
-        client.messages.create(body=message, from_=app.config['TWILIO_SERVICE']['twilioNumber'], to=number)
-    except Exception:
-        app.logger.error("failed to send sms code to phone %s", number)
-        return Response(status=500)
-    app.logger.info("send sms code to phone %s successfuly", number)
-    return Response(status=200)
+    if cache.get(params['phone']) is None:
+        number = '+86' + params['phone']
+        smsCode = QrCodeService.generateSmsVerCode()
+        # save to db or phone-smsCode cache used by checkSmsCode
+        cache.set(params['phone'], smsCode)
+        # send sms
+        message = "[刺猬寻物] Your verification code is: " + smsCode
+        client = Client(app.config['TWILIO_SERVICE']['accountSID'], app.config['TWILIO_SERVICE']['authToken'])
+        try:
+            client.messages.create(body=message, from_=app.config['TWILIO_SERVICE']['twilioNumber'], to=number)
+            app.logger.info("send sms code to phone %s successfuly", number)
+            return Response(status=200)
+        except Exception:
+            app.logger.error("failed to send sms code to phone %s", number)
+            return Response(status=500)
+    else:
+        return Response(status=400)
 
 
 @route_api.route("/qrcode/check/sms", methods=['GET', 'POST'])
-def checkSms():
+def checkSmsCode():
     """
     check input sms is right
     :return:
-     200 when code is right
-     500 when code is wrong
+     200 when code is valid and right
+     400 when code is invalid
+     401 when code is valid but user gave a wrong one
     """
     params = request.get_json()
     phone = params['phone']
     inputCode = params['code']
-
+    sentCode = cache.get(phone)
     # retrieve sms code use phone
-
-    # compare sms code with inputCode
-
-    pass
+    if sentCode is None:
+        app.logger.info("code is invalid, need to resend sms code")
+        return Response(status=400)
+    elif cache.get(phone) == inputCode:
+        app.logger.info("member with phone %s registered successfully", phone)
+        # register
+        return Response(status=200)
+    else:
+        app.logger.info("member with phone %s give a wrong sms code", phone)
+        return Response(status=401)
 
 
 @route_api.route("/qrcode/publish", methods=['GET', 'POST'])
