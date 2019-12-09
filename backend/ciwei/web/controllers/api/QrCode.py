@@ -171,7 +171,7 @@ def checkSmsCode():
     if sentCode is None:
         app.logger.info("code is invalid, need to resend sms code")
         return Response(status=400)
-    elif cache.get(phone) == inputCode:
+    elif sentCode == inputCode:
         app.logger.info("member with phone %s registered successfully", phone)
         # register
         return Response(status=200)
