@@ -47,8 +47,8 @@ Page({
     }
   },
   onLoad: function(options) {
-    var goods_id = options.goods_id;
-    // var goods_id =5;
+    // var goods_id = options.goods_id;
+    var goods_id =6;
     this.getGoodsInfo(goods_id);
     app.getNewRecommend();
   },
@@ -207,11 +207,14 @@ Page({
   },
   goRelease: function(e) {
     wx.navigateTo({
-      url: "../../Release/release/index",
+      url: "../../Release/Release",
     })
   },
+  //归还按钮
   goReturn: function (e) {
     var auther_id=this.data.infos.info.auther_id;
+    var info = this.data.infos.info;
+    app.globalData.info = info;
     wx.navigateTo({
       url: "../../Release/release/index?auther_id="+auther_id,
     })

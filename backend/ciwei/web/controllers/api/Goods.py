@@ -152,6 +152,19 @@ def endCreate():
         goods_info.status=1
     goods_info.updated_time=getCurrentDate()
 
+    #如果是直接归还商品，则会带上寻物启事或者物主的id
+    auther_id=req['auther_id'] if 'auther_id' in req else 0
+    if auther_id:
+        auther_info=Member.query.filter_by(id=auther_id).first()
+        MemberService.addRecommendGoods(auther_info,goods_info.id)
+
+    target_goods_id=req['target_goods_id'] if 'target_goods_id' in req else 0
+    if target_goods_id:
+        target_goods_info=Good.query.filter_by(id=target_goods_id).first()
+        target_goods_info.status=2
+        db.session.add(target_goods_info)
+        db.session.commit()
+
     #创建或者修改完成时，对用户进行推荐
     MemberService.recommendGoods(goods_info)
     db.session.add(goods_info)

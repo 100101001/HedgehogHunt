@@ -7,9 +7,10 @@ Page({
   onLoad: function(options) {
     var auther_id=options.auther_id;
     if (auther_id){
+      console.log(auther_id);
       var business_type=1;
       this.setData({
-        auther_id:auther_idb 
+        auther_id:auther_id
       })
     }else{
       var business_type = options.business_type;
@@ -233,13 +234,23 @@ Page({
   },
   endCreate: function(id) {
     var that = this;
+    var auther_id=that.data.auther_id;
+    if (auther_id){
+      var data={
+        id: id,
+        auther_id:auther_id,
+        target_goods_id:app.globalData.info,
+      };
+    }else{
+      var data = {
+        id: id,
+      };
+    }
     wx.request({
       url: app.buildUrl("/goods/end-create"),
       method: 'POST',
       header: app.getRequestHeader(),
-      data: {
-        id: id
-      },
+      data:data,
       success: function(res) {
         console.log('success');
         var resp = res.data;
@@ -255,6 +266,8 @@ Page({
           icon: 'success',
           duration: 2000
         });
+        //提交完之后清空全局变量
+        app.globalData.info={};
         var business_type=that.data.business_type;
         wx.navigateTo({
           url: '../../Find/Find?business_type='+business_type,
@@ -274,6 +287,7 @@ Page({
   //设置页面参数
   setInitData: function() {
     var location = app.globalData.location; //用于让别人帮忙寄回物品
+    var info=app.globalData.info;
     var business_type = this.data.business_type;
     if (business_type == 1) {
       var summary_placeholder = "添加物品描述：拾到物品的时间、地点以及物品上面的其他特征如颜色、记号等...";
@@ -289,14 +303,15 @@ Page({
           name: "goods_name",
           placeholder: "例:校园卡",
           label: "物品名称",
+          value:info.goods_name,
           icons: "/images/icons/goods_name.png",
         },
         {
           name: "owner_name",
           placeholder: "例:可可",
           label: "失主姓名",
+          value: info.owner_name,
           icons: "/images/icons/discount_price.png",
-          value: "未知",
         },
         {
           name: "mobile",
@@ -348,6 +363,7 @@ Page({
       summary_placeholder: summary_placeholder,
       summary_value: summary_value,
       tips_obj: tips_obj,
+      info_owner_name:info.owner_name
     })
   },
 });

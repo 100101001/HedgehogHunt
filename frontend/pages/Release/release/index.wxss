@@ -153,4 +153,16 @@
   color: #fff;
   width: 580rpx;
   margin: 20rpx 0 20rpx 30rpx;
+  border-radius: 10rpx;
+}
+
+.tips-btn{
+  background-color: #f7931e;
+  font-size: 24rpx;
+  font-weight: 600;
+  text-align: center;
+  color: #fff;
+  width: 580rpx;
+  margin: 20rpx 0 20rpx 30rpx;
+  border-radius: 10rpx;
 }

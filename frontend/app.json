@@ -1,10 +1,10 @@
 {
   "pages": [
+    "pages/Find/info/info",
     "pages/index/index",
     "pages/Mine/Mine",
     "pages/Record/index",
     "pages/Find/Find",
-    "pages/Find/info/info",
     "pages/Release/release/index",
     "pages/Report/info/info",
     "pages/Release/Release",

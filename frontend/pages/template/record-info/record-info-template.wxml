@@ -61,7 +61,7 @@
       <view class="now-buy" catchtap="toApplicate" wx:if="{{info.business_type}}">
         <text>认领</text>
       </view>
-      <view class="now-buy" catchtap="toReturn" wx:if="{{!info.business_type}}">
+      <view class="now-buy" catchtap="goReturn" wx:if="{{!info.business_type}}">
         <text>归还</text>
       </view>
     </view>
