@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
 from flask_script import Manager
 from common.libs.UrlManager import UrlManager
@@ -11,11 +12,12 @@ class Application(Flask):
 
         #if 'ops_config' in os.environ:
          #   self.config.from_pyfile('config\\%s_setting.py' % os.environ['ops_config'])
-
+        cache.init_app(self)
         db.init_app(self)
 
 
 db=SQLAlchemy()
+cache = Cache(config={'CACHE_TYPE': 'simple', 'CACHE_DEFAULT_TIMEOUT': 90})
 app=Application(__name__,template_folder=os.getcwd()+'/web/templates',root_path=os.getcwd(),static_folder=os.getcwd()+'/web/static')
 manager=Manager(app)
 

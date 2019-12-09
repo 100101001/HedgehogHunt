@@ -3,117 +3,81 @@ var util = require("../../../utils/util.js");
 const app = getApp()
 
 Page({
-  data:{
-    registBtnTxt:"注册",
-    registBtnBgBgColor:"#ff9900",
-    getSmsCodeBtnTxt:"获取验证码",
-    getSmsCodeBtnColor:"#ff9900",
+  data: {
+    registBtnTxt: "注册",
+    registBtnBgBgColor: "#ff9900",
+    getSmsCodeBtnTxt: "获取验证码",
+    getSmsCodeBtnColor: "#ff9900",
     // getSmsCodeBtnTime:60,
-    btnLoading:false,
-    registDisabled:true,
-    smsCodeDisabled:false,
+    btnLoading: false,
+    registDisabled: false,
+    smsCodeDisabled: false,
     inputUserName: '',
     inputPassword: '',
     phoneNum: ''
   },
-  onLoad:function(options){
+  onLoad: function (options) {
     // 页面初始化 options为页面跳转所带来的参数
-    
+
   },
-  onReady:function(){
+  onReady: function () {
     // 页面渲染完成
-    
+
   },
-  onShow:function(){
+  onShow: function () {
     // 页面显示
-    
+
   },
-  onHide:function(){
+  onHide: function () {
     // 页面隐藏
-    
+
   },
-  onUnload:function(){
+  onUnload: function () {
     // 页面关闭
-    
+
   },
-  formSubmit:function(e){
+  formSubmit: function (e) {
     var param = e.detail.value;
-    this.mysubmit(param);
+    //后端检查码，对就注册跳转新页面，错就提示失败
+    this.checkSmsCode(param)
   },
-  mysubmit:function (param){
-    var flag = this.checkUserName(param.username)&&this.checkPassword(param)&&this.checkSmsCode(param)
-    var that = this;
-    if(flag){
-        this.setregistData1();
-        setTimeout(function(){
-          wx.showToast({
-            title: '成功',
-            icon: 'success',
-            duration: 1500
-          });
-          that.setregistData2();
-          that.redirectTo(param);
-        },2000);
-    } 
-  },
-  getPhoneNum:function(e){
-   var value  = e.detail.value;
-   this.setData({
-    phoneNum: value     
-   });
-  },
-  setregistData1:function(){
+  getPhoneNum: function (e) {
+    var value = e.detail.value;
     this.setData({
-      registBtnTxt:"注册中",
-      registDisabled: !this.data.registDisabled,
-      registBtnBgBgColor:"#999",
-      btnLoading:!this.data.btnLoading
+      phoneNum: value
     });
   },
-  setregistData2:function(){
+  setregistData1: function () {
     this.setData({
-      registBtnTxt:"注册",
+      registBtnTxt: "注册中",
       registDisabled: !this.data.registDisabled,
-      registBtnBgBgColor:"#ff9900",
-      btnLoading:!this.data.btnLoading
+      registBtnBgBgColor: "#999",
+      btnLoading: !this.data.btnLoading
     });
   },
-  checkUserName:function(param){ 
+  setregistData2: function () {
+    this.setData({
+      registBtnTxt: "注册",
+      registDisabled: !this.data.registDisabled,
+      registBtnBgBgColor: "#ff9900",
+      btnLoading: !this.data.btnLoading
+    });
+  },
+  checkPhone: function (param) {
     var phone = util.regexConfig().phone;
     var inputUserName = param.trim();
-    if(phone.test(inputUserName)){
+    if (phone.test(inputUserName)) {
       return true;
-    }else{
+    } else {
       wx.showModal({
         title: '提示',
-        showCancel:false,
+        showCancel: false,
         content: '请输入正确的手机号码'
       });
       return false;
     }
   },
-  checkPassword:function(param){
-    var userName = param.username.trim();
-    var password = param.password.trim();
-    if(password.length<=0){
-      wx.showModal({
-        title: '提示',
-        showCancel:false,
-        content: '请设置密码'
-      });
-      return false;
-    }else if(password.length<6||password.length>20){
-      wx.showModal({
-        title: '提示',
-        showCancel:false,
-        content: '密码长度为6-20位字符'
-      });
-      return false;
-    }else{
-      return true;
-    }
-  },
-  getSmsCode:function(){
+  getSmsCode: function () {
     var phoneNum = this.data.phoneNum;
     var that = this;
     var count = 60;
@@ -152,30 +116,65 @@ Page({
           count = 60;
           clearInterval(si);
         }
-      },1000);
+      }, 1000);
     }
-    
+
   },
-  checkSmsCode:function(param){
-    var smsCode = param.smsCode.trim();
-    var tempSmsCode = '000000';//演示效果临时变量，正式开发需要通过wx.request获取
-    if(smsCode!=tempSmsCode){
-      wx.showModal({
-        title: '提示',
-        showCancel:false,
-        content: '请输入正确的短信验证码'
-      });
-      return false;
-    }else{
-      return true;
+  checkSmsCode: function (param) {
+    console.log("进了 checkSms")
+    if (this.checkPhone(param.phone)) {
+      this.setregistData1();
+      var smsCode = param.smsCode.trim();
+      var that = this;
+      // 请求后端校验码，后端校验成功就注册成功，否则就提示短信码失败
+      wx.request({
+        method: 'post',
+        url: app.buildUrl("/qrcode/check/sms"),
+        data: {
+          phone: that.data.phoneNum,
+          code: smsCode
+        },
+        success: function (res) {
+          if (res.statusCode === 200) {
+            setTimeout(function () {
+              wx.showToast({
+                title: '注册成功',
+                icon: 'success',
+                duration: 1500
+              });
+              that.setregistData2();
+              that.redirectTo(param);
+            }, 2000);
+            that.setregistData2();
+          } else if (res.statusCode === 401) {
+            wx.showModal({
+              title: '提示',
+              showCancel: false,
+              content: '请输入正确的短信验证码'
+            });
+            that.setregistData2();
+          } else if (res.statusCode === 400) {
+            wx.showModal({
+              title: '提示',
+              showCancel: false,
+              content: '短信验证码已过期，请重新获取验证码'
+            });
+            that.setregistData2();
+          }
+        },
+        fail: function (res) {
+          app.serverBusy()
+          that.setregistData2();
+        }
+      })
     }
   },
-  redirectTo:function(param){
+  redirectTo: function (param) {
     //需要将param转换为字符串
-    param = JSON.stringify(param);
-    wx.redirectTo({
-      url: '../main/index?param='+ param//参数只能是字符串形式，不能为json对象
-    })
+    // param = JSON.stringify(param);
+    // wx.redirectTo({
+    //   url: '../main/index?param=' + param//参数只能是字符串形式，不能为json对象
+    // })
   }
 
 })
