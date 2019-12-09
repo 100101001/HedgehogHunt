@@ -25,7 +25,7 @@
   </view>
   <view class="jiesuan-box" wx:if="{{ list.length }}" hidden="{{saveHidden}}">
     <view class="left-price">
-      <radio class="radio" bindtap="bindAllSelect" checked="{{allSelect}}">全选</radio>
+      <radio class="all_select" bindtap="bindAllSelect" checked="{{allSelect}}">全选</radio>
     </view>
     <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected">删除</view>
   </view>

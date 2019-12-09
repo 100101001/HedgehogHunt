@@ -71,7 +71,10 @@ def recordSearch():
         if member_info.recommend_id:
             #获取推荐列表的字典，格式{id:0或者1}{1000：0}表示id为1000的数据未读
             only_new=req['only_new']
-            recommend_dict=MemberService.getRecommendDict(member_info.recommend_id,only_new)
+            if only_new=='false':
+                recommend_dict=MemberService.getRecommendDict(member_info.recommend_id,False)
+            else:
+                recommend_dict = MemberService.getRecommendDict(member_info.recommend_id, True)
             recommend_id_list_int=recommend_dict.keys()
             query = query.filter(Good.id.in_(recommend_id_list_int))
         else:
@@ -132,16 +135,13 @@ def recordDelete():
     elif op_status==1:
         mark_id_list=member_info.mark_id.split('#')
         for i in id_list:
-            # resp['id']=i
-            # resp['mark_id_list']=mark_id_list
-            # return jsonify(resp)
             mark_id_list.remove(i)
             member_info.mark_id='#'.join(mark_id_list)
     elif op_status==2:
-        recommend_id_list=member_info.recommend_id.split('#')
+        recommend_id_dict=MemberService.getRecommendDict(member_info.recommend_id,False)
         for i in id_list:
-            recommend_id_list.remove(i)
-            member_info.recommend_id='#'.join(recommend_id_list)
+            del recommend_id_dict[int(i)]
+        member_info.recommend_id=MemberService.joinRecommendDict(recommend_id_dict)
     db.session.add(member_info)
     db.session.commit()
     return jsonify(resp)

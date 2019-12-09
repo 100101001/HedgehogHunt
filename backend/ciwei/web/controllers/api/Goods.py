@@ -265,8 +265,7 @@ def goodsApplicate():
     if goods_mark_id:
         goods_mark_id_list=goods_mark_id.split('#')
         if  str(member_info.id) not in goods_mark_id:
-            goods_mark_id_list.append(str(member_info.id))
-            goods_info.mark_id="#".join(goods_mark_id_list)
+            goods_info.mark_id=goods_info.mark_id+"#"+str(member_info.id)
     else:
         goods_info.mark_id=str(member_info.id)
     #申领量加一
@@ -280,8 +279,8 @@ def goodsApplicate():
     member_mark_id = member_info.mark_id
     if member_mark_id:
         member_mark_id_list = member_mark_id.split('#')
-        member_mark_id_list.append(str(goods_info.id))
-        member_info.mark_id = "#".join(member_mark_id_list)
+        if str(member_info.id) not in member_mark_id_list:
+            member_info.mark_id =member_mark_id+ "#"+str(goods_info.id)
     else:
         member_info.mark_id = str(goods_info.id)
 
@@ -290,6 +289,60 @@ def goodsApplicate():
     db.session.commit()
 
     resp['data']['show_location']=True
+    resp['data']['status']=goods_info.status
+    resp['data']['status_desc']=goods_info.status_desc
+    db.session.add(goods_info)
+    db.session.commit()
+
+    return jsonify(resp)
+
+@route_api.route('/goods/gotback')
+def goodsGotback():
+    resp = {'code': 200, 'msg': 'operate successfully(get info)', 'data': {}}
+    req = request.values
+
+    id = int(req['id']) if ('id' in req and req['id']) else 0
+    goods_info=Good.query.filter_by(id=id).first()
+    if not goods_info:
+        resp['code']=-1
+        resp['msg']='没有找到相关商品信息'
+        return jsonify(resp)
+
+    auther_info=Member.query.filter_by(id=goods_info.member_id).first()
+    if not auther_info:
+        resp['code'] = -1
+        resp['msg'] = '没有找到相关发布者信息'
+        return jsonify(resp)
+
+    member_info=g.member_info
+    #用户能否看到地址,如果是在mark列表或者发布者可以看到地址和电话
+    goods_owner_id=goods_info.owner_id
+    if goods_owner_id:
+        goods_owner_id_list=goods_owner_id.split('#')
+        if  str(member_info.id) not in goods_owner_id_list:
+            goods_info.owner_id=goods_info.owner_id+"#"+str(member_info.id)
+    else:
+        goods_info.owner_id=str(member_info.id)
+    #申领量加一
+    goods_info.status=3
+    goods_info.tap_count = goods_info.tap_count + 1
+    goods_info.updated_time = getCurrentDate()
+    db.session.add(goods_info)
+    db.session.commit()
+
+    #更新用户认领消息的id表
+    member_gotback_id = member_info.gotback_id
+    if member_gotback_id:
+        member_info.gotback_id =member_gotback_id+ "#"+str(goods_info.id)
+    else:
+        member_info.gotback_id = str(goods_info.id)
+
+    member_info.updated_time = getCurrentDate()
+    db.session.add(member_info)
+    db.session.commit()
+
+    resp['data']['show_location']=True
+    resp['data']['status']=goods_info.status
     resp['data']['status_desc']=goods_info.status_desc
     db.session.add(goods_info)
     db.session.commit()
@@ -316,6 +369,12 @@ def goodsInfo():
         mark_id_list=mark_goods_id.split('#')
         if str(goods_info.id) in mark_id_list:
             show_location=True
+
+    if member_info.recommend_id:
+        recommend_id_list=MemberService.getRecommendDict(member_info.recommend_id,False)
+        if id in recommend_id_list.keys() and recommend_id_list[id]==0:
+            recommend_id_list[id]=1
+        member_info.recommend_id=MemberService.joinRecommendDict(recommend_id_list)
 
     auther_info = Member.query.filter_by(id=goods_info.member_id).first()
     if not auther_info:
@@ -349,6 +408,7 @@ def goodsInfo():
         "business_type":goods_info.business_type,
         "mobile":goods_info.mobile,
         "status_desc": str(goods_info.status_desc),
+        "status":goods_info.status,
 
         "auther_name": auther_info.nickname,
         "avatar": auther_info.avatar,

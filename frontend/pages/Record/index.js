@@ -3,13 +3,18 @@ var util = require("../../utils/util.js");
 var app = getApp();
 Page({
   data: {
-    owner_name:"",
-    goods_name:""
+    owner_name: "",
+    goods_name: "",
+    business_type: "",
   },
 
   onLoad: function (options) {
     var op_status=options.op_status;
+    this.setData({
+      op_status:op_status
+    })
     this.onLoadSetData(op_status);
+    this.onPullDownRefresh();
   },
   onLoadSetData:function(op_status){
     var recommend=app.globalData.recommend;
@@ -62,23 +67,17 @@ Page({
       var check_status_id=1;
     }
     this.setData({
-      owner_name: "",
-      goods_name: "",
-      business_type: "",
       check_status_id:check_status_id,
       infos:infos,
       op_status:op_status,
       only_new:false
     })
-    this.onPullDownRefresh();
-
   },
   onShow: function () {
     var regFlag = app.globalData.regFlag;
     this.setData({
       regFlag: regFlag
     });
-    this.onPullDownRefresh();
     // this.getBanners();
   },
   //下拉刷新
@@ -90,8 +89,34 @@ Page({
       infos:infos,
       loadingMoreHidden: true
     });
-    app.getNewRecommend();
+    this.updateTips();
     this.getGoodsList();
+  },
+  updateTips:function(){
+    if (this.data.op_status == 2) {
+      var recommend = app.globalData.recommend;
+      var infos = this.data.infos;
+      infos.check_cat = [
+        {
+          id: 1,
+          name: '待认领/找回',
+          value: recommend.wait,
+        },
+        {
+          id: 2,
+          name: '预认领/找回',
+          value: recommend.doing,
+        },
+        {
+          id: 3,
+          name: '已认领/找回',
+          value: recommend.done,
+        },
+      ];
+      this.setData({
+        infos: infos
+      })
+    }
   },
   listenerNameInput: function (e) {
     this.setData({
@@ -113,7 +138,7 @@ Page({
       });
     } else {
       wx.navigateTo({
-        url: 'info/info',
+        url: '/pages/Find/info/info?goods_id='+id,
       })
     }
   },
@@ -335,7 +360,6 @@ Page({
     //选择一次分类时返回选中值
     var infos = this.data.infos;
     infos.only_new = !this.data.only_new;
-    console.log(infos);
     this.setData({
       infos: infos,
       only_new: infos.only_new,

@@ -148,10 +148,19 @@ class MemberService():
         for i in re_list:
             id=int(i.split(':')[0])
             status=int(i.split(':')[1])
-            if only_new:
+            if only_new==True:
                 if status==0:
                     re_dict[id]=status
             else:
                 re_dict[id] = status
 
         return re_dict
+
+    @staticmethod
+    def joinRecommendDict(re_dict):
+        keys=list(re_dict.keys())
+        recommend_id = str(keys[0]) + ':' + str(re_dict[keys[0]])
+        for key in keys[1:]:
+            recommend_id=recommend_id+'#'+str(key)+':'+str(re_dict[key])
+        return recommend_id
+

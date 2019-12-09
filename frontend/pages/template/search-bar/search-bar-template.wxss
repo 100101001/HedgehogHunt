@@ -60,6 +60,11 @@
   font-size: 22rpx;
   margin-left: 50rpx;
 }
+.all_select{
+  margin-left: 30rpx;
+  color: #f7931e;
+}
+
 .radio{
   margin-left: 20rpx;
   color: #fff;

@@ -51,20 +51,8 @@
       </view>
     </view>
 
-    <!--底部  查看系统推荐-->
-    <view class="footer-box" wx:if="{{op_status==1}}">
-      <view class="shop-cart-btn" catchtap="goHome">
-        <image src="/images/icons/home_select.png"></image>
-        <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'> 回首页 </view>
-      </view>
-      <view class="join-shop-cart" catchtap="goThanks">答谢</view>
-      <view class="now-buy" catchtap="toApplicate">
-        <text>认领</text>
-      </view>
-    </view>
-
-    <!--底部  查看物品详情推荐-->
-    <view class="footer-box" wx:if="{{op_status==0 || op_status==2}}">
+    <!--用户操作-->
+    <view class="footer-box" wx:if="{{!show_location || info.status==1}}">
       <view class="shop-cart-btn" catchtap="goHome">
         <image src="/images/icons/home_select.png"></image>
         <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'> 回首页 </view>
@@ -76,6 +64,24 @@
       <view class="now-buy" catchtap="toReturn" wx:if="{{!info.business_type}}">
         <text>归还</text>
       </view>
+    </view>
+
+    <view class="footer-box" wx:if="{{show_location && info.status==2}}">
+      <view class="shop-cart-btn" catchtap="goHome">
+        <image src="/images/icons/home_select.png"></image>
+        <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'> 回首页 </view>
+      </view>
+      <view class="join-shop-cart" catchtap="goThanks">答谢</view>
+      <view class="now-buy" catchtap="gotBack">确认取回</view>
+    </view>
+
+    <view class="footer-box" wx:if="{{show_location && info.status==3}}">
+      <view class="shop-cart-btn" catchtap="goHome">
+        <image src="/images/icons/home_select.png"></image>
+        <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'> 回首页 </view>
+      </view>
+      <view class="join-shop-cart" catchtap="goTips">物品已取回</view>
+      <view class="now-buy" catchtap="goThanks">答谢</view>
     </view>
 
     <!--底部  查看举报推荐-->

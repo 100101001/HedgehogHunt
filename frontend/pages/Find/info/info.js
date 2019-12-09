@@ -50,6 +50,7 @@ Page({
     var goods_id = options.goods_id;
     // var goods_id =5;
     this.getGoodsInfo(goods_id);
+    app.getNewRecommend();
   },
   onShow: function() {
     var regFlag = app.globalData.regFlag;
@@ -260,6 +261,7 @@ Page({
             var infos = that.data.infos;
             infos['show_location'] = resp.data.show_location;
             infos.info.status_desc=resp.data.status_desc;
+            infos.info.status=resp.data.status;
             that.setData({
               infos: infos
             })
@@ -277,6 +279,66 @@ Page({
             });
           },
         })
+        }
+      },
+    })
+  },
+  //已经取回的按钮
+  gotBack: function () {
+    var that = this;
+    var regFlag = app.globalData.regFlag;
+    if (!regFlag) {
+      app.loginTip();
+      return;
+    }
+    var is_auth = that.data.infos.info.is_auth;
+    if (is_auth) {
+      app.alert({
+        'content': "发布者不可操作自己的记录"
+      })
+      return;
+    }
+    wx.showModal({
+      title: '提示',
+      content: '恭喜取回物品，是否确定取回了物品？',
+      success(res) {
+        if (res.confirm) {
+          that.setData({
+            loadingHidden: false
+          });
+          wx.request({
+            url: app.buildUrl("/goods/gotback"),
+            header: app.getRequestHeader(),
+            data: {
+              id: that.data.infos.info.id,
+            },
+            success: function (res) {
+              var resp = res.data;
+              if (resp.code !== 200) {
+                return;
+              }
+
+              var infos = that.data.infos;
+              infos['show_location'] = resp.data.show_location;
+              infos.info.status_desc = resp.data.status_desc;
+              infos.info.status = resp.data.status;
+              that.setData({
+                infos: infos
+              })
+              app.alert({
+                'content': "记得答谢发布者哦~"
+              });
+            },
+            fail: function (res) {
+              app.serverBusy();
+              return;
+            },
+            complete: function (res) {
+              that.setData({
+                loadingHidden: true
+              });
+            },
+          })
         }
       },
     })

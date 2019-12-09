@@ -40,6 +40,7 @@ CREATE TABLE `member` (
   `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
   `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   `mark_id` varchar(1000) NOT NULL DEFAULT '' COMMENT '用户认领的物品id,字符串',
+  `gotback_id` varchar(2000) NOT NULL DEFAULT '' COMMENT '用户最终取回的物品id,字符串',
   `recommend_id` varchar(3000) NOT NULL DEFAULT '' COMMENT '系统推荐的物品id,字符串',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='会员表';
@@ -65,9 +66,9 @@ CREATE TABLE `goods` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int(11) unsigned NOT NULL DEFAULT '0'  COMMENT '拉黑会员的管理员id',
   `member_id` int(11) unsigned NOT NULL DEFAULT '0'  COMMENT '发布消息的会员id',
-  `owner_id` int(11) unsigned NOT NULL DEFAULT '0'  COMMENT '最终取回物品的会员id',
   `qr_code_id` int(11) unsigned NOT NULL DEFAULT '0'  COMMENT '扫描上传信息的二维码id',
   `mobile` varchar(20) NOT NULL DEFAULT '' COMMENT '会员手机号码',
+  `owner_id` varchar(20) NOT NULL DEFAULT '' COMMENT '最终取回物品的会员id,还是换成字符串吧',
   `name` varchar(80) NOT NULL DEFAULT '' COMMENT '商品名称',
   `owner_name` varchar(100) NOT NULL DEFAULT '' COMMENT '物主姓名',
   `location` varchar(100) NOT NULL DEFAULT '' COMMENT '物品放置地址',
