@@ -82,7 +82,6 @@ Page({
     var that = this;
     var count = 60;
     if (this.checkPhone(phoneNum)) {
-      console.log("进来了")
       wx.request({
         method: 'post',
         url: app.buildUrl('/qrcode/sms'),
@@ -90,7 +89,6 @@ Page({
           "phone": phoneNum
         },
         success: function (res) {
-          console.log("进来了success")
           if (res.statusCode === 200) {
             app.alert({
               content: "验证码发送成功，请留意短信"
@@ -157,7 +155,6 @@ Page({
               that.setregistData2();
               that.redirectTo(param);
             }, 2000);
-            that.setregistData2();
           } else if (res.statusCode === 401) {
             wx.showModal({
               title: '提示',

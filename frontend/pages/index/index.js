@@ -52,9 +52,6 @@ Page({
 
     //later will use index page for redirect
     if (options.id) {
-      wx.navigateTo({
-        url: "/pages/Qrcode/index?id=" + options.id
-      })
       wx.request({
         method: 'post',
         url: app.buildUrl("/qrcode/scan"),
