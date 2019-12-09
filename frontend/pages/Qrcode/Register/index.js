@@ -18,7 +18,7 @@ Page({
   },
   onLoad: function (options) {
     // 页面初始化 options为页面跳转所带来的参数
-
+    // 后续修改/member/login、判断如果是新用户，且带有属性source=qrcode，那么调用QrcodeService类的addQrcode2member，且member表内放入qrcodeId
   },
   onReady: function () {
     // 页面渲染完成
@@ -145,16 +145,49 @@ Page({
           code: smsCode
         },
         success: function (res) {
+          console.log("验证码正确")
+          console.log(res)
           if (res.statusCode === 200) {
-            setTimeout(function () {
-              wx.showToast({
-                title: '注册成功',
-                icon: 'success',
-                duration: 1500
-              });
-              that.setregistData2();
-              that.redirectTo(param);
-            }, 2000);
+            //调·小程序登录API获取code
+            wx.login({
+              success: function (res) {
+                console.log("小程序login API调用成功")
+                console.log(res)
+                var userInfo = app.globalData.userInfo == null ? {} : app.globalData.userInfo
+                userInfo['code'] = res.code
+                console.log("userInfo")
+                console.log(userInfo)
+                console.log("userInfo")
+                //发登录请求（注册）
+                wx.request({
+                  method: 'post',
+                  url: app.buildUrl('/member/login', userInfo),
+                  headers: app.getRequestHeader(),
+                  success: function (res) {
+                    console.log("后端login API调用成功")
+                    console.log(res)
+                    //校验码确保成功后调用小程序wx.login获取code，给后端获取openid并进行注册
+                    if (res.data.code === 200) {
+                      setTimeout(function () {
+                        wx.showToast({
+                          title: '注册成功',
+                          icon: 'success',
+                          duration: 1500
+                        });
+                        app.setCache("token", res.data.data.token);
+                        that.setregistData2();
+                        that.redirectTo(param);
+                      }, 2000);
+                    } else {
+                      app.serverInternalError()
+                    }
+                  },
+                  fail: function (res) {
+                    app.serverBusy()
+                  }
+                })
+              }
+            })
           } else if (res.statusCode === 401) {
             wx.showModal({
               title: '提示',
