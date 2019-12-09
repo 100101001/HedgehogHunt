@@ -48,7 +48,7 @@ Page({
     });
     app.checkLogin();
     app.getNewRecommend();
-    this.goToIndex();
+    //this.goToIndex();
 
     //later will use index page for redirect
     if (options.id) {

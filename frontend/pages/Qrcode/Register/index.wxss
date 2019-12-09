@@ -10,7 +10,13 @@
     border-top:1px solid #ddd
 }
 .input-area input{height:100rpx;line-height: 100rpx;}
-#username{border-bottom:1px solid #ddd}
+#phone{border-bottom:1px solid #ddd}
+.input-area image{
+    width: 20px;
+    height: 20px;
+    top: 6px;
+    left: 0;
+}   
 .btn-area{width: 80%;margin: 0 auto}
 .btn-area button{
     /*background-color: #ff9900;*/
