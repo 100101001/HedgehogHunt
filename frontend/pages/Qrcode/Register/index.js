@@ -1,5 +1,6 @@
 // pages/Qrcode/Register/index.js
 var util = require("../../../utils/util.js");
+const app = getApp()
 
 Page({
   data:{
@@ -9,7 +10,7 @@ Page({
     getSmsCodeBtnColor:"#ff9900",
     // getSmsCodeBtnTime:60,
     btnLoading:false,
-    registDisabled:false,
+    registDisabled:true,
     smsCodeDisabled:false,
     inputUserName: '',
     inputPassword: '',
@@ -117,6 +118,23 @@ Page({
     var that = this;
     var count = 60;
     if(this.checkUserName(phoneNum)){
+      wx.request({
+        method:'post',
+        url:app.buildUrl('/qrcode/sms'),
+        data: {
+          "phone": phoneNum
+        },
+        success: function(res){
+           that.alert({
+             content:"验证码发送成功"
+           })
+        },
+        fail:function(res) {
+          that.alert({
+            content:"验证码发送失败"
+          })
+        }
+      })
       var si = setInterval(function(){
       if(count > 0){
         count--;
