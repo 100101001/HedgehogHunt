@@ -221,6 +221,13 @@ Page({
   },
   //归还按钮
   goThanks: function (e) {
+    var is_auth = this.data.infos.info.is_auth;
+    if (is_auth) {
+      app.alert({
+        'content': "发布者不可操作自己的记录"
+      })
+      return;
+    }
     var info = this.data.infos.info;
     var data={
       "auther_id":info.auther_id,

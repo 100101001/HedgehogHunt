@@ -35,6 +35,7 @@
             <text style='color: #f7931e; font-size:20rpx'>#{{item.business_desc}}#</text>
             <view class="goods_owner">{{item.goods_name}}</view>
             <view class="goods_owner">{{item.owner_name}}</view>
+            <view class="goods_owner" wx:if="{{item.status==0}}">NEW</view>
           </view>
           <view class="goods_content">{{item.summary}}</view>
         </view>
@@ -42,3 +43,5 @@
     </block>
   </view>
 </view>
+<view wx:if="{{!loadingMoreHidden}}" class="no-more-goods">没有更多记录了~</view>
+<view wx:if="{{loadingMoreHidden}}" class="no-more-goods">上滑加载更多～</view>

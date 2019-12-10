@@ -3,25 +3,16 @@ var util = require("../../../utils/util.js");
 var app = getApp();
 Page({
   data: {
-
+    owner_name: "",
+    goods_name: "",
+    business_type: "",
+    only_new:false
   },
 
   onLoad: function (options) {
-
     this.setData({
       infos: {
-        list:[{
-          "auther_name": "韦朝旭",
-          "mobile": 18385537403,
-          "avatar": "https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTJLMa7CuCcoXicK6SpMA9E0IHxPgLYibKFbeCkUo3IicyyDr8ssosTEaaptIL2Xjic6LXEC2OmjwmXMmQ/132",
-          "summary": "谢谢你的反馈，我找回了钱包,钱包里面的很多证件对我很重要，真的真的十分感谢", //详情介绍
-          "reward": "酬金：3000",
-          "updated_time": "2019-10-30 12:20:40", //更新时间
-          "id": 1,
-          "business_desc":"拾到",
-          "goods_name":"相机",
-          "owner_name":"韦朝旭",
-        }],
+        list:[],
         saveHidden: true,
         check_status_id: 0,
         check_cat: [
@@ -35,7 +26,8 @@ Page({
           }
           ]
       },
-    })
+    });
+    this.getGoodsList();
   },
   //点击信息卡查看详情
   onDetailTap: function (event) {
@@ -99,14 +91,13 @@ Page({
       loadingHidden: false
     });
     wx.request({
-      url: app.buildUrl("/record/search"),
+      url: app.buildUrl("/thanks/search"),
       header: app.getRequestHeader(),
       data: {
-        status: that.data.check_status_id,
+        op_status: that.data.check_status_id,
         mix_kw: that.data.goods_name,
         owner_name: that.data.owner_name,
         p: that.data.p,
-        op_status: that.data.op_status,
         //仅获取还未处理过的列表
         only_new: that.data.only_new
       },
@@ -233,6 +224,7 @@ Page({
   },
   //选中删除的数据
   deleteSelected: function () {
+    var that = this;
     var list = this.data.infos.list;
     var id_list = [];
     for (var i = 0; i < list.length; i++) {
@@ -241,8 +233,35 @@ Page({
         id_list.push(curItem.id);
       }
     }
-    //获取到有改动的记录的id
-    console.log(id_list);
+    wx.request({
+      url: app.buildUrl("/thanks/delete"),
+      header: app.getRequestHeader(),
+      data: {
+        id_list: id_list
+      },
+      success: function (res) {
+        var resp = res.data;
+        if (resp.code !== 200) {
+          app.alert({
+            'content': resp.msg
+          });
+          return
+        }
+        that.onPullDownRefresh();
+      },
+      fail: function (res) {
+        app.serverBusy();
+        return;
+      },
+      complete: function (res) {
+        that.setData({
+          processing: false,
+          loadingHidden: true
+        });
+      },
+    })
+    // //获取到有改动的记录的id
+    // console.log(id_list);
     // this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), list);
   },
   getCartList: function () {
@@ -271,7 +290,6 @@ Page({
     });
   },
   checkReportClick: function (e) {
-    var list = this.data.infos.list;
     //选择一次分类时返回选中值
     this.setData({
       check_status_id: e.currentTarget.id,
@@ -280,13 +298,12 @@ Page({
       loadingMoreHidden: true,
       processing: false
     });
-    this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), list);
+    this.onPullDownRefresh();
   },
   radioChange: function () {
     //选择一次分类时返回选中值
     var infos = this.data.infos;
     infos.only_new = !this.data.only_new;
-    console.log(infos);
     this.setData({
       infos: infos,
       only_new: infos.only_new,
