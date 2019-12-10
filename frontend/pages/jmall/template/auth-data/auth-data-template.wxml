@@ -1,0 +1,19 @@
+<template name="auth-data-template">
+  <view class="auth">
+    <view class="auther-data">
+      <image class="auther-avatar" src="{{avatar}}"></image>
+      <view class="auther-message">
+        <view class="auther-name">{{auther_name}}</view>
+        <view class="release-date">{{updated_time}}</view>
+        <view class="location">
+          <image class="loc_icon" src="/images/icons/location-red.png"></image>
+          <view class="loc_text">{{location}}</view>
+        </view>
+      </view>
+      <view class="report" catchtap="toReport" data-id="{{id}}">
+        <image src="/images/icons/report.png"></image>
+        <text>举报</text>
+      </view>
+    </view>
+  </view>
+</template>

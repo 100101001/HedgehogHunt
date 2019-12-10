@@ -1,0 +1,12 @@
+<!--pages/jmall/my/controls/feedback/index.wxml-->
+<view class="container">
+    <view class="tips-views">扫描下方微信二维码联系相关客服</view>
+  <view class="pics-item">
+    <view class='title'>商务合作</view>
+    <image class="qr_code" src="{{qr_code_list[0]}}" bindtap="previewImage" data-id="0"></image>
+  </view>
+  <view class="pics-item">
+    <view class='title1'>技术支持</view>
+    <image class="qr_code" src="{{qr_code_list[1]}}" bindtap="previewImage" data-id="1"></image>
+  </view>
+</view>

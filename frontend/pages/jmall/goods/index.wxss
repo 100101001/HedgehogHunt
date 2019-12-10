@@ -1,0 +1,376 @@
+/**index.wxss**/
+@import "../template/auth-data/auth-data-template.wxss";
+@import "../template/share/share-template.wxss";
+.container {
+  background-color: #f2f2f2;
+  min-height: 100%;
+}
+.share-container{
+  position: fixed;
+  left: 0;
+  right: 0;
+  margin-top: 420rpx;
+  z-index: 300;
+}
+.swiper-container {
+  width: 750rpx;
+  position: relative;
+  margin-top: 65rpx;
+}
+
+.swiper_box {
+  width: 100%;
+  height: 300rpx;
+}
+
+swiper-item image {
+  width: 100%;
+  display: inline-block;
+  overflow: hidden;
+  height: 300rpx;
+}
+
+.swiper-container .dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 20rpx;
+  display: flex;
+  justify-content: center;
+}
+
+.swiper-container .dots .dot {
+  margin: 0 8rpx;
+  width: 14rpx;
+  height: 14rpx;
+  background: #fff;
+  border-radius: 50%;
+  transition: all 0.6s;
+  opacity: 0.5;
+}
+
+.swiper-container .dots .dot.active {
+  width: 14rpx;
+  opacity: 1;
+}
+
+.type-navbar {
+  white-space: nowrap;
+  height: 88rpx;
+  width: 100%;
+  background-color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  color: transparent;
+}
+
+.type-box {
+  width: 160rpx;
+  box-sizing: content-box;
+  font-size: 24rpx;
+  line-height: 84rpx;
+  text-align: center;
+  display: inline-block;
+  overflow: hidden;
+}
+
+.type-navbar-item {
+  border-bottom: 4rpx solid #fff;
+}
+
+.type-item-on {
+  border-bottom: 4rpx solid #e64340;
+}
+
+.goods-container {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  box-sizing: content-box;
+  padding: 24rpx;
+  
+}
+
+.goods-box {
+  width: 339rpx;
+  height: 590rpx;
+  background-color: #fff;
+  overflow: hidden;
+  margin-bottom: 24rpx;
+  box-shadow: 12rpx 12rpx 12rpx gainsboro;
+  border-radius: 10rpx;
+}
+
+.goods-box .img-box {
+  width: 339rpx;
+  height: 339rpx;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  justify-items: center;
+  margin-top: -20rpx;
+
+}
+
+.goods-box .img-box image {
+  width: 299rpx;
+  height: 299rpx;
+  border-radius: 10rpx;
+}
+
+.goods-box .goods-title {
+  width: 280rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 24rpx;
+  padding: 24rpx 0 0rpx 0;
+  color: #000;
+  margin-left: 24rpx;
+}
+
+.goods-box .goods-price {
+  width: 280rpx;
+  overflow: hidden;
+  font-size: 24rpx;
+  padding: 24rpx 0;
+  color: #e64340;
+  margin-left: 24rpx;
+}
+
+.no-more-goods {
+  text-align: center;
+  font-size: 24rpx;
+  padding-bottom: 48rpx;
+  color: #999;
+}
+
+.type-container {
+  width: 100%;
+  height: 88rpx;
+  background-color: #fff;
+  overflow: hidden;
+}
+
+.notice {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  height: 80rpx;
+  line-height: 80rpx;
+  width: 750rpx;
+  margin-top: 10rpx;
+  background-color: #fff;
+}
+
+.notice_swiper {
+  padding-top: 15rpx;
+  padding-bottom: 15rpx;
+  height: 50rpx;
+  line-height: 50rpx;
+  width: 635rpx;
+}
+
+.notice_iteml {
+  padding-left: 25rpx;
+  padding-top: 15rpx;
+  padding-bottom: 15rpx;
+  font-size: 26rpx;
+  width: 80rpx;
+  height: 50rpx;
+  line-height: 50rpx;
+  color: #999;
+}
+
+.notice_itemr {
+  padding-left: 10rpx;
+  font-size: 26rpx;
+  overflow: hidden;
+  color: #e64340;
+  width: 635rpx;
+  height: 50rpx;
+  line-height: 50rpx;
+}
+
+.pos-fiexd {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.coupons {
+  margin-top: 10rpx;
+  width: 100%;
+  height: 180rpx;
+  overflow: hidden;
+}
+
+.coupons-scroll {
+  white-space: nowrap;
+  height: 180rpx;
+  width: 100%;
+  background-color: #fff;
+}
+
+.coupons-item {
+  width: 300rpx;
+  height: 180rpx;
+  margin: 10rpx;
+  padding-top: 20rpx;
+  padding-left: 15rpx;
+  background-color: #f1a83b;
+  box-sizing: content-box;
+  font-size: 20rpx;
+  line-height: 35rpx;
+  overflow: hidden;
+  color: #fff;
+  display: inline-block;
+}
+
+.search-view {
+  width: 100%;
+  height: 65rpx;
+  background-color: #e64340;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top:0;
+  z-index:500;
+}
+
+.search-content {
+  background: white;
+  width: 650rpx;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-top: auto;
+  padding-left: 20rpx;
+  padding-bottom: auto;
+  height: 60rpx;
+  border-radius: 20px 20px;
+  margin-left: 30rpx;
+}
+
+.search-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 20rpx;
+}
+
+.search-input {
+  font-size: 28rpx;
+  width: 300rpx;
+}
+
+.search-btn {
+  width: 150rpx;
+  height: 60rpx;
+  display: flex;
+  background-color: #e64340;
+  opacity: 0.8;
+  font-size: 28rpx;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+  justify-items: center;
+  color: #fff;
+  border-radius: 0;
+}
+
+.filter {
+  display: flex;
+  flex-direction: row;
+  width: 150rpx;
+  margin-left: 20rpx;
+  justify-content: center;
+  align-items: center;
+  background-color: #009578;
+  opacity: 0.8;
+  height: 60rpx;
+}
+
+.filter-text {
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
+.filter-icon {
+  margin-left: 10rpx;
+  width: 30rpx;
+  height: 30rpx;
+  margin-top: 5rpx;
+}
+
+.filter-container {
+  position: fixed;
+  z-index:500;
+  left: 435rpx;
+  top: 100rpx;
+  padding: 10rpx;
+  background-color: #009578;
+  font-size: 26rpx;
+  font-weight: 600;
+  border-radius: 10rpx;
+  width: 240rpx;
+}
+
+.radio-group text {
+  flex-direction: row;
+  display: flex;
+  font-size: 24rpx;
+  font-weight: 500rpx;
+  color: #fff;
+  margin-left: 4rpx;
+  opacity: 0.6;
+}
+.radio{
+  margin-top: 6rpx;
+  margin-left: 30rpx;
+}
+
+/* 未选中的样式 */
+
+radio .wx-radio-input {
+  width: 34rpx;
+  height: 34rpx;
+  border-radius: 50%; /* 圆角 *//* border: 2rpx solid red; */
+}
+
+/* 选中后 背景及勾 的样式 */
+
+radio .wx-radio-input.wx-radio-input-checked::before {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%; /* 圆角 */
+  line-height: 40rpx;
+  text-align: center;
+  font-size: 30rpx; /* 勾大小 */
+  color: #009578; /* 白色勾  */
+  background: #fff;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.address-input {
+  margin-top: 10rpx;
+  background-color: #fff;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+  text-align: center;
+}
+.tips-views{
+  font-size: 20rpx;
+  margin-top: 10rpx;
+  justify-content: center;
+  opacity: 0.7;
+  align-content: center;
+  display: flex;
+  text-align: center;
+  color: #fff;
+}

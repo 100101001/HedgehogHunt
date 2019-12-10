@@ -1,0 +1,7 @@
+<template name="share-template">
+  <view class="goods-info-fx">
+    <image src='/images/icons/share.png' mode="aspectFit" />
+    <button open-type="share">分享</button>
+    <text>分享信息</text>
+  </view>
+</template>

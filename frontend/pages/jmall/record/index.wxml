@@ -1,0 +1,83 @@
+
+<loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
+  <!--分类展示-->
+  <view class="type-container" wx:if="{{!check_report}}">
+    <scroll-view class="type-navbar">
+      <view class="type-box" wx:for-items="{{business_cat}}" wx:for-item="cat" wx:key="{{index}}">
+        <view id="{{cat.id}}" class="type-navbar-item {{businessTypeId == cat.id ? 'type-item-on' : ''}}" bindtap="businessTypeClick">
+          {{cat.name}}
+        </view>
+      </view>
+    </scroll-view>
+      <scroll-view class="type-navbar">
+      <view class="type-box" wx:for-items="{{status_cat}}" wx:for-item="cat" wx:key="{{index}}">
+        <view id="{{cat.id}}" class="type-navbar-item {{statusId == cat.id ? 'type-item-on' : ''}}" bindtap="statusTypeClick">
+          {{cat.name}}
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+<!--检查举报的模式-->
+<view class="type-container" wx:if="{{check_report}}">
+    <scroll-view class="type-navbar-check-report">
+      <view class="type-box" wx:for-items="{{check_report_cat}}" wx:for-item="cat" wx:key="{{index}}">
+        <view id="{{cat.id}}" class="type-navbar-item {{reportStatusId == cat.id ? 'type-item-on' : ''}}" bindtap="checkReportClick">
+          {{cat.name}}
+        </view>
+      </view>
+        </scroll-view>
+</view>
+
+  <!--商品页面-->
+<view class="container">
+    <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
+  <block wx:for="{{goods_list}}" wx:key="{{index}}">
+    <view class="goods-info" bindtap='toDetail' data-id="{{item.id}}">
+      <image class="img" src="{{item.main_image}}" mode="aspectFill"></image>
+      <view class="text-container">
+        <view class="goods-title">
+          <text wx:if="{{item.business_type}}" style="color: #e64340;font-size: 26rpx;">#出闲置#</text>
+          <text wx:if="{{!item.business_type}}" style="color: #009587;font-size: 26rpx;">#求购#</text>
+          <text class="goods-name">{{item.goods_name}}</text>
+        </view>
+        <view class="prcie-and-status">
+          <view class="goods-price">¥ {{item.target_price}}</view>
+          <view class="down-status" wx:if="{{!item.status}}">
+            <text style="color: #fff;">#已下架#</text>
+          </view>
+
+          <view class="up-status" wx:if="{{item.status}}">
+            <text style="color: #fff;">#已上架#</text>
+          </view>
+        </view>
+        <view class="time-container" wx:if="{{!check_report}}">发布时间:{{item.created_time}}</view>
+        <view class="time-container" wx:if="{{!check_report}}">更新时间:{{item.updated_time}}</view>
+        <view class="time-container" wx:if="{{check_report}}">举报时间:{{item.created_time}}</view>
+        <view class="time-container" wx:if="{{check_report}}">处理时间:{{item.updated_time}}</view>
+      </view>
+      <view class="edit-container" wx:if="{{!check_report}}">
+        <view class="edit-btn" catchtap='editRecord' data-id='{{item.id}}'>
+          <image class="edit-image" src="/images/icons/edit-red.png" mode="aspectFit"></image>
+        </view>
+        <view class="up-and-down1" wx:if="{{!item.status}}" catchtap='changeRecordStatus' data-index="{{index}}" data-id="{{item.id}}">
+          <image class="up-down-icon" src="/images/icons/up-red.png" mode="aspectFit"></image>
+          <text class="up-down-text" style="color: #e64340;">上架</text>
+        </view>
+        <view class="up-and-down2" wx:if="{{item.status}}" catchtap="changeRecordStatus" data-index="{{index}}" data-id="{{item.id}}">
+          <image class="up-down-icon" src="/images/icons/down-green.png" mode="aspectFit"></image>
+          <text class="up-down-text" style="color: #009587;">下架</text>
+        </view>
+      </view>
+      <view class="kill-container"  wx:if="{{check_report && (item.status==4 || item.status==5)}}" bindtap='toDetail'>
+        <view class="kill-text" >{{item.status_desc}}</view>
+      </view>
+      <view class="no-deal-container"  wx:if="{{check_report && (item.status==3 || item.status==1)}}" bindtap='toDetail'>
+        <view class="kill-text" >{{item.status_desc}}</view>
+      </view>
+    </view>
+      <view class="hrz"></view>
+  </block>
+  <view class="logout-check-report" wx:if="{{check_report}}" bindtap="logoutCheckReport">退出处理举报模式</view>
+  <view class="tips-views" wx:if="{{!loadingMoreHidden}}">没有更多记录了~</view>
+  <view class="tips-views" wx:if="{{loadingMoreHidden}}">上滑加载更多～</view>
+</view>

@@ -1,0 +1,14 @@
+<template name="upload-pics-template">
+  <view class="pics-list">
+    <view wx:for="{{upload_pics_list}}" class="pics-item" wx:key="{{index}}">
+      <image wx:if="{{item.upload_percent < 100}}" src="{{item.path}}" mode="aspectFill"></image>
+      <image wx:if="{{item.upload_percent == 100}}" src="{{item.path_server}}" mode="aspectFill"></image>
+      <view class="upload-progress" wx:if="{{item.upload_percent < 100}}" data-index="{{index}}" bindtap="previewImg">{{item.upload_percent}}%</view>
+      <text class='del' bindtap='deleteImg' data-src='{{image}}' style='display:{{isDel}}' data-index="{{index}}">×</text>
+    </view>
+    <view class="add-view">
+     <image wx:if="{{pic_status}}" class="add-pic-icon" bindtap='upLoadPics' src="/images/icons/add-pics.png"></image>
+    </view>
+  </view>
+  <button bindtap='uploadimage' class='yes-upload'>确定上传</button>
+</template>
