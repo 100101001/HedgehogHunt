@@ -52,10 +52,13 @@ def getQrcodeFromWx():
         if maxCodeId is None:
             maxCodeId = 0
         maxCodeId += 1
+        # only when little program is released can we use the unlimited api
+        # [2019-12-10 16:06:50,066] ERROR in QrCode: failed to get qr code. Errcode: 41030, Errmsg:invalid page hint: [6qqTta0210c393]
         # wxResp = requests.post(
-        #     "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}&scene=1&page=%2fpages%2findx%2findex".format(token['token']),
-        #     json={"scene": 'id=' + str(maxCodeId), "width": 280, "path": "pages/Mine/Mine"})
+        #     "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}".format(token['token']),
+        #     json={"scene": str(maxCodeId), "width": 280, "page": "pages/index/index"})
 
+        # now use 100 thousand limited api for test
         wxResp = requests.post(
             "https://api.weixin.qq.com/wxa/getwxacode?access_token={}".format(
                 token['token']),
