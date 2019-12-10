@@ -1,8 +1,0 @@
-<!--pages/jmall/my/controls/index.wxml-->
-    <view class="hrz"></view>
-    <view class="item-container" bindtap="toAddAdm" wx:if="{{is_adm}}">
-      <view class="label">添加管理员</view>
-      <image src="/images/icons/next.png" mode="aspectFit"></image>
-    </view>
-<import src="../../template/items/item-template.wxml" />
-<template is="item-template" data="{{items}}"/>

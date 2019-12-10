@@ -1,5 +1,0 @@
-<!--pages/jmall/release-index/release-index.wxml-->
-<view class="container">
-  <image class="sell" src="/images/icons/sell.png" bindtap="goSell"></image>
-  <image class="buy" src="/images/icons/buy.png"  bindtap="goBuy"></image>
-</view>
