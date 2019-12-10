@@ -16,6 +16,7 @@ Page({
       goods_id: 8,
       goods_name: "相机",
       updated_time: "2019-12-10 09:34:49",
+      owner_name:"韦朝旭"
     };
     this.setData({
       data: data
@@ -41,6 +42,7 @@ Page({
     var data = this.data.data;
     data['price'] = 0;
     data['thanks_text'] = thanks_text;
+    console.log(data);
     var that=this;
     wx.request({
       url: app.buildUrl("/thanks/create"),

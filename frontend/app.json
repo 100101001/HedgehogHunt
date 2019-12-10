@@ -1,7 +1,8 @@
 {
   "pages": [
-    "pages/index/index",
+    "pages/Thanks/record/record",
     "pages/Thanks/index",
+    "pages/index/index",
     "pages/Find/info/info",
     "pages/Mine/Mine",
     "pages/Record/index",
@@ -9,7 +10,6 @@
     "pages/Release/release/index",
     "pages/Report/info/info",
     "pages/Release/Release",
-    "pages/Thanks/record/record",
     "pages/Report/index",
     "pages/login/index",
     "pages/Mine/connect/index",

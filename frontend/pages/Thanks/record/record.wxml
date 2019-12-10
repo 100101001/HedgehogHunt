@@ -31,6 +31,11 @@
               <text>举报</text>
             </view>
           </view>
+          <view class="goods_name_owner">
+            <text style='color: #f7931e; font-size:20rpx'>#{{business_dese}}#</text>
+            <view class="goods_owner">{{goods_name}}</view>
+            <view class="goods_owner">{{owner_name}}</view>
+          </view>
           <view class="goods_content">{{item.summary}}</view>
         </view>
       </view>

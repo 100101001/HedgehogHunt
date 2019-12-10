@@ -210,3 +210,24 @@ radio .wx-radio-input.wx-radio-input-checked::before {
     color: #f7931e;
     height: 100%;
 }
+
+
+.goods_name_owner {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  font-size: 22rpx;
+}
+
+.goods_owner {
+  display: flex;
+  padding: 3rpx 10rpx 3rpx 10rpx;
+  margin-left: 10rpx;
+  border-radius: 40rpx;
+  align-items: center;
+  text-align: center;
+  color: #fff;
+  justify-content: center;
+  background-color: #f7931e;
+}

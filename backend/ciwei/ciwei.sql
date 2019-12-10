@@ -2,7 +2,7 @@ DROP DATABASE IF EXISTS `ciwei_db`;
 CREATE DATABASE `ciwei_db` DEFAULT CHARACTER SET = `utf8mb4`;
 USE `ciwei_db`;
 #flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables member  --outfile "common/models/jmall/Member.py"  --flask
-#flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables qr_code  --outfile "common/models/QrCode.py" --flask
+#flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables thanks  --outfile "common/models/Thanks.py" --flask
 DROP TABLE IF EXISTS `user`;
 
 CREATE TABLE `user` (
@@ -125,6 +125,9 @@ CREATE TABLE `thanks` (
   `target_member_id` int(11) unsigned NOT NULL  COMMENT '接受消息的会员id',
   `goods_id` int(11) NOT NULL COMMENT '物品id',
   `summary` varchar(200) NOT NULL DEFAULT '' COMMENT '描述',
+  `goods_name` varchar(30) NOT NULL DEFAULT '' COMMENT '物品名称',
+  `business_desc` varchar(10) NOT NULL DEFAULT '' COMMENT '拾到或者丢失',
+  `owner_name` varchar(80) NOT NULL DEFAULT '' COMMENT '用户的名称，可能只是微信昵称',
   `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态 1：已读 0：未读',
   `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后插入时间',
