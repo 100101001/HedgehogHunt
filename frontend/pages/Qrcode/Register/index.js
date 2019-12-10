@@ -219,9 +219,9 @@ Page({
   redirectTo: function (param) {
     //需要将param转换为字符串
     // param = JSON.stringify(param)
-    // wx.redirectTo({
-    //   url: '../main/index?param=' + param//参数只能是字符串形式，不能为json对象
-    // })
+    wx.redirectTo({
+      url: '/pages/index/index'//参数只能是字符串形式，不能为json对象
+    })
   }
 
 })
