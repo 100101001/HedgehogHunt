@@ -4,7 +4,7 @@
   <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
   <form bindsubmit="formSubmit">
     <view class="search_container">
-      <block wx:for="{{items}}" wx:key="{{index}}">
+      <block wx:for="{{items}}" wx:key="index">
         <view class="search_box">
           <icon type="search" class='{{iem.icons}}' wx:if="{{item.icons}}" size='15' style="margin-left:5rpx;" color="#f7931e"></icon>
           <input name="{{item.name}}" class='search_text_box' type="text" placeholder="{{item.placeholder}}" placeholder-style='color:#f7931e;' bindinput="{{item.act}}"></input>
@@ -16,14 +16,14 @@
   <!--轮播图-->
   <view class="swiper-container">
     <swiper class="swiper_box" autoplay="true" interval="3000" duration="1000" indicator-dots="true"  circular="true">
-      <block wx:for="{{banners}}" wx:key="{{index}}">
+      <block wx:for="{{banners}}" wx:key="index">
         <swiper-item>
           <image bindtap="previewImage" data-index="{{index}}" src="{{item}}" class="slide-image" width="750rpx" height="562.5rpx" mode="aspectFill" />
         </swiper-item>
       </block>
     </swiper>
     <view class="dots">
-      <block wx:for="{{banners}}" wx:key="unique" wx:key="{{index}}">
+      <block wx:for="{{banners}}" wx:key="unique" wx:key="index">
         <view class="dot{{index == swiperCurrent ? ' active' : ''}}"></view>
       </block>
     </view>
@@ -31,7 +31,7 @@
   <!--分类展示-->
   <view class="type-container">
     <scroll-view class="type-navbar" scroll-x="true">
-      <view class="type-box" wx:for="{{categories}}" wx:for-item="cat" wx:key="{{index}}">
+      <view class="type-box" wx:for="{{categories}}" wx:for-item="cat" wx:key="index">
         <view id="{{cat.id}}" class="type-navbar-item {{activeCategoryId == cat.id ? 'type-item-on' : ''}}" bindtap="catClick">
           {{cat.name}}
         </view>

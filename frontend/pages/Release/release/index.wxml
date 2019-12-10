@@ -3,7 +3,7 @@
   <loading hidden="{{loadingHidden}}" wx:if="{{ !upload_qrcode }}">上传第{{i}}张图片..</loading>
   <form class="goods-box" bindsubmit="formSubmit">
     <view class="price-and-location">
-      <block wx:for="{{items}}" wx:key="{{index}}">
+      <block wx:for="{{items}}" wx:key="index">
         <view class="hrz"></view>
         <view class="item-container">
           <image src="{{item.icons}}" mode="aspectFit"></image>
@@ -29,7 +29,7 @@
     <view class="tips-views" wx:if="{{ business_type==0 }}">默认图，选你要找的商品类似图后可以删除</view>
     <!--上传图片的模板-->
     <view class="pics-list">
-      <view wx:for="{{imglist}}" class="pics-item" wx:key="{{index}}">
+      <view wx:for="{{imglist}}" class="pics-item" wx:key="index">
         <image src="{{item}}" mode="aspectFill" bindtap="previewImage" data-index="{{index}}"></image>
         <view class='del' bindtap="deleteImg" style='display:{{isDel}}' data-index="{{index}}">×</view>
       </view>

@@ -4,7 +4,7 @@
   <!--商品轮播图-->
   <view class="swiper-container">
     <swiper class="swiper_box" autoplay="{{autoplay}}" interval="{{interval}}" duration="{{duration}}" bindchange="swiperchange" circular="true">
-      <block wx:for="{{info.pics}}" wx:key="{{index}}">
+      <block wx:for="{{info.pics}}" wx:key="index">
         <swiper-item>
           <image src="{{item}}" bindtap="previewItemImage" data-index="{{index}}" class="slide-image" width="355" height="150" mode="aspectFit" lazy-load="true" />
         </swiper-item>

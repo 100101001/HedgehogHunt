@@ -16,14 +16,14 @@
   <!--轮播图-->
   <view class="swiper-container">
     <swiper class="swiper_box" autoplay="true" interval="3000" duration="1000" bindchange="swiperchange" circular="true">
-      <block wx:for="{{banners}}" wx:key="{{index}}">
+      <block wx:for="{{banners}}" wx:key="index">
         <swiper-item>
           <image bindtap="previewImage" data-index="{{index}}" src="{{item}}" class="slide-image" width="750rpx" height="562.5rpx" mode="aspectFill" />
         </swiper-item>
       </block>
     </swiper>
     <view class="dots">
-      <block wx:for="{{banners}}" wx:key="unique" wx:key="{{index}}">
+      <block wx:for="{{banners}}" wx:key="unique" wx:key="index">
         <view class="dot{{index == swiperCurrent ? ' active' : ''}}"></view>
       </block>
     </view>
