@@ -218,6 +218,8 @@ radio .wx-radio-input.wx-radio-input-checked::before {
   flex-direction: row;
   justify-content: space-between;
   font-size: 22rpx;
+  width:530rpx;
+  margin-left: 20rpx;
 }
 
 .goods_owner {

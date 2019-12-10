@@ -18,7 +18,9 @@ Page({
           "reward": "酬金：3000",
           "updated_time": "2019-10-30 12:20:40", //更新时间
           "id": 1,
-          "business_dese":"拾到"
+          "business_desc":"拾到",
+          "goods_name":"相机",
+          "owner_name":"韦朝旭",
         }],
         saveHidden: true,
         check_status_id: 0,
