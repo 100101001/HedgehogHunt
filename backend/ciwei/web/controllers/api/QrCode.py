@@ -8,6 +8,8 @@ from twilio.rest import Client
 
 from application import app, db, cache
 from common.libs import QrCodeService
+from common.libs.MemberService import MemberService
+from common.models.ciwei.Member import Member
 from common.models.ciwei.QrCode import QrCode
 from web.controllers.api import route_api
 
@@ -105,22 +107,6 @@ def scanQrcode():
         return Response(response={'data': True}, status=200)
 
 
-@route_api.route("/qrcode/reg", methods=['GET', 'POST'])
-def regQrcode():
-    """
-    add member recorder
-    fill in  member_id to a qr code record with specific id
-    :return:
-        200 when new member is generated and linked to qr code
-        500 when error occurs
-    """
-    params = request.get_json()
-    codeId = params['codeId']
-    memberId = params['memberId']
-    app.logger.info("code: %s is registered successfully by member: %s ", codeId, memberId)
-    pass
-
-
 @route_api.route("/qrcode/sms", methods=['GET', 'POST'])
 def getSmsCode():
     """
@@ -178,6 +164,79 @@ def checkSmsCode():
     else:
         app.logger.info("member with phone %s give a wrong sms code", phone)
         return Response(status=401)
+
+
+@route_api.route("/qrcode/reg", methods=['GET', 'POST'])
+def qrcodeReg():
+    """
+    copy code from /member/login
+    add function to put member id to qrcode
+
+    :return:
+    when status is 200,  response body is
+        data:{
+            token: "openid#memberid",
+        }
+    statusCode:
+        200 qrcode id <-> member id bind successfully
+        1401 qr code id not exists
+        1402 front end give no code
+        1501 wechat error
+        1403 qrcode cannot belong to user who call this function
+    """
+    req = request.get_json()
+
+    qrcodeId = req['qrcode']
+    qrcode = QrCodeService.getQrcodeById(qrcodeId)
+    if qrcode is None:
+        app.logger.error("qr code: %s not exists", qrcodeId)
+        return Response(status=1401)
+
+    code = req['code'] if 'code' in req else ''
+    if not code or len(code) < 1:
+        app.logger.error("need code to get open id")
+        return Response(status=1402)
+
+    # get openid from wechat
+    openid = MemberService.getWeChatOpenId(code)
+    if openid is None:
+        app.logger.error("call wechat service error")
+        return Response(status=1501)
+
+    # new a member info or just retrieve member info by openid
+    '''
+    判断是否已经注册过，注册了直接set qr_code_id and #qrcode
+    '''
+    member_info = Member.query.filter_by(openid=openid, status=1).first()
+    if not member_info and qrcode.member_id is None:
+        model_member = Member()
+        nickname = req['nickName'] if 'nickName' in req else ''
+        sex = req['gender'] if 'gender' in req else 0
+        avatar = req['avatarUrl'] if 'avatarUrl' in req else ''
+        model_member.nickname = nickname
+        model_member.sex = sex
+        model_member.avatar = avatar
+        model_member.openid = openid
+        model_member.qr_code_id = qrcodeId
+        # model_member.qr_code = qrcode.qr_code
+        db.session.add(model_member)
+        db.session.commit()
+        member_info = model_member
+    elif member_info is not None and qrcode.member_id is None:
+        member_info.qr_code_id = qrcodeId
+        # model_member.qr_code = qrcode.qr_code
+        db.session.commit()
+    else:
+        return Response(status=1403)
+
+    app.logger.info("successfully add qrcode %s to member %s", qrcodeId, member_info.id)
+    token = "%s#%s" % (openid, member_info.id)
+    resp = {'token': token}
+
+    # add member info to qrcode
+    QrCodeService.addMemberIdToQrcode(qrcodeId, member_info.id)
+    app.logger.info("successfully add member %s to qrcode %s", member_info.id, qrcodeId)
+    return Response(response=resp, status=200)
 
 
 @route_api.route("/qrcode/publish", methods=['GET', 'POST'])
