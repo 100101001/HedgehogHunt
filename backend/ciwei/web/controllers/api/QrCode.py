@@ -3,7 +3,7 @@ import threading
 import time
 
 import requests
-from flask import request, Response, g
+from flask import request, Response, g, jsonify, make_response
 from twilio.rest import Client
 
 from application import app, db, cache
@@ -62,7 +62,7 @@ def getQrcodeFromWx():
         wxResp = requests.post(
             "https://api.weixin.qq.com/wxa/getwxacode?access_token={}".format(
                 token['token']),
-            json={ "width": 280, "path": "pages/index/index?id=1"})
+            json={"width": 280, "path": "pages/index/index?id=" + str(maxCodeId)})
 
         # / pages / index / index
         if len(wxResp.content) < 80:
@@ -106,16 +106,17 @@ def scanQrcode():
     params = request.get_json()
     codeId = params['id']
     # check whether user is a member
+    resp = {'isRegistered': True}
     qrcode = QrCode.query.filter_by(id=int(codeId)).first()
     if qrcode is None:
         app.logger.error("failed to get qr code")
         return Response(status=500)
     if qrcode.member_id is None:
         app.logger.info("go to register qr code: %s", codeId)
-        return Response(response={'data': False}, status=200)
+        return make_response(status=200)
     else:
         app.logger.info("go to publish qr code: %s", codeId)
-        return Response(response={'data': True}, status=200)
+        return Response(status=201)
 
 
 @route_api.route("/qrcode/sms", methods=['GET', 'POST'])
