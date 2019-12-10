@@ -77,9 +77,9 @@ Page({
     }
 
 
-    while (app.globalData.userInfo == null) {
-      //app 还没获取到userInfo，空等待  
-    }
+    // while (app.globalData.userInfo == null) {
+    //   //app 还没获取到userInfo，空等待  
+    // }
     this.setData({
       userInfo: app.globalData.userInfo
     });
