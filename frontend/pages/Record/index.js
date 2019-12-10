@@ -190,7 +190,6 @@ Page({
       },
     })
   },
-
   selectTap: function (e) {
     var index = e.currentTarget.dataset.index;
     var list = this.data.infos.list;
@@ -335,7 +334,6 @@ Page({
     //选择一次分类时返回选中值
     var infos = this.data.infos;
     infos.only_new = !this.data.only_new;
-    console.log(infos);
     this.setData({
       infos: infos,
       only_new: infos.only_new,
