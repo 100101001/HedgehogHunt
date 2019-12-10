@@ -49,14 +49,17 @@ Page({
     app.checkLogin();
     app.getNewRecommend();
     //this.goToIndex();
-
+    console.log(options)
     //later will use index page for redirect
-    if (options.id) {
+    if (options.scene) {
+      var param = decodeURIComponent(options.scene)
+      console.log(options.scene)
+      console.log(param)
       wx.request({
         method: 'post',
         url: app.buildUrl("/qrcode/scan"),
         data: {
-          id: options.id
+          id: param.id
         },
         success: function (res) {
           if (res.data == true) {
@@ -65,7 +68,7 @@ Page({
             })
           } else {
             wx.navigateTo({
-              url: "/pages/Qrcode/Register/index"
+              url: "/pages/Qrcode/Register/index?qrcodeId=" + param.id
             })
           }
         },
@@ -77,11 +80,6 @@ Page({
       //comment code for debug scan qrcode
       //this.goToIndex();
     }
-
-    //only for debug scan qr code
-    wx.navigateTo({
-      url: "/pages/Qrcode/index?id=" + 1
-    })
 
     //this.goToIndex();
     // var goods_id = options.goods_id;
