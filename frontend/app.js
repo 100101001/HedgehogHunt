@@ -1,6 +1,7 @@
 //app.js
 App({
   globalData: {
+    debug: true,
     adv_info: {},
     info: {},
     is_adm: false,

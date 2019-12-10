@@ -49,26 +49,27 @@ Page({
     app.checkLogin();
     app.getNewRecommend();
     //this.goToIndex();
-    console.log(options)
-    //later will use index page for redirect
-    if (options.scene) {
-      var param = decodeURIComponent(options.scene)
-      console.log(options.scene)
-      console.log(param)
+
+    // can be used by both of us, 
+    // qrcodeId==null indicates not qrcode
+    var qrcodeId = this.getQrcodeId(options)
+    if (qrcodeId == null) {
+      this.goToIndex();
+    } else {
       wx.request({
         method: 'post',
         url: app.buildUrl("/qrcode/scan"),
         data: {
-          id: param.id
+          id: qrcodeId
         },
         success: function (res) {
           if (res.data == true) {
             wx.navigateTo({
-              url: "/pages/Release/release/index"
+              url: "/pages/Release/release/index?qrcodeId=" + qrcodeId
             })
           } else {
             wx.navigateTo({
-              url: "/pages/Qrcode/Register/index?qrcodeId=" + param.id
+              url: "/pages/Qrcode/Register/index?qrcodeId=" + qrcodeId
             })
           }
         },
@@ -76,18 +77,24 @@ Page({
           app.serverBusy()
         }
       })
-    } else {
-      //comment code for debug scan qrcode
-      //this.goToIndex();
     }
 
-    //this.goToIndex();
     // var goods_id = options.goods_id;
     // if (goods_id) {
     //   this.setData({
     //     goods_id: goods_id,
     //   })
     // }
+  },
+  getQrcodeId: function (options) {
+    if (app.globalData.debug) {
+      return options.id
+    } else {
+      if (options.scene) {
+        return decodeURIComponent(options.scene)
+      }
+      return null
+    }
   },
   onShow: function () {
 
