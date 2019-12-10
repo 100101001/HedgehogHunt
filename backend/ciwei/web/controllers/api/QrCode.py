@@ -49,11 +49,19 @@ def getQrcodeFromWx():
                 g.token = token
 
         maxCodeId = db.session.query(db.func.max(QrCode.id)).scalar()
+        if maxCodeId is None:
+            maxCodeId = 0
         maxCodeId += 1
-        wxResp = requests.post(
-            "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}".format(token['token']),
-            json={'scene': 'a=1', 'width': 280, 'path': '/pages/index/index?id=' + maxCodeId})
+        # wxResp = requests.post(
+        #     "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}&scene=1&page=%2fpages%2findx%2findex".format(token['token']),
+        #     json={"scene": 'id=' + str(maxCodeId), "width": 280, "path": "pages/Mine/Mine"})
 
+        wxResp = requests.post(
+            "https://api.weixin.qq.com/wxa/getwxacode?access_token={}".format(
+                token['token']),
+            json={ "width": 280, "path": "pages/index/index?id=1"})
+
+        # / pages / index / index
         if len(wxResp.content) < 80:
             data = wxResp.json()
             app.logger.error("failed to get qr code. Errcode: %s, Errmsg:%s", data['errcode'], data['errmsg'])
@@ -182,7 +190,7 @@ def qrcodeReg():
         1401 qr code id not exists
         1402 front end give no code
         1501 wechat error
-        1403 qrcode cannot belong to user who call this function
+        1403 qrcode cannot belong to user who call this function(system give a wrong)
     """
     req = request.get_json()
 
@@ -226,7 +234,7 @@ def qrcodeReg():
         member_info.qr_code_id = qrcodeId
         # model_member.qr_code = qrcode.qr_code
         db.session.commit()
-    else:
+    elif member_info is not None and qrcode.member_id != member_info.id:
         return Response(status=1403)
 
     app.logger.info("successfully add qrcode %s to member %s", qrcodeId, member_info.id)

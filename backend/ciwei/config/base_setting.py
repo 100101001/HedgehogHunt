@@ -23,16 +23,16 @@ STATUS_MAPPING = {
 
 OPENCS_APP = {
     # OPENCS小程序APPID
-    # 'appid':'wx5200a1c1ec8db155',
-    # 'appkey':'edc155dc275e436903943e7d5090080e',
+    'appid':'wx5200a1c1ec8db155',
+    'appkey':'edc155dc275e436903943e7d5090080e',
 
     #Uni-济旦财APPID
     #'appid': 'wx3dcef10870796776',
     #'appkey': 'b0624f70f278c11ceb560874dd5948c7',
 
     # 济人济市APPID
-    'appid': 'wx3a7bac4ab0184c76',
-    'appkey': 'bd8a906e46adc59dd0e7e3110e90c46c'
+    # 'appid': 'wx3a7bac4ab0184c76',
+    # 'appkey': 'bd8a906e46adc59dd0e7e3110e90c46c'
 }
 
 TWILIO_SERVICE = {
