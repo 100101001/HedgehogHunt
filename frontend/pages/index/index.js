@@ -56,6 +56,7 @@ Page({
     if (qrcodeId == null) {
       this.goToIndex();
     } else {
+      console.log(qrcodeId)
       wx.request({
         method: 'post',
         url: app.buildUrl("/qrcode/scan"),
@@ -63,11 +64,14 @@ Page({
           id: qrcodeId
         },
         success: function (res) {
-          if (res.data == true) {
+          console.log("看看结果")
+          console.log(res)
+          console.log(res.data)
+          if (res.statusCode === 201) {
             wx.navigateTo({
               url: "/pages/Release/release/index?qrcodeId=" + qrcodeId
             })
-          } else {
+          } else if(res.statusCode === 200) {
             wx.navigateTo({
               url: "/pages/Qrcode/Register/index?qrcodeId=" + qrcodeId
             })
