@@ -17,7 +17,7 @@
     <text class="summary">{{info.summary}}</text>
   </view>
   <view class="pics-list">
-    <view wx:for="{{info.pics}}" class="pics-item" wx:key="{{index}}">
+    <view wx:for="{{info.pics}}" class="pics-item" wx:key="index">
       <image src="{{item}}" mode="aspectFill" bindtap="previewImage"></image>
     </view>
   </view>

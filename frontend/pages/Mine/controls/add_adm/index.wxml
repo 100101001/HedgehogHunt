@@ -3,7 +3,7 @@
   <view class="label">姓名</view>
   <view class="num">等级</view>
 </view>
-<block wx:for="{{user_list}}" wx:key="{{index}}" wx:if="{{show_user}}">
+<block wx:for="{{user_list}}" wx:key="index" wx:if="{{show_user}}">
   <view class="hrz"></view>
   <view class="item-container">
       <view class="label">{{item.name}}</view>

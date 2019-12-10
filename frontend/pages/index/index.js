@@ -106,15 +106,58 @@ Page({
     });
     app.checkLogin();
     app.getNewRecommend();
-    var goods_id = options.goods_id;
-    if (goods_id) {
-      this.setData({
-        goods_id: goods_id,
+    //this.goToIndex();
+
+    // can be used by both of us, 
+    // qrcodeId==null indicates not qrcode
+    var qrcodeId = this.getQrcodeId(options)
+    if (qrcodeId == null) {
+      this.goToIndex();
+    } else {
+      console.log(qrcodeId)
+      wx.request({
+        method: 'post',
+        url: app.buildUrl("/qrcode/scan"),
+        data: {
+          id: qrcodeId
+        },
+        success: function (res) {
+          console.log("看看结果")
+          console.log(res)
+          console.log(res.data)
+          if (res.statusCode === 201) {
+            wx.navigateTo({
+              url: "/pages/Release/release/index?qrcodeId=" + qrcodeId
+            })
+          } else if(res.statusCode === 200) {
+            wx.navigateTo({
+              url: "/pages/Qrcode/Register/index?qrcodeId=" + qrcodeId
+            })
+          }
+        },
+        fail: function (res) {
+          app.serverBusy()
+        }
       })
     }
-    this.goToIndex();
+
+    // var goods_id = options.goods_id;
+    // if (goods_id) {
+    //   this.setData({
+    //     goods_id: goods_id,
+    //   })
+    // }
   },
-  //****************************************************
+  getQrcodeId: function (options) {
+    if (app.globalData.debug) {
+      return options.id
+    } else {
+      if (options.scene) {
+        return decodeURIComponent(options.scene)
+      }
+      return null
+    }
+  },
   onShow: function () {
 
   },

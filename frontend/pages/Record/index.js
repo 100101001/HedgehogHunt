@@ -215,7 +215,6 @@ Page({
       },
     })
   },
-
   selectTap: function (e) {
     var index = e.currentTarget.dataset.index;
     var list = this.data.infos.list;

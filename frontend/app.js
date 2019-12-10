@@ -1,6 +1,7 @@
 //app.js
 App({
   globalData: {
+    debug: true,
     adv_info: {},
     info: {},
     is_adm: false,
@@ -19,18 +20,19 @@ App({
     member_status: 1,
     is_adm: true,
   },
-  onLaunch: function() {
+  onLaunch: function () {
     // 展示本地存储能力
     var logs = wx.getStorageSync('logs') || []
     logs.unshift(Date.now())
     wx.setStorageSync('logs', logs)
     // 登录
-    wx.login({
-      success: res => {
-        // 发送 res.code 到后台换取 openId, sessionKey, unionId
-      }
-    })
+    // wx.login({
+    //   success: res => {
+    //     // 发送 res.code 到后台换取 openId, sessionKey, unionId
+    //   }
+    // })
     // 获取用户信息
+    var that = this
     wx.getSetting({
       success: res => {
         if (res.authSetting['scope.userInfo']) {
@@ -38,11 +40,12 @@ App({
           wx.getUserInfo({
             success: res => {
               // 可以将 res 发送给后台解码出 unionId
-              this.globalData.userInfo = res.userInfo
+              that.globalData.userInfo = res.userInfo
+              console.log("获取到了用户信息")
               // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
               // 所以此处加入 callback 以防止这种情况
-              if (this.userInfoReadyCallback) {
-                this.userInfoReadyCallback(res)
+              if (that.userInfoReadyCallback) {
+                that.userInfoReadyCallback(res)
               }
             }
           })
@@ -50,7 +53,7 @@ App({
       }
     })
   },
-  loginTip: function() {
+  loginTip: function () {
     wx.showModal({
       title: '提示',
       content: '该功能需要授权登录！请授权登录',
@@ -59,62 +62,62 @@ App({
           wx.navigateTo({
             url: '/pages/login/index',
           })
-        } else if (res.cancel) {}
+        } else if (res.cancel) { }
       }
     })
   },
-  tip: function(params) {
+  tip: function (params) {
     var that = this;
     var title = params.hasOwnProperty('title') ? params['title'] : '提示信息';
     var content = params.hasOwnProperty('content') ? params['content'] : '';
     wx.showModal({
       title: title,
       content: content,
-      success: function(res) {
+      success: function (res) {
 
         if (res.confirm) { //点击确定
-          if (params.hasOwnProperty('cb_confirm') && typeof(params.cb_confirm) == "function") {
+          if (params.hasOwnProperty('cb_confirm') && typeof (params.cb_confirm) == "function") {
             params.cb_confirm();
           }
         } else { //点击否
-          if (params.hasOwnProperty('cb_cancel') && typeof(params.cb_cancel) == "function") {
+          if (params.hasOwnProperty('cb_cancel') && typeof (params.cb_cancel) == "function") {
             params.cb_cancel();
           }
         }
       }
     })
   },
-  alert: function(params) {
+  alert: function (params) {
     var title = params.hasOwnProperty('title') ? params['title'] : '提示信息';
     var content = params.hasOwnProperty('content') ? params['content'] : '';
     wx.showModal({
       title: title,
       content: content,
       showCancel: false,
-      success: function(res) {
+      success: function (res) {
         if (res.confirm) { //用户点击确定
-          if (params.hasOwnProperty('cb_confirm') && typeof(params.cb_confirm) == "function") {
+          if (params.hasOwnProperty('cb_confirm') && typeof (params.cb_confirm) == "function") {
             params.cb_confirm();
           }
         } else {
-          if (params.hasOwnProperty('cb_cancel') && typeof(params.cb_cancel) == "function") {
+          if (params.hasOwnProperty('cb_cancel') && typeof (params.cb_cancel) == "function") {
             params.cb_cancel();
           }
         }
       }
     })
   },
-  console: function(msg) {
+  console: function (msg) {
     console.log(msg);
   },
-  getRequestHeader: function() {
+  getRequestHeader: function () {
     return {
       'content-type': 'application/x-www-form-urlencoded',
       'Authorization': this.getCache("token")
     }
   },
   //切字符
-  cutStr: function(items) {
+  cutStr: function (items) {
     //截取前14个字当做概况
     for (var i in items) {
       var item = items[i];
@@ -134,7 +137,7 @@ App({
     }
     return items;
   },
-  buildUrl: function(path, params) {
+  buildUrl: function (path, params) {
     var url = this.globalData.domain + path;
     var _paramUrl = "";
     if (params) {
@@ -142,7 +145,7 @@ App({
       //循环params里面的变量，取key为变量k，然后将k与其对应的值用等号链接起来
       //如果params={a:'b',c:'d'}
       //拼接结果的格式如a=b&c=d,GET方法都是使用‘=’来区分的
-      _paramUrl = Object.keys(params).map(function(k) {
+      _paramUrl = Object.keys(params).map(function (k) {
         return [encodeURIComponent(k), encodeURIComponent(params[k])].join("=");
       }).join("&");
 
@@ -151,7 +154,7 @@ App({
 
     return url + _paramUrl;
   },
-  getCache: function(key) {
+  getCache: function (key) {
     var value = undefined;
     try {
       value = wx.getStorageSync(key);
@@ -160,13 +163,13 @@ App({
     }
     return value;
   },
-  setCache: function(key, value) {
+  setCache: function (key, value) {
     wx.setStorage({
       key: key,
       data: value
     });
   },
-  getFilename: function(filepath) {
+  getFilename: function (filepath) {
     // 为了避免转义反斜杠出问题，这里将对其进行转换
     var re = /(\\+)/g;
     var filename = filepath.replace(re, "#");
@@ -174,7 +177,7 @@ App({
     var fileName = fileArray[fileArray.length - 1];
     return fileName;
   },
-  addImages: function(ori_img_list, img_list) {
+  addImages: function (ori_img_list, img_list) {
     for (var i in ori_img_list) {
       var filepath = ori_img_list[i].path;
       var fileName = this.getFilename(filepath);
@@ -194,7 +197,7 @@ App({
     return img_list;
   },
   //判断json对象中是否有空的字段
-  judgeEmpty: function(json_obj, tips_obj) {
+  judgeEmpty: function (json_obj, tips_obj) {
     for (var key in json_obj) {
       if (json_obj[key].length === 0) {
         this.alert({
@@ -205,26 +208,26 @@ App({
     }
     return false;
   },
-  serverBusy: function() {
+  serverBusy: function () {
     this.alert({
       'content': '服务器响应超时，请稍后重试'
     });
     return;
   },
-  serverInternalError: function() {
+  serverInternalError: function () {
     this.alert({
       'content': '服务器内部异常，请稍后重试'
     });
     return;
   },
   //getNewMes
-  getNewRecommend:function(){
-    var that=this;
+  getNewRecommend: function () {
+    var that = this;
     wx.request({
       url: that.buildUrl('/member/get-new-recommend'),
       header: that.getRequestHeader(),
       method: 'GET',
-      data:{},
+      data: {},
       success: function (res) {
         if (res.data.code !== 200) {
           return;
@@ -236,10 +239,10 @@ App({
       }
     });
   },
-  checkLogin: function() {
+  checkLogin: function () {
     var that = this;
     wx.login({
-      success: function(res) {
+      success: function (res) {
         if (!res.code) {
           app.alert({
             'content': '登录失败，请再点击～～'
@@ -253,7 +256,7 @@ App({
           data: {
             code: res.code
           },
-          success: function(res) {
+          success: function (res) {
             if (res.data.code !== 200) {
               return;
             }
@@ -267,16 +270,16 @@ App({
             that.globalData.id = res.data.data.id;
             that.globalData.regFlag = true;
           },
-          fail: function(res) {
+          fail: function (res) {
             that.serverBusy();
             return;
           },
-          complete: function(res) {},
+          complete: function (res) { },
         });
       }
     });
   },
-  login: function(e) {
+  login: function (e) {
     var that = this;
     if (!e.detail.userInfo) {
       that.alert({
@@ -286,7 +289,7 @@ App({
     }
     var data = e.detail.userInfo;
     wx.login({
-      success: function(res) {
+      success: function (res) {
         if (!res.code) {
           that.alert({
             'content': '登录失败，请再次登录～～'
@@ -300,7 +303,7 @@ App({
           header: that.getRequestHeader(),
           method: 'POST',
           data: data,
-          success: function(res) {
+          success: function (res) {
             if (res.data.code != 200) {
               that.alert({
                 'content': res.data.msg
@@ -312,15 +315,15 @@ App({
             that.alert({
               'content': '登录成功,5秒后自动返回之前页面，欢迎继续使用～'
             });
-            setTimeout(function() {
+            setTimeout(function () {
               wx.navigateBack({})
             }, 5000);
           },
-          fail: function(res) {
+          fail: function (res) {
             that.serverBusy();
             return;
           },
-          complete: function(res) {},
+          complete: function (res) { },
         });
       }
     });

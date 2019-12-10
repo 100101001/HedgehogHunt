@@ -49,7 +49,7 @@ def login():
         model_member.nickname = nickname
         model_member.sex = sex
         model_member.avatar = avatar
-        model_member.updated_time = model_member.created_time = getCurrentDate()
+        # model_member.updated_time = model_member.created_time = getCurrentDate()
         model_member.openid = openid
         db.session.add(model_member)
         db.session.commit()

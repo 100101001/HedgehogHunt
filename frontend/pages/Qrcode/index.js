@@ -34,7 +34,7 @@ Page({
             })
           } else {
             wx.navigateTo({
-              url: "/pages/Qrcode/Register/index"
+              url: "/pages/Qrcode/Register/index?qrcodeId=" + options.id
             })
           }
         },

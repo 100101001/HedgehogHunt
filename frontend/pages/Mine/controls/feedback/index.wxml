@@ -6,7 +6,7 @@
       <textarea class="summary" name="summary" placeholder="{{text_placeholder}}"></textarea>
     </view>
     <view class="pics-list">
-      <view wx:for="{{imglist}}" class="pics-item" wx:key="{{index}}">
+      <view wx:for="{{imglist}}" class="pics-item" wx:key="index">
         <image src="{{item}}" mode="aspectFill" bindtap="previewImage"></image>
         <view class='del' bindtap='deleteImg' style='display:{{isDel}}' data-index="{{index}}">×</view>
       </view>
