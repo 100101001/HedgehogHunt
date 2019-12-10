@@ -48,7 +48,7 @@ Page({
   },
   onLoad: function(options) {
     // var goods_id = options.goods_id;
-    var goods_id =6;
+    var goods_id =8;
     this.getGoodsInfo(goods_id);
     app.getNewRecommend();
   },
@@ -202,7 +202,7 @@ Page({
   },
   goHome: function(e) {
     wx.navigateTo({
-      url: "../../Find/Find",
+      url: "../../Find/Find?business_type=1",
     })
   },
   goRelease: function(e) {
@@ -217,6 +217,24 @@ Page({
     app.globalData.info = info;
     wx.navigateTo({
       url: "../../Release/release/index?auther_id="+auther_id,
+    })
+  },
+  //归还按钮
+  goThanks: function (e) {
+    var info = this.data.infos.info;
+    var data={
+      "auther_id":info.auther_id,
+      "goods_id":info.id,
+      "business_type":info.business_type,
+      "goods_name":info.goods_name,
+      "auther_name":info.auther_name,
+      "updated_time": info.updated_time,
+      "avatar":info.avatar
+    }
+    data = JSON.stringify(data);
+    // data=JSON.parse(data) 将字符串转换成json格式
+    wx.navigateTo({
+      url: "../../Thanks/index?data=" + data,
     })
   },
   //申领的按钮

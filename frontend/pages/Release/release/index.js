@@ -286,8 +286,8 @@ Page({
   },
   //设置页面参数
   setInitData: function() {
-    var location = app.globalData.location; //用于让别人帮忙寄回物品
     var info=app.globalData.info;
+    var location = info.location; //用于让别人帮忙寄回物品
     var business_type = this.data.business_type;
     if (business_type == 1) {
       var summary_placeholder = "添加物品描述：拾到物品的时间、地点以及物品上面的其他特征如颜色、记号等...";
@@ -363,7 +363,8 @@ Page({
       summary_placeholder: summary_placeholder,
       summary_value: summary_value,
       tips_obj: tips_obj,
-      info_owner_name:info.owner_name
-    })
+      info_owner_name:info.owner_name,
+      location:location
+    });
   },
 });
