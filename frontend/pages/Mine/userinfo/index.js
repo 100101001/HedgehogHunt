@@ -75,11 +75,9 @@ Page({
         }
       })
     }
-
-
-    while (app.globalData.userInfo == null) {
-      //app 还没获取到userInfo，空等待  
-    }
+    
+    console.log("获取到了用户信息")
+    console.log(app.globalData.userInfo)
     this.setData({
       userInfo: app.globalData.userInfo
     });
