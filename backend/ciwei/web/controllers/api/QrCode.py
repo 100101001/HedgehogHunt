@@ -113,7 +113,7 @@ def scanQrcode():
         return Response(status=500)
     if qrcode.member_id is None:
         app.logger.info("go to register qr code: %s", codeId)
-        return make_response(status=200)
+        return Response(status=200)
     else:
         app.logger.info("go to publish qr code: %s", codeId)
         return Response(status=201)
