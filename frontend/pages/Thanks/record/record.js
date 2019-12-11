@@ -10,6 +10,7 @@ Page({
   },
 
   onLoad: function (options) {
+    var thanks_new=app.globalData.thanks_new;
     this.setData({
       infos: {
         list:[],
@@ -18,30 +19,20 @@ Page({
         check_cat: [
           {
             id: 0,
-            name: '收到'
+            name: '收到',
+            value: thanks_new,
           },
           {
             id: 1,
-            name: '发出',
+            name: "发出"
           }
           ]
       },
+      check_status_id: 0,
     });
-    this.getGoodsList();
-  },
-  //点击信息卡查看详情
-  onDetailTap: function (event) {
-    var id = event.currentTarget.dataset.id;
-    var saveHidden = this.data.infos.saveHidden;
-    if (!saveHidden) {
-      app.alert({
-        'content': "请先完成编辑再查看详情~"
-      });
-    } else {
-      wx.navigateTo({
-        url: 'info/info',
-      })
-    }
+    this.onPullDownRefresh();
+        //更新最新提示
+    // this.updateTips();
   },
   //下拉刷新
   onPullDownRefresh: function (event) {
@@ -55,8 +46,25 @@ Page({
     app.getNewRecommend();
     this.getGoodsList();
   },
+  updateTips: function () {
+    var thanks_new = app.globalData.thanks_new;
+    var infos = this.data.infos;
+    infos.check_cat = [
+      {
+        id: 0,
+        name: '收到',
+        value: thanks_new,
+      },
+      {
+        id: 1,
+        name: "发出"
+      }
+    ];
+    this.setData({
+      infos: infos
+    })
+  },
   //上滑加载
-  //下滑加载
   onReachBottom: function (e) {
     var that = this;
     //延时500ms处理函数

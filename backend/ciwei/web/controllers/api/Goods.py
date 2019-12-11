@@ -4,6 +4,7 @@
 # -*- coding:utf-8 -*-
 from common.models.ciwei.Member import Member
 from common.models.ciwei.Goods import Good
+from common.models.ciwei.Thanks import Thank
 from common.models.ciwei.Report import Report
 from common.libs.Helper import getUuid
 from decimal import Decimal
@@ -444,37 +445,50 @@ def goodsReport():
     member_info = g.member_info
     if not member_info:
         resp['code'] = -1
-        resp['msg'] = '没有用户信息，无法完成举报！请到 “发布”中授权登录'
+        resp['msg'] = '没有用户信息，无法完成举报！请授权登录'
         return jsonify(resp)
 
     id=req['id'] if 'id' in req else 0
     if id==0:
+        resp['code'] = -1
         resp['msg']="数据获取失败"
         resp['req']=req
         return jsonify(resp)
 
-    goods_info=Good.query.filter_by(id=id).with_for_update().first()
-    if not goods_info or goods_info.status!=1:
+    report_info=Report.query.filter_by(record_id=id).first()
+    if report_info:
+        resp['code'] = -1
+        resp['msg'] = "该条信息已被举报过，管理员处理中"
+        return jsonify(resp)
+
+    record_type=int(req['record_type']) if 'record_type' in req else "nonono"
+    if record_type==1:
+        #物品信息违规
+        record_info=Good.query.filter_by(id=id).with_for_update().first()
+    elif record_type==0:
+        # 答谢信息违规
+        record_info=Thank.query.filter_by(id=id).with_for_update().first()
+    else:
+        resp['code'] = -1
+        resp['msg'] = '获取信息错误'
+        return jsonify(resp)
+
+    if not record_info:
         resp['code']=-1
         resp['msg']='没有找到商品信息'
         return jsonify(resp)
 
-    goods_info.status = 3
-    goods_info.updated_time = getCurrentDate()
-    db.session.add(goods_info)
+    record_info.status = 8
+    record_info.updated_time = getCurrentDate()
+    db.session.add(record_info)
     db.session.commit()
 
-    auther_info=Member.query.filter_by(id=goods_info.member_id).first()
-    if not auther_info:
-        resp['code'] = -1
-        resp['msg'] = '没有找到相关发布者信息'
-        return jsonify(resp)
-
     model_report=Report()
-    model_report.status=3
-    model_report.member_id =auther_info.id
+    model_report.status=8
+    model_report.member_id =record_info.member_id
     model_report.report_member_id = member_info.id
-    model_report.goods_id = id
+    model_report.record_id = id
+    model_report.record_type = record_type
     model_report.updated_time = model_report.created_time=getCurrentDate()
 
     MemberService.updateCredits(member_info)

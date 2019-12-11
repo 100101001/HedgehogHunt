@@ -7,7 +7,7 @@
 -->
 <view class="userinfo">
   <view class="fundation_message">基本信息</view>
-  <view class="userinfo_container" bindtap="goControls">
+  <view class="userinfo_container" bindtap="goControls" wx:if="{{is_user}}">
     <view class="title">管理后台</view>
     <view class="next">
       <image class='next_img' src="/images/icons/next.png"></image>

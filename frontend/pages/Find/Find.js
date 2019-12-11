@@ -194,7 +194,8 @@ Page({
             url: app.buildUrl("/goods/report"),
             header: app.getRequestHeader(),
             data: {
-              id: id
+              id: id,
+              record_type: 1,
             },
             success: function(res) {
               var resp = res.data;

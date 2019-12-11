@@ -47,8 +47,8 @@ Page({
     }
   },
   onLoad: function(options) {
-    // var goods_id = options.goods_id;
-    var goods_id =8;
+    var goods_id = options.goods_id;
+    // var goods_id =8;
     this.getGoodsInfo(goods_id);
     app.getNewRecommend();
   },
@@ -169,6 +169,7 @@ Page({
             header: app.getRequestHeader(),
             data: {
               id: id,
+              record_type:1,
             },
             success: function(res) {
               var resp = res.data;

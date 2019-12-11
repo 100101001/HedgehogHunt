@@ -127,7 +127,7 @@ def thanksSearch():
                 "selected": False,
             }
             data_goods_list.append(tmp_data)
-            if item.status==0:
+            if item.status==0 and member_info.id==item.target_member_id:
                 item.status=1
                 item.updated_time=getCurrentDate()
                 db.session.add(item)
