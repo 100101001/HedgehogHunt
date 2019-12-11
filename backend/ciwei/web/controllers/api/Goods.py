@@ -187,6 +187,8 @@ def goodsSearch():
 
     status = int(req['status']) if ('status' in req and req['status']) else 0
     query=Good.query.filter(Good.status!=7)
+    query=query.filter(Good.report_status!=2)
+    query=query.filter(Good.report_status!=3)
 
     business_type = int(req['business_type']) if 'business_type' in req else 'nono'
     if business_type == 0 or business_type == 1:
@@ -478,13 +480,13 @@ def goodsReport():
         resp['msg']='没有找到商品信息'
         return jsonify(resp)
 
-    record_info.status = 8
+    record_info.report_status = 1
     record_info.updated_time = getCurrentDate()
     db.session.add(record_info)
     db.session.commit()
 
     model_report=Report()
-    model_report.status=8
+    model_report.status=1
     model_report.member_id =record_info.member_id
     model_report.report_member_id = member_info.id
     model_report.record_id = id
