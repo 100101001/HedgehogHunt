@@ -77,7 +77,7 @@ CREATE TABLE `goods` (
   `pics` varchar(1000) NOT NULL DEFAULT '' COMMENT '组图',
   `summary` varchar(1000) NOT NULL DEFAULT '' COMMENT '描述',
   `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态 1：有效 0：无效',
-  `old_status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '当物品被举报时，用于存储之前的状态值，用于后期恢复',
+  `report_status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '被举报后的状态，用于存储举报的状态值',
   `business_type` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态 1：失物招领 0：寻物启事',
   `view_count` int(11) NOT NULL DEFAULT '0' COMMENT '总浏览次数',
   `tap_count` int(11) NOT NULL DEFAULT '0' COMMENT '查看地址次数',
