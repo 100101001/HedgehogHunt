@@ -2,7 +2,7 @@
 <template name="record-info-template">
   <view class="container">
     <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
-    <template is="info-auth-template" data="{{...report_auth_info}}" wx:if="{{check_report}}" />
+    <template is="info-auth-template" data="{{...report_auth_info}}" wx:if="{{report_auth_info}}"/>
     <template is="info-auth-template" data="{{...info}}" />
     <!--商品轮播图-->
     <view class="swiper-container">
@@ -52,7 +52,7 @@
     </view>
 
     <!--用户操作-->
-    <view class="footer-box" wx:if="{{!show_location || info.status==1}}">
+    <view class="footer-box" wx:if="{{!show_location || info.status==1 && op_status!=4}}">
       <view class="shop-cart-btn" catchtap="goHome">
         <image src="/images/icons/home_select.png"></image>
         <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'> 回首页 </view>
@@ -66,7 +66,7 @@
       </view>
     </view>
 
-    <view class="footer-box" wx:if="{{show_location && info.status==2}}">
+    <view class="footer-box" wx:if="{{show_location && info.status==2 && op_status!=4}}">
       <view class="shop-cart-btn" catchtap="goHome">
         <image src="/images/icons/home_select.png"></image>
         <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'> 回首页 </view>
@@ -75,7 +75,7 @@
       <view class="now-buy" catchtap="gotBack">确认取回</view>
     </view>
 
-    <view class="footer-box" wx:if="{{show_location && info.status==3}}">
+    <view class="footer-box" wx:if="{{show_location && info.status==3 && op_status!=4}}">
       <view class="shop-cart-btn" catchtap="goHome">
         <image src="/images/icons/home_select.png"></image>
         <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'> 回首页 </view>
@@ -85,14 +85,14 @@
     </view>
 
     <!--底部  查看举报推荐-->
-    <view class="footer-box" wx:if="{{op_status==2}}">
-      <view class="shop-cart-btn" catchtap="noRule">
+    <view class="footer-box" wx:if="{{op_status==4}}">
+      <view class="shop-cart-btn" catchtap="toBlock" data-report_status="4">
         <image src="/images/icons/home_select.png"></image>
         <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>无违规</view>
       </view>
-      <view class="join-shop-cart" catchtap="toBlockReport">拉黑举报者</view>
+      <view class="join-shop-cart" catchtap="toBlock" data-report_status="2">拉黑举报者</view>
       <!-- <view class="join-shop-cart">管理员：韦朝旭</view> -->
-      <view class="now-buy" catchtap="toBlockMember">
+      <view class="now-buy" catchtap="toBlock" data-report_status="3">
         <text>拉黑发布者</text>
       </view>
       <!-- <view class="now-buy">

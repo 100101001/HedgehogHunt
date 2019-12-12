@@ -19,6 +19,7 @@ App({
     member_id: null,
     member_status: 1,
     is_adm: true,
+    op_status:4
   },
   onLaunch: function () {
     // 展示本地存储能力

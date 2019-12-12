@@ -3,8 +3,18 @@
 
 <!--index.wxml-->
 <view class="container">
+  <!--检查举报-->
+  <view class="type-container1">
+    <scroll-view class="type-navbar-check-report">
+      <view class="type-box1" wx:for="{{record_type_cat}}" wx:for-item="cat" wx:key="index">
+        <view id="{{cat.id}}" class="type-navbar-item {{record_type_status == cat.id ? 'type-item-on' : ''}}" bindtap="recordTypeClick">
+          {{cat.name}}<view class="content_tip" wx:if="{{cat.value && cat.value!=0}}">{{cat.value}}</view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
   <template is="search-bar-template" data="{{...infos}}" />
-  <view class="message_container">
+  <view class="message_container" wx:if="{{record_type_status==1}}">
     <block wx:for="{{infos.list}}" wx:key="index">
       <view class="goods_message">
         <radio class="radio" hidden="{{infos.saveHidden}}" data-index="{{index}}" bindtap="selectTap" checked="{{item.selected}}" />
@@ -12,4 +22,6 @@
       </view>
     </block>
   </view>
+<view wx:if="{{!loadingMoreHidden}}" class="no-more-goods">没有更多记录了~</view>
+<view wx:if="{{loadingMoreHidden}}" class="no-more-goods">上滑加载更多～</view>
 </view>

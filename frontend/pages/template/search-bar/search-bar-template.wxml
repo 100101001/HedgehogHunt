@@ -13,12 +13,21 @@
       <button class="search_button" hidden="{{saveHidden}}" bindtap="editTap">完成</button>
     </view>
   </form>
+  <view class="type-container" wx:if="{{op_status==4}}">
+    <scroll-view class="type-navbar-check-report">
+      <view class="box-report" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="index">
+        <view id="{{cat.id}}" class="type-navbar-item {{check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="recordTypeClick">
+          {{cat.name}}<view class="content_tip" wx:if="{{cat.value && cat.value!=0}}">{{cat.value}}</view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
   <!--检查举报-->
-  <view class="type-container">
+  <view class="type-container" wx:if="{{op_status!=4}}">
     <scroll-view class="type-navbar-check-report">
       <view class="type-box" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="index">
         <view id="{{cat.id}}" class="type-navbar-item {{check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="checkReportClick">
-          {{cat.name}}<view class="content_tip" wx:if="{{cat.value && cat.value!=0}}">{{cat.value}}</view>
+          {{cat.name}}{{infos.op_status}}<view class="content_tip" wx:if="{{cat.value && cat.value!=0}}">{{cat.value}}</view>
         </view>
       </view>
     </scroll-view>

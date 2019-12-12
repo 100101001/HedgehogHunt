@@ -52,7 +52,7 @@ Page({
     }
     console.log(!check_report);
     wx.navigateTo({
-      url: '/pages/Report/index',
+      url: '/pages/Record/index?op_status=4',
     })
   },
   toCheckStat:function(){
