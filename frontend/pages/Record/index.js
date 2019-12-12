@@ -9,8 +9,9 @@ Page({
   },
 
   onLoad: function(options) {
-    // var op_status = options.op_status;
-    var op_status =4;
+    var op_status = options.op_status;
+    console.log("op_status+"+op_status);
+    // var op_status =4;
     this.setData({
       op_status: op_status
     })
@@ -47,7 +48,7 @@ Page({
           saveHidden: true,
           only_new: false,
           check_status_id: 1,
-          op_status:op_status,
+          op_status:4,
           check_cat: [{
               id: 1,
               name: '待处理'

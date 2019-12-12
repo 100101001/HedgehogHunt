@@ -102,6 +102,7 @@ Page({
   //点击信息卡查看详情
   onDetailTap: function(event) {
     var id = event.currentTarget.dataset.id;
+    app.globalData.op_status=2;
     wx.navigateTo({
       url: 'info/info?goods_id=' + id,
     })

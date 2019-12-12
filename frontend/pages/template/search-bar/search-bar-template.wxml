@@ -6,7 +6,7 @@
         <input value='{{name}}' bindblur="onPullDownRefresh" bindfocus='onBindFocus' bindinput="listenerNameInput" class='search_text_box' type="text" placeholder='姓名' placeholder-style='color:#f7931e;'></input>
       </view>
       <view class="search_box2">
-        <input value="{{type}}" bindfocus='onBindFocus' bindblur="onPullDownRefresh" bindinput="listenerGoodsNameInput" class='search_text_box' type="text" placeholder='物品' placeholder-style='color:#f7931e; '></input>
+        <input value="{{type}}" bindfocus='onBindFocus' bindblur="onPullDownRefresh" bindinput="listenerGoodsNameInput" class='search_text_box' type="text" placeholder='物品' placeholder-style='color:#f7931e;'></input>
       </view>
       <radio class="radio" value="buying"  bindtap="radioChange" checked="{{only_new}}">仅新增</radio>
       <button class="search_button" hidden="{{!saveHidden}}" bindtap="editTap">编辑</button>
@@ -27,7 +27,7 @@
     <scroll-view class="type-navbar-check-report">
       <view class="type-box" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="index">
         <view id="{{cat.id}}" class="type-navbar-item {{check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="checkReportClick">
-          {{cat.name}}{{infos.op_status}}<view class="content_tip" wx:if="{{cat.value && cat.value!=0}}">{{cat.value}}</view>
+          {{cat.name}}<view class="content_tip" wx:if="{{cat.value && cat.value!=0}}">{{cat.value}}</view>
         </view>
       </view>
     </scroll-view>
