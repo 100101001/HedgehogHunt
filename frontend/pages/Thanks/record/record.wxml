@@ -19,6 +19,21 @@
       <view class="goods_message">
         <radio class="radio" hidden="{{infos.saveHidden}}" data-index="{{index}}" bindtap="selectTap" checked="{{item.selected}}" />
         <view class=".goods_container">
+
+          <view class="auther_data" wx:if="{{item.report_id}}">
+              <view class="auther_container">
+              <image class="auther_avatar" src="{{item.report_member_avatar}}"></image>
+              <view class="auther_message">
+                <text class="auther_name">{{item.report_member_name}}</text>
+                <text class="release_date">{{item.report_updated_time}}</text>
+              </view>
+            </view>
+            <view class="status-container" wx:if="{{item.reward}}">{{item.reward}}</view>
+            <view class="report"  data-id="{{item.id}}">
+              <image src="/images/icons/report.png"></image>
+              <text>举报</text>
+            </view>
+          </view>
           <view class="auther_data">
             <view class="auther_container">
               <image class="auther_avatar" src="{{item.avatar}}"></image>
@@ -28,7 +43,7 @@
               </view>
             </view>
             <view class="status-container" wx:if="{{item.reward}}">{{item.reward}}</view>
-            <view class="report" catchtap="toReport" data-id="{{id}}">
+            <view class="report" catchtap="toReport" data-id="{{item.id}}">
               <image src="/images/icons/report.png"></image>
               <text>举报</text>
             </view>
@@ -40,10 +55,11 @@
             <view class="goods_owner" wx:if="{{item.status==0}}">NEW</view>
           </view>
           <view class="goods_content">{{item.summary}}</view>
-          <view class="block-btn-container">
-            <view bindtap="noRule">无违规</view>
-            <view bindtap="toBlockMember" data-report_status="2">举报者</view>
-            <view bindtap="toBlockMember" data-report_status="3">发布者</view>
+          <view class="horizon" wx:if="{{item.report_id}}"></view>
+          <view class="block-btn-container" wx:if="{{item.report_id}}">
+            <view bindtap="toBlock" data-report_status="4" data-report_id="{{item.report_id}}">无违规</view>
+            <view bindtap="toBlock" data-report_status="2" data-report_id="{{item.report_id}}">举报者</view>
+            <view bindtap="toBlock" data-report_status="3" data-report_id="{{item.report_id}}">发布者</view>
           </view>
         </view>
       </view>

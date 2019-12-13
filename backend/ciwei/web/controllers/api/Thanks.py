@@ -6,12 +6,13 @@ from common.models.ciwei.Member import Member
 from common.models.ciwei.User import User
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Thanks import Thank
+from common.models.ciwei.Report import Report
 from web.controllers.api import route_api
 from flask import request,jsonify,g
 import json
 from sqlalchemy import or_
 from application import app,db
-from common.libs.Helper import getCurrentDate
+from common.libs.Helper import getCurrentDate,selectFilterObj,getDictFilterField
 from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
 from decimal import Decimal
@@ -54,8 +55,6 @@ def thanksCreate():
     db.session.commit()
 
     return jsonify(resp)
-
-
 #查询所有记录
 @route_api.route("/thanks/search",methods=['GET','POST'])
 def thanksSearch():
@@ -83,7 +82,7 @@ def thanksSearch():
 
     owner_name = req['owner_name'] if 'owner_name' in req else ''
     if owner_name:
-        rule = or_(Good.owner_name.ilike("%{0}%".format(owner_name)))
+        rule = or_(Thank.owner_name.ilike("%{0}%".format(owner_name)))
         query = query.filter(rule)
 
     mix_kw = str(req['mix_kw']) if 'mix_kw' in req else ''
@@ -91,11 +90,11 @@ def thanksSearch():
         fil_str = "%{0}%".format(mix_kw[0])
         for i in mix_kw[1:]:
             fil_str = fil_str + "%{0}%".format(i)
-        rule = or_(Good.name.ilike("%{0}%".format(fil_str)), Good.member_id.ilike("%{0}%".format(mix_kw)))
+        rule = or_(Thank.goods_name.ilike("%{0}%".format(fil_str)), Thank.member_id.ilike("%{0}%".format(mix_kw)))
         query = query.filter(rule)
 
     #获取操作值，看用户是查看收到的还是发出的答谢信息
-    status=int(req['op_status']) if 'op_status' in req else ''
+    status=int(req['status']) if 'status' in req else ''
     if status==0:
         query=query.filter_by(target_member_id=member_info.id)
     elif status==1:
@@ -136,6 +135,82 @@ def thanksSearch():
     resp['data']['list'] = data_goods_list
     resp['data']['has_more'] = 0 if len(data_goods_list) < page_size else 1
     return jsonify(resp)
+
+#查询所有记录
+@route_api.route("/thanks/reports-search",methods=['GET','POST'])
+def thanksReportSearch():
+    resp={'code':200,'msg':'search thanks successfully(thanks)','data':{}}
+    req=request.values
+
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "没有相关用户信息"
+        return jsonify(resp)
+
+    p=int(req['p']) if ('p' in req and req['p']) else 1
+    if p<1:
+        p=1
+
+    page_size=10
+    offset=(p-1)*page_size
+
+    # 获取操作值，看用户是查看收到的还是发出的答谢信息
+    report_status = int(req['report_status']) if 'report_status' in req else ''
+    query = Report.query.filter_by(status=report_status)
+    query = query.filter_by(record_type=0)
+    report_list=query.order_by(Report.id.desc()).all()
+    report_ids=selectFilterObj(report_list,'record_id')
+
+    #获取举报列表的感谢信息
+    query=Thank.query.filter(Thank.id.in_(report_ids))
+    # owner_name = req['owner_name'] if 'owner_name' in req else ''
+    # if owner_name:
+    #     rule = or_(Thank.owner_name.ilike("%{0}%".format(owner_name)))
+    #     query = query.filter(rule)
+    #
+    # mix_kw = str(req['mix_kw']) if 'mix_kw' in req else ''
+    # if mix_kw:
+    #     fil_str = "%{0}%".format(mix_kw[0])
+    #     for i in mix_kw[1:]:
+    #         fil_str = fil_str + "%{0}%".format(i)
+    #     rule = or_(Thank.name.ilike("%{0}%".format(fil_str)), Thank.member_id.ilike("%{0}%".format(mix_kw)))
+    #     query = query.filter(rule)
+
+    thanks_list = query.order_by(Thank.id.desc()).offset(offset).limit(10).all()
+    # #将对应的用户信息取出来，组合之后返回
+    data_goods_list = []
+    if thanks_list:
+        for item in thanks_list:
+            item_auther_info=Member.query.filter_by(id=item.member_id).first()
+            item_report_info = Report.query.filter_by(record_id=item.id).filter_by(record_type=0).first()
+            item_report_member_info=Member.query.filter_by(id=item_report_info.report_member_id).first()
+            tmp_data = {
+                "id": item.id,
+                "status":item.status,#不存在时置1
+                "goods_name": item.goods_name,
+                "owner_name": item.owner_name,
+                "updated_time": str(item.updated_time),
+                "business_desc":item.business_desc,
+                "summary": item.summary,
+                "reward":"0.00",
+                "auther_name": item_auther_info.nickname,
+                "avatar": item_auther_info.avatar,
+                "selected": False,
+
+                "report_member_avatar":item_report_member_info.avatar,
+                "report_member_name":item_report_member_info.nickname,
+                "report_updated_time":str(item_report_info.updated_time),
+
+                "report_id":item_report_info.id,
+                "member_id":item_auther_info.id,
+                "report_member_id":item_report_info.id,
+            }
+            data_goods_list.append(tmp_data)
+
+    resp['data']['list'] = data_goods_list
+    resp['data']['has_more'] = 0 if len(data_goods_list) < page_size else 1
+    return jsonify(resp)
 #将商品移除自己的列表
 @route_api.route("/thanks/delete",methods=['GET','POST'])
 def thanksDelete():
@@ -154,11 +229,87 @@ def thanksDelete():
     op_status=2,用户的推荐列表
     """
 
+    op_status = int(req['op_status']) if 'op_status' in req else ''
     id_list=req['id_list'][1:-1].split(',')
-    for i in id_list:
-        goods_info = Thank.query.filter_by(id=int(i)).first()
-        goods_info.status=7
-        db.session.add(goods_info)
-        db.session.commit()
+    if op_status==4:
+        id_list_int=[int(i) for i in id_list]
+        goods_list=Thank.query.filter(Thank.id.in_(id_list_int)).all()
+        report_map=getDictFilterField(Report, Report.record_id, "record_id",id_list_int)
+        user_info = User.query.filter_by(member_id=member_info.id).first()
+        if not user_info:
+            resp['code'] = -1
+            resp['msg'] = "没有相关管理员信息，如需操作请添加管理员"
+            resp['data'] = str(member_info.id) + "+" + member_info.nickname
+            return jsonify(resp)
+        if goods_list:
+            for item in goods_list:
+                report_item=report_map[item.id]
+                report_item.user_id=user_info.uid
+                report_item.status=5
+
+                item.user_id=user_info.uid
+                item.report_status=5
+                item.updated_time=report_item.updated_time=getCurrentDate()
+                db.session.add(item)
+                db.session.add(report_item)
+                db.session.commit()
+    else:
+        for i in id_list:
+            goods_info = Thank.query.filter_by(id=int(i)).first()
+            goods_info.status=7
+            db.session.add(goods_info)
+            db.session.commit()
+
+
+    return jsonify(resp)
+
+#拉黑发布者或者举报者
+@route_api.route('/thanks/block')
+def thanksBlock():
+    resp = {'code': 200, 'msg': 'operate successfully(block)', 'data': {}}
+    req = request.values
+
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "用户信息异常"
+        return jsonify(resp)
+
+    user_info = User.query.filter_by(member_id=member_info.id).first()
+    if not user_info:
+        resp['code'] = -1
+        resp['msg'] = "没有相关管理员信息，如需操作请添加管理员"
+        resp['data'] = str(member_info.id) + "+" + member_info.nickname
+        return jsonify(resp)
+
+    report_status=int(req['report_status']) if 'report_status' in req else "nonono"
+    report_id=int(req['report_id'])
+
+    report_info=Report.query.filter_by(id=report_id).first()
+
+    auther_info=Member.query.filter_by(id=report_info.member_id).first()
+    report_member_info=Member.query.filter_by(id=report_info.report_member_id).first()
+    thanks_info=Thank.query.filter_by(id=report_info.record_id).first()
+
+    report_info.status=report_status
+    report_info.user_id=user_info.uid
+    thanks_info.report_status=report_status
+    thanks_info.user_id=user_info.uid
+    #拉黑举报者
+    if report_status==2:
+        report_member_info.status=0
+    #拉黑发布者
+    elif report_status==3:
+        auther_info.status=0
+    #没有违规
+    else:
+        pass
+
+    auther_info.updated_time=report_info.updated_time=thanks_info.updated_time=report_info.updated_time=getCurrentDate()
+    db.session.add(auther_info)
+    db.session.add(report_info)
+    db.session.add(report_member_info)
+    db.session.add(thanks_info)
+    db.session.commit()
 
     return jsonify(resp)

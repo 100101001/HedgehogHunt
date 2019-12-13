@@ -1,11 +1,11 @@
 {
   "pages": [
-    "pages/Thanks/record/record",
     "pages/index/index",
+    "pages/Thanks/record/record",
+    "pages/Thanks/index",
     "pages/Find/info/info",
     "pages/Record/index",
     "pages/Report/index",
-    "pages/Thanks/index",
     "pages/Mine/Mine",
     "pages/Find/Find",
     "pages/Release/release/index",

@@ -101,6 +101,7 @@ Page({
     })
   },
   goThanksList: function () {
+    app.globalData.op_status=2;
     wx.navigateTo({
       url: '../Thanks/record/record',
     })

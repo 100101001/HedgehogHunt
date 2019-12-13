@@ -10,9 +10,10 @@ Page({
   },
 
   onLoad: function(options) {
+    app.checkLogin();
     var thanks_new = app.globalData.thanks_new;
-    // var op_status = app.globalData.op_status;
-    var op_status=4;
+    var op_status = app.globalData.op_status;
+    // var op_status=4;
     if (op_status == 4) {
       var infos = {
         list: {},
@@ -83,8 +84,13 @@ Page({
       loadingMoreHidden: true
     });
     app.getNewRecommend();
-
-    this.getGoodsList();
+    var op_status=this.data.op_status;
+    if (op_status==4){
+      console.log("op_status+"+op_status);
+      this.getReportList();
+    }else{
+      this.getGoodsList();
+    }
   },
   //上滑加载
   onReachBottom: function(e) {
@@ -179,10 +185,10 @@ Page({
       loadingHidden: false
     });
     wx.request({
-      url: app.buildUrl("/report/thanks-search"),
+      url: app.buildUrl("/thanks/reports-search"),
       header: app.getRequestHeader(),
       data: {
-        record_type: 0,
+        report_status: that.data.check_status_id,
         mix_kw: that.data.goods_name,
         owner_name: that.data.owner_name,
         p: that.data.p,
@@ -230,6 +236,46 @@ Page({
       list[index].selected = !list[index].selected;
       this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), list);
     }
+  },
+  //拉黑举报者
+  toBlock: function (e) {
+    var report_status = e.currentTarget.dataset.report_status;
+    var report_id = e.currentTarget.dataset.report_id;
+    var that = this;
+    var data = {
+      report_id: report_id,
+      report_status: report_status,
+    };
+    wx.request({
+      url: app.buildUrl("/thanks/block"),
+      header: app.getRequestHeader(),
+      data: data,
+      success: function (res) {
+        var resp = res.data;
+        if (resp.code !== 200) {
+          app.alert({
+            'content': resp.msg
+          });
+          return
+        }
+        wx.hideLoading();
+        wx.showToast({
+          title: '操作成功！',
+          icon: 'success',
+          duration: 2000
+        });
+        that.onPullDownRefresh();
+      },
+      fail: function (res) {
+        wx.hideLoading();
+        wx.showToast({
+          title: '操作失败',
+          duration: 2000
+        });
+        app.serverBusy();
+        return;
+      }
+    });
   },
   //计算是否全选了
   allSelect: function() {
@@ -325,7 +371,8 @@ Page({
       url: app.buildUrl("/thanks/delete"),
       header: app.getRequestHeader(),
       data: {
-        id_list: id_list
+        id_list: id_list,
+        op_status:that.data.op_status,
       },
       success: function(res) {
         var resp = res.data;
@@ -351,6 +398,62 @@ Page({
     // //获取到有改动的记录的id
     // console.log(id_list);
     // this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), list);
+  },
+  //举报答谢信息
+  //举报按钮
+  toReport: function (e) {
+    var regFlag = app.globalData.regFlag;
+    if (!regFlag) {
+      app.loginTip();
+      return;
+    }
+    var id = e.currentTarget.dataset.id;
+    var that = this;
+    wx.showModal({
+      title: "违规举报",
+      content: "为维护平台环境，欢迎举报色情及诈骗、恶意广告等违规信息！同时，恶意举报将会被封号，请谨慎操作，确认举报？",
+      success: function (res) {
+        if (res.confirm) { //点击确定,获取操作用户id以及商品id,从用户token里面获取id
+          wx.showLoading({
+            title: '信息提交中..'
+          });
+          wx.request({
+            url: app.buildUrl("/goods/report"),
+            header: app.getRequestHeader(),
+            data: {
+              id: id,
+              record_type: 0,
+            },
+            success: function (res) {
+              var resp = res.data;
+              if (resp.code != 200) {
+                app.alert({
+                  'content': resp.msg
+                });
+                return
+              }
+              wx.hideLoading();
+              wx.showToast({
+                title: '举报成功，感谢！',
+                icon: 'success',
+                duration: 2000
+              });
+            },
+            fail: function (res) {
+              wx.hideLoading();
+              wx.showToast({
+                title: '系统繁忙，反馈失败，还是感谢！',
+                duration: 2000
+              });
+            },
+            complete: function () {
+              wx.hideLoading();
+              that.onPullDownRefresh();
+            }
+          });
+        }
+      }
+    });
   },
   getCartList: function() {
     var that = this;
