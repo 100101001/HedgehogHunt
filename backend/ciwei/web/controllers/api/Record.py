@@ -10,7 +10,7 @@ from web.controllers.api import route_api
 from flask import request,jsonify,g
 from application import app,db
 from sqlalchemy import or_
-from common.libs.Helper import getCurrentDate
+from common.libs.Helper import getCurrentDate,selectFilterObj,getDictFilterField
 from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
 
@@ -142,6 +142,29 @@ def recordDelete():
         for i in id_list:
             del recommend_id_dict[int(i)]
         member_info.recommend_id=MemberService.joinRecommendDict(recommend_id_dict)
+    elif op_status==4:
+        id_list_int=[int(i) for i in id_list]
+        goods_list=Good.query.filter(Good.id.in_(id_list_int)).all()
+        report_map=getDictFilterField(Report, Report.record_id, "record_id",id_list_int)
+        user_info = User.query.filter_by(member_id=member_info.id).first()
+        if not user_info:
+            resp['code'] = -1
+            resp['msg'] = "没有相关管理员信息，如需操作请添加管理员"
+            resp['data'] = str(member_info.id) + "+" + member_info.nickname
+            return jsonify(resp)
+        if goods_list:
+            for item in goods_list:
+                report_item=report_map[item.id]
+                report_item.user_id=user_info.uid
+                report_item.status=5
+
+                item.user_id=user_info.uid
+                item.report_status=5
+                item.updated_time=report_item.updated_time=getCurrentDate()
+                db.session.add(item)
+                db.session.add(report_item)
+                db.session.commit()
+
     db.session.add(member_info)
     db.session.commit()
     return jsonify(resp)

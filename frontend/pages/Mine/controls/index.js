@@ -4,9 +4,14 @@ Page({
   data: {
     items: [
       {
-        label: "举报信息",
+        label: "物品举报",
         icons: "/images/icons/next.png",
         act: "toCheckReport",
+      },
+      {
+        label: "答谢举报",
+        icons: "/images/icons/next.png",
+        act: "toCheckThanksReport",
       },
       {
         label: "反馈信息",
@@ -53,6 +58,16 @@ Page({
     console.log(!check_report);
     wx.navigateTo({
       url: '/pages/Record/index?op_status=4',
+    })
+  },
+  toCheckThanksReport: function () {
+    var check_report = app.globalData.check_report;
+    if (!check_report) {
+      app.globalData.check_report = !check_report;
+    }
+    console.log(!check_report);
+    wx.navigateTo({
+      url: '/pages/Thanks/record?op_status=4',
     })
   },
   toCheckStat:function(){

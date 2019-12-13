@@ -94,14 +94,13 @@ def thanksSearch():
         rule = or_(Good.name.ilike("%{0}%".format(fil_str)), Good.member_id.ilike("%{0}%".format(mix_kw)))
         query = query.filter(rule)
 
-    #获取操作值，看用户是查看哪种信息
-    op_status=int(req['op_status']) if 'op_status' in req else ''
-    if op_status==0:
+    #获取操作值，看用户是查看收到的还是发出的答谢信息
+    status=int(req['op_status']) if 'op_status' in req else ''
+    if status==0:
         query=query.filter_by(target_member_id=member_info.id)
-    #找出推荐列表里面的所有物品信息
-    elif op_status==1:
+    elif status==1:
         query=query.filter_by(member_id=member_info.id)
-    elif op_status==2:
+    elif status==2:
         pass
 
     only_new=req['only_new']

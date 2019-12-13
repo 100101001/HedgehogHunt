@@ -42,7 +42,7 @@ page {
 }
 
 .type-box {
-  width: 375rpx;
+  width: 150rpx;
   box-sizing: content-box;
   font-size: 24rpx;
   line-height: 64rpx;
@@ -233,6 +233,20 @@ radio .wx-radio-input.wx-radio-input-checked::before {
   justify-content: center;
   background-color: #f7931e;
 }
+
+.block-btn-container{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.block-btn-container view{
+  background-color: #f7931e;
+  border-radius: 10rpx;
+  padding: 10rpx 30rpx 10rpx 30rpx;
+  color: #fff;
+}
+
 
 .no-more-goods {
   margin-top: 40rpx;

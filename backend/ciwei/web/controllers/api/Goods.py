@@ -189,6 +189,7 @@ def goodsSearch():
     query=Good.query.filter(Good.status!=7)
     query=query.filter(Good.report_status!=2)
     query=query.filter(Good.report_status!=3)
+    query=query.filter(Good.report_status!=5)
 
     business_type = int(req['business_type']) if 'business_type' in req else 'nono'
     if business_type == 0 or business_type == 1:

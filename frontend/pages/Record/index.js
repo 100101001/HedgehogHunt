@@ -10,7 +10,7 @@ Page({
 
   onLoad: function(options) {
     var op_status = options.op_status;
-    console.log("op_status+"+op_status);
+    console.log("op_status+" + op_status);
     // var op_status =4;
     this.setData({
       op_status: op_status
@@ -44,30 +44,34 @@ Page({
       var check_status_id = 2;
     } else if (op_status == 4) {
       var infos = {
-          list: {},
-          saveHidden: true,
-          only_new: false,
-          check_status_id: 1,
-          op_status:4,
-          check_cat: [{
-              id: 1,
-              name: '待处理'
-            },
-            {
-              id: 2,
-              name: '发布者'
-            },
-            {
-              id: 3,
-              name: '举报者'
-            },
-            {
-              id: 4,
-              name: '无违规'
-            }
-          ]
-        };
-        var check_status_id = 1;
+        list: {},
+        saveHidden: true,
+        only_new: false,
+        check_status_id: 1,
+        op_status: op_status,
+        check_cat: [{
+            id: 1,
+            name: '待处理'
+          },
+          {
+            id: 2,
+            name: '发布者'
+          },
+          {
+            id: 3,
+            name: '举报者'
+          },
+          {
+            id: 4,
+            name: '无违规'
+          },
+          {
+            id: 5,
+            name: '已下架'
+          }
+        ]
+      };
+      var check_status_id = 1;
     } else {
       var infos = {
         list: {},
@@ -116,13 +120,12 @@ Page({
       infos: infos,
       loadingMoreHidden: true
     });
-    var op_status=this.data.op_status;
-    if (op_status==4){
+    var op_status = this.data.op_status;
+    if (op_status == 4) {
       this.getReportList();
-    }
-    else{
-    this.updateTips();
-    this.getGoodsList();
+    } else {
+      this.updateTips();
+      this.getGoodsList();
     }
   },
   updateTips: function() {
@@ -169,7 +172,7 @@ Page({
         'content': "请先完成编辑再查看详情~"
       });
     } else {
-      app.globalData.op_status=this.data.op_status;
+      app.globalData.op_status = this.data.op_status;
       wx.navigateTo({
         url: '/pages/Find/info/info?goods_id=' + id,
       })
@@ -186,8 +189,7 @@ Page({
       var op_status = that.data.op_status;
       if (op_status == 4) {
         that.getReportList();
-      }
-      else {
+      } else {
         that.updateTips();
         that.getGoodsList();
       }

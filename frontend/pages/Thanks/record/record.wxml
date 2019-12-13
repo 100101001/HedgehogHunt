@@ -9,7 +9,8 @@
       <scroll-view class="type-navbar-check-report">
         <view class="type-box" wx:for-items="{{infos.check_cat}}" wx:for-item="cat" wx:key="index">
           <view id="{{cat.id}}" class="type-navbar-item {{infos.check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="checkReportClick">
-            {{cat.name}}<view class="content_tips" wx:if="{{cat.value && cat.value!=0}}">{{cat.value}}</view>
+            {{cat.name}}
+            <view class="content_tips" wx:if="{{cat.value && cat.value!=0}}">{{cat.value}}</view>
           </view>
         </view>
       </scroll-view>
@@ -39,6 +40,11 @@
             <view class="goods_owner" wx:if="{{item.status==0}}">NEW</view>
           </view>
           <view class="goods_content">{{item.summary}}</view>
+          <view class="block-btn-container">
+            <view bindtap="noRule">无违规</view>
+            <view bindtap="toBlockMember" data-report_status="2">举报者</view>
+            <view bindtap="toBlockMember" data-report_status="3">发布者</view>
+          </view>
         </view>
       </view>
     </block>

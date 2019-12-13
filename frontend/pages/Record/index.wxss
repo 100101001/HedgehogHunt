@@ -44,7 +44,7 @@ page {
 }
 
 .type-box {
-  width: 250rpx;
+  width: 150rpx;
   box-sizing: content-box;
   font-size: 24rpx;
   line-height: 64rpx;

@@ -265,12 +265,12 @@ def reportBlock():
         resp['msg'] = "用户信息异常"
         return jsonify(resp)
 
-    # user_info = User.query.filter_by(member_id=member_info.id).first()
-    # if not user_info:
-    #     resp['code'] = -1
-    #     resp['msg'] = "没有相关管理员信息，如需操作请添加管理员"
-    #     resp['data'] = str(member_info.id) + "+" + member_info.nickname
-    #     return jsonify(resp)
+    user_info = User.query.filter_by(member_id=member_info.id).first()
+    if not user_info:
+        resp['code'] = -1
+        resp['msg'] = "没有相关管理员信息，如需操作请添加管理员"
+        resp['data'] = str(member_info.id) + "+" + member_info.nickname
+        return jsonify(resp)
 
     report_status=int(req['report_status']) if 'report_status' in req else "nonono"
     auther_id=int(req['auther_id'])
@@ -284,7 +284,9 @@ def reportBlock():
     report_info=Report.query.filter_by(id=report_id).first()
 
     report_info.status=report_status
+    report_info.user_id=user_info.uid
     goods_info.report_status=report_status
+    goods_info.user_id=user_info.uid
     #拉黑举报者
     if report_status==2:
         report_member_info.status=0
@@ -295,6 +297,7 @@ def reportBlock():
     else:
         pass
 
+    auther_info.updated_time=report_info.updated_time=goods_info.updated_time=report_info.updated_time=getCurrentDate()
     db.session.add(auther_info)
     db.session.add(report_info)
     db.session.add(report_member_info)
