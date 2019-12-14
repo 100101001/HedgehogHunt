@@ -10,8 +10,7 @@ Page({
 
   onLoad: function(options) {
     var op_status = options.op_status;
-    console.log("op_status+" + op_status);
-    // var op_status =4;
+    // var op_status =2;
     this.setData({
       op_status: op_status
     })

@@ -51,23 +51,13 @@ Page({
     })
   },
   toCheckReport:function(){
-    var check_report = app.globalData.check_report;
-    if(!check_report){
-      app.globalData.check_report=!check_report;
-    }
-    console.log(!check_report);
     wx.navigateTo({
       url: '/pages/Record/index?op_status=4',
     })
   },
   toCheckThanksReport: function () {
-    var check_report = app.globalData.check_report;
-    if (!check_report) {
-      app.globalData.check_report = !check_report;
-    }
-    console.log(!check_report);
     wx.navigateTo({
-      url: '/pages/Thanks/record?op_status=4',
+      url: '/pages/Thanks/record/record?op_status=4',
     })
   },
   toCheckStat:function(){

@@ -10,9 +10,9 @@ Page({
   },
 
   onLoad: function(options) {
-    app.checkLogin();
+    var op_status = options.op_status;
     var thanks_new = app.globalData.thanks_new;
-    var op_status = app.globalData.op_status;
+    // var op_status = app.globalData.op_status;
     // var op_status=4;
     if (op_status == 4) {
       var infos = {
@@ -480,14 +480,13 @@ Page({
       }
     });
   },
-  checkReportClick: function(e) {
+  recordTypeClick: function(e) {
     //选择一次分类时返回选中值
+    var infos = this.data.infos;
+    infos.check_status_id = e.currentTarget.id;
     this.setData({
+      infos: infos,
       check_status_id: e.currentTarget.id,
-      p: 1,
-      goods_list: [],
-      loadingMoreHidden: true,
-      processing: false
     });
     this.onPullDownRefresh();
   },

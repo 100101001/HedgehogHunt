@@ -6,35 +6,14 @@ Page({
       text1:"信息为网友发布",
       text2:"私下联系请自行判断真伪"
     };
-    var goodsInfo=[
-      {
-        goods:"卡贴卡套",
-        img:"/images/icons/卡.png",
-        num:3,
-        price:"￥2",
-        id:0
-      },
-      {
-        goods: "钥匙扣",
-        img: "/images/icons/钥匙.png",
-        num: 1,
-        price: "￥4",
-        id: 1
-      },
-      {
-        goods: "贴纸",
-        img: "/images/icons/贴纸.png",
-        num: 5,
-        price: "￥1",
-        id: 2
-      },
-      {
-        goods: "小印章",
-        img: "/images/icons/印章.png",
-        num: 1,
-        price: "￥5",
-        id: 3
-      }
+    var unis=[
+      "/images/unis/TJU.jpeg",
+      "/images/unis/PKU.jpeg",
+      "/images/unis/SJTU.jpeg",
+      "/images/unis/BNU.jpeg",
+      "/images/unis/SEU.jpg",
+      "/images/unis/XJTU.jpeg",
+      "/images/unis/SCU.jpeg",
     ]
     //设置底部导航栏
     var [isSelecteds, urls] = util.onNavigateTap(0);
@@ -42,8 +21,8 @@ Page({
     isSelecteds['total_new'] = total_new;
     this.setData({
       isSelecteds: isSelecteds,
-      goodsInfo: goodsInfo,
       textArray:textArray,
+      unis:unis,
     })
   },
 

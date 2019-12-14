@@ -21,20 +21,17 @@ def staticNumber():
         return jsonify(resp)
 
     #上架与下架的商品数量
-    on_sell_num=len(Good.query.filter_by(status=1).all())
-    on_hide_num=len(Good.query.filter_by(status=0).all())
-    total_num=len(Good.query.filter(Good.status!=2).all())
+    find_num=len(Good.query.filter_by(business_type=1).all())
+    lost_num=len(Good.query.filter_by(business_type=0).all())
+    gotback_num=len(Good.query.filter_by(status=3).all())
+    thanks_num=len(Good.query.filter_by(status=4).all())
+    total_num=len(Good.query.all())
 
     #总浏览量
     total_view_count=0
     total_goods=Good.query.all()
     for item in total_goods:
         total_view_count=total_view_count+item.view_count
-
-
-    #闲置的数量
-    sell_num=len(Good.query.filter_by(business_type=1).all())
-    buy_num=len(Good.query.filter_by(business_type=0).all())
 
     #举报数量
     report_num=len(Report.query.all())
@@ -44,10 +41,16 @@ def staticNumber():
     block_member_num=len(Member.query.filter_by(status=0).all())
     member_num=len(Member.query.all())
 
+    #总收入
+    total_count_in=0
     items=[
         {
             "label": "总浏览量",
             "num": total_view_count,
+        },
+        {
+            "label": "总收入",
+            "num": total_count_in,
         },
         {
             "label": "会员数",
@@ -61,20 +64,20 @@ def staticNumber():
             "num": total_num,
         },
         {
-            "label": "在线数",
-            "num": on_sell_num,
+            "label": "失物招领数",
+            "num": find_num,
         },
         {
-            "label": "下架数",
-            "num": on_hide_num,
+            "label": "寻物启事数",
+            "num": lost_num,
         },
         {
-            "label": "闲置数",
-            "num": sell_num,
+            "label": "取回数",
+            "num": gotback_num,
         },
         {
-            "label": "求购数",
-            "num": buy_num,
+            "label": "答谢数",
+            "num": thanks_num,
         },
         {
             "label": "举报数",

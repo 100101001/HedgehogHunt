@@ -13,7 +13,7 @@
       <button class="search_button" hidden="{{saveHidden}}" bindtap="editTap">完成</button>
     </view>
   </form>
-  <view class="type-container" wx:if="{{op_status==4}}">
+  <view class="type-container" wx:if="{{check_cat.length==5}}">
     <scroll-view class="type-navbar-check-report">
       <view class="box-report" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="index">
         <view id="{{cat.id}}" class="type-navbar-item {{check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="recordTypeClick">
@@ -23,7 +23,7 @@
     </scroll-view>
   </view>
   <!--检查举报-->
-  <view class="type-container" wx:if="{{op_status!=4}}">
+  <view class="type-container" wx:if="{{check_cat.length!=5}}">
     <scroll-view class="type-navbar-check-report">
       <view class="type-box" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="index">
         <view id="{{cat.id}}" class="type-navbar-item {{check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="checkReportClick">

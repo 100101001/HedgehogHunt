@@ -44,7 +44,7 @@ page {
 }
 
 .type-box {
-  width: 150rpx;
+  width: 250rpx;
   box-sizing: content-box;
   font-size: 24rpx;
   line-height: 64rpx;
@@ -54,7 +54,7 @@ page {
 }
 
 .box-report{
-  width: 187rpx;
+  width: 150rpx;
   box-sizing: content-box;
   font-size: 24rpx;
   line-height: 64rpx;
