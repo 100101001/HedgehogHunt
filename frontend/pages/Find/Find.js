@@ -1,4 +1,3 @@
-var goodsData = require("../../data/posts-data.js");
 var util = require("../../utils/util.js");
 var app = getApp();
 Page({
@@ -102,6 +101,7 @@ Page({
   //点击信息卡查看详情
   onDetailTap: function(event) {
     var id = event.currentTarget.dataset.id;
+    app.globalData.op_status=2;
     wx.navigateTo({
       url: 'info/info?goods_id=' + id,
     })
@@ -194,7 +194,8 @@ Page({
             url: app.buildUrl("/goods/report"),
             header: app.getRequestHeader(),
             data: {
-              id: id
+              id: id,
+              record_type: 1,
             },
             success: function(res) {
               var resp = res.data;

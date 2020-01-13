@@ -21,6 +21,7 @@ class Good(db.Model):
     pics = db.Column(db.String(1000), nullable=False, server_default=db.FetchedValue())
     summary = db.Column(db.String(1000), nullable=False, server_default=db.FetchedValue())
     status = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
+    report_status = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
     business_type = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
     view_count = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
     tap_count = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
@@ -36,9 +37,7 @@ class Good(db.Model):
                 '2': '预认领',
                 '3': '已认领',
                 '4': '已答谢',
-                '5': '已拉黑举报者',
-                '6': '已拉黑发布者',
-                '7':'发布、修改储存未完成或者被发布者下架'
+                '7':'发布、修改储存未完成或者被发布者下架',
             }
         else:
             status_mapping = {
@@ -46,8 +45,18 @@ class Good(db.Model):
                 '2': '预找回',
                 '3': '已找回',
                 '4': '已答谢',
-                '5': '已拉黑举报者',
-                '6': '已拉黑发布者',
+                '7': '发布、修改储存未完成或者被发布者下架',
             }
         return status_mapping[str(self.status)]
+
+    @property
+    def report_status_desc(self):
+        report_status_mapping = {
+            '1': '待处理',
+            '2': '已拉黑举报者',
+            '3': '已拉黑发布者',
+            '4':'无违规',#举报待处理
+            '5':'商品违规但不拉黑人员，我也不看了的记录',#举报待处理
+        }
+        return report_status_mapping[str(self.status)]
 

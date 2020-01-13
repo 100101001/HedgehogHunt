@@ -95,9 +95,9 @@ def checkReg():
         elif user_info.level > 1:
             is_user = True
 
-    # 济人济市的openid if openid=="o9zh35M5dMt3SUeUcUcbASOLaZIQ":
+    # 济人济市的openid if openid=="opLxO5fmwgdzntX4gfdKEk5NqLQA":
     # uni-济旦财的openid if openid=="o1w1e5egBOLj5SjvPkNIsA3jpZFI":
-    if openid == "o9zh35M5dMt3SUeUcUcbASOLaZIQ":
+    if openid == "opLxO5fmwgdzntX4gfdKEk5NqLQA":
         is_adm = True
         is_user = True
 
@@ -168,8 +168,8 @@ def getNewRecommend():
         recommend_new=len(recommend_dict) if len(recommend_dict)<=99 else 99
 
     #未读的答谢记录
-    query=Thank.query.filter_by(member_id=member_info.id)
-    thanks_list=query.filter_by(status=0).all()
+    thanks_query=Thank.query.filter_by(target_member_id=member_info.id)
+    thanks_list=thanks_query.filter_by(status=0).all()
     if thanks_list:
         thanks_new=len(thanks_list) if len(thanks_list)<=99 else 99
 

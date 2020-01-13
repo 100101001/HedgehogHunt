@@ -1,22 +1,30 @@
 <import src="../../template/search-bar/search-bar-template.wxml" />
 <template is="search-bar-template" data="{{...infos}}" />
 <!--index.wxml-->
+<loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
 <view class="container">
   <view class="message_container">
     <!--检查举报-->
-    <view class="type-container">
-      <scroll-view class="type-navbar-check-report">
-        <view class="type-box" wx:for-items="{{infos.check_cat}}" wx:for-item="cat" wx:key="index">
-          <view id="{{cat.id}}" class="type-navbar-item {{infos.check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="checkReportClick">
-            {{cat.name}}
-          </view>
-        </view>
-      </scroll-view>
-    </view>
+    <template is="search-bar-template" data="{{...infos}}" />
     <block wx:for="{{infos.list}}" wx:key="index">
       <view class="goods_message">
         <radio class="radio" hidden="{{infos.saveHidden}}" data-index="{{index}}" bindtap="selectTap" checked="{{item.selected}}" />
         <view class=".goods_container">
+
+          <view class="auther_data" wx:if="{{item.report_id}}">
+              <view class="auther_container">
+              <image class="auther_avatar" src="{{item.report_member_avatar}}"></image>
+              <view class="auther_message">
+                <text class="auther_name">{{item.report_member_name}}</text>
+                <text class="release_date">{{item.report_updated_time}}</text>
+              </view>
+            </view>
+            <view class="status-container" wx:if="{{item.reward}}">{{item.reward}}</view>
+            <view class="report"  data-id="{{item.id}}">
+              <image src="/images/icons/report.png"></image>
+              <text>举报</text>
+            </view>
+          </view>
           <view class="auther_data">
             <view class="auther_container">
               <image class="auther_avatar" src="{{item.avatar}}"></image>
@@ -26,7 +34,7 @@
               </view>
             </view>
             <view class="status-container" wx:if="{{item.reward}}">{{item.reward}}</view>
-            <view class="report" catchtap="toReport" data-id="{{id}}">
+            <view class="report" catchtap="toReport" data-id="{{item.id}}">
               <image src="/images/icons/report.png"></image>
               <text>举报</text>
             </view>
@@ -35,10 +43,19 @@
             <text style='color: #f7931e; font-size:20rpx'>#{{item.business_desc}}#</text>
             <view class="goods_owner">{{item.goods_name}}</view>
             <view class="goods_owner">{{item.owner_name}}</view>
+            <view class="goods_owner" wx:if="{{item.status==0}}">NEW</view>
           </view>
           <view class="goods_content">{{item.summary}}</view>
+          <view class="horizon" wx:if="{{item.report_id}}"></view>
+          <view class="block-btn-container" wx:if="{{item.report_id}}">
+            <view bindtap="toBlock" data-report_status="4" data-report_id="{{item.report_id}}">无违规</view>
+            <view bindtap="toBlock" data-report_status="2" data-report_id="{{item.report_id}}">举报者</view>
+            <view bindtap="toBlock" data-report_status="3" data-report_id="{{item.report_id}}">发布者</view>
+          </view>
         </view>
       </view>
     </block>
   </view>
 </view>
+<view wx:if="{{!loadingMoreHidden}}" class="no-more-goods">没有更多记录了~</view>
+<view wx:if="{{loadingMoreHidden}}" class="no-more-goods">上滑加载更多～</view>

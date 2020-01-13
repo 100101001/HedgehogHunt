@@ -2,7 +2,7 @@ DROP DATABASE IF EXISTS `ciwei_db`;
 CREATE DATABASE `ciwei_db` DEFAULT CHARACTER SET = `utf8mb4`;
 USE `ciwei_db`;
 #flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables member  --outfile "common/models/jmall/Member.py"  --flask
-#flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables thanks  --outfile "common/models/Thanks.py" --flask
+#flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables report  --outfile "common/models/ciwei/Report.py" --flask
 DROP TABLE IF EXISTS `user`;
 
 CREATE TABLE `user` (
@@ -77,6 +77,7 @@ CREATE TABLE `goods` (
   `pics` varchar(1000) NOT NULL DEFAULT '' COMMENT '组图',
   `summary` varchar(1000) NOT NULL DEFAULT '' COMMENT '描述',
   `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态 1：有效 0：无效',
+  `report_status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '被举报后的状态，用于存储举报的状态值',
   `business_type` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态 1：失物招领 0：寻物启事',
   `view_count` int(11) NOT NULL DEFAULT '0' COMMENT '总浏览次数',
   `tap_count` int(11) NOT NULL DEFAULT '0' COMMENT '查看地址次数',
@@ -108,9 +109,10 @@ CREATE TABLE `report` (
   `user_id` int(11) unsigned NOT NULL DEFAULT '0'  COMMENT '拉黑会员的管理员id',
   `member_id` int(11) unsigned NOT NULL  COMMENT '发布消息的会员id',
   `report_member_id` int(11) unsigned NOT NULL  COMMENT '举报消息的会员id',
-  `goods_id` int(11) NOT NULL COMMENT '物品id',
+  `record_id` int(11) NOT NULL COMMENT '信息id，有可能是物品信息违规，也可能是用户的答谢违规',
   `summary` varchar(200) NOT NULL DEFAULT '' COMMENT '描述',
   `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态 1：已读 0：未读',
+  `record_type` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态 1：物品信息违规 0：答谢信息违规',
   `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后插入时间',
   PRIMARY KEY (`id`)

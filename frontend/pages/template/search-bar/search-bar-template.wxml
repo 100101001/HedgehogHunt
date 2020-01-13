@@ -6,15 +6,24 @@
         <input value='{{name}}' bindblur="onPullDownRefresh" bindfocus='onBindFocus' bindinput="listenerNameInput" class='search_text_box' type="text" placeholder='姓名' placeholder-style='color:#f7931e;'></input>
       </view>
       <view class="search_box2">
-        <input value="{{type}}" bindfocus='onBindFocus' bindblur="onPullDownRefresh" bindinput="listenerGoodsNameInput" class='search_text_box' type="text" placeholder='物品' placeholder-style='color:#f7931e; '></input>
+        <input value="{{type}}" bindfocus='onBindFocus' bindblur="onPullDownRefresh" bindinput="listenerGoodsNameInput" class='search_text_box' type="text" placeholder='物品' placeholder-style='color:#f7931e;'></input>
       </view>
       <radio class="radio" value="buying"  bindtap="radioChange" checked="{{only_new}}">仅新增</radio>
       <button class="search_button" hidden="{{!saveHidden}}" bindtap="editTap">编辑</button>
       <button class="search_button" hidden="{{saveHidden}}" bindtap="editTap">完成</button>
     </view>
   </form>
+  <view class="type-container" wx:if="{{check_cat.length==5}}">
+    <scroll-view class="type-navbar-check-report">
+      <view class="box-report" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="index">
+        <view id="{{cat.id}}" class="type-navbar-item {{check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="recordTypeClick">
+          {{cat.name}}<view class="content_tip" wx:if="{{cat.value && cat.value!=0}}">{{cat.value}}</view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
   <!--检查举报-->
-  <view class="type-container">
+  <view class="type-container" wx:if="{{check_cat.length!=5}}">
     <scroll-view class="type-navbar-check-report">
       <view class="type-box" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="index">
         <view id="{{cat.id}}" class="type-navbar-item {{check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="checkReportClick">

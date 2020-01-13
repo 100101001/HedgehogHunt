@@ -1,121 +1,86 @@
 @import "../template/warn/warn-template.wxss";
 @import "../template/navigate-bar/navigate-bar-template.wxss";
 
-.my_video {
-  margin-left: 35rpx;
-  margin-top: 30rpx;
-  width: 680rpx;
-  height: 340rpx;
-  justify-content: center;
+page {
+  /*背景图片*/
+  background-image: url("https://console.changshunlive.com/static/img/20190308185846.png");
+  background-attachment: fixed;
+}
+
+.all-container{
+  margin-top:70rpx;
+}
+
+
+.search_container {
   align-items: center;
-}
-/*横线*/
-.horizontal_line{
-border-bottom:1rpx  #bbbbbb solid;
-width: 680rpx;
-margin-top: 10rpx;
-height: 1rpx;
-margin-left: 35rpx;
-}
-.goods_posts{
+  position: fixed;
   display: flex;
   flex-direction: row;
-  margin-top: 40rpx;
-  margin-bottom: 50rpx;
+  padding: 5px;
+  background-color: #f7931e;
+  width: 750rpx;
+  top: 0;
+  z-index:500;
 }
-.title{
-  color: #f7931e;
-  width: 130rpx;
-  height: 270rpx;
-  text-align: center;
+
+.search_box {
   display: flex;
   justify-content: center;
-  align-items: center;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.goods_post1{
-  opacity: 0.7;
-  width: 130rpx;
-  height: 270rpx;
-  border: 0.5px  #f7931e solid;
-  margin-left: -15rpx;
-}
-
-.goods_post{
-  opacity: 0.7;
-  width: 130rpx;
-  height: 270rpx;
-  border: 0.5px  #f7931e solid;
   margin-left: 20rpx;
-}
-
-.more{
-  opacity: 0.7;
-  width: 130rpx;
-  height: 270rpx;
-  border: 0.5px  #f7931e solid;
-  color: #f7931e;
-  margin-left: 20rpx;
-  display: flex;
+  align-items: center;
+  border-radius: 25rpx;
+  width: 470rpx;
+  font-size: 22rpx;
   flex-direction: row;
-  justify-content: center;
-  align-items: center;
-}
-
-.more_btn{
-  display: flex;
-  flex-direction: row;
-  margin-left: 20rpx;
-  font-size: 10px;
-  justify-content: center;
-  align-items: center;
-}
-
-.more image{
-  height: 40rpx;
-  width: 45rpx;
-  margin-left: -30rpx;
-}
-
-.img2{
-  opacity: 0.7;
-}
-
-.img3{
-  opacity: 0.4;
-}
-
-.more_text{
-  margin-left: -10rpx;
-}
-
-/*底部按钮*/
-.button1 {
-  align-items: center;
-  display: flex;
-  flex-direction: row;
-  margin-left: 45rpx;
-  width: 542rpx;
-  margin-bottom: 15rpx;
-}
-
-.next {
-  display: flex;
-  flex: 1;
-  position: absolute;
-  align-items: center;
-  right: 40rpx;
-}
-
-.next_img1 {
-  width: 40rpx;
+  background-color: #fff;
   height: 50rpx;
-  margin-top: 15rpx;
 }
-.title1 {
+.search_icon{
   margin-left: 10rpx;
-  font-size: 12px;
-  margin-top: 10rpx;
+}
+.search_text_box {
+  margin-left: 25rpx;
+  height: 35rpx;
+  width: 360rpx;
+  color: #f7931e;
+}
+
+.search_icon{
+  margin-left: 12rpx;
+}
+
+.search_button {
+  color: #fff;
+  background-color: #f7931e;
+  height: 50rpx;
+  display: flex;
+  align-items: center;
+  padding-left:30rpx;
+  padding-right: 30rpx;
+  border: 2px #fff solid;
+  border-radius: 30rpx;
+  font-size: 22rpx;
+  margin-left: 60rpx;
+}
+
+.image-container{
+  display: flex;
+  justify-content: center;
+}
+
+.image-container image{
+  width: 700rpx;
+  height: 300rpx;
+  box-shadow:12rpx 12rpx 12rpx gainsboro;
+  margin-top: 30rpx;
+  border-radius: 30rpx;
+}
+
+.no-more-goods {
+  text-align: center;
+  font-size: 24rpx;
+  padding-bottom: 228rpx;
+  margin-top: 30rpx;
+  color: #999;
 }

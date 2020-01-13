@@ -49,27 +49,16 @@ function onNavigateTap(id) {
       break;
   }
   var urls = [
-    "/pages/Homepage/homepage",
-    "/pages/Find/Find?business_type=1",
+    "/pages/homepage/homepage",
+    "/pages/Find/Find",
     "/pages/Release/Release",
-    "/pages/Find/Find?business_type=0",
+    "/pages/Lost/Lost",
     "/pages/Mine/Mine",
   ]
-  return [isSelecteds,urls];
+  return [isSelecteds, urls];
 }
-
-//检查电话号码
-function regexConfig(){
-  var reg = {
-    email:/^(\w-*\.*)+@(\w-?)+(\.\w{2,})+$/,
-    phone:/^1(3|4|5|7|8)\d{9}$/
-  }
-  return reg;
-}
-
 module.exports = {
   formatTime: formatTime,
   showMessage: showMessage,
   onNavigateTap: onNavigateTap,
-  regexConfig:regexConfig
 }

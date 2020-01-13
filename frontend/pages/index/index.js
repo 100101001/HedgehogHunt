@@ -34,70 +34,6 @@ Page({
       });
     }
   },
-  test: function () {
-    wx.request({
-      url: app.buildUrl("/test"),
-      header: app.getRequestHeader(),
-      success: function (res) { }
-    })
-  },
-  //===========================================
-  //      李依璇调试用，直接取消掉注释就可以
-  // onLoad: function (options) {
-  //   //this.test();
-  //   wx.setNavigationBarTitle({
-  //     title: app.globalData.shopName
-  //   });
-  //   app.checkLogin();
-  //   app.getNewRecommend();
-  //   //this.goToIndex();
-
-  //   //later will use index page for redirect
-  //   if (options.id) {
-  //     wx.navigateTo({
-  //       url: "/pages/Qrcode/index?id=" + options.id
-  //     })
-  //     wx.request({
-  //       method: 'post',
-  //       url: app.buildUrl("/qrcode/scan"),
-  //       data: {
-  //         id: options.id
-  //       },
-  //       success: function (res) {
-  //         if (res.data == true) {
-  //           wx.navigateTo({
-  //             url: "/pages/Release/release/index"
-  //           })
-  //         } else {
-  //           wx.navigateTo({
-  //             url: "/pages/Qrcode/Register/index"
-  //           })
-  //         }
-  //       },
-  //       fail: function (res) {
-  //         app.serverBusy()
-  //       }
-  //     })
-  //   } else {
-  //     //comment code for debug scan qrcode
-  //     //this.goToIndex();
-  //   }
-
-  //   //only for debug scan qr code
-  //   wx.navigateTo({
-  //     url: "/pages/Qrcode/index?id=" + 1
-  //   })
-
-  //   //this.goToIndex();
-  //   // var goods_id = options.goods_id;
-  //   // if (goods_id) {
-  //   //   this.setData({
-  //   //     goods_id: goods_id,
-  //   //   })
-  //   // }
-  // },
-  //================================================
-
   //****************************************************
   //               韦朝旭调试
   onLoad: function (options) {
@@ -106,8 +42,6 @@ Page({
     });
     app.checkLogin();
     app.getNewRecommend();
-    //this.goToIndex();
-
     // can be used by both of us, 
     // qrcodeId==null indicates not qrcode
     var qrcodeId = this.getQrcodeId(options)

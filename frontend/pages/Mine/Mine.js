@@ -7,6 +7,10 @@ Page({
   },
   onLoad: function () {
     var that = this
+    var is_user = app.globalData.is_user;
+    this.setData({
+      is_user: is_user
+    })
     var [isSelecteds, urls] = util.onNavigateTap(4);
     var total_new = app.globalData.total_new;
     var recommend_new = app.globalData.recommend_new;
@@ -97,6 +101,7 @@ Page({
     })
   },
   goThanksList: function () {
+    app.globalData.op_status=2;
     wx.navigateTo({
       url: '../Thanks/record/record',
     })

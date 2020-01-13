@@ -7,17 +7,7 @@ Page({
     price: 0
   },
   onLoad: function(options) {
-    // var data = JSON.parse(options.data)
-    var data = {
-      auther_id: 100000,
-      auther_name: "Joker",
-      avatar: "https://wx.qlogo.cn/mmopen/vi_32/bIp2ka72wPydCEsH6U1oFbVoINfxeJwJ4uGTicGfgSCGC8jGPCnicxAIPlCt2bkUy50cCPEbOPo4cm39r6seyLVw/132",
-      business_type: 1,
-      goods_id: 8,
-      goods_name: "相机",
-      updated_time: "2019-12-10 09:34:49",
-      owner_name:"韦朝旭"
-    };
+    var data = JSON.parse(options.data)
     this.setData({
       data: data
     })
