@@ -222,7 +222,7 @@ App({
     return;
   },
   //getNewMes
-  getNewRecommend: function (callback) {
+  getNewRecommend: function () {
     var that = this;
     console.log("获取新的推荐记录")
     wx.request({
@@ -240,7 +240,6 @@ App({
         that.globalData.recommend_new = res.data.data.recommend_new;
         that.globalData.thanks_new = res.data.data.thanks_new;
         that.globalData.recommend = res.data.data.recommend;
-        callback();
       }
     });
   },
