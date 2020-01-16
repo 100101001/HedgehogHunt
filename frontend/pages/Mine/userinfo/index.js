@@ -62,7 +62,7 @@ Page({
               has_qrcode: true
             })
           } else if (res.statusCode == 201) {
-            console.log("没获取到")
+            console.log("没获取到数据库的qrcode")
             that.setData({
               has_qrcode: false
             })
