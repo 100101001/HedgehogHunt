@@ -222,8 +222,9 @@ App({
     return;
   },
   //getNewMes
-  getNewRecommend: function () {
+  getNewRecommend: function (callback) {
     var that = this;
+    console.log("获取新的推荐记录")
     wx.request({
       url: that.buildUrl('/member/get-new-recommend'),
       header: that.getRequestHeader(),
@@ -231,12 +232,15 @@ App({
       data: {},
       success: function (res) {
         if (res.data.code !== 200) {
+          console.log("获取新的推荐记录失败了，全局的recommand是空的")
           return;
         }
+        console.log("获取新的推荐记录成功了，全局的recommand是有值的")
         that.globalData.total_new = res.data.data.total_new;
         that.globalData.recommend_new = res.data.data.recommend_new;
         that.globalData.thanks_new = res.data.data.thanks_new;
         that.globalData.recommend = res.data.data.recommend;
+        callback();
       }
     });
   },
