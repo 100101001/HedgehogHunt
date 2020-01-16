@@ -1,7 +1,7 @@
 <import src="../template/navigate-bar/navigate-bar-template.wxml" />
 <view class="container">
-  <image class="sell" src="/images/icons/find_select.png" bindtap="onFindTap"></image>
-  <image class="buy" src="/images/icons/lost_select.png"  bindtap="onLostTap"></image>
+  <image class="find" src="/images/icons/find_select.png" bindtap="onFindTap"></image>
+  <image class="lost" src="/images/icons/lost_select.png"  bindtap="onLostTap"></image>
 </view>
 <view>
   <template is="navigate-bar-template" data="{{...isSelecteds}}" />
