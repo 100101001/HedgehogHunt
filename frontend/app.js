@@ -295,6 +295,7 @@ App({
     var data = e.detail.userInfo;
     wx.login({
       success: function (res) {
+        console.log("微信登录成功")
         if (!res.code) {
           that.alert({
             'content': '登录失败，请再次登录～～'
@@ -309,6 +310,7 @@ App({
           method: 'POST',
           data: data,
           success: function (res) {
+            console.log("会员注册或者登录成功")
             if (res.data.code != 200) {
               that.alert({
                 'content': res.data.msg
@@ -325,6 +327,7 @@ App({
             }, 5000);
           },
           fail: function (res) {
+            console.log("会员注册或者登录失败")
             that.serverBusy();
             return;
           },
