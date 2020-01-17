@@ -483,7 +483,7 @@ def goodsReport():
 
     record_info.report_status = 1
     record_info.updated_time = getCurrentDate()
-    db.session.add(record_info)
+    #db.session.add(record_info)
     db.session.commit()
 
     model_report=Report()

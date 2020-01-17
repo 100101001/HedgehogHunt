@@ -9,13 +9,13 @@
   top:700rpx;
 }
 
-.sell{
+.find{
   height: 240rpx;
   width: 200rpx;
   margin-left: 117rpx;
 }
 
-.buy{
+.lost{
   height: 250rpx;
   width: 200rpx;
   margin-left: 117rpx;
