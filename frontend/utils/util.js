@@ -49,10 +49,10 @@ function onNavigateTap(id) {
       break;
   }
   var urls = [
-    "/pages/homepage/homepage",
+    "/pages/Homepage/homepage",
     "/pages/Find/Find",
     "/pages/Release/Release",
-    "/pages/Lost/Lost",
+    "/pages/Find/Find",
     "/pages/Mine/Mine",
   ]
   return [isSelecteds, urls];

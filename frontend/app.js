@@ -14,8 +14,8 @@ App({
     version: "1.0",
     regFlag: false,
     shopName: "刺猬寻物",
-    domain: "http://127.0.0.1:8999/api",
-    // domain: "http://ubuntu:8999/api",
+    // domain: "http://127.0.0.1:8999/api",
+    domain: "http://ubuntu:8999/api",
     member_id: null,
     member_status: 1,
     is_adm: true,
@@ -224,6 +224,7 @@ App({
   //getNewMes
   getNewRecommend: function () {
     var that = this;
+    console.log("获取新的推荐记录")
     wx.request({
       url: that.buildUrl('/member/get-new-recommend'),
       header: that.getRequestHeader(),
@@ -231,8 +232,10 @@ App({
       data: {},
       success: function (res) {
         if (res.data.code !== 200) {
+          console.log("获取新的推荐记录失败了，全局的recommand是空的")
           return;
         }
+        console.log("获取新的推荐记录成功了，全局的recommand是有值的")
         that.globalData.total_new = res.data.data.total_new;
         that.globalData.recommend_new = res.data.data.recommend_new;
         that.globalData.thanks_new = res.data.data.thanks_new;
@@ -291,6 +294,7 @@ App({
     var data = e.detail.userInfo;
     wx.login({
       success: function (res) {
+        console.log("微信登录成功")
         if (!res.code) {
           that.alert({
             'content': '登录失败，请再次登录～～'
@@ -305,6 +309,7 @@ App({
           method: 'POST',
           data: data,
           success: function (res) {
+            console.log("会员注册或者登录成功")
             if (res.data.code != 200) {
               that.alert({
                 'content': res.data.msg
@@ -321,6 +326,7 @@ App({
             }, 5000);
           },
           fail: function (res) {
+            console.log("会员注册或者登录失败")
             that.serverBusy();
             return;
           },

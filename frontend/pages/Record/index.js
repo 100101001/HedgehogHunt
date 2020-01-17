@@ -1,6 +1,7 @@
 var goodsData = require("../../data/posts-data.js");
 var util = require("../../utils/util.js");
 var app = getApp();
+//从Mine/Mine跳转至此
 Page({
   data: {
     owner_name: "",
@@ -10,7 +11,6 @@ Page({
 
   onLoad: function(options) {
     var op_status = options.op_status;
-    // var op_status =2;
     this.setData({
       op_status: op_status
     })
@@ -19,7 +19,7 @@ Page({
   },
   onLoadSetData: function(op_status) {
     var recommend = app.globalData.recommend;
-    if (op_status == 1) {
+    if (op_status == 0) {
       var infos = {
         list: {},
         only_new: false,
@@ -41,7 +41,7 @@ Page({
         ],
       };
       var check_status_id = 2;
-    } else if (op_status == 4) {
+    } else if (op_status == 3) {
       var infos = {
         list: {},
         saveHidden: true,
