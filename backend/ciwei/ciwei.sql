@@ -131,6 +131,7 @@ CREATE TABLE `thanks` (
   `business_desc` varchar(10) NOT NULL DEFAULT '' COMMENT '拾到或者丢失',
   `owner_name` varchar(80) NOT NULL DEFAULT '' COMMENT '用户的名称，可能只是微信昵称',
   `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态 1：已读 0：未读',
+  `report_status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '被举报后的状态，用于存储举报的状态值',
   `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后插入时间',
   PRIMARY KEY (`id`)
