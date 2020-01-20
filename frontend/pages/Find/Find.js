@@ -23,7 +23,8 @@ Page({
     ],
   },
   onLoad: function(options) {
-    var business_type = options.business_type;
+    //如果没有页面参数，则默认跳转失物招领页面
+    var business_type = options.business_type? options.business_type : 1;
     if (business_type == 1) {
       var [isSelecteds, urls] = util.onNavigateTap(1);
       var categories = [{
