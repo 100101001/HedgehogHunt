@@ -25,7 +25,8 @@ Page({
 
   onFindTap: function(event) {
     var regFlag = app.globalData.regFlag;
-    if (!regFlag) {
+    var token = wx.getStorageSync('token')
+    if (!regFlag && token == "") {
       app.loginTip();
       return;
     }
@@ -36,7 +37,9 @@ Page({
 
   onLostTap: function(event) {
     var regFlag = app.globalData.regFlag;
-    if (!regFlag) {
+    var token = wx.getStorageSync('token')
+    console.log(token)
+    if (!regFlag && token == "") {
       app.loginTip();
       return;
     }
