@@ -363,8 +363,8 @@ Page({
       summary_placeholder: summary_placeholder,
       summary_value: summary_value,
       tips_obj: tips_obj,
-      info_owner_name:info.owner_name,
-      location:location
+      info_owner_name: info.owner_name === undefined ? "" : info.owner_name,
+      location: location === undefined ? "" : location
     });
   },
 });
