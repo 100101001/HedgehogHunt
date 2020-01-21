@@ -274,7 +274,6 @@ Page({
     });
     wx.request({
       url: app.buildUrl("/adv/search"),
-      header: app.getRequestHeader(),
       success: function(res) {
         var resp = res.data;
         if (resp.code !== 200) {
@@ -353,7 +352,6 @@ Page({
     });
     wx.request({
       url: app.buildUrl("/goods/search"),
-      header: app.getRequestHeader(),
       data: {
         status: that.data.activeCategoryId,
         mix_kw: that.data.goods_name,
