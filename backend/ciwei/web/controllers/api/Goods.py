@@ -162,9 +162,10 @@ def endCreate():
     target_goods_id=req['target_goods_id'] if 'target_goods_id' in req else 0
     if target_goods_id:
         target_goods_info=Good.query.filter_by(id=target_goods_id).first()
-        target_goods_info.status=2
-        db.session.add(target_goods_info)
-        db.session.commit()
+        if target_goods_info:
+            target_goods_info.status = 2
+            # db.session.add(target_goods_info)
+            db.session.commit()
 
     #创建或者修改完成时，对用户进行推荐
     MemberService.recommendGoods(goods_info)
@@ -381,13 +382,14 @@ def goodsInfo():
     member_info=g.member_info
     #用户能否看到地址,如果是在mark列表或者发布者可以看到地址和电话
     show_location=False
-    mark_goods_id=member_info.mark_id
-    if mark_goods_id:
+
+    if member_info and member_info.mark_id:
+        mark_goods_id = member_info.mark_id
         mark_id_list=mark_goods_id.split('#')
         if str(goods_info.id) in mark_id_list:
             show_location=True
 
-    if member_info.recommend_id:
+    if member_info and member_info.recommend_id:
         recommend_id_list=MemberService.getRecommendDict(member_info.recommend_id,False)
         if id in recommend_id_list.keys() and recommend_id_list[id]==0:
             recommend_id_list[id]=1
@@ -409,7 +411,7 @@ def goodsInfo():
     location_list=goods_info.location.split("###")
     location_list[2]=eval(location_list[2])
     location_list[3]=eval(location_list[3])
-    #浏览量加一
+    #浏览量加一(同一次登陆会话看多少次应都只算一次浏览)
     goods_info.view_count = goods_info.view_count + 1
     resp['data']['info']={
         "id":goods_info.id,
@@ -434,7 +436,7 @@ def goodsInfo():
     }
 
     resp['data']['show_location']=show_location
-    db.session.add(goods_info)
+    # db.session.add(goods_info)
     db.session.commit()
 
     return jsonify(resp)
