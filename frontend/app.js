@@ -273,6 +273,22 @@ App({
             that.globalData.member_status = res.data.data.member_status;
             that.globalData.id = res.data.data.id;
             that.globalData.regFlag = true;
+            wx.showToast({
+              title: '登录成功',
+              icon: 'success',
+              duration:1500,
+              success: function(res) {
+                setTimeout(function () {
+                  wx.navigateBack({})
+                }, 1500); 
+              }
+            })
+            // that.alert({
+            //   content:"登陆成功",
+            //   cb_confirm:function(){
+            //       wx.navigateBack({})     
+            //   }
+            // })
           },
           fail: function (res) {
             that.serverBusy();
@@ -318,12 +334,12 @@ App({
             }
             that.setCache("token", res.data.data.token);
             that.checkLogin();
-            that.alert({
-              'content': '登录成功,5秒后自动返回之前页面，欢迎继续使用～'
-            });
-            setTimeout(function () {
-              wx.navigateBack({})
-            }, 5000);
+            // that.alert({
+            //   'content': '登录成功,5秒后自动返回之前页面，欢迎继续使用～'
+            // });
+            // setTimeout(function () {
+            //   wx.navigateBack({})
+            // }, 5000);
           },
           fail: function (res) {
             console.log("会员注册或者登录失败")
