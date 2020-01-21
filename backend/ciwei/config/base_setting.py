@@ -1,5 +1,6 @@
 SERVER_PORT = 8999
-IP = '127.0.0.1'
+# IP = '127.0.0.1'
+IP = 'ubuntu'
 # IP='100.68.70.139'
 DEBUG = True
 SQLALCHEMY_ECHO = True
