@@ -138,7 +138,7 @@ class MemberService():
         else:
             member_info.recommend_id=str(goods_id)+':0'
 
-        db.session.add(member_info)
+        # db.session.add(member_info)
         db.session.commit()
 
     @staticmethod
