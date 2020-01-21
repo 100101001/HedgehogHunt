@@ -130,7 +130,7 @@ Page({
     });
     wx.request({
       url: app.buildUrl("/goods/info"),
-      // header: app.getRequestHeader(),
+      header: app.getRequestHeader(),
       data: {
         id: id,
       },
