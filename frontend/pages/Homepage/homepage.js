@@ -6,14 +6,29 @@ Page({
       text1:"信息为网友发布",
       text2:"私下联系请自行判断真伪"
     };
-    var unis=[
-      "/images/unis/TJU.jpeg",
-      "/images/unis/PKU.jpeg",
-      "/images/unis/SJTU.jpeg",
-      "/images/unis/BNU.jpeg",
-      "/images/unis/SEU.jpg",
-      "/images/unis/XJTU.jpeg",
-      "/images/unis/SCU.jpeg",
+    var unis = [{
+      "id": "同济大学",
+      "url": "/images/unis/TJU.jpeg",
+    }, {
+        "id": "北京大学",
+        "url": "/images/unis/PKU.jpeg",
+      },
+      {
+        "id": "北京师范",
+        "url": "/images/unis/BNU.jpeg",
+      },
+      {
+        "id": "东南大学",
+        "url": "/images/unis/SEU.jpg",
+      },
+      {
+        "id": "西安交大",
+        "url": "/images/unis/XJTU.jpeg",
+      },
+      {
+        "id": "四川大学",
+        "url": "/images/unis/SCU.jpeg",
+      }
     ]
     //设置底部导航栏
     var [isSelecteds, urls] = util.onNavigateTap(0);
