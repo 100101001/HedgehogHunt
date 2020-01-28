@@ -1,3 +1,4 @@
+const app=getApp();
 const formatTime = date => {
   const year = date.getFullYear()
   const month = date.getMonth() + 1
@@ -24,6 +25,9 @@ function showMessage(title, content) {
 
 //初始化底部导航栏状态
 function onNavigateTap(id) {
+  if(id==4 && !app.loginTip()){
+    return;
+  }
   var isSelecteds = {
     isSelected0: false,
     isSelected1: false,

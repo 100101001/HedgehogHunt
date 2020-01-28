@@ -24,10 +24,7 @@ Page({
   },
 
   onFindTap: function(event) {
-    var regFlag = app.globalData.regFlag;
-    var token = wx.getStorageSync('token')
-    if (!regFlag && token == "") {
-      app.loginTip();
+    if(!app.loginTip()){
       return;
     }
     wx.navigateTo({
@@ -36,11 +33,7 @@ Page({
   },
 
   onLostTap: function(event) {
-    var regFlag = app.globalData.regFlag;
-    var token = wx.getStorageSync('token')
-    console.log(token)
-    if (!regFlag && token == "") {
-      app.loginTip();
+    if(!app.loginTip()){
       return;
     }
     wx.navigateTo({

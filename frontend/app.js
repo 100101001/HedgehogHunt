@@ -55,17 +55,24 @@ App({
     })
   },
   loginTip: function () {
-    wx.showModal({
-      title: '提示',
-      content: '该功能需要授权登录！请授权登录',
-      success(res) {
-        if (res.confirm) {
-          wx.navigateTo({
-            url: '/pages/login/index',
-          })
-        } else if (res.cancel) { }
-      }
-    })
+    //返回值：是否已登录过
+    //操作：没登录过就登录，否则什么都不做。
+    if(!this.globalData.regFlag && wx.getStorageSync('token') == ""){
+      wx.showModal({
+        title: '提示',
+        content: '该功能需要授权登录！请授权登录',
+        success(res) {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: '/pages/login/index',
+            })
+          } else if (res.cancel) { }
+        }
+      })
+      return false;
+    }else{
+      return true;
+    }
   },
   tip: function (params) {
     var that = this;
