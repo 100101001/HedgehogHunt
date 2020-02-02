@@ -372,6 +372,7 @@ def goodsInfo():
     resp = {'code': 200, 'msg': 'operate successfully(get info)', 'data': {}}
     req = request.values
 
+    #按id获取goods记录
     id = int(req['id']) if ('id' in req and req['id']) else 0
     goods_info=Good.query.filter_by(id=id).first()
     if not goods_info:
@@ -379,28 +380,33 @@ def goodsInfo():
         resp['msg']='没有找到相关商品信息'
         return jsonify(resp)
 
+    #获取已登陆用户的信息
     member_info=g.member_info
     #用户能否看到地址,如果是在mark列表或者发布者可以看到地址和电话
     show_location=False
 
+    #查看详情的用户已认领了该物品,显示地址
     if member_info and member_info.mark_id:
         mark_goods_id = member_info.mark_id
         mark_id_list=mark_goods_id.split('#')
         if str(goods_info.id) in mark_id_list:
             show_location=True
 
+    #用户查看了被系统推荐的物品,将推荐状态从0更新为1
     if member_info and member_info.recommend_id:
         recommend_id_list=MemberService.getRecommendDict(member_info.recommend_id,False)
         if id in recommend_id_list.keys() and recommend_id_list[id]==0:
             recommend_id_list[id]=1
         member_info.recommend_id=MemberService.joinRecommendDict(recommend_id_list)
 
+    #获取物品发布者
     auther_info = Member.query.filter_by(id=goods_info.member_id).first()
     if not auther_info:
         resp['code'] = -1
         resp['msg'] = '没有找到相关发布者信息'
         return jsonify(resp)
 
+    #如果作者查看详情,可以编辑和看到地址
     if member_info and (member_info.id == auther_info.id):
         is_auth = True
         show_location = True
@@ -408,6 +414,7 @@ def goodsInfo():
         is_auth = False
 
     #处理地址
+    #例：上海市徐汇区肇嘉浜路1111号###美罗城###31.192948153###121.439673735
     location_list=goods_info.location.split("###")
     location_list[2]=eval(location_list[2])
     location_list[3]=eval(location_list[3])

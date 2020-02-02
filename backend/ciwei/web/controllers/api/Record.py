@@ -54,6 +54,10 @@ def recordSearch():
     #状态值的字典，先置空
     recommend_dict={}
     #获取操作值，看用户是查看哪种信息
+    # op_status
+    # 0 自己发布的
+    # 1 自己认领的
+    # 2 自己
     op_status=int(req['op_status']) if 'op_status' in req else ''
     if op_status==0:
         query=query.filter_by(member_id=member_info.id)
