@@ -3,7 +3,7 @@ import threading
 import time
 
 import requests
-from flask import request, Response, g, jsonify, make_response
+from flask import request, Response, session
 from twilio.rest import Client
 
 from application import app, db, cache
@@ -29,9 +29,9 @@ def getQrcodeFromWx():
     # add lock to prevent concurrent operations on getting access token & getting qr code (id)
     with _qr_code_lock:
         # query db if token expires
-        if not hasattr(g, 'token'):
-            setattr(g, 'token', {})
-        token = g.token
+        if not hasattr(session, 'token'):
+            setattr(session, 'token', {})
+        token = session.token
 
         if not token or token['expires'] > time.time() - 5 * 60 * 1000:
             # get new token
@@ -46,7 +46,7 @@ def getQrcodeFromWx():
                 data = wxResp.json()
                 token['token'] = data['access_token']
                 token['expires'] = data['expires_in'] + time.time()
-                g.token = token
+                session.token = token
 
         maxCodeId = db.session.query(db.func.max(QrCode.id)).scalar()
         if maxCodeId is None:
@@ -71,6 +71,7 @@ def getQrcodeFromWx():
             return Response(status=500)
         else:
             # save compressed qr code to db
+            # 需要存成文件和其它API保持逻辑一致
             db.session.add(QrCode(qr_code=wxResp.content))
             db.session.commit()
             app.logger.info('get qr code successfully')
@@ -106,7 +107,6 @@ def scanQrcode():
     params = request.get_json()
     codeId = params['id']
     # check whether user is a member
-    resp = {'isRegistered': True}
     qrcode = QrCode.query.filter_by(id=int(codeId)).first()
     if qrcode is None:
         app.logger.error("failed to get qr code")
