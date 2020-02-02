@@ -19,88 +19,75 @@ Page({
   },
   onLoadSetData: function(op_status) {
     var recommend = app.globalData.recommend;
-    if (op_status == 0) {
-      var infos = {
-        list: {},
-        only_new: false,
-        saveHidden: true,
-        op_status: op_status,
-        check_status_id: 2,
-        check_cat: [{
-            id: 2,
-            name: '待取回'
-          },
-          {
-            id: 3,
-            name: '已取回',
-          },
-          {
-            id: 4,
-            name: '已答谢',
-          },
-        ],
-      };
-      var check_status_id = 2;
-    } else if (op_status == 3) {
-      var infos = {
-        list: {},
-        saveHidden: true,
-        only_new: false,
-        check_status_id: 1,
-        op_status: op_status,
-        check_cat: [{
-            id: 1,
-            name: '待处理'
-          },
-          {
-            id: 2,
-            name: '发布者'
-          },
-          {
-            id: 3,
-            name: '举报者'
-          },
-          {
-            id: 4,
-            name: '无违规'
-          },
-          {
-            id: 5,
-            name: '已下架'
-          }
-        ]
-      };
+    if (op_status == 0) { //发布
       var check_status_id = 1;
-    } else {
-      var infos = {
-        list: {},
-        saveHidden: true,
-        check_status_id: 1,
-        op_status: op_status,
-        only_new: false,
-        check_cat: [{
-            id: 1,
-            name: '待认领/找回',
-            value: recommend.wait,
-          },
-          {
-            id: 2,
-            name: '预认领/找回',
-            value: recommend.doing,
-          },
-          {
-            id: 3,
-            name: '已认领/找回',
-            value: recommend.done,
-          },
-        ],
-      };
+      var check_cat = [
+        {
+          id: 1,
+          name: '待找回'
+        },
+        {
+          id: 2,
+          name: '已找回',
+        },
+        {
+          id: 3,
+          name: '已答谢',
+        },
+      ];
+    } else if (op_status == 3) { //答谢
       var check_status_id = 1;
+      var check_cat = [{
+          id: 1,
+          name: '待处理'
+        },
+        {
+          id: 2,
+          name: '发布者'
+        },
+        {
+          id: 3,
+          name: '举报者'
+        },
+        {
+          id: 4,
+          name: '无违规'
+        },
+        {
+          id: 5,
+          name: '已下架'
+        }
+      ];
+    } else { //认领与匹配推送
+      var check_status_id = 1;
+      var check_cat = [{
+          id: 1,
+          name: '待认领/找回',
+          value: recommend.wait,
+        },
+        {
+          id: 2,
+          name: '预认领/找回',
+          value: recommend.doing,
+        },
+        {
+          id: 3,
+          name: '已认领/找回',
+          value: recommend.done,
+        },
+      ];
     };
     this.setData({
+      only_new: false,
       check_status_id: check_status_id,
-      infos: infos,
-      only_new: false
+      infos: {
+        list: {},
+        only_new: false,
+        saveHidden: true,
+        op_status: op_status,
+        check_status_id: check_status_id,
+        check_cat: check_cat
+      }
     })
   },
   onShow: function() {

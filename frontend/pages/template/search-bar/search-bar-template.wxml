@@ -1,4 +1,5 @@
 <template name="search-bar-template">
+<!--搜索框-->
   <form bindsubmit="formSubmit">
     <view class="search_container">
       <view class="search_box1">
@@ -13,6 +14,8 @@
       <button class="search_button" hidden="{{saveHidden}}" bindtap="editTap">完成</button>
     </view>
   </form>
+
+ <!--举报的选项卡-->
   <view class="type-container" wx:if="{{check_cat.length==5}}">
     <scroll-view class="type-navbar-check-report">
       <view class="box-report" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="index">
@@ -22,7 +25,8 @@
       </view>
     </scroll-view>
   </view>
-  <!--检查举报-->
+  
+  <!--选项卡-->
   <view class="type-container" wx:if="{{check_cat.length!=5}}">
     <scroll-view class="type-navbar-check-report">
       <view class="type-box" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="index">
@@ -32,6 +36,8 @@
       </view>
     </scroll-view>
   </view>
+
+ <!--全选删除-->
   <view class="jiesuan-box" wx:if="{{ list.length }}" hidden="{{saveHidden}}">
     <view class="left-price">
       <radio class="all_select" bindtap="bindAllSelect" checked="{{allSelect}}">全选</radio>
