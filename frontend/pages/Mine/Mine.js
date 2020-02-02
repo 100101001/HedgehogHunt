@@ -103,7 +103,7 @@ Page({
   goThanksList: function () {
     app.globalData.op_status=2;
     wx.navigateTo({
-      url: '../Thanks/record/record',
+      url: '../Thanks/record/index',
     })
   },
   //点击导航

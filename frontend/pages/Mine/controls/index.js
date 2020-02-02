@@ -57,7 +57,7 @@ Page({
   },
   toCheckThanksReport: function () {
     wx.navigateTo({
-      url: '/pages/Thanks/record/record?op_status=4',
+      url: '/pages/Thanks/record/index?op_status=4',
     })
   },
   toCheckStat:function(){

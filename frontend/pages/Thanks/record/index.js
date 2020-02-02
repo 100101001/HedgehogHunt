@@ -499,5 +499,15 @@ Page({
       only_new: infos.only_new,
     });
     this.onPullDownRefresh();
-  }
+  },
+  checkReportClick: function (e) {
+    //选择一次分类时返回选中值
+    var infos = this.data.infos;
+    infos.check_status_id = e.currentTarget.id;
+    this.setData({
+      infos: infos,
+      check_status_id: e.currentTarget.id,
+    });
+    this.onPullDownRefresh();
+  },
 })

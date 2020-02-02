@@ -1,11 +1,11 @@
 <import src="../../template/search-bar/search-bar-template.wxml" />
 <template is="search-bar-template" data="{{...infos}}" />
-<!--index.wxml-->
 <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
 <view class="container">
   <view class="message_container">
-    <!--检查举报-->
+    <!--搜索框、选项卡、编辑栏-->
     <template is="search-bar-template" data="{{...infos}}" />
+    <!--记录列表-->
     <block wx:for="{{infos.list}}" wx:key="index">
       <view class="goods_message">
         <radio class="radio" hidden="{{infos.saveHidden}}" data-index="{{index}}" bindtap="selectTap" checked="{{item.selected}}" />
