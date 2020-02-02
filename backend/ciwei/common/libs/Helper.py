@@ -7,8 +7,6 @@ from flask import g
 from flask import render_template
 import datetime
 import uuid
-from application import db
-from common.models.ciwei.Member import Member
 
 def iPagination( params ):
     import math
@@ -122,3 +120,13 @@ def getUuid():
     now = datetime.datetime.now()
     uuid_now=str(uuid.uuid5(uuid.NAMESPACE_DNS,now.strftime("%Y%m%d%H%M%S"))).replace("-","")
     return uuid_now
+
+
+def genRandomStr(num):
+    import random
+    import string
+    """
+    :param num: 字符数
+    :return: 生成的随机字符串
+    """
+    return ''.join(random.sample(string.ascii_letters+string.digits, num))
