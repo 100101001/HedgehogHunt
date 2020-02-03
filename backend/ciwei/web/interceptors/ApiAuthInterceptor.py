@@ -45,7 +45,7 @@ def check_member_login():
         return False
 
     try:
-        member_info = Member.query.filter_by(id=auth_info[1]).first()
+        member_info = Member.query.filter_by(id=auth_info[1]).with_for_update().first()
     except Exception:
         return False
 
