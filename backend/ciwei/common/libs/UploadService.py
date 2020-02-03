@@ -1,8 +1,6 @@
 #!/usr/bin/python3.6.8
-#Editor weichaoxu
 
 # -*- coding:utf-8 -*-
-#用于安全的获取文件名
 from werkzeug.utils import secure_filename
 from application import app,db
 from common.libs.Helper import getCurrentDate
@@ -12,11 +10,17 @@ from common.models.ciwei.Image import Image
 class UploadService():
     @staticmethod
     def uploadByFile(file):
+        """
+        :param file:
+        :return: 图片在服务器上的路径
+        """
         config_upload = app.config['UPLOAD']
         resp={'code':200,'msg':'upload image success','data':{}}
 
+        # 检查文件是图片
+        # 保存文件到web/static/日期目录下,文件名uuid
+        # db 新增图片
         filename=secure_filename(file.filename)
-        #分割之后取最后一位
         ext=filename.split('.')[-1]
         if ext not in config_upload['ext']:
             resp['msg']='not allowed ext file'+":::"+filename
@@ -50,7 +54,7 @@ class UploadService():
     @staticmethod
     def filterUpImages(img_list_raw):
 
-        #网络会转换成字符串传输
+        # 网络会转换成字符串传输
         img_list=img_list_raw.split(",")
         app_config = app.config
         image_root = app_config['APP']['domain'] + app_config['UPLOAD']['prefix_url']

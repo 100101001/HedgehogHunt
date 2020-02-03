@@ -1,7 +1,7 @@
 from flask import g
-from application import app
+from application import app, db
 from common.libs import Helper
-from web.controllers.api import route_api
+from web.controllers.api import route_api, jsonify
 
 
 @route_api.route("order", methods=['GET', 'POST'])
@@ -69,7 +69,25 @@ def placeOrder():
 
     return resp
 
+
 # TODO:微信支付
 @route_api.route("pay", method=['POST'])
 def pay():
     pass
+
+
+
+# 测试数据库更新
+@route_api.route("/testdb", methods=['GET', 'POST'])
+def testdb():
+    from common.models.ciwei.Member import Member
+    from common.models.ciwei.Goods import Good
+    member = Member.query.filter_by().with_for_update().first()
+    member.updated_time = Helper.getCurrentDate()
+    goods = Good.query.filter_by().with_for_update().first()
+    goods.updated_time = Helper.getCurrentDate()
+    member2 = Member()
+    member2.openid = 1
+    db.session.add(member2)
+    db.session.commit()
+    return jsonify({})

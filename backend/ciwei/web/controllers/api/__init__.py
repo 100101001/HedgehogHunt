@@ -18,6 +18,7 @@ from web.controllers.api.Feedback import *
 from web.controllers.api.Static import *
 from web.controllers.api.Adv import *
 from web.controllers.api.QrCode import *
+from web.controllers.api.Order import *
 from web.controllers.api.Thanks import *
 
 @route_api.route("/")
