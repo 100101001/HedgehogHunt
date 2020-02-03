@@ -1,3 +1,4 @@
+const navigate = require("../template/navigate-bar/navigate-bar-template.js")
 var util = require("../../utils/util.js");
 var app=getApp();
 const HedgeHogClient = require('../../utils/api').HedgeHogClient
@@ -108,14 +109,6 @@ Page({
   },
   //点击导航
   onNavigateTap: function (event) {
-    app.getNewRecommend();
-    var id = event.currentTarget.dataset.id * 1; //乘1强制转换成数字
-    var [isSelecteds, urls] = util.onNavigateTap(id);
-    this.setData({
-      isSelecteds: isSelecteds,
-    })
-    wx.redirectTo({
-      url: urls[id],
-    })
+    navigate.onNavigateTap(event, this)
   }
 })

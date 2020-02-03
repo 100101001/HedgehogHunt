@@ -1,3 +1,4 @@
+const navigate = require("../template/navigate-bar/navigate-bar-template.js")
 var util = require("../../utils/util.js");
 var app = getApp();
 Page({
@@ -118,16 +119,7 @@ Page({
   },
   //点击导航图标
   onNavigateTap: function(event) {
-    //更新一下新列表
-    app.getNewRecommend();
-    var id = event.currentTarget.dataset.id * 1; //乘1强制转换成数字
-    var [isSelecteds, urls] = util.onNavigateTap(id, 2);
-    this.setData({
-      isSelecteds: isSelecteds
-    })
-    wx.redirectTo({
-      url: urls[id],
-    })
+    navigate.onNavigateTap(event, this)
   },
   onShareAppMessage: function(Options) {
     return {

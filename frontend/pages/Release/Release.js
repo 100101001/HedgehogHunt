@@ -1,3 +1,4 @@
+const navigate = require("../template/navigate-bar/navigate-bar-template.js")
 var app=getApp();
 var util = require("../../utils/util.js");
 Page({
@@ -12,30 +13,16 @@ Page({
   },
 
   onNavigateTap: function(event) {
-    app.getNewRecommend();
-    var id = event.currentTarget.dataset.id * 1; //乘1强制转换成数字
-    var [isSelecteds, urls] = util.onNavigateTap(id, 2);
-    this.setData({
-      isSelecteds: isSelecteds
-    })
-    wx.redirectTo({
-      url: urls[id],
-    })
+    navigate.onNavigateTap(event, this)
   },
 
   onFindTap: function(event) {
-    if(!app.loginTip()){
-      return;
-    }
     wx.navigateTo({
       url: 'release/index?business_type=1',
     })
   },
 
   onLostTap: function(event) {
-    if(!app.loginTip()){
-      return;
-    }
     wx.navigateTo({
       url: 'release/index?business_type=0',
     })
