@@ -71,7 +71,7 @@ def placeOrder():
 
 
 # TODO:微信支付
-@route_api.route("pay", method=['POST'])
+@route_api.route("pay", methods=['POST'])
 def pay():
     pass
 
