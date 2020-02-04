@@ -3,6 +3,7 @@ CREATE DATABASE `ciwei_db` DEFAULT CHARACTER SET = `utf8mb4`;
 USE `ciwei_db`;
 #flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables member  --outfile "common/models/jmall/Member.py"  --flask
 #flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables report  --outfile "common/models/ciwei/Report.py" --flask
+#flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables order  --outfile "common/models/ciwei/Order.py" --flask
 DROP TABLE IF EXISTS `user`;
 
 CREATE TABLE `user` (
@@ -140,9 +141,12 @@ CREATE TABLE `thanks` (
 DROP TABLE IF EXISTS `order`;
 CREATE TABLE `order` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `member_id` int(11) unsigned NOT NULL  COMMENT '支付订单会员id',
+  `member_id` int(11) unsigned NOT NULL  COMMENT '会员id',
+  `openid` varchar(32) NOT NULL COMMENT  '下单微信用户',
+  `transaction_id` varchar(64) COMMENT '微信支付交易号',
   `price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '支付金额',
-  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态 1：已读 0：未读',
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态 1：未支付 0：已支付',
+  `paid_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '支付完成时间',
   `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后插入时间',
   PRIMARY KEY (`id`)
