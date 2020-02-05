@@ -3,15 +3,19 @@
 # -*- coding:utf-8 -*-
 
 
-import hashlib, base64
-import random, string
+import hashlib
+import random
+import string
+
+import json
+import requests
 from flask import g
+
 from application import app, db
-import requests, json
 from common.libs.Helper import getCurrentDate
-from common.models.ciwei.Member import Member
-from common.models.ciwei.Goods import Good
 from common.libs.Helper import selectFilterObj, getDictFilterField
+from common.models.ciwei.Goods import Good
+from common.models.ciwei.Member import Member
 
 
 class MemberService():
@@ -49,9 +53,7 @@ class MemberService():
         # 发布成功，用户积分涨5
         member_info.credits += 5
         member_info.updated_time = getCurrentDate()
-        db.session.add(member_info)
         db.session.commit()
-
         return True
 
     @staticmethod

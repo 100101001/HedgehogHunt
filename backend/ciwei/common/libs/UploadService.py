@@ -11,14 +11,16 @@ class UploadService():
     @staticmethod
     def uploadByFile(file):
         """
-        :param file:
+        1.把文件保存到 web/static/upload/日期目录下
+        2.db新增图片
+        :param file:图片文件
         :return: 图片在服务器上的路径
         """
         config_upload = app.config['UPLOAD']
         resp={'code':200,'msg':'upload image success','data':{}}
 
         # 检查文件是图片
-        # 保存文件到web/static/日期目录下,文件名uuid
+        # 保存文件到web/static/upload/日期目录下,文件名uuid
         # db 新增图片
         filename=secure_filename(file.filename)
         ext=filename.split('.')[-1]

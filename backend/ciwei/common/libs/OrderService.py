@@ -31,7 +31,7 @@ def payment_hmac_sha256_or_md5_sign(data, key=app.config['OPENCS_APP']['mch_key'
         return md5(bytes(string_a + "key=" + app.config['OPENCS_APP']['mch_key'], encoding='utf-8')).hexdigest().upper()
 
 
-def placeOrder(member_info, price):
+def place_db_order(member_info, price):
     """
     立即下单
     数据库新增订单
@@ -50,7 +50,7 @@ def placeOrder(member_info, price):
 
 
 # TODO:前端控制下单频率
-def prepay(openid, order_id, price, resp):
+def place_wx_prepay_order(openid, order_id, price, resp):
     """
     立即下单
     调微信后台下支付单

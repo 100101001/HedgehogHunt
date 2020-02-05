@@ -25,25 +25,22 @@ def createGoods():
     预发帖
     :return: 图片->是否在服务器上 , 前端再次上传真正需要上传的图片
     """
-    resp = {'code': 200, 'msg': 'create goods data successfully(goods/add)', 'data': {}}
-    req = request.values
+    resp = {'code': -1, 'msg': 'create goods data successfully(goods/add)', 'data': {}}
 
     # 检查登陆
     # 检查参数: goods_name, business_type
+    req = request.values
     member_info = g.member_info
     if not member_info:
-        resp['code'] = -1
         resp['msg'] = "没有用户信息，无法发布，请授权登陆！"
         return jsonify(resp)
     name = req["goods_name"] if 'goods_name' in req else ''
     if not name:
-        resp['code'] = -1
-        resp['msg'] = "上传数据失败"
+        resp['msg'] = "参数为空"
         return jsonify(resp)
-    business_type = req['business_type'] if 'business_type' in req else 5
-    if business_type == 5:
-        resp['code'] = -1
-        resp['msg'] = "交易类型错误"
+    business_type = req['business_type'] if 'business_type' in req else None
+    if business_type != 0 or business_type != 1:
+        resp['msg'] = "参数错误"
         resp['data'] = req
         return jsonify(resp)
 
@@ -62,12 +59,12 @@ def createGoods():
     model_goods.mobile = req['mobile']
     model_goods.updated_time = model_goods.created_time = getCurrentDate()
     db.session.add(model_goods)
-    db.session.commit()
     goods_info = model_goods
     MemberService.updateCredits(member_info)
 
     # 返回商品记录的id，用于后续添加图片
     # 判断图片是否已经存在于服务器上
+    resp['code'] = 200
     resp['id'] = goods_info.id
     img_list = req['img_list']
     img_list_status = UploadService.filterUpImages(img_list)
@@ -81,44 +78,40 @@ def addGoodsPics():
     上传物品图片到服务器
     :return: 成功
     """
-    resp = {'code': 200, 'msg': '操作成功', 'state': 'add pics success'}
-    req = request.values
+    resp = {'code': -1, 'msg': '操作成功', 'state': 'add pics success'}
 
     # 检查参数：物品id和文件
     # 检查已登陆
+    req = request.values
     member_info = g.member_info
     if not member_info:
-        resp['code'] = -1
         resp['msg'] = '用户信息异常'
         return jsonify(resp)
-    id = req['id'] if 'id' in req else 0
-    if id == 0:
-        resp['msg'] = "cant't get id"
+    goods_id = req['id'] if 'id' in req else None
+    if not goods_id:
+        resp['msg'] = "参数为空"
         resp['req'] = req
         return jsonify(resp)
     images_target = request.files
     image = images_target['file'] if 'file' in images_target else None
-    if image is None:
-        resp['code'] = -1
-        resp['msg'] = '图片上传失败'
+    if not image:
+        resp['msg'] = "参数为空"
+        return jsonify(resp)
+    goods_info = Good.query.filter_by(id=goods_id).with_for_update().first()
+    if not goods_info:
+        resp['msg'] = '参数错误'
         return jsonify(resp)
 
-    # 保存文件到 /web/static/日期 目录下
+    # 保存文件到 /web/static/upload/日期 目录下
     # db 新增图片
     ret = UploadService.uploadByFile(image)
     if ret['code'] != 200:
-        resp['code'] = -1
         resp['msg'] = '图片上传失败'
         return jsonify(resp)
 
     # 在id号物品的 pics 字段加入图片本地路径
     # 更新id号物品的 main_image 为首图
     pic_url = ret['data']['file_key']
-    goods_info = Good.query.filter_by(id=id).with_for_update().first()
-    if not goods_info:
-        resp['code'] = -1
-        resp['msg'] = '没有找到相关商品信息'
-        return jsonify(resp)
     if not goods_info.pics:
         pics_list = []
     else:
@@ -129,6 +122,7 @@ def addGoodsPics():
     db.session.commit()
 
     # 返回成功上传
+    resp['code'] = 200
     return jsonify(resp)
 
 
@@ -138,89 +132,89 @@ def endCreate():
     结束创建
     :return:
     """
-    resp = {'code': 200, 'msg': '操作成功', 'state': 'add pics success'}
+    resp = {'code': -1, 'msg': '操作成功', 'state': 'add pics success'}
 
     # 检查登陆
     # 检查参数：物品id
+    req = request.values
     member_info = g.member_info
     if not member_info:
-        resp['code'] = -1
         resp['msg'] = '用户信息异常'
         return jsonify(resp)
-    resp = {'code': 200, 'msg': 'create goods success', 'data': {}}
-    req = request.values
-    id = req['id'] if 'id' in req else 0
-    if id == 0:
-        resp['msg'] = "数据传输失败"
+    goods_id = req['id'] if 'id' in req else None
+    if not goods_id:
+        resp['msg'] = "参数为空"
         resp['req'] = req
+        return jsonify(resp)
+    goods_info = Good.query.filter_by(id=goods_id).with_for_update().first()
+    if not goods_info:
+        resp['msg'] = '参数错误'
         return jsonify(resp)
 
     # 更新id号物品的状态 7->1
-    # 在 auther_id 会员的 recommend_id 中加入物品id, target_goods_id 物品 status ->2
-    # 按 物主&物品名
-    goods_info = Good.query.filter_by(id=id).with_for_update().first()
-    if not goods_info:
-        resp['code'] = -1
-        resp['msg'] = '没有找到相关商品信息'
-        return jsonify(resp)
+    # TODO:auther_id和target_goods_id???
+    # 在 auther_id 会员的 recommend_id 中加入物品id
+    # 更新 target_goods_id 物品 status ->2
+    # 创建或者修改完成时, 对用户进行推荐(匹配拾/失物品, 将匹配的物品id加入失去物品作者的recommend_id)
     if goods_info.status == 7:
         goods_info.status = 1
     goods_info.updated_time = getCurrentDate()
-
-    # TODO:auther_id和target_goods_id???
-    # 在会员的 recommend_id 加入物品id
-    auther_id = req['auther_id'] if 'auther_id' in req else 0
+    auther_id = req['auther_id'] if 'auther_id' in req else None
     if auther_id:
         auther_info = Member.query.filter_by(id=auther_id).with_for_update().first()
         MemberService.addRecommendGoods(auther_info, goods_info.id)
-
-    # 更新物品的状态为 2, 预
-    target_goods_id = req['target_goods_id'] if 'target_goods_id' in req else 0
+    target_goods_id = req['target_goods_id'] if 'target_goods_id' in req else None
     if target_goods_id:
         target_goods_info = Good.query.filter_by(id=target_goods_id).with_for_update().first()
         if target_goods_info:
             target_goods_info.status = 2
-
-    # 创建或者修改完成时,对用户进行推荐(匹配拾/失物品,将匹配的物品id加入失去物品作者的recommend_id)
     MemberService.recommendGoods(goods_info)
     db.session.commit()
 
+    resp['code'] = 200
     return jsonify(resp)
 
 
 @route_api.route("/goods/search", methods=['GET', 'POST'])
 def goodsSearch():
     """
-
-    :return:
+    多维度搜索物品
+    1.有效未被举报的 status
+    2.页面 business_type
+    3.选项卡 status
+    4.搜索框 owner_name, 物名name, author_name, address
+    :return: 经分页排序后的搜索列表 list, 是否还有更多页 boolean
     """
-    resp = {'code': 200, 'msg': 'search successfully(search)', 'data': {}}
+    resp = {'code': -1, 'msg': 'search successfully(search)', 'data': {}}
     req = request.values
 
+    # 检查参数：business_type, 物品状态status
+    business_type = int(req['business_type']) if 'business_type' in req else None
+    if business_type != 0 and business_type != 1:
+        resp['msg'] = "参数错误/缺失"
+        return jsonify(resp)
+    status = int(req['status']) if 'status' in req else None
+    if not status:
+        resp['msg'] = '参数为空'
+        return jsonify(resp)
+
     # 维度0：按status和report_status字段筛选掉物品
-    status = int(req['status']) if ('status' in req and req['status']) else 0
-    query = Good.query.filter(Good.status != 7)
+    query = Good.query.filter(Good.status != 8)
+    query = query.filter(Good.status != 7)
     query = query.filter(Good.report_status != 2)
     query = query.filter(Good.report_status != 3)
     query = query.filter(Good.report_status != 5)
 
     # 维度1：页面
     # 按拾/失筛选物品
-    business_type = int(req['business_type']) if 'business_type' in req else 'nono'
-    if business_type == 0 or business_type == 1:
-        query = query.filter_by(business_type=business_type)
+    query = query.filter_by(business_type=business_type)
 
     # 维度2：选项卡
     # status
-    # 0 失效
     # -1 全部
     # 1 待（新发布）
     # 2 预 （失认领，拾系统匹配后认领，或者他人主动归还）
     # TODO： 3 已 （最终状态）需要显示给所有人？？
-    if status == 0:
-        resp['code'] = -1
-        resp['msg'] = '商品状态码错误'
-        return jsonify(resp)
     if status == -1:
         query = query.filter(Good.status != 4)
         query = query.filter(Good.status != 5)
@@ -286,6 +280,7 @@ def goodsSearch():
             data_goods_list.append(tmp_data)
 
     # 失/拾 一页信息 是否已加载到底
+    resp['code'] = 200
     resp['data']['list'] = data_goods_list
     resp['data']['has_more'] = 0 if len(data_goods_list) < page_size else 1
     resp['business_type'] = business_type
@@ -296,17 +291,24 @@ def goodsSearch():
 def goodsApplicate():
     """
     申请认领
-    :return: 物品的状态,可以显示地址
+    :return: 物品的状态, 是否可以显示地址
     """
-    resp = {'code': 200, 'msg': 'operate successfully(get info)', 'data': {}}
+    resp = {'code': -1, 'msg': 'operate successfully(get info)', 'data': {}}
     req = request.values
 
+    # 检查登陆
     # 检查参数：物品id
-    id = int(req['id']) if ('id' in req and req['id']) else 0
-    goods_info = Good.query.filter_by(id=id).first()
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = '用户信息异常'
+        return jsonify(resp)
+    goods_id = int(req['id']) if 'id' in req else None
+    if not goods_id:
+        resp['msg'] = '参数为空'
+        return jsonify(resp)
+    goods_info = Good.query.filter_by(id=goods_id).with_for_update().first()
     if not goods_info:
-        resp['code'] = -1
-        resp['msg'] = '没有找到相关商品信息'
+        resp['msg'] = '参数错误'
         return jsonify(resp)
 
     # 在物品的mark_id字段加入认领用户的id
@@ -337,6 +339,7 @@ def goodsApplicate():
 
     # TODO：认领后可见地址？？
     # 通知前端物品状态更新
+    resp['code'] = 200
     resp['data']['show_location'] = True
     resp['data']['status'] = goods_info.status
     resp['data']['status_desc'] = goods_info.status_desc
@@ -349,27 +352,33 @@ def goodsGotback():
     拿回失物
     :return:
     """
-    resp = {'code': 200, 'msg': 'operate successfully(get info)', 'data': {}}
+    resp = {'code': -1, 'msg': 'operate successfully(get info)', 'data': {}}
     req = request.values
 
-    # 按id获取物品
-    id = int(req['id']) if ('id' in req and req['id']) else 0
-    goods_info = Good.query.filter_by(id=id).first()
-    if not goods_info:
-        resp['code'] = -1
-        resp['msg'] = '没有找到相关商品信息'
+    # 检查登陆
+    # 检查参数物品id, 物品的发布者存在
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = '用户信息异常'
         return jsonify(resp)
-
-    # TODO：获取发布者？？
+    goods_id = int(req['id']) if 'id' in req else None
+    if not goods_id:
+        resp['msg'] = '参数为空'
+        return jsonify(resp)
+    goods_info = Good.query.filter_by(id=goods_id).with_for_update().first()
+    if not goods_info:
+        resp['msg'] = '参数错误'
+        return jsonify(resp)
     author_info = Member.query.filter_by(id=goods_info.member_id).first()
     if not author_info:
-        resp['code'] = -1
-        resp['msg'] = '没有找到相关发布者信息'
+        resp['msg'] = '发布者信息缺失'
         return jsonify(resp)
 
     # 更新物品和会员
-    member_info = g.member_info
-    # TODO：在物品的owner_id字段加入失主id？？
+    # TODO：在物品的owner_id字段加入失主id？？怎么搜索?
+    # 在物品的owner_id字段加入失主id
+    # 更新物品状态 3, 已
+    # TODO：更新归还次数加 1？？
     goods_owner_id = goods_info.owner_id
     if goods_owner_id:
         goods_owner_id_list = goods_owner_id.split('#')
@@ -377,8 +386,6 @@ def goodsGotback():
             goods_info.owner_id = goods_info.owner_id + "#" + str(member_info.id)
     else:
         goods_info.owner_id = str(member_info.id)
-    # 更新物品状态 3, 已
-    # 更新归还次数加 1
     goods_info.status = 3
     goods_info.tap_count = goods_info.tap_count + 1
     goods_info.updated_time = getCurrentDate()
@@ -394,6 +401,7 @@ def goodsGotback():
 
     # 拿回者可见地址
     # 通知前端状态更新
+    resp['code'] = 200
     resp['data']['show_location'] = True
     resp['data']['status'] = goods_info.status
     resp['data']['status_desc'] = goods_info.status_desc
@@ -403,18 +411,27 @@ def goodsGotback():
 @route_api.route('/goods/info')
 def goodsInfo():
     """
-    查看详情
+    查看详情,读者分为以下类别,对应不同操作
+    1.进来认领/TODO：归还？？
+    2.进来编辑
+    3.推荐来看
     :return:物品详情,是否显示地址
     """
-    resp = {'code': 200, 'msg': 'operate successfully(get info)', 'data': {}}
+    resp = {'code': -1, 'msg': 'operate successfully(get info)', 'data': {}}
     req = request.values
 
-    # 检查参数：物品id
-    id = int(req['id']) if ('id' in req and req['id']) else 0
-    goods_info = Good.query.filter_by(id=id).first()
+    # 检查参数：物品id,物品的发布者存在
+    goods_id = int(req['id']) if 'id' in req else None
+    if not goods_id:
+        resp['msg'] = '参数为空'
+        return jsonify(resp)
+    goods_info = Good.query.filter_by(id=goods_id).with_for_update().first()
     if not goods_info:
-        resp['code'] = -1
-        resp['msg'] = '没有找到相关商品信息'
+        resp['msg'] = '参数错误'
+        return jsonify(resp)
+    author_info = Member.query.filter_by(id=goods_info.member_id).first()
+    if not author_info:
+        resp['msg'] = '发布者信息缺失'
         return jsonify(resp)
 
     # 已认领显示地址,默认不显示
@@ -431,19 +448,14 @@ def goodsInfo():
     # 在会员的 recommand_id 字典中, 更新该物品状态从 0 为 1
     if member_info and member_info.recommend_id:
         recommend_id_list = MemberService.getRecommendDict(member_info.recommend_id, False)
-        if id in recommend_id_list.keys() and recommend_id_list[id] == 0:
-            recommend_id_list[id] = 1
+        if goods_id in recommend_id_list.keys() and recommend_id_list[goods_id] == 0:
+            recommend_id_list[goods_id] = 1
         member_info.recommend_id = MemberService.joinRecommendDict(recommend_id_list)
-    # 浏览量加一(同一次登陆会话看多少次应都只算一次浏览)
+    # 浏览量加一(TODO:同一次登陆会话看多少次应都只算一次浏览)
     goods_info.view_count = goods_info.view_count + 1
     db.session.commit()
 
     # 作者可以编辑, 和查看地址
-    author_info = Member.query.filter_by(id=goods_info.member_id).first()
-    if not author_info:
-        resp['code'] = -1
-        resp['msg'] = '没有找到相关发布者信息'
-        return jsonify(resp)
     if member_info and (member_info.id == author_info.id):
         is_auth = True
         show_location = True
@@ -456,6 +468,7 @@ def goodsInfo():
     location_list[2] = eval(location_list[2])
     location_list[3] = eval(location_list[3])
 
+    resp['code'] = 200
     resp['data']['info'] = {
         "id": goods_info.id,
         "goods_name": goods_info.name,
@@ -486,56 +499,50 @@ def goodsReport():
     举报物品/答谢
     :return: 成功
     """
-    resp = {'code': 200, 'msg': '举报成功', 'data': {}}
+    resp = {'code': -1, 'msg': '举报成功', 'data': {}}
     req = request.values
 
-    # 必须登陆举报
+    # 检查登陆
+    # 检查参数：举报id, 举报类型record_type
     member_info = g.member_info
     if not member_info:
-        resp['code'] = -1
         resp['msg'] = '没有用户信息，无法完成举报！请授权登录'
         return jsonify(resp)
-
-    # TODO：不重复举报：查看物品/答谢id是否已在report表中（两表ID不重复？）
-    id = req['id'] if 'id' in req else 0
-    if id == 0:
-        resp['code'] = -1
-        resp['msg'] = "数据获取失败"
+    record_id = req['id'] if 'id' in req else None
+    if not record_id:
+        resp['msg'] = "参数为空"
         resp['req'] = req
         return jsonify(resp)
-    report_info = Report.query.filter_by(record_id=id).first()
+    record_type = int(req['record_type']) if 'record_type' in req else None
+    if record_type != 0 and record_type != 1:
+        resp['msg'] = '参数错误/缺失'
+        return jsonify(resp)
+    report_info = Report.query.filter_by(record_id=record_id).first()
     if report_info:
-        resp['code'] = -1
         resp['msg'] = "该条信息已被举报过，管理员处理中"
+        return jsonify(resp)
+    # TODO：物品/答谢两表ID不重复？
+    if record_type == 1:
+        # 物品信息违规
+        record_info = Good.query.filter_by(id=record_id).with_for_update().first()
+    elif record_type == 0:
+        # 答谢信息违规
+        record_info = Thank.query.filter_by(id=record_id).with_for_update().first()
+    if not record_info:
+        resp['msg'] = '参数错误'
         return jsonify(resp)
 
     # 更新物品或答谢的 report_status 为 1
     # 新增举报
-    # TODO：发起举报的会员的积分+5？？
-    record_type = int(req['record_type']) if 'record_type' in req else "nonono"
-    if record_type == 1:
-        # 物品信息违规
-        record_info = Good.query.filter_by(id=id).with_for_update().first()
-    elif record_type == 0:
-        # 答谢信息违规
-        record_info = Thank.query.filter_by(id=id).with_for_update().first()
-    else:
-        resp['code'] = -1
-        resp['msg'] = '获取信息错误'
-        return jsonify(resp)
-    if not record_info:
-        resp['code'] = -1
-        resp['msg'] = '没有找到商品信息'
-        return jsonify(resp)
+    # TODO：发起举报的会员的积分+5？
     record_info.report_status = 1
     record_info.updated_time = getCurrentDate()
-    db.session.commit()
 
     model_report = Report()
     model_report.status = 1
     model_report.member_id = record_info.member_id
     model_report.report_member_id = member_info.id
-    model_report.record_id = id
+    model_report.record_id = record_id
     model_report.record_type = record_type
     model_report.updated_time = model_report.created_time = getCurrentDate()
     db.session.add(model_report)
@@ -543,6 +550,7 @@ def goodsReport():
     MemberService.updateCredits(member_info)
     db.session.commit()
 
+    resp['code'] = 200
     return jsonify(resp)
 
 
@@ -554,38 +562,33 @@ def editGoods():
     更新物品信息
     :return: 物品id,图片名->是否在服务器上
     """
-    resp = {'code': 200, 'msg': 'edit goods data successfully(goods/add)', 'data': {}}
+    resp = {'code': -1, 'msg': 'edit goods data successfully(goods/add)', 'data': {}}
     req = request.values
 
     # 检查登陆
     # 检查参数：物品id, 物品类型business_type,物品名字goods_name,
     member_info = g.member_info
     if not member_info:
-        resp['code'] = -1
         resp['msg'] = '用户信息异常'
         return jsonify(resp)
-    id = req['id'] if 'id' in req else 0
-    if id == 0:
-        resp['code'] = -1
-        resp['msg'] = "数据上传失败"
+    goods_id = req['id'] if 'id' in req else None
+    if not goods_id:
+        resp['msg'] = "参数为空"
         resp['data'] = req
         return jsonify(resp)
-    goods_info = Good.query.filter_by(id=id).with_for_update().first()
-    if not goods_info:
-        resp['code'] = -1
-        resp['msg'] = "没有该条商品记录"
+    business_type = req['business_type'] if 'business_type' in req else None
+    if business_type != 0 and business_type != 1:
+        resp['msg'] = "参数为空"
         resp['data'] = req
         return jsonify(resp)
-    business_type = req['business_type'] if 'business_type' in req else 5
-    if business_type == 5:
-        resp['code'] = -1
-        resp['msg'] = "no business_type"
-        resp['data'] = req
-        return jsonify(resp)
-    name = req["goods_name"] if 'goods_name' in req else ''
+    name = req["goods_name"] if 'goods_name' in req else None
     if not name:
-        resp['code'] = -1
-        resp['msg'] = "上传数据失败"
+        resp['msg'] = "参数为空"
+        return jsonify(resp)
+    goods_info = Good.query.filter_by(id=goods_id).with_for_update().first()
+    if not goods_info:
+        resp['msg'] = "参数错误"
+        resp['data'] = req
         return jsonify(resp)
 
     # 更新物品字段
@@ -604,10 +607,11 @@ def editGoods():
     db.session.commit()
 
     # 通过链接发送之后的图片是逗号连起来的字符串
+    resp['code'] = 200
     img_list = req['img_list']
     img_list_status = UploadService.filterUpImages(img_list)
     resp['img_list_status'] = img_list_status
-    resp['id'] = id
+    resp['id'] = goods_id
     return jsonify(resp)
 
 
@@ -617,32 +621,28 @@ def updatePics():
     更新物品图片
     :return: 成功
     """
-    resp = {'code': 200, 'msg': 'edit goods data successfully(goods/add)', 'data': {}}
+    resp = {'code': -1, 'msg': 'edit goods data successfully(goods/add)', 'data': {}}
     req = request.values
 
     # 检查登陆
     # 检查参数：物品id,图片url
     member_info = g.member_info
     if not member_info:
-        resp['code'] = -1
         resp['msg'] = '用户信息异常'
         return jsonify(resp)
-    id = req['id'] if 'id' in req else 0
-    if id == 0:
-        resp['code'] = -1
-        resp['msg'] = "can't get id"
-        resp['data'] = req
-        return jsonify(resp)
-    goods_info = Good.query.filter_by(id=id).with_for_update().first()
-    if not goods_info:
-        resp['code'] = -1
-        resp['msg'] = "没有该条记录"
+    goods_id = req['id'] if 'id' in req else None
+    if not goods_id:
+        resp['msg'] = "参数为空"
         resp['data'] = req
         return jsonify(resp)
     img_url = req['img_url'] if 'img_url' in req else ''
     if not img_url:
-        resp['code'] = -1
-        resp['msg'] = "no img_url"
+        resp['msg'] = "参数为空"
+        resp['data'] = req
+        return jsonify(resp)
+    goods_info = Good.query.filter_by(id=goods_id).with_for_update().first()
+    if not goods_info:
+        resp['msg'] = "参数错误"
         resp['data'] = req
         return jsonify(resp)
 
@@ -659,4 +659,5 @@ def updatePics():
     goods_info.updated_time = getCurrentDate()
     db.session.commit()
 
+    resp['code'] = 200
     return jsonify(resp)

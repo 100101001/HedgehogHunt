@@ -12,7 +12,7 @@ from common.models.ciwei.User import User
 # -*- coding:utf-8 -*-
 from web.controllers.api import route_api
 
-
+# TODO：如果可以锁号，那么登陆需要判断用户的status
 @route_api.route("/member/login", methods=['GET', 'POST'])
 def login():
     """
@@ -50,7 +50,7 @@ def login():
         model_member.nickname = nickname
         model_member.sex = sex
         model_member.avatar = avatar
-        # model_member.updated_time = model_member.created_time = getCurrentDate()
+        model_member.updated_time = model_member.created_time = getCurrentDate()
         model_member.openid = openid
         db.session.add(model_member)
         db.session.commit()
@@ -164,7 +164,7 @@ def memberInfo():
 def getNewRecommend():
     """
     未读答谢和所有的匹配推荐
-    :return: 记录数量,3类推荐的物品列表
+    :return: 总数, 3类推荐的物品列表
     """
     resp = {'code': 200, 'msg': 'get_member_info successfully(share)', 'data': {}}
     # 检查登陆

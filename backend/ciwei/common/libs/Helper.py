@@ -73,8 +73,8 @@ def ops_render(template, context={}):
 '''
 
 
-def getCurrentDate(format="%Y-%m-%d %H:%M:%S"):
-    return datetime.datetime.now().strftime(format)
+def getCurrentDate(date_format="%Y-%m-%d %H:%M:%S"):
+    return datetime.datetime.now().strftime(date_format)
 
 
 '''
