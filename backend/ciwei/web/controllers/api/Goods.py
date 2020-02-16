@@ -38,8 +38,8 @@ def createGoods():
     if not name:
         resp['msg'] = "参数为空"
         return jsonify(resp)
-    business_type = req['business_type'] if 'business_type' in req else None
-    if business_type != 0 or business_type != 1:
+    business_type = int(req['business_type']) if 'business_type' in req else None
+    if business_type != 0 and business_type != 1:
         resp['msg'] = "参数错误"
         resp['data'] = req
         return jsonify(resp)
@@ -576,7 +576,7 @@ def editGoods():
         resp['msg'] = "参数为空"
         resp['data'] = req
         return jsonify(resp)
-    business_type = req['business_type'] if 'business_type' in req else None
+    business_type = int(req['business_type']) if 'business_type' in req else None
     if business_type != 0 and business_type != 1:
         resp['msg'] = "参数为空"
         resp['data'] = req

@@ -1,14 +1,12 @@
-import base64
 import threading
-import time
 
-import requests
-from flask import request, Response, session
+from flask import request, Response, jsonify, g
 from twilio.rest import Client
 
 from application import app, db, cache
 from common.libs import QrCodeService
 from common.libs.MemberService import MemberService
+from common.libs.UrlManager import UrlManager
 from common.models.ciwei.Member import Member
 from common.models.ciwei.QrCode import QrCode
 from web.controllers.api import route_api
@@ -17,110 +15,100 @@ _qr_code_lock = threading.Lock()
 
 
 @route_api.route("/qrcode/wx", methods=['GET', 'POST'])
-def getQrcodeFromWx():
+def get_wx_qr_code():
     """
-    generate qr code from wx and save to db when purchase from tao bao
-    :return:
-        500 when error occurs
-        200 when get code successfully
+    为会员生成微信二维码
+    :return:二维码图片URL
     """
-    # params = request.get_json()
+    resp = {'code': -1, 'msg': '', 'data': {}}
+
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = '请先登录'
+        return jsonify(resp)
 
     # add lock to prevent concurrent operations on getting access token & getting qr code (id)
     with _qr_code_lock:
-        # query db if token expires
-        if not hasattr(session, 'token'):
-            setattr(session, 'token', {})
-        token = session.token
+        # 调API获取二维码
+        token = QrCodeService.get_wx_token()
+        if not token:
+            resp['msg'] = "微信繁忙"
+            return jsonify(resp)
+        wx_resp, qr_code_id = QrCodeService.get_wx_qr_code(token)
 
-        if not token or token['expires'] > time.time() - 5 * 60 * 1000:
-            # get new token
-            url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={}&secret={}".format(
-                app.config['OPENCS_APP']['appid'], app.config['OPENCS_APP']['appkey'])
-            wxResp = requests.get(url)
-            if 'access_token' not in wxResp.json().keys():
-                data = wxResp.json()
-                app.logger.error("failed to get token! Errcode: %s, Errmsg:%s", data['errcode'], data['errmsg'])
-                return Response(status=500)
-            else:
-                data = wxResp.json()
-                token['token'] = data['access_token']
-                token['expires'] = data['expires_in'] + time.time()
-                session.token = token
-
-        maxCodeId = db.session.query(db.func.max(QrCode.id)).scalar()
-        if maxCodeId is None:
-            maxCodeId = 0
-        maxCodeId += 1
-        # only when little program is released can we use the unlimited api
-        # [2019-12-10 16:06:50,066] ERROR in QrCode: failed to get qr code. Errcode: 41030, Errmsg:invalid page hint: [6qqTta0210c393]
-        # wxResp = requests.post(
-        #     "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}".format(token['token']),
-        #     json={"scene": str(maxCodeId), "width": 280, "page": "pages/index/index"})
-
-        # now use 100 thousand limited api for test
-        wxResp = requests.post(
-            "https://api.weixin.qq.com/wxa/getwxacode?access_token={}".format(
-                token['token']),
-            json={"width": 280, "path": "pages/index/index?id=" + str(maxCodeId)})
-
-        # / pages / index / index
-        if len(wxResp.content) < 80:
-            data = wxResp.json()
-            app.logger.error("failed to get qr code. Errcode: %s, Errmsg:%s", data['errcode'], data['errmsg'])
-            return Response(status=500)
+        # API成功,保存二维码
+        # API失败,记录错误日志
+        if len(wx_resp.content) < 80:
+            data = wx_resp.json()
+            app.logger.error("没拿到二维码. 错误码: %s, 错误信息:%s", data['errcode'], data['errmsg'])
+            resp['msg'] = "微信繁忙"
+            return jsonify(resp)
         else:
-            # save compressed qr code to db
-            # 需要存成文件和其它API保持逻辑一致
-            db.session.add(QrCode(qr_code=wxResp.content))
-            db.session.commit()
-            app.logger.info('get qr code successfully')
-            return Response(response=str(base64.b64encode(wxResp.content), 'utf-8'), status=200)
+            # 存成文件,db新增二维码
+            path = QrCodeService.save_wx_qr_code(qr_code_id, member_info, wx_resp)
+            resp['code'] = 200
+            resp['data']['qr_code_url'] = {'qr_code_url': UrlManager.buildImageUrl(path, image_type=1)}
+            # return Response(response=str(base64.b64encode(wx_resp.content), 'utf-8'), status=200)
+            return jsonify(resp)
 
 
 @route_api.route("/qrcode/db", methods=['GET', 'POST'])
-def getQrcodeFromDb():
+def get_db_qr_code():
     """
     get qr code from db by member id
-    :return:
-        201 when member has no qr code in db
-        200 when member has qr code in db
+    :return: 二维码图片URL
     """
-    params = request.get_json()
-    qrCode = QrCode.query.filter_by(member_id=params['memberId']).first()
-    if qrCode is None:
-        app.logger.info("member id: %s has no qr code stored in db", params['memberId'])
-        return Response(status=201)
-    return Response(response=str(base64.b64encode(qrCode.qr_code), 'utf8'), status=200)
+    resp = {'code': -1, 'msg': '', 'data': {}}
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = '请先登录'
+        return jsonify(resp)
+
+    qr_code = QrCode.query.filter_by(member_id=member_info.id).first()
+    if qr_code is None:
+        app.logger.info("member id: %s has no qr code stored in db", member_info.id)
+        resp['code'] = 201
+        resp['msg'] = "会员无二维码"
+        return jsonify(resp)
+    # return Response(response=str(base64.b64encode(qr_code.qr_code), 'utf8'), status=200)
+    resp['code'] = 200
+    resp['data'] = {'qr_code_url': UrlManager.buildImageUrl(qr_code.qr_code, image_type=1)}
+    return jsonify(resp)
 
 
 @route_api.route("/qrcode/scan", methods=['GET', 'POST'])
-def scanQrcode():
+def scan_qr_code():
     """
     scan qr code {qrcode id} , return whether the qr code id has been registered
-    :return:
-      500 when no qr code with {id} in db
-      200 when has qr code with {id} in db
-          true when linked to a member
-          false when no linked member
+    :return: 返回二维码是否已绑定手机号(已经激活)
     """
+    resp = {'code': -1, 'msg': '', 'data': {}}
     params = request.get_json()
-    codeId = params['id']
-    # check whether user is a member
-    qrcode = QrCode.query.filter_by(id=int(codeId)).first()
-    if qrcode is None:
+    code_id = params['id']
+
+    # 检查参数:二维码id
+    qr_code = QrCode.query.filter_by(id=int(code_id)).first()
+    if qr_code is None:
         app.logger.error("failed to get qr code")
-        return Response(status=500)
-    if qrcode.member_id is None:
-        app.logger.info("go to register qr code: %s", codeId)
-        return Response(status=200)
+        resp['msg'] = "参数错误"
+        return jsonify(resp)
+
+    resp['code'] = 200
+    if not qr_code.mobile:
+        app.logger.info("下一步：激活二维码,绑定手机号, id: %s", code_id)
+        resp['data'] = {"activated": False}
+        resp['msg'] = "未激活,前往绑定手机号"
+        # return Response(status=200)
     else:
-        app.logger.info("go to publish qr code: %s", codeId)
-        return Response(status=201)
+        app.logger.info("下一步:扫码推送有人捡到了你的东西,id: %s", code_id)
+        resp['data'] = {"activated": True}
+        resp['msg'] = "已激活,前往发布信息"
+        # return Response(status=201)
+    return jsonify(resp)
 
 
 @route_api.route("/qrcode/sms", methods=['GET', 'POST'])
-def getSmsCode():
+def get_sms_code():
     """
     verify phone number through sms code
     example request body

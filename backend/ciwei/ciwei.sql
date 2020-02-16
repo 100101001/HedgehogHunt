@@ -4,6 +4,7 @@ USE `ciwei_db`;
 #flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables member  --outfile "common/models/jmall/Member.py"  --flask
 #flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables report  --outfile "common/models/ciwei/Report.py" --flask
 #flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables order  --outfile "common/models/ciwei/Order.py" --flask
+#flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables qr_code  --outfile "common/models/ciwei/QrCode.py" --flask
 DROP TABLE IF EXISTS `user`;
 
 CREATE TABLE `user` (
@@ -56,7 +57,7 @@ CREATE TABLE `qr_code` (
   `order_id` int(11) unsigned COMMENT '微信支付的订单id',
   `name` varchar(20) NOT NULL DEFAULT '' COMMENT '注册会员的姓名，用于后期做匹配',
   `location` varchar(255) NOT NULL DEFAULT '' COMMENT '注册会员收货地址',
-  `qr_code` blob NOT NULL COMMENT '会员的小程序二维码图片',
+  `qr_code` varchar(255) NOT NULL COMMENT '会员的小程序二维码图片',
   `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
   `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`)
