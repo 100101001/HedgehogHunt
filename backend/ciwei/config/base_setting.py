@@ -39,6 +39,12 @@ OPENCS_APP = {
     'mch_key': ''
 }
 
+QR_CODE = {
+    'ext': 'jpg',
+    'prefix_path': '/web/static/qr_code/',
+    'prefix_url': '/static/qr_code/'
+}
+
 TWILIO_SERVICE = {
     'accountSID': 'AC11e40a4fac01008a5f6841be60ceb9e1',
     'authToken': '037c7506ccf5936c6da0effb00531e94',
