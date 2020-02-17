@@ -199,6 +199,9 @@ def goodsSearch():
         return jsonify(resp)
 
     # 维度0：按status和report_status字段筛选掉物品
+    # 7 - 发布者删除
+    # 5 - 管理员删除
+    #
     query = Good.query.filter(Good.status != 8)
     query = query.filter(Good.status != 7)
     query = query.filter(Good.report_status != 2)
