@@ -2,6 +2,7 @@
 from flask import request, jsonify, g
 
 from application import db
+from common.libs import Helper
 from common.libs.Helper import getCurrentDate
 from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
@@ -11,6 +12,7 @@ from common.models.ciwei.Thanks import Thank
 from common.models.ciwei.User import User
 # -*- coding:utf-8 -*-
 from web.controllers.api import route_api
+
 
 # TODO：如果可以锁号，那么登陆需要判断用户的status
 @route_api.route("/member/login", methods=['GET', 'POST'])
@@ -56,7 +58,8 @@ def login():
         db.session.commit()
         member_info = model_member
     token = "%s#%s" % (openid, member_info.id)
-    resp['data'] = {'token': token}
+    # 登陆后，前端在 app.globalData 中存有全局变量
+    resp['data'] = {'token': token, 'member_info': Helper.queryToDict(member_info)}
     resp['req'] = req
     return jsonify(resp)
 
