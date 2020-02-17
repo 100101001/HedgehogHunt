@@ -110,8 +110,10 @@ class MemberService():
 
         # 按物主owner_name, 物品名name 匹配失/拾物品
         # 在失去物品的作者的recommmend_id中加入匹配到的拾物品id
+        # 不能是同一个人发布的拾/失
         query = Good.query.filter_by(owner_name=goods_info.owner_name)
         query = query.filter_by(name=goods_info.name)
+        query = query.filter(Good.member_id != goods_info.member_id)
         if goods_info.business_type == 1:
             # 发布的是失物招领，找到了对应的寻物启事
             goods_list = query.filter_by(business_type=0).with_for_update().all()
