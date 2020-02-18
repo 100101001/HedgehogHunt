@@ -27,6 +27,27 @@ Page({
   //获取位置的方法
   getLocation: function(e) {
     var that = this;
+    wx.getSetting({
+      success(res) {
+        // 判断定位的授权
+        if (!res.authSetting['scope.userLocation']) {
+          wx.authorize({
+            scope: 'scope.userLocation',
+            success() {
+              that.chooseLocation();
+            },
+            fail(errMsg) {
+              wx.showToast({ title: JSON.stringify(errMsg), icon: 'none' }) 
+            }
+          })
+        } else {
+          that.chooseLocation();
+        }
+      }
+    })
+  },
+  chooseLocation:function(){
+    var that = this
     wx.chooseLocation({
       success: function(res) {
         var location = [
@@ -39,6 +60,9 @@ Page({
           location: location
         })
       },
+      complete:function(res){
+        console.log(res)
+      }
     })
   },
   //获取位置
@@ -119,6 +143,7 @@ Page({
     if (is_empty) {
       return;
     }
+    //上传发布数据
     var business_type = this.data.business_type;
     data['business_type'] = business_type;
     data['location'] = this.data.location;
