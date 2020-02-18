@@ -2,7 +2,6 @@
 <view class="user">
   <image class="avatar" src="{{userInfo.avatarUrl}}"></image>
   <view class="nickname">{{userInfo.nickname}}</view>
-  <!--view class="wechatid">微信号：wcx5755</view-->
 </view>
 
 <view class="userinfo">
@@ -20,7 +19,8 @@
     <view class="title">二维码</view>
     <view class="next">
       <view class="recharge_btn" bindtap="getQrCode" wx:if="{{!has_qrcode}}">获取</view>
-      <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode}}">查看</view>
+      <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode && !show_qrcode}}">查看</view>
+      <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode && show_qrcode}}">隐藏</view>
     </view>
   </view>
   <image class="qr_code" src="{{qrCode}}" bindtap="previewImage" data-id="0" wx:if="{{show_qrcode}}"></image>
