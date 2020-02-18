@@ -13,7 +13,7 @@
 		"autoAudits": false
 	},
 	"compileType": "miniprogram",
-	"libVersion": "2.5.0",
+	"libVersion": "2.10.1",
 	"appid": "wx3a7bac4ab0184c76",
 	"projectname": "LostAndFind",
 	"debugOptions": {

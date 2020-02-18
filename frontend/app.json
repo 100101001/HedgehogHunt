@@ -24,5 +24,10 @@
     "navigationBarBackgroundColor": "#f7931e",
     "navigationBarTitleText": "刺猬寻物"
   },
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "permission":{
+    "scope.userLocation":{
+      "desc":"物品的定位将更加精确"
+    }
+  }
 }
