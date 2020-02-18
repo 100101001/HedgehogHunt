@@ -1,6 +1,6 @@
 SERVER_PORT = 8999
 # IP = '127.0.0.1'
-IP = 'ubuntu'
+IP = '192.168.0.115'
 # IP='100.68.70.139'
 DEBUG = True
 SQLALCHEMY_ECHO = True
@@ -8,7 +8,7 @@ SQLALCHEMY_ECHO = True
 PAGE_SIZE = 50
 PAGE_DISPLAY = 10
 
-SQLALCHEMY_DATABASE_URI = 'mysql://root:wcx9517530@127.0.0.1/ciwei_db'
+SQLALCHEMY_DATABASE_URI = 'mysql://root:wcx9517530@127.0.0.1/ciwei_db?charset=utf8mb4'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_ENCODING = 'utf-8'
 
@@ -43,6 +43,12 @@ QR_CODE = {
     'ext': 'jpg',
     'prefix_path': '/web/static/qr_code/',
     'prefix_url': '/static/qr_code/'
+}
+
+SUBSCRIBE_TEMPLATES = {
+    "recommend": "zSCF_j0kTfRvPe8optyb5sx8F25S3Xc9yCvvObXFCh4",
+    "finished": "Vx58nqU-cfi07bu4mslzCFhFyGTT52Xk4zlsrwC-MVA",
+    "thanks": "gBSM-RF5b3L_PoT3f1u8ibxZMz-qzAsNSZy2LSBPsG8"
 }
 
 TWILIO_SERVICE = {

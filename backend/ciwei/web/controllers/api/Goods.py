@@ -48,6 +48,7 @@ def createGoods():
     # 用户积分涨5
     model_goods = Good()
     model_goods.member_id = member_info.id
+    model_goods.openid = member_info.openid
     model_goods.name = name
     model_goods.target_price = Decimal(req['target_price']).quantize(Decimal('0.00')) if 'target_price' in req else 0.0
     location = req["location"]
@@ -199,11 +200,9 @@ def goodsSearch():
         return jsonify(resp)
 
     # 维度0：按status和report_status字段筛选掉物品
-    # 7 - 发布者删除
-    # 5 - 管理员删除
-    #
     query = Good.query.filter(Good.status != 8)
     query = query.filter(Good.status != 7)
+
     query = query.filter(Good.report_status != 2)
     query = query.filter(Good.report_status != 3)
     query = query.filter(Good.report_status != 5)
@@ -349,6 +348,11 @@ def goodsApplicate():
     return jsonify(resp)
 
 
+@route_api.route('/goods/index')
+def goods_index():
+    return jsonify({"hello": "lyx"})
+
+
 @route_api.route('/goods/gotback')
 def goodsGotback():
     """
@@ -392,6 +396,8 @@ def goodsGotback():
     goods_info.status = 3
     goods_info.tap_count = goods_info.tap_count + 1
     goods_info.updated_time = getCurrentDate()
+    from common.libs import SubscribeService
+    SubscribeService.send_finished_subscribe(goods_info)
 
     # 在会员的gotback_id中加入物品的id
     member_gotback_id = member_info.gotback_id

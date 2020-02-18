@@ -7,4 +7,6 @@ flask_script
 requests
 twilio
 Flask-Caching
+bs4
+lxml
 # uwsgi

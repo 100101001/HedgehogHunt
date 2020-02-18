@@ -1,4 +1,6 @@
 from flask import g, request
+
+from application import db
 from common.libs import OrderService
 from web.controllers.api import route_api, jsonify
 
@@ -28,10 +30,12 @@ def place_payment_order():
 
     openid = member_info.openid
     # 新增订单
-    order_id = OrderService.place_db_order(member_info, price)
+    order = OrderService.place_db_order(member_info, price)
 
     # 调用微信支付的统一下单接口, 获取prepay_id, 签名返回前端
-    OrderService.place_wx_prepay_order(openid, order_id, price, resp)
+    OrderService.place_wx_prepay_order(openid, order, resp)
+
+    db.session.commit()
     return jsonify(resp)
 
 
@@ -41,14 +45,14 @@ def place_payment_order():
 def notify_payment_result():
     """
     获取微信推送支付结果, 更新订单状态
-    更新条件条件
+    更新条件
     1.签名正确
     2.订单支付结果,及必要更新信息:订单号,交易号,交易完成时间,交易用户完整给出
     3.订单状态未支付
     :see:https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_7
     :return: 通知微信接收到正确的通知了
     """
-    req = request.json()
+    req = OrderService.trans_xml_to_dict(request.text)
     resp = {"return_code": "FAIL"}
     # 验证签名
     if not OrderService.verify_sign(req, req['sign_type'] if 'sign_type' in req else "MD5"):
@@ -58,8 +62,10 @@ def notify_payment_result():
         resp['return_code'] = "SUCCESS"
         # 小程序API调用成功
         if req['return_code'] == "SUCCESS" and req['result_code'] == "SUCCESS":
-            # 更新订单状态为已支付
-            OrderService.paid(req)
+            # 检查订单金额一致
+            if OrderService.verify_total_fee(req['out_trade_no'], req['total_fee']):
+                # 更新订单状态为已支付
+                OrderService.paid(req)
     return jsonify(resp)
 
 
@@ -84,15 +90,15 @@ def query_payment_result():
         return jsonify(resp)
 
     # 订单不存在
-    # 订单已支付,直接返回状态
+    # 微信已通知,直接返回订单状态
     # 查询微信后台状态
     from common.models.ciwei.Order import Order
     order = Order.query.filter_by(id=req['order_id']).first()
     if not order:
         resp['msg'] = "无效订单号"
-    elif order.status == 0:
+    elif order.wx_payment_result_notified:
         resp['code'] = 200
-        resp['data'] = {"trade_state": "SUCCESS"}
+        resp['data'] = {"trade_state": order.status_desc}
     else:
         got_result, trade_state = OrderService.query_payment_result()
         if got_result:

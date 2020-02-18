@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import time
+from application import app
 
 
 class UrlManager(object):
@@ -28,10 +29,13 @@ class UrlManager(object):
         """
         # 返回绝对路径
         # url='域名'+"图片前缀"+"key"
-        from application import app
         app_config = app.config
         if image_type == 0:
             url = app_config['APP']['domain'] + app_config['UPLOAD']['prefix_url'] + path
         else:
             url = app_config['APP']['domain'] + app_config['QR_CODE']['prefix_url'] + path
         return url
+
+    @staticmethod
+    def buildApiUrl(route):
+        return app.config['APP']['domain'] + "/api" + route

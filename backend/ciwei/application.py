@@ -15,8 +15,11 @@ class Application(Flask):
 
         # if 'ops_config' in os.environ:
         #   self.config.from_pyfile('config\\%s_setting.py' % os.environ['ops_config'])
+        # 缓存wx服务端API的 access_token，如果过期再获取更新缓存
         cache.init_app(self)
         db.init_app(self)
+        # 强制时区是中国
+        os.environ['TZ'] = 'Asia/Shanghai'
 
 
 db = SQLAlchemy()

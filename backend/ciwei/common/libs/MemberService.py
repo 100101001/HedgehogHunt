@@ -107,7 +107,7 @@ class MemberService():
        :param goods_info:
        :return: True
        """
-
+        from common.libs import SubscribeService
         # 按物主owner_name, 物品名name 匹配失/拾物品
         # 在失去物品的作者的recommmend_id中加入匹配到的拾物品id
         # 不能是同一个人发布的拾/失
@@ -124,6 +124,8 @@ class MemberService():
                 for item in goods_list:
                     tmp_member_info = member_map[item.member_id]
                     MemberService.addRecommendGoods(tmp_member_info, item.id)
+                    # 通知：有人可能捡到了你遗失的东西
+                    SubscribeService.send_recommend_subscribe(item)
         else:
             # 发布的是寻物启事，找到了对应的失物招领,给用户返回失物招领的列表
             goods_list = query.filter_by(business_type=1).with_for_update().all()
@@ -131,6 +133,8 @@ class MemberService():
                 member_info = g.member_info
                 for item in goods_list:
                     MemberService.addRecommendGoods(member_info, item.id)
+                    # 通知：有人可能丢了你捡到的东西
+                    SubscribeService.send_recommend_subscribe(item)
         return True
 
     @staticmethod
