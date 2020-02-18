@@ -6,7 +6,7 @@ Page({
     loadingHidden: true,
     show_location: false,
   },
-  onShareAppMessage: function(Options) {
+  onShareAppMessage: function (Options) {
     var business_type = this.data.info.business_type;
     if (business_type == 1) {
       var type_name = "失物招领：" + this.data.info.goods_name;
@@ -25,10 +25,10 @@ Page({
     return {
       title: title_msg,
       path: '/pages/index/index?goods_id=' + this.data.info.id,
-      success: function(res) {
+      success: function (res) {
         wx.request({
           url: app.buildUrl('/member/share'),
-          success: function(res) {
+          success: function (res) {
             wx.showToast({
               title: '分享成功！',
               icon: 'success',
@@ -36,7 +36,7 @@ Page({
               duration: 3000
             })
           },
-          fail: function(res) {
+          fail: function (res) {
             wx.showToast({
               title: '分享失败！',
               duration: 3000
@@ -46,30 +46,26 @@ Page({
       }
     }
   },
-  onLoad: function(options) {
+  onLoad: function (options) {
     var goods_id = options.goods_id;
-    // var goods_id = 14;
-    // var op_status = 4;
-    var op_status=app.globalData.op_status;
+    var op_status = app.globalData.op_status;
     this.setData({
       op_status: op_status
     });
     if (op_status == 4) {
       this.getReportInfo(goods_id)
     } else {
-      this.getGoodsInfo(goods_id);
+      this.getGoodsInfo(goods_id)
     }
-    app.getNewRecommend();
   },
-  onShow: function() {
+  onShow: function () {
     var regFlag = app.globalData.regFlag;
     this.setData({
       regFlag: regFlag
     });
-
   },
   //打开位置导航
-  toNavigate: function() {
+  toNavigate: function () {
     var location = this.data.infos.info.location;
     wx.openLocation({ //​使用微信内置地图查看位置。
       latitude: location[2], //要去的纬度-地址
@@ -78,7 +74,7 @@ Page({
       address: location[0],
     })
   },
-  getReportInfo: function(id) {
+  getReportInfo: function (id) {
     var that = this;
     that.setData({
       loadingHidden: false
@@ -89,7 +85,7 @@ Page({
       data: {
         id: id
       },
-      success: function(res) {
+      success: function (res) {
         var resp = res.data;
         if (resp.code !== 200) {
           app.alert({
@@ -112,18 +108,18 @@ Page({
           ids: resp.data.ids,
         });
       },
-      fail: function(res) {
+      fail: function (res) {
         app.serverBusy();
         return;
       },
-      complete: function(res) {
+      complete: function (res) {
         that.setData({
           loadingHidden: true
         });
       },
     })
   },
-  getGoodsInfo: function(id) {
+  getGoodsInfo: function (id) {
     var that = this;
     that.setData({
       loadingHidden: false
@@ -134,7 +130,7 @@ Page({
       data: {
         id: id,
       },
-      success: function(res) {
+      success: function (res) {
         var resp = res.data;
         if (resp.code !== 200) {
           app.alert({
@@ -152,11 +148,11 @@ Page({
           }
         });
       },
-      fail: function(res) {
+      fail: function (res) {
         app.serverBusy();
         return;
       },
-      complete: function(res) {
+      complete: function (res) {
         that.setData({
           loadingHidden: true
         });
@@ -164,7 +160,7 @@ Page({
     })
   },
   //拉黑举报者
-  toBlock: function(e) {
+  toBlock: function (e) {
     var report_status = e.currentTarget.dataset.report_status;
     var that = this;
     var ids = that.data.ids;
@@ -178,8 +174,8 @@ Page({
     wx.request({
       url: app.buildUrl("/report/block"),
       header: app.getRequestHeader(),
-      data:data,
-      success: function(res) {
+      data: data,
+      success: function (res) {
         var resp = res.data;
         if (resp.code !== 200) {
           app.alert({
@@ -194,7 +190,7 @@ Page({
           duration: 2000
         });
       },
-      fail: function(res) {
+      fail: function (res) {
         wx.hideLoading();
         wx.showToast({
           title: '操作失败',
@@ -205,7 +201,7 @@ Page({
       }
     });
   },
-  toReport: function(e) {
+  toReport: function (e) {
     var regFlag = app.globalData.regFlag;
     if (!regFlag) {
       app.alert({
@@ -218,7 +214,7 @@ Page({
     wx.showModal({
       title: "违规举报",
       content: "为维护平台环境，欢迎举报色情及诈骗、恶意广告等违规信息！同时，恶意举报将会被封号，请谨慎操作，确认举报？",
-      success: function(res) {
+      success: function (res) {
         if (res.confirm) { //点击确定,获取操作用户id以及商品id,从用户token里面获取id
           wx.showLoading({
             title: '信息提交中..'
@@ -230,7 +226,7 @@ Page({
               id: id,
               record_type: 1,
             },
-            success: function(res) {
+            success: function (res) {
               var resp = res.data;
               if (resp.code !== 200) {
                 app.alert({
@@ -245,7 +241,7 @@ Page({
                 duration: 2000
               });
             },
-            fail: function(res) {
+            fail: function (res) {
               wx.hideLoading();
               wx.showToast({
                 title: '系统繁忙，反馈失败！',
@@ -260,18 +256,21 @@ Page({
       }
     });
   },
-  goHome: function(e) {
+  goHome: function (e) {
     wx.navigateTo({
       url: "../../Find/Find?business_type=1",
     })
   },
-  goRelease: function(e) {
+  goRelease: function (e) {
+    if (!app.loginTip()) {
+      return;
+    }
     wx.navigateTo({
       url: "../../Release/Release",
     })
   },
   //归还按钮
-  goReturn: function(e) {
+  goReturn: function (e) {
     var auther_id = this.data.infos.info.auther_id;
     var info = this.data.infos.info;
     app.globalData.info = info;
@@ -280,7 +279,7 @@ Page({
     })
   },
   //归还按钮
-  goThanks: function(e) {
+  goThanks: function (e) {
     var is_auth = this.data.infos.info.is_auth;
     if (is_auth) {
       app.alert({
@@ -305,21 +304,20 @@ Page({
     })
   },
   //申领的按钮
-  toApplicate: function() {
+  toApplicate: function () {
     var that = this;
-    var regFlag = app.globalData.regFlag;
-    if (!regFlag) {
-      app.loginTip();
+    if (!app.loginTip()) {
       return;
     }
+    //TODO:发布者看不到认领按钮（或者禁止按键）
     var is_auth = that.data.infos.info.is_auth;
     if (is_auth) {
       app.alert({
-        'content': "发布者不可操作自己的记录"
+        'content': "发布者不可认领自己捡到的物品"
       })
       return;
     }
-
+    //防止重复申领
     var show_location = that.data.infos.show_location;
     if (show_location) {
       if (this.data.infos.info.business_type == 1) {
@@ -332,6 +330,7 @@ Page({
       })
       return;
     }
+    //
     wx.showModal({
       title: '提示',
       content: '申领后会在平台留下个人信息备查，是否确定申领？',
@@ -346,12 +345,11 @@ Page({
             data: {
               id: that.data.infos.info.id,
             },
-            success: function(res) {
+            success: function (res) {
               var resp = res.data;
               if (resp.code !== 200) {
                 return;
               }
-
               var infos = that.data.infos;
               infos['show_location'] = resp.data.show_location;
               infos.info.status_desc = resp.data.status_desc;
@@ -363,11 +361,11 @@ Page({
                 'content': "认领成功，可到  '我的——认领记录'   中查看"
               });
             },
-            fail: function(res) {
+            fail: function (res) {
               app.serverBusy();
               return;
             },
-            complete: function(res) {
+            complete: function (res) {
               that.setData({
                 loadingHidden: true
               });
@@ -378,7 +376,7 @@ Page({
     })
   },
   //已经取回的按钮
-  gotBack: function() {
+  gotBack: function () {
     var that = this;
     var regFlag = app.globalData.regFlag;
     if (!regFlag) {
@@ -406,7 +404,7 @@ Page({
             data: {
               id: that.data.infos.info.id,
             },
-            success: function(res) {
+            success: function (res) {
               var resp = res.data;
               if (resp.code !== 200) {
                 return;
@@ -423,11 +421,11 @@ Page({
                 'content': "记得答谢发布者哦~"
               });
             },
-            fail: function(res) {
+            fail: function (res) {
               app.serverBusy();
               return;
             },
-            complete: function(res) {
+            complete: function (res) {
               that.setData({
                 loadingHidden: true
               });
@@ -437,7 +435,7 @@ Page({
       },
     })
   },
-  previewItemImage: function(e) {
+  previewItemImage: function (e) {
     var index = e.currentTarget.dataset.index;
     console.log(index);
     wx.previewImage({
@@ -445,7 +443,7 @@ Page({
       urls: this.data.infos.info.pics // 需要预览的图片http链接列表
     })
   },
-  toEdit: function(event) {
+  toEdit: function (event) {
     var info = this.data.infos.info;
     app.globalData.info = info;
     wx.navigateTo({
