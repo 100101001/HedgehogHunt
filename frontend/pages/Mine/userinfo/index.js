@@ -1,30 +1,8 @@
 var util = require("../../../utils/util.js");
 var app = getApp();
-const HedgeHogClient = require('../../../utils/api').HedgeHogClient
 Page({
   data: {
-    items: [{
-      name: "姓名",
-      value: "韦朝旭",
-    },
-    {
-      name: "电话",
-      value: "18385537403",
-    },
-    {
-      name: "收件地址",
-      value: "上海市杨浦区四平路1239号",
-    },
-    {
-      name: "编辑个人信息",
-      value: "",
-      act: "onChooseAddresTap",
-      src: '/images/icons/write.png',
-    }
-    ],
-    // qr_code_list: [
-    //   "/images/more/wcx.jpg",
-    // ],
+   
     userInfo: {},
     has_qrcode: false,
     show_qrcode: false,
@@ -32,54 +10,63 @@ Page({
   },
   onLoad: function () {
     var that = this;
-    var base64code = wx.getStorageSync('qrcode')
-    if (base64code) {
-      console.log("获取到了缓存的qrcode")
-      // Do something with return value
-      this.setData({
-        qrCode: base64code,
-        has_qrcode: true
-      })
-    } else {
-      //尝试获取数据库存储的该会员的二维码，根据状态码
-      //判断是否获取到了，以此
-      //设置页面数据has_qrcode，和qrCode
-      wx.request({
-        method: 'post',
-        url: app.buildUrl('/qrcode/db'),
-        data: {
-          memberId: 1
-        },
-        success: function (res) {
-          if (res.statusCode == 200) {
-            console.log("获取到了数据库的qrcode,存到缓存")
-            wx.setStorage({
-              key: "qrcode",
-              data: "data:image/jpeg;base64," + res.data
-            })
-            that.setData({
-              qrCode: "data:image/jpeg;base64," + res.data,
-              has_qrcode: true
-            })
-          } else if (res.statusCode == 201) {
-            console.log("没获取到数据库的qrcode")
-            that.setData({
-              has_qrcode: false
-            })
-          } else if (res.statusCode == 500) {
-            app.serverInternalError()
-          }
-        },
-        fail: function (res) {
-          app.serverBusy()
+    //会员基本信息
+    // var name = app.globalData.memberInfo.name=="" ? "-":app.globalData.memberInfo.name
+    // var mobile = app.globalData.memberInfo.mobile=="" ? "-":app.globalData.memberInfo.mobile
+    // var location = app.globalData.memberInfo.location=="" ? "-":app.globalData.memberInfo.location
+    var receiver = wx.getStorageSync('receiver')
+    var mobile = wx.getStorageSync('mobile')
+    var address = wx.getStorageSync('address')
+    this.setData({
+      items: [{
+        name: "姓名",
+        value: receiver==""? "-":receiver,
+      },
+      {
+        name: "电话",
+        value: mobile == "" ? "-" : mobile,
+      },
+      {
+        name: "收件地址",
+        value: address == "" ? "-" : address,
+      },
+      {
+        name: "编辑个人信息",
+        value: "",
+        act: "onChooseAddresTap",
+        src: '/images/icons/write.png',
+      }
+      ],
+    })
+    //TODO:文件缓存
+    //尝试获取数据库存储的该会员的二维码，根据状态码
+    //判断是否获取到了，以此
+    //设置页面数据has_qrcode，和qrCode
+    wx.request({
+      method: 'post',
+      url: app.buildUrl('/qrcode/db'),
+      header:app.getRequestHeader(1),
+      success: function (res) {
+        var resp = res.data
+        if (resp.code == 200) {
+          console.log("获取到了数据库的qrcode")
+          that.setData({
+            qrCode: resp.data.qr_code_url,
+            has_qrcode: true
+          })
+        } else if (resp.code == 201) {
+          console.log("没获取到数据库的qrcode")
+          that.setData({
+            has_qrcode: false
+          })
+        } else if (resp.code == -1) {
+          app.serverInternalError()
         }
-      })
-    }
-
-
-    // while (app.globalData.userInfo == null) {
-    //   //app 还没获取到userInfo，空等待  
-    // }
+      },
+      fail: function (res) {
+        app.serverBusy()
+      }
+    })
     this.setData({
       userInfo: app.globalData.userInfo
     });
@@ -96,6 +83,18 @@ Page({
         that.setData({
           items: items
         })
+        wx.setStorage({
+          key: 'receiver',
+          data: items[0].value
+        });
+        wx.setStorage({
+          key: 'mobile',
+          data: items[1].value
+        });
+        wx.setStorage({
+          key: 'address',
+          data: items[2].value
+        });
       }
     })
   },
@@ -105,21 +104,12 @@ Page({
       wx.request({
         method: 'post',
         url: app.buildUrl('/qrcode/wx'),
-        header: {
-          'content-type': 'application/json'
-        },
-        data: {
-          memberId: 1,
-          orderId: 1,
-          username: "lyx1"
-        },
+        header:app.getRequestHeader(1),
         success: function (res) {
-          console.log(res)
-          if (res.statusCode === 200) {
-            var resp = res.data;
+          var resp = res.data
+          if (resp.code === 200) {       
             that.setData({
-              // qrCode:"data:image/jpeg;base64,"+wx.arrayBufferToBase64(resp),
-              qrCode: "data:image/jpeg;base64," + resp,
+              qrCode: resp.data.qr_code_url,
               has_qrcode: true,
               show_qrcode: true
             })
