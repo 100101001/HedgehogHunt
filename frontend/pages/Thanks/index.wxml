@@ -23,6 +23,5 @@
      <text>元</text>
     </view>
     <button class='bottom' form-type="submit" type='primary' bindtap="sendThank" disabled="{{canSendThank}}">发出感谢</button>
-    <!-- <button class='bottom' bindtap="goHome">回首页</button> -->
   </view>
 </view>

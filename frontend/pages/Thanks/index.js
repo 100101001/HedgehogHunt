@@ -21,7 +21,7 @@ Page({
     })
   },
   goHome: function (e) {
-    wx.navigateTo({
+    wx.reLaunch({
       url: "../Find/Find?business_type=1",
     })
   },
@@ -114,7 +114,7 @@ Page({
     }
   },
   //支付单id默认为空
-  createThank: function (price, order_id="") {
+  createThank: function (price, order_id = "") {
     var thanks_text = this.data.thanks_text;
     var data = this.data.data;
     data['price'] = price;
