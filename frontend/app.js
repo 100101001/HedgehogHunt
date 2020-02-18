@@ -11,15 +11,25 @@ App({
     location: '',
     has_info: false,
     userInfo: null,
+    memberInfo: null,
     version: "1.0",
     regFlag: false,
     shopName: "刺猬寻物",
     // domain: "http://127.0.0.1:8999/api",
-    domain: "http://ubuntu:8999/api",
+    domain: "http://192.168.0.115:8999/api",
     member_id: null,
     member_status: 1,
     is_adm: true,
-    op_status:2
+    op_status:2,
+    subscribe:{
+      recommend: 'zSCF_j0kTfRvPe8optyb5sx8F25S3Xc9yCvvObXFCh4',
+      finished: 'Vx58nqU-cfi07bu4mslzCFhFyGTT52Xk4zlsrwC-MVA',
+      thanks: 'gBSM-RF5b3L_PoT3f1u8ibxZMz-qzAsNSZy2LSBPsG8'
+    },
+    business_type:{
+      found:1,
+      lost:0
+    }
   },
   onLaunch: function () {
     // 展示本地存储能力
@@ -57,7 +67,7 @@ App({
   loginTip: function () {
     //返回值：是否已登录过
     //操作：没登录过就登录，否则什么都不做。
-    if(!this.globalData.regFlag && wx.getStorageSync('token') == ""){
+    if(!this.globalData.regFlag || this.getCache("token")==""){
       wx.showModal({
         title: '提示',
         content: '该功能需要授权登录！请授权登录',
@@ -118,10 +128,18 @@ App({
   console: function (msg) {
     console.log(msg);
   },
-  getRequestHeader: function () {
-    return {
-      'content-type': 'application/x-www-form-urlencoded',
-      'Authorization': this.getCache("token")
+  getRequestHeader: function (content_type = 0) {
+    var that = this
+    if (content_type===0) {
+      return {
+        'content-type': 'application/x-www-form-urlencoded',
+        'Authorization': that.getCache("token")
+      }
+    } else {
+      return {
+        'content-type': 'application/json',
+        'Authorization': that.getCache("token")
+      }
     }
   },
   //切字符
@@ -228,10 +246,8 @@ App({
     });
     return;
   },
-  //getNewMes
   getNewRecommend: function () {
     var that = this;
-    console.log("获取新的推荐记录")
     wx.request({
       url: that.buildUrl('/member/get-new-recommend'),
       header: that.getRequestHeader(),
@@ -239,10 +255,8 @@ App({
       data: {},
       success: function (res) {
         if (res.data.code !== 200) {
-          console.log("获取新的推荐记录失败了，全局的recommand是空的")
           return;
         }
-        console.log("获取新的推荐记录成功了，全局的recommand是有值的")
         that.globalData.total_new = res.data.data.total_new;
         that.globalData.recommend_new = res.data.data.recommend_new;
         that.globalData.thanks_new = res.data.data.thanks_new;
@@ -340,6 +354,7 @@ App({
               return;
             }
             that.setCache("token", res.data.data.token);
+            that.globalData.memberInfo = res.data.data.member_info
             that.checkLogin();
             // that.alert({
             //   'content': '登录成功,5秒后自动返回之前页面，欢迎继续使用～'
