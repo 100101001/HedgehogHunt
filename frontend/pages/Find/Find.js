@@ -65,8 +65,7 @@ Page({
       },
       ]
     };
-    var total_new = app.globalData.total_new;
-    isSelecteds['total_new'] = total_new;
+    isSelecteds['total_new'] = app.globalData.total_new;
     this.setData({
         isSelecteds: isSelecteds,
         filter_address: '',
@@ -76,7 +75,10 @@ Page({
         owner_name: '',
         filter_address: '',
         loadingMoreHidden: true,
+        regFlag: app.globalData.regFlag,
       });
+    this.setInitData();
+    this.onPullDownRefresh();
   },
   //轮播图变化
   swiperchange: function(e) {
@@ -85,12 +87,6 @@ Page({
     })
   },
   onShow: function() {
-    var regFlag = app.globalData.regFlag;
-    this.setData({
-      regFlag: regFlag,
-    });
-    this.setInitData();
-    this.onPullDownRefresh();
     // this.getBanners();
   },
   catClick: function(e) {
@@ -331,11 +327,7 @@ Page({
   //获取信息列表
   getGoodsList: function(e) {
     var that = this;
-    if (!that.data.loadingMoreHidden) {
-      return;
-    }
-
-    if (that.data.processing) {
+    if (!that.data.loadingMoreHidden || that.data.processing) {
       return;
     }
     that.setData({
