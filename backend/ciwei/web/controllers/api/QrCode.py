@@ -27,29 +27,34 @@ def get_wx_qr_code():
         resp['msg'] = '请先登录'
         return jsonify(resp)
 
-    # add lock to prevent concurrent operations on getting access token & getting qr code (id)
-    with _qr_code_lock:
-        # 调API获取二维码
-        token = QrCodeService.get_wx_token()
-        if not token:
-            resp['msg'] = "微信繁忙"
-            return jsonify(resp)
-        wx_resp, qr_code_id = QrCodeService.get_wx_qr_code(token)
+    # 会员已有二维码
+    if member_info.has_qr_code:
+        resp['code'] = 200
+        resp['data']['qr_code_url'] = {'qr_code_url': UrlManager.buildImageUrl(member_info.qr_code, image_type=1)}
+        return jsonify(resp)
 
-        # API成功,保存二维码
-        # API失败,记录错误日志
-        if len(wx_resp.content) < 80:
-            data = wx_resp.json()
-            app.logger.error("没拿到二维码. 错误码: %s, 错误信息:%s", data['errcode'], data['errmsg'])
-            resp['msg'] = "微信繁忙"
-            return jsonify(resp)
-        else:
-            # 存成文件,db新增二维码
-            path = QrCodeService.save_wx_qr_code(qr_code_id, member_info, wx_resp)
-            resp['code'] = 200
-            resp['data']['qr_code_url'] = {'qr_code_url': UrlManager.buildImageUrl(path, image_type=1)}
-            # return Response(response=str(base64.b64encode(wx_resp.content), 'utf-8'), status=200)
-            return jsonify(resp)
+    # 调API获取二维码
+    from common.libs import WechatService
+    token = WechatService.get_wx_token()
+    if not token:
+        resp['msg'] = "微信繁忙"
+        return jsonify(resp)
+    wx_resp, openid = QrCodeService.get_wx_qr_code(token, member_info)
+
+    # API成功,保存二维码
+    # API失败,记录错误日志
+    if len(wx_resp.content) < 80:
+        data = wx_resp.json()
+        app.logger.error("没拿到二维码. 错误码: %s, 错误信息:%s", data['errcode'], data['errmsg'])
+        resp['msg'] = "微信繁忙"
+        return jsonify(resp)
+    else:
+        # 存成文件,db新增二维码
+        path = QrCodeService.save_wx_qr_code(member_info, wx_resp)
+        resp['code'] = 200
+        resp['data']['qr_code_url'] = {'qr_code_url': UrlManager.buildImageUrl(path, image_type=1)}
+        # return Response(response=str(base64.b64encode(wx_resp.content), 'utf-8'), status=200)
+        return jsonify(resp)
 
 
 @route_api.route("/qrcode/db", methods=['GET', 'POST'])

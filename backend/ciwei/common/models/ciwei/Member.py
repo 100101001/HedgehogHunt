@@ -25,3 +25,7 @@ class Member(db.Model):
     mark_id = db.Column(db.String(1000), nullable=False, server_default=db.FetchedValue())
     gotback_id = db.Column(db.String(2000), nullable=False, server_default=db.FetchedValue())
     recommend_id = db.Column(db.String(3000), nullable=False, server_default=db.FetchedValue())
+
+    @property
+    def has_qr_code(self):
+        return self.qr_code != ""
