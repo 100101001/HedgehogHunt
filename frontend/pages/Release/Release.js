@@ -17,14 +17,48 @@ Page({
   },
 
   onFindTap: function(event) {
-    wx.navigateTo({
-      url: 'release/index?business_type=1',
+    //用户选择接受/拒绝订阅消息
+    wx.requestSubscribeMessage({
+      tmplIds: [
+        app.globalData.subscribe.recommend,
+        app.globalData.subscribe.finished,
+        app.globalData.subscribe.thanks
+      ], //首次(被)匹配，已完成，(被)答谢
+      success: function (res) {
+        console.log(res)
+        wx.navigateTo({
+          url: 'release/index?business_type=1',
+        })
+      },
+      fail: function (res) {
+        console.log(res)
+        wx.navigateTo({
+          url: 'release/index?business_type=1',
+        })
+      }
     })
   },
 
   onLostTap: function(event) {
-    wx.navigateTo({
-      url: 'release/index?business_type=0',
+    //用户选择接受/拒绝订阅消息
+    wx.requestSubscribeMessage({
+      tmplIds: [
+        app.globalData.subscribe.recommend,
+        app.globalData.subscribe.finished,
+        app.globalData.subscribe.thanks
+      ], //首次(被)匹配，已完成，(被)答谢
+      success: function (res) {
+        console.log(res)
+        wx.navigateTo({
+          url: 'release/index?business_type=0',
+        })
+      },
+      fail: function (res) {
+        console.log(res)
+        wx.navigateTo({
+          url: 'release/index?business_type=0',
+        })
+      }
     })
   }
 })
