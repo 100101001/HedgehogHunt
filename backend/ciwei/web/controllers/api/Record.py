@@ -7,11 +7,12 @@ from application import db
 from common.libs.Helper import getCurrentDate, getDictFilterField
 from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
+from common.models.ciwei.Member import Member
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Report import Report
 # -*- coding:utf-8 -*-
 from common.models.ciwei.User import User
-from web.controllers.api import route_api
+from web.controllers.api import route_api, Helper
 
 
 # 查询所有记录
@@ -102,7 +103,10 @@ def recordSearch():
     # 将对应的用户信息取出来，组合之后返回
     data_goods_list = []
     if goods_list:
+        member_ids = Helper.selectFilterObj(goods_list, "member_id")
+        member_map = Helper.getDictFilterField(Member, Member.id, "id", member_ids)
         for item in goods_list:
+            tmp_member_info = member_map[item.member_id]
             tmp_data = {
                 "id": item.id,
                 "new": recommend_dict[item.id] if recommend_dict else 1,  # 不存在时置1
@@ -112,8 +116,8 @@ def recordSearch():
                 "business_type": item.business_type,
                 "summary": item.summary,
                 "main_image": UrlManager.buildImageUrl(item.main_image),
-                "auther_name": member_info.nickname,
-                "avatar": member_info.avatar,
+                "auther_name": tmp_member_info.nickname,
+                "avatar": tmp_member_info.avatar,
                 "selected": False,
                 "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
             }
