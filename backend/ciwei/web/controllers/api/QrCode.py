@@ -53,7 +53,7 @@ def get_wx_qr_code():
 @route_api.route("/qrcode/db", methods=['GET', 'POST'])
 def get_db_qr_code():
     """
-    会员
+    获取已有二维码
     :return: 二维码图片URL
     """
     resp = {'code': -1, 'msg': '', 'data': {}}
@@ -76,7 +76,8 @@ def get_db_qr_code():
 @route_api.route("/qrcode/notify", methods=['GET', 'POST'])
 def scan_qr_code():
     """
-    :return: 通知失主
+    通知失主
+    :return:
     """
     resp = {'code': -1, 'msg': '通知成功', 'data': {}}
 
