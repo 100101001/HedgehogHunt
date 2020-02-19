@@ -3,33 +3,36 @@ Page({
   data: {
     loadingHidden: true,
     imglist: [],
+    notify_id: ""
   },
-  onLoad: function(options) {
-    var auther_id=options.auther_id;
-    if (auther_id){
+  onLoad: function (options) {
+    var auther_id = options.auther_id;
+    if (auther_id) {
       console.log(auther_id);
-      var business_type=1;
+      var business_type = 1;
       this.setData({
-        auther_id:auther_id
+        auther_id: auther_id
       })
-    }else{
+    } else {
+      var openid = options.openid == undefined ? "" : options.openid
       var business_type = options.business_type;
     }
     this.setData({
+      notify_id: openid,
       business_type: business_type,
       location: ""
     });
     this.setInitData();
   },
-  onShow: function() {
+  onShow: function () {
 
   },
   //获取位置的方法
-  getLocation: function(e) {
+  getLocation: function (e) {
     var that = this;
     wx.getSetting({
       success(res) {
-        // 判断定位的授权
+        // 获取定位授权
         if (!res.authSetting['scope.userLocation']) {
           wx.authorize({
             scope: 'scope.userLocation',
@@ -37,7 +40,7 @@ Page({
               that.chooseLocation();
             },
             fail(errMsg) {
-              wx.showToast({ title: JSON.stringify(errMsg), icon: 'none' }) 
+              wx.showToast({ title: JSON.stringify(errMsg), icon: 'none' })
             }
           })
         } else {
@@ -46,10 +49,10 @@ Page({
       }
     })
   },
-  chooseLocation:function(){
+  chooseLocation: function () {
     var that = this
     wx.chooseLocation({
-      success: function(res) {
+      success: function (res) {
         var location = [
           res.address,
           res.name,
@@ -60,13 +63,13 @@ Page({
           location: location
         })
       },
-      complete:function(res){
+      complete: function (res) {
         console.log(res)
       }
     })
   },
   //获取位置
-  lisentLocationInput: function(e) {
+  lisentLocationInput: function (e) {
     var location = this.data.location;
     location[1] = e.detail.value;
     this.setData({
@@ -74,7 +77,7 @@ Page({
     });
   },
   //预览图片
-  previewImage: function(e) {
+  previewImage: function (e) {
     var index = e.currentTarget.dataset.index;
     this.setData({
       flush: false,
@@ -85,7 +88,7 @@ Page({
     })
   },
   //选择图片方法
-  chooseLoadPics: function(e) {
+  chooseLoadPics: function (e) {
     var that = this; //获取上下文
     var imglist = that.data.imglist;
     //选择图片
@@ -93,7 +96,7 @@ Page({
       count: 8 - imglist.length,
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
-      success: function(res) {
+      success: function (res) {
         var tempFiles_ori = res.tempFiles;
         var imglist = that.data.imglist;
         imglist = app.addImages(tempFiles_ori, imglist);
@@ -115,7 +118,7 @@ Page({
     })
   },
   // 删除图片
-  deleteImg: function(e) {
+  deleteImg: function (e) {
     let index = e.currentTarget.dataset.index;
     let imglist = this.data.imglist;
     if (imglist.length === 1) {
@@ -136,7 +139,7 @@ Page({
     }
   },
   //表单提交
-  formSubmit: function(e) {
+  formSubmit: function (e) {
     var data = e.detail.value;
     var tips_obj = this.data.tips_obj;
     var is_empty = app.judgeEmpty(data, tips_obj);
@@ -154,19 +157,42 @@ Page({
       });
       return;
     }
+    //通知失主
+    if (this.data.notify_id !== "") {
+      this.sendNotification(data)
+    }
     data['img_list'] = img_list;
     var url = "/goods/create";
     this.uploadData(data, url, img_list);
   },
-  //上传文件
-  uploadData: function(data, url, img_list) {
+  //通知失主
+  sendNotification: function (data) {
+    var that = this
+    wx.request({
+      url: app.buildUrl('/qrcode/notify'),
+      header: app.getRequestHeader(1),
+      method: 'post',
+      data: {
+        data: data,
+        openid: that.data.openid
+      },
+      success: function (res) {
+        that.setData({
+          notify_id:""
+        })
+      }
+    })
+  },
+
+  //发帖子(除图片)
+  uploadData: function (data, url, img_list) {
     var that = this;
     wx.request({
       url: app.buildUrl(url),
       method: 'POST',
       header: app.getRequestHeader(),
       data: data,
-      success: function(res) {
+      success: function (res) {
         var resp = res.data;
         if (resp.code !== 200) {
           app.alert({
@@ -179,16 +205,16 @@ Page({
         var img_list_status = resp.img_list_status;
         that.uploadImage(id, img_list, img_list_status);
       },
-      fail: function(res) {
+      fail: function (res) {
         app.serverBusy();
         return;
       },
-      complete: function(res) {
+      complete: function (res) {
 
       },
     });
   },
-  uploadImage: function(id, img_list, img_list_status) {
+  uploadImage: function (id, img_list, img_list_status) {
     var that = this;
     var n = img_list.length;
     for (var i = 1; i <= n; i++) {
@@ -209,7 +235,7 @@ Page({
             id: id,
             img_url: img_list[i - 1]
           },
-          success: function(res) {
+          success: function (res) {
             // var resp = res.data;
             // if (resp.code != 200) {
             //   app.alert({
@@ -221,11 +247,11 @@ Page({
               that.endCreate(id);
             }
           },
-          fail: function(res) {
+          fail: function (res) {
             app.serverBusy();
             return;
           },
-          complete: function(res) {},
+          complete: function (res) { },
         })
       } else {
         //图片不存在存在，则重新上传
@@ -237,7 +263,7 @@ Page({
             'id': id
           },
           name: 'file', //文件名，不要修改，Flask直接读取
-          success: function(res) {
+          success: function (res) {
             // var resp = res.data;
             // if (resp.code !== 200) {
             //     app.alert({'content': resp.msg});
@@ -247,26 +273,26 @@ Page({
               that.endCreate(id);
             }
           },
-          fail: function(res) {
+          fail: function (res) {
             app.serverBusy();
             return;
           },
-          complete: function(res) {},
+          complete: function (res) { },
         })
       }
     }
 
   },
-  endCreate: function(id) {
+  endCreate: function (id) {
     var that = this;
-    var auther_id=that.data.auther_id;
-    if (auther_id){
-      var data={
+    var auther_id = that.data.auther_id;
+    if (auther_id) {
+      var data = {
         id: id,
-        auther_id:auther_id,
-        target_goods_id:app.globalData.info,
+        auther_id: auther_id,
+        target_goods_id: app.globalData.info,
       };
-    }else{
+    } else {
       var data = {
         id: id,
       };
@@ -275,8 +301,8 @@ Page({
       url: app.buildUrl("/goods/end-create"),
       method: 'POST',
       header: app.getRequestHeader(),
-      data:data,
-      success: function(res) {
+      data: data,
+      success: function (res) {
         console.log('success');
         var resp = res.data;
         if (resp.code !== 200) {
@@ -292,17 +318,17 @@ Page({
           duration: 2000
         });
         //提交完之后清空全局变量
-        app.globalData.info={};
-        var business_type=that.data.business_type;
+        app.globalData.info = {};
+        var business_type = that.data.business_type;
         wx.navigateTo({
-          url: '../../Find/Find?business_type='+business_type,
+          url: '../../Find/Find?business_type=' + business_type,
         });
       },
-      fail: function(res) {
+      fail: function (res) {
         app.serverBusy();
         return;
       },
-      complete: function(res) {
+      complete: function (res) {
         that.setData({
           loadingHidden: true
         });
@@ -310,10 +336,11 @@ Page({
     });
   },
   //设置页面参数
-  setInitData: function() {
-    var info=app.globalData.info;
+  setInitData: function () {
+    var info = app.globalData.info;
     var location = info.location; //用于让别人帮忙寄回物品
     var business_type = this.data.business_type;
+    //表单
     if (business_type == 1) {
       var summary_placeholder = "添加物品描述：拾到物品的时间、地点以及物品上面的其他特征如颜色、记号等...";
       var imglist = [];
@@ -325,26 +352,26 @@ Page({
         "mobile": "联系电话",
       };
       var items = [{
-          name: "goods_name",
-          placeholder: "例:校园卡",
-          label: "物品名称",
-          value:info.goods_name,
-          icons: "/images/icons/goods_name.png",
-        },
-        {
-          name: "owner_name",
-          placeholder: "例:可可",
-          label: "失主姓名",
-          value: info.owner_name,
-          icons: "/images/icons/discount_price.png",
-        },
-        {
-          name: "mobile",
-          placeholder: "高危非必填",
-          value: "无",
-          label: "联系电话",
-          icons: "/images/icons/goods_type.png",
-        }
+        name: "goods_name",
+        placeholder: "例:校园卡",
+        label: "物品名称",
+        value: info.goods_name,
+        icons: "/images/icons/goods_name.png",
+      },
+      {
+        name: "owner_name",
+        placeholder: "例:可可",
+        label: "失主姓名",
+        value: info.owner_name,
+        icons: "/images/icons/discount_price.png",
+      },
+      {
+        name: "mobile",
+        placeholder: "高危非必填",
+        value: "无",
+        label: "联系电话",
+        icons: "/images/icons/goods_type.png",
+      }
       ];
     } else {
       var tips_obj = {
@@ -355,24 +382,24 @@ Page({
         "mobile": "联系电话",
       };
       var items = [{
-          name: "goods_name",
-          placeholder: "例:校园卡",
-          label: "物品名称",
-          icons: "/images/icons/goods_name.png",
-        },
-        {
-          name: "owner_name",
-          placeholder: "例:可可",
-          label: "姓名",
-          icons: "/images/icons/discount_price.png",
-        },
-        {
-          name: "mobile",
-          placeholder: "高危非必填",
-          label: "联系电话",
-          value: "高危非必填",
-          icons: "/images/icons/goods_type.png",
-        },
+        name: "goods_name",
+        placeholder: "例:校园卡",
+        label: "物品名称",
+        icons: "/images/icons/goods_name.png",
+      },
+      {
+        name: "owner_name",
+        placeholder: "例:可可",
+        label: "姓名",
+        icons: "/images/icons/discount_price.png",
+      },
+      {
+        name: "mobile",
+        placeholder: "高危非必填",
+        label: "联系电话",
+        value: "高危非必填",
+        icons: "/images/icons/goods_type.png",
+      },
       ];
       var summary_placeholder = "添加寻物描述：物品丢失大致时间、地点，记号等...";
       var imglist = ['/images/icons/wanted.png'];

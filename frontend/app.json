@@ -18,7 +18,7 @@
     "pages/Mine/userinfo/index",
     "pages/Find/edit/edit",
     "pages/Qrcode/index",
-    "pages/Qrcode/Register/index"
+    "pages/Qrcode/Mobile/index"
   ],
   "window": {
     "navigationBarBackgroundColor": "#f7931e",

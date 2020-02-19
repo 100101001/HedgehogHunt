@@ -20,15 +20,15 @@ App({
     member_id: null,
     member_status: 1,
     is_adm: true,
-    op_status:2,
-    subscribe:{
+    op_status: 2,
+    subscribe: {
       recommend: 'zSCF_j0kTfRvPe8optyb5sx8F25S3Xc9yCvvObXFCh4',
       finished: 'Vx58nqU-cfi07bu4mslzCFhFyGTT52Xk4zlsrwC-MVA',
       thanks: 'gBSM-RF5b3L_PoT3f1u8ibxZMz-qzAsNSZy2LSBPsG8'
     },
-    business_type:{
-      found:1,
-      lost:0
+    business_type: {
+      found: 1,
+      lost: 0
     }
   },
   onLaunch: function () {
@@ -67,7 +67,7 @@ App({
   loginTip: function () {
     //返回值：是否已登录过
     //操作：没登录过就登录，否则什么都不做。
-    if(!this.globalData.regFlag || this.getCache("token")==""){
+    if (!this.globalData.regFlag || this.getCache("token") == "") {
       wx.showModal({
         title: '提示',
         content: '该功能需要授权登录！请授权登录',
@@ -80,7 +80,7 @@ App({
         }
       })
       return false;
-    }else{
+    } else {
       return true;
     }
   },
@@ -130,7 +130,7 @@ App({
   },
   getRequestHeader: function (content_type = 0) {
     var that = this
-    if (content_type===0) {
+    if (content_type === 0) {
       return {
         'content-type': 'application/x-www-form-urlencoded',
         'Authorization': that.getCache("token")
@@ -264,7 +264,7 @@ App({
       }
     });
   },
-  checkLogin: function () {
+  checkLogin: function (callback = undefined, qrcode_openid = undefined) {
     var that = this;
     wx.login({
       success: function (res) {
@@ -293,23 +293,22 @@ App({
             that.globalData.location = res.data.data.location;
             that.globalData.member_status = res.data.data.member_status;
             that.globalData.id = res.data.data.id;
+            that.globalData.openid = res.data.data.token.split("#")[0]
             that.globalData.regFlag = true;
-            wx.showToast({
-              title: '登录成功',
-              icon: 'success',
-              duration:1500,
-              success: function(res) {
-                setTimeout(function () {
-                  wx.navigateBack({})
-                }, 1500); 
-              }
-            })
-            // that.alert({
-            //   content:"登陆成功",
-            //   cb_confirm:function(){
-            //       wx.navigateBack({})     
-            //   }
-            // })
+            if (callback != undefined) {
+              callback(qrcode_openid)
+            } else {
+              wx.showToast({
+                title: '登录成功',
+                icon: 'success',
+                duration: 1500,
+                success: function (res) {
+                  setTimeout(function () {
+                    wx.navigateBack({})
+                  }, 1000);
+                }
+              })
+            }
           },
           fail: function (res) {
             that.serverBusy();

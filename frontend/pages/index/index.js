@@ -37,59 +37,44 @@ Page({
   //****************************************************
   //               韦朝旭调试
   onLoad: function (options) {
-    wx.setNavigationBarTitle({
-      title: app.globalData.shopName
-    });
-    app.checkLogin();
-    app.getNewRecommend();
-    // can be used by both of us, 
-    // qrcodeId==null indicates not qrcode
-    var qrcodeId = this.getQrcodeId(options)
-    if (qrcodeId == null) {
+    /***********扫二维码开始********/
+    var openid = this.getOpenId(options)
+    if (openid == null) {
+      // 无二维码
+      wx.setNavigationBarTitle({
+        title: app.globalData.shopName
+      });
+      app.checkLogin();
+      app.getNewRecommend();
+      // 去默认首页
       this.goToIndex();
     } else {
-      console.log(qrcodeId)
-      wx.request({
-        method: 'post',
-        url: app.buildUrl("/qrcode/scan"),
-        data: {
-          id: qrcodeId
-        },
-        success: function (res) {
-          console.log("看看结果")
-          console.log(res)
-          console.log(res.data)
-          if (res.statusCode === 201) {
-            wx.navigateTo({
-              url: "/pages/Release/release/index?qrcodeId=" + qrcodeId
-            })
-          } else if(res.statusCode === 200) {
-            wx.navigateTo({
-              url: "/pages/Qrcode/Register/index?qrcodeId=" + qrcodeId
-            })
-          }
-        },
-        fail: function (res) {
-          app.serverBusy()
-        }
-      })
+      //有二维码
+      app.checkLogin(this.qrCodeNavigate, openid);
     }
-
-    // var goods_id = options.goods_id;
-    // if (goods_id) {
-    //   this.setData({
-    //     goods_id: goods_id,
-    //   })
-    // }
+    /****************扫二维码结束******************/
   },
-  getQrcodeId: function (options) {
+  getOpenId: function (options) {
     if (app.globalData.debug) {
-      return options.id
+      return options.openid
     } else {
       if (options.scene) {
         return decodeURIComponent(options.scene)
       }
       return null
+    }
+  },
+  qrCodeNavigate: function (openid) {
+    if (openid == app.globalData.openid) {
+      //自己扫码更换绑定手机号
+      wx.navigateTo({
+        url: "/pages/Qrcode/Mobile/index?openid=" + openid
+      })
+    } else {
+      //别人扫码发布帖子，通知失主
+      wx.navigateTo({
+        url: "/pages/Release/release/index?business_type=1&openid=" + openid
+      })
     }
   },
   onShow: function () {
