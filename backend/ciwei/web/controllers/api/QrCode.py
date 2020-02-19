@@ -1,17 +1,11 @@
-import threading
-
-from flask import request, Response, jsonify, g
+from flask import request, jsonify, g
 from twilio.rest import Client
 
 from application import app, db, cache
 from common.libs import QrCodeService
-from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
-from common.models.ciwei.Member import Member
 from common.models.ciwei.QrCode import QrCode
 from web.controllers.api import route_api
-
-_qr_code_lock = threading.Lock()
 
 
 @route_api.route("/qrcode/wx", methods=['GET', 'POST'])
@@ -39,7 +33,7 @@ def get_wx_qr_code():
     if not token:
         resp['msg'] = "微信繁忙"
         return jsonify(resp)
-    wx_resp, openid = QrCodeService.get_wx_qr_code(token, member_info)
+    wx_resp = QrCodeService.get_wx_qr_code(token, member_info)
 
     # API成功,保存二维码
     # API失败,记录错误日志
@@ -53,14 +47,13 @@ def get_wx_qr_code():
         path = QrCodeService.save_wx_qr_code(member_info, wx_resp)
         resp['code'] = 200
         resp['data']['qr_code_url'] = {'qr_code_url': UrlManager.buildImageUrl(path, image_type=1)}
-        # return Response(response=str(base64.b64encode(wx_resp.content), 'utf-8'), status=200)
         return jsonify(resp)
 
 
 @route_api.route("/qrcode/db", methods=['GET', 'POST'])
 def get_db_qr_code():
     """
-    get qr code from db by member id
+    会员
     :return: 二维码图片URL
     """
     resp = {'code': -1, 'msg': '', 'data': {}}
@@ -69,13 +62,12 @@ def get_db_qr_code():
         resp['msg'] = '请先登录'
         return jsonify(resp)
 
-    qr_code = QrCode.query.filter_by(member_id=member_info.id).first()
+    qr_code = QrCode.query.filter_by(openid=member_info.openid).first()
     if qr_code is None:
-        app.logger.info("member id: %s has no qr code stored in db", member_info.id)
+        app.logger.info("会员: %s 没有二维码", member_info.id)
         resp['code'] = 201
         resp['msg'] = "会员无二维码"
         return jsonify(resp)
-    # return Response(response=str(base64.b64encode(qr_code.qr_code), 'utf8'), status=200)
     resp['code'] = 200
     resp['data'] = {'qr_code_url': UrlManager.buildImageUrl(qr_code.qr_code, image_type=1)}
     return jsonify(resp)
@@ -86,7 +78,7 @@ def scan_qr_code():
     """
     :return: 通知失主
     """
-    resp = {'code': -1, 'msg': '', 'data': {}}
+    resp = {'code': -1, 'msg': '通知成功', 'data': {}}
 
     member_info = g.member_info
     if not member_info:
@@ -106,15 +98,15 @@ def scan_qr_code():
 @route_api.route("/qrcode/sms", methods=['GET', 'POST'])
 def get_sms_code():
     """
-    verify phone number through sms code
+    向手机号发验证短信
     example request body
     {
         phone:177*****081
     }
     :return:
-     200 when code sent
-     400 when user request for code to frequently
-     500 when error occurs
+     200 发送了码
+     400 过于频繁操作
+     500 内部异常
     """
     resp = {'code': -1, 'msg': '', 'data': {}}
     params = request.get_json()
@@ -143,11 +135,11 @@ def get_sms_code():
 @route_api.route("/qrcode/check/sms", methods=['GET', 'POST'])
 def check_sms_code():
     """
-    check input sms is right
+    检查输入验证码=发送验证码
     :return:
-     200 when code is valid and right
-     400 when code is invalid
-     401 when code is valid but user gave a wrong one
+     200 在时限内,正确
+     400 超时
+     401 在时限内,错误
     """
     resp = {'code': -1, 'msg': '', 'data': {}}
     params = request.get_json()
@@ -160,6 +152,7 @@ def check_sms_code():
         resp['code'] = 400
         return jsonify(resp)
     elif sentCode == inputCode:
+        cache.delete(phone)
         qr_code = QrCode.query.filter_by(openid=qrcode_openid).first()
         qr_code.mobile = phone
         app.logger.info("手机号 %s 绑定成功", phone)

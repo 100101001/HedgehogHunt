@@ -35,7 +35,7 @@ def get_wx_qr_code(token, member):
     return requests.post(
         "https://api.weixin.qq.com/wxa/getwxacode?access_token={}".format(
             token),
-        json={"width": 280, "path": "pages/index/index?openid=" + openid}), openid
+        json={"width": 280, "path": "pages/index/index?openid=" + openid})
 
 
 def save_wx_qr_code(member_info, wx_resp):
