@@ -111,11 +111,16 @@ def thanksSearch():
     if only_new == "true":
         query = query.filter_by(status=0)
     goods_list = query.order_by(Thank.id.desc()).offset(offset).limit(10).all()
-    # #将对应的用户信息取出来，组合之后返回
+    # 将对应的用户信息取出来，组合之后返回
     data_goods_list = []
     if goods_list:
         for item in goods_list:
-            item_auther_info = Member.query.filter_by(id=item.member_id).first()
+            # 发出：我感谢的人
+            # 收到：感谢我的人
+            if status == 1:
+                item_auther_info = Member.query.filter_by(id=item.target_member_id).first()
+            else:
+                item_auther_info = Member.query.filter_by(id=item.member_id).first()
             tmp_data = {
                 "id": item.id,
                 "status": item.status,  # 不存在时置1
