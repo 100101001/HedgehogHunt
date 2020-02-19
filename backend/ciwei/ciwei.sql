@@ -79,6 +79,7 @@ DROP TABLE IF EXISTS `qr_code`;
 CREATE TABLE `qr_code` (
   `id` int(11) unsigned NOT NULL  AUTO_INCREMENT,
   `member_id` int(11) unsigned COMMENT '二维码注册会员id',
+  `openid` varchar(80) NOT NULL DEFAULT '' COMMENT '第三方id',
   `mobile` varchar(20) NOT NULL DEFAULT '' COMMENT '注册会员手机号码',
   `order_id` int(11) unsigned COMMENT '微信支付的订单id',
   `name` varchar(20) NOT NULL DEFAULT '' COMMENT '注册会员的姓名，用于后期做匹配',
@@ -87,7 +88,7 @@ CREATE TABLE `qr_code` (
   `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
   `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='会员表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='二维码表';
 
 DROP TABLE IF EXISTS `goods`;
 CREATE TABLE `goods` (

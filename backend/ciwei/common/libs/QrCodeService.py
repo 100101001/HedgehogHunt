@@ -4,16 +4,7 @@ from application import db, app
 from common.models.ciwei.QrCode import QrCode
 
 
-def thank_qrcode(codeId, orderId):
-    """
-       fill in  order_id to a qr code record with specific id
-       :return:
-       """
-    # add orderId to qrCodeId
-    pass
-
-
-def generateSmsVerCode():
+def generate_sms_code():
     """
     generate six-bit verification code
     :return:  verification code
@@ -25,62 +16,22 @@ def generateSmsVerCode():
     return ''.join(code)
 
 
-def addMemberIdToQrcode(qrcodeId, memberId):
-    """
-    one user first scan qr code to register
-    his/her member id will be added to qrcode
-    :return:
-     if qrcode id can belong to member id
-    """
-    if not qrcodeId:
-        app.logger.error("need qr code id")
-        return False
-
-    qrcode = QrCode.query.filter_by(id=qrcodeId).first()
-    if qrcode is None:
-        app.logger.error("qr code id %s not exists", qrcodeId)
-        return False
-    else:
-        if qrcode.member_id is None:
-            qrcode.member_id = memberId
-            db.session.commit()
-            app.logger.info("member: %s is added to qr code: %s  successfully", memberId, qrcodeId)
-            return True
-        else:
-            if qrcode.member_id == qrcode.member_id:
-                app.logger.info("qr code: %s already belongs to member: %s", qrcodeId, memberId)
-                return True
-            else:
-                app.logger.error("qr code: %s already belongs to member: %s", qrcodeId, qrcode.member_id)
-                return False
-
-
-def getQrcodeById(qrcodeId):
-    return QrCode.query.filter_by(id=qrcodeId).first()
-
-
 def get_wx_qr_code(token, member):
     """
-
     :param member:
     :param token:
     :return:
     """
     import requests
-    #
-    # maxCodeId = db.session.query(db.func.max(QrCode.id)).scalar()
-    # if not maxCodeId:
-    #     maxCodeId = 0
-    # maxCodeId += 1
     openid = member.openid
 
-    # only when little program is released can we use the unlimited api
+    # 无限API上线可用(体验版)
     # [2019-12-10 16:06:50,066] ERROR in QrCode: failed to get qr code. Errcode: 41030, Errmsg:invalid page hint: [6qqTta0210c393]
-    # return wxResp = requests.post(
+    # return requests.post(
     #     "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}".format(token),
     #     json={"scene": str(openid), "width": 280, "page": "pages/index/index"})
 
-    # now use 100 thousand limited api for test
+    # 测试：10万上限
     return requests.post(
         "https://api.weixin.qq.com/wxa/getwxacode?access_token={}".format(
             token),
@@ -95,7 +46,7 @@ def save_wx_qr_code(member_info, wx_resp):
     # 保存文件
     today = Helper.getCurrentDate("%Y%m%d")
     qr_code_dir = app.root_path + app.config['QR_CODE']['prefix_path'] + today
-    qr_code_file = uuid.uuid4()
+    qr_code_file = str(uuid.uuid4())
     if not os.path.exists(qr_code_dir):
         os.mkdir(qr_code_dir)
         os.chmod(qr_code_dir, stat.S_IRWXU | stat.S_IRGRP | stat.S_IRWXO)
@@ -104,7 +55,12 @@ def save_wx_qr_code(member_info, wx_resp):
 
     # db新增二维码, 会员绑定二维码
     qr_code_relative_path = today + "/" + qr_code_file + ".jpg"
-    qr_code = QrCode(member_id=member_info.id, qr_code=qr_code_relative_path)
+    now = Helper.getCurrentDate()
+    qr_code = QrCode(member_id=member_info.id,
+                     openid=member_info.openid,
+                     qr_code=qr_code_relative_path,
+                     updated_time=now,
+                     created_time=now)
     db.session.add(qr_code)
     db.session.commit()
     member_info.qr_code_id = qr_code.id
@@ -114,5 +70,18 @@ def save_wx_qr_code(member_info, wx_resp):
     return qr_code_relative_path
 
 
-def is_member_login():
-    return not g.member_info
+def send_notify_message(data, number):
+    """
+    发达通知
+    :param data:
+    :param number:
+    :return:
+    """
+    message = "遗失物品：" + data['goods_name'] + ", 遗失地点:" + data['location'][1]
+    from twilio.rest import Client
+    client = Client(app.config['TWILIO_SERVICE']['accountSID'], app.config['TWILIO_SERVICE']['authToken'])
+    try:
+        client.messages.create(body=message, from_=app.config['TWILIO_SERVICE']['twilioNumber'], to=number)
+        app.logger.info("已通知 %s", number)
+    except Exception:
+        app.logger.error("通知失败 %s", number)

@@ -11,6 +11,7 @@ class QrCode(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     member_id = db.Column(db.Integer)
+    openid = db.Column(db.String(80), nullable=False, server_default=db.FetchedValue())
     mobile = db.Column(db.String(20), nullable=False, server_default=db.FetchedValue())
     order_id = db.Column(db.Integer)
     name = db.Column(db.String(20), nullable=False, server_default=db.FetchedValue())
