@@ -67,12 +67,19 @@ Page({
   qrCodeNavigate: function (openid) {
     if (openid == app.globalData.openid) {
       //自己扫码更换绑定手机号
-      wx.navigateTo({
-        url: "/pages/Qrcode/Mobile/index?openid=" + openid
+      wx.showActionSheet({
+        itemList: ['绑定手机号', '更换手机号', '随便扫扫'],
+        success(res) {
+          if (res.tapIndex < 2) {
+            wx.reLaunch({
+              url: "/pages/Qrcode/Mobile/index?openid=" + openid
+            })
+          }
+        }
       })
     } else {
       //别人扫码发布帖子，通知失主
-      wx.navigateTo({
+      wx.reLaunch({
         url: "/pages/Release/release/index?business_type=1&openid=" + openid
       })
     }

@@ -5,21 +5,18 @@ const app = getApp()
 Page({
   data: {
     registBtnTxt: "绑定",
-    registBtnBgBgColor: "#ff9900",
+    registBtnBgColor: "#ff9900",
+    registBtnDisabled: false,
+    registBtnLoading: false,
     getSmsCodeBtnTxt: "获取验证码",
     getSmsCodeBtnColor: "#ff9900",
-    // getSmsCodeBtnTime:60,
-    btnLoading: false,
-    registDisabled: false,
-    smsCodeDisabled: false,
-    inputUserName: '',
-    inputPassword: '',
+    getSmsCodeBtnDisabled: false,
     phoneNum: '',
-    qrcode: ''
+    qrcode_openid: ''
   },
   onLoad: function (options) {
     this.setData({
-      qrcode: options.openid,
+      qrcode_openid: options.openid,
     })
   },
   onReady: function () {
@@ -52,19 +49,19 @@ Page({
   loading: function () {
     this.setData({
       registBtnTxt: "绑定中",
-      registDisabled: !this.data.registDisabled,
-      registBtnBgBgColor: "#999",
-      btnLoading: !this.data.btnLoading,
-      smsCodeDisabled: true
+      registBtnDisabled: true,
+      registBtnBgColor: "#999",
+      registBtnLoading: true,
+      getSmsCodeBtnDisabled: true
     })
   },
   cancelLoading: function () {
     this.setData({
-      registBtnTxt: "注册",
-      registDisabled: !this.data.registDisabled,
-      registBtnBgBgColor: "#ff9900",
-      btnLoading: !this.data.btnLoading,
-      smsCodeDisabled: false
+      registBtnTxt: "绑定",
+      registBtnDisabled: false,
+      registBtnBgColor: "#ff9900",
+      registBtnLoading: false,
+      getSmsCodeBtnDisabled: false
     })
   },
   verifyInput: function (param) {
@@ -93,13 +90,13 @@ Page({
           that.setData({
             getSmsCodeBtnTxt: count + ' s',
             getSmsCodeBtnColor: "#999",
-            smsCodeDisabled: true
+            getSmsCodeBtnDisabled: true
           })
         } else {
           that.setData({
             getSmsCodeBtnTxt: "获取验证码",
             getSmsCodeBtnColor: "#ff9900",
-            smsCodeDisabled: false
+            getSmsCodeBtnDisabled: false
           })
           count = 60
           clearInterval(si)
@@ -113,7 +110,7 @@ Page({
           "phone": phoneNum
         },
         success: function (res) {
-          resp = res.data
+          var resp = res.data
           if (resp.code === 200) {
             app.alert({
               content: "验证码发送成功，请留意短信"
@@ -137,6 +134,7 @@ Page({
     }
   },
   checkSmsCode: function (param) {
+    var qrcode_openid = this.data.qrcode_openid
     if (this.verifyInput(param.phone)) {
       //前端禁用按钮
       this.loading()
@@ -148,36 +146,36 @@ Page({
         url: app.buildUrl("/qrcode/check/sms"),
         data: {
           phone: that.data.phoneNum,
-          code: smsCode
+          code: smsCode,
+          openid: qrcode_openid
         },
         success: function (res) {
           console.log(res)
-          resp = res.data
+          var resp = res.data
           //前端提示
-          if (resp.code === 200) {
+          if (resp.code == 200) {
             wx.showToast({
               title: '绑定成功',
               icon: 'success',
               duration: 1000
             })
-            app.setCache("token", res.data.token)
             that.cancelLoading()
             that.redirectTo(param)
-          } else if (resp.code === 401) {
+            return
+          } else if (resp.code == 401) {
             wx.showModal({
               title: '提示',
               showCancel: false,
               content: '请输入正确的短信验证码'
             })
-            that.cancelLoading()
-          } else if (resp.code === 400) {
+          } else if (resp.code == 400) {
             wx.showModal({
               title: '提示',
               showCancel: false,
               content: '短信验证码已过期，请重新获取验证码'
             })
-            that.cancelLoading()
           }
+          that.cancelLoading()
         },
         fail: function (res) {
           app.serverBusy()

@@ -173,8 +173,8 @@ Page({
       header: app.getRequestHeader(1),
       method: 'post',
       data: {
-        data: data,
-        openid: that.data.openid
+        'goods': data,
+        'openid': that.data.notify_id
       },
       success: function (res) {
         that.setData({
