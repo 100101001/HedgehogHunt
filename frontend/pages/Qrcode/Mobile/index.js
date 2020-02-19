@@ -157,10 +157,10 @@ Page({
             wx.showToast({
               title: '绑定成功',
               icon: 'success',
-              duration: 1000
+              duration: 1200
             })
             that.cancelLoading()
-            that.redirectTo(param)
+            that.redirectTo("/pages/Find/Find?business_type=1")
             return
           } else if (resp.code == 401) {
             wx.showModal({
@@ -184,11 +184,10 @@ Page({
       })
     }
   },
-  redirectTo: function (param) {
+  redirectTo: function (url) {
     //需要将param转换为字符串
-    // param = JSON.stringify(param)
     wx.reLaunch({
-      url: '/pages/index/index'//参数只能是字符串形式，不能为json对象
+      url: url//参数只能是字符串形式，不能为json对象
     })
   }
 

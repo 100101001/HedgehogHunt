@@ -13,37 +13,39 @@ Page({
     var goods_id = this.data.goods_id;
     var member_status = app.globalData.member_status;
     if (member_status == 0) {
-      return;
+      return
     }
+    /****(member_)id干什么用的？？***/
     var id = app.globalData.id;
     this.setData({
       member_status: member_status,
-    });
+    })
     if (id) {
       this.setData({
         id: id
-      });
+      })
     }
+    /****(member_)id干什么用的？？***/
     if (goods_id) {
-      wx.navigateTo({
+      wx.reLaunch({
         url: '/pages/Find/info?goods_id=' + goods_id,
-      });
+      })
     } else {
-      wx.navigateTo({
+      wx.reLaunch({
         url: '/pages/Find/Find?business_type=1',
-      });
+      })
     }
   },
   //****************************************************
   //               韦朝旭调试
   onLoad: function (options) {
-    /***********扫二维码开始********/
+    wx.setNavigationBarTitle({
+      title: app.globalData.shopName
+    })
+    /***********扫二维码开始******************/
     var openid = this.getOpenId(options)
     if (openid == null) {
-      // 无二维码
-      wx.setNavigationBarTitle({
-        title: app.globalData.shopName
-      });
+      // 无二维码==>走韦朝旭代码
       app.checkLogin();
       app.getNewRecommend();
       // 去默认首页
