@@ -8,9 +8,9 @@
     </view>
     <button class="search_button" form-type="submit">搜索</button>
   </view>
-  <block wx:for="{{unis}}" wx:key="id" wx:for-index="idx">
-    <view class="image-container" bindtap="goBuy" data-id="{{idx}}">
-      <image src="{{item.url}}" mode="aspectFill"/>
+  <block wx:for="{{unis}}" wx:key="id">
+    <view class="image-container">
+      <image src="{{item.url}}" mode="aspectFill" />
     </view>
   </block>
   <view wx:if="{{!loadingMoreHidden}}" class="no-more-goods">没有更多学校了~可以联系加盟</view>

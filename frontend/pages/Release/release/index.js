@@ -320,7 +320,7 @@ Page({
         //提交完之后清空全局变量
         app.globalData.info = {};
         var business_type = that.data.business_type;
-        wx.reLaunch({
+        wx.navigateTo({
           url: '../../Find/Find?business_type=' + business_type,
         });
       },

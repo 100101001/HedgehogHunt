@@ -257,7 +257,7 @@ Page({
     });
   },
   goHome: function (e) {
-    wx.reLaunch({
+    wx.navigateTo({
       url: "../../Find/Find?business_type=1",
     })
   },
