@@ -8,7 +8,7 @@
     </view>
     <button class="search_button" form-type="submit">搜索</button>
   </view>
-  <block wx:for="{{unis}}" wx:key="id">
+  <block wx:for="{{unis}}" wx:key="id" wx:for-index="idx">
     <view class="image-container" bindtap="goBuy" data-id="{{idx}}"> 
       <image src="{{item.url}}" mode="aspectFill" />
     </view>
