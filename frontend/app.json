@@ -19,7 +19,7 @@
     "pages/Find/edit/edit",
     "pages/Qrcode/index",
     "pages/Qrcode/Mobile/index",
-    "pages/Homepage/product",
+    "pages/Homepage/product/index",
     "pages/Homepage/product/info"
   ],
   "window": {
