@@ -1,35 +1,30 @@
 # coding: utf-8
-from sqlalchemy import Column, DateTime, Integer, Numeric, String
+from sqlalchemy import BigInteger, Column, DateTime, Index, Integer, Numeric, String, Text
 from sqlalchemy.schema import FetchedValue
 from flask_sqlalchemy import SQLAlchemy
-
 from application import db
 
 
 class Order(db.Model):
     __tablename__ = 'order'
+    __table_args__ = (
+        db.Index('idx_member_id_status', 'member_id', 'status'),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
-    member_id = db.Column(db.Integer, nullable=False)
-    openid = db.Column(db.String(32), nullable=False)
-    transaction_id = db.Column(db.String(64), server_default=db.FetchedValue())
-    price = db.Column(db.Numeric(10, 2), nullable=False, server_default=db.FetchedValue())
+    order_sn = db.Column(db.String(40), nullable=False, unique=True, server_default=db.FetchedValue())
+    member_id = db.Column(db.BigInteger, nullable=False, server_default=db.FetchedValue())
+    total_price = db.Column(db.Numeric(10, 2), nullable=False, server_default=db.FetchedValue())
+    yun_price = db.Column(db.Numeric(10, 2), nullable=False, server_default=db.FetchedValue())
+    pay_price = db.Column(db.Numeric(10, 2), nullable=False, server_default=db.FetchedValue())
+    pay_sn = db.Column(db.String(128), nullable=False, server_default=db.FetchedValue())
+    prepay_id = db.Column(db.String(128), nullable=False, server_default=db.FetchedValue())
+    note = db.Column(db.Text, nullable=False)
     status = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
-    paid_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
+    express_status = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
+    express_address_id = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
+    express_info = db.Column(db.String(1000), nullable=False, server_default=db.FetchedValue())
+    comment_status = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
+    pay_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
     updated_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
     created_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
-
-    @property
-    def status_desc(self):
-        status_mapping = {
-            '-1': 'fresh',
-            '0': 'notpay',
-            '1': 'success',
-            '2': 'payerror',
-            '3': 'closed',
-        }
-        return status_mapping[str(self.status)]
-
-    @property
-    def wx_payment_result_notified(self):
-        return self.transaction_id != ''

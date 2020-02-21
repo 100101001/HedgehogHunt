@@ -13,10 +13,15 @@ USE `ciwei_db`;
 # flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product  --outfile "common/models/ciwei/Product.py" --flask
 # flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product_cat  --outfile "common/models/ciwei/ProductCat.py" --flask
 # flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables campus_product  --outfile "common/models/ciwei/CampusProduct.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product_comments  --outfile "common/models/ciwei/ProductComments.py" --flask
 # 购物车新增表
 # flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables cart  --outfile "common/models/ciwei/Cart.py" --flask
 # 订单页新增表
 # flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables order_product  --outfile "common/models/ciwei/OrderProduct.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables order  --outfile "common/models/ciwei/Order.py" --flask
+# 感谢酬金修改表名
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables thank_order  --outfile "common/models/ciwei/ThankOrder.py" --flask
+
 
 DROP TABLE IF EXISTS `user`;
 
@@ -180,19 +185,19 @@ CREATE TABLE `thanks` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='答谢表';
 
-DROP TABLE IF EXISTS `order`;
-CREATE TABLE `order` (
+DROP TABLE IF EXISTS `thank_order`;
+CREATE TABLE `thank_order` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `member_id` int(11) unsigned NOT NULL COMMENT '会员id',
   `openid` varchar(32) NOT NULL COMMENT '下单微信用户',
   `transaction_id` varchar(64) DEFAULT '' COMMENT '微信支付交易号',
   `price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '支付金额',
   `status` tinyint(1) NOT NULL DEFAULT '-1' COMMENT '状态 -1=刚创建, 0=微信预下单-未支付,  1=微信支付成功, 2=微信已关单, 3=微信支付错误',
-  `paid_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '支付完成时间',
+  `paid_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '支付完成时间',
   `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后插入时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='微信支付的订单';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='答谢支付的订单';
 
 DROP TABLE IF EXISTS `campus`;
 CREATE TABLE `campus`(
@@ -228,19 +233,48 @@ CREATE TABLE `product` (
   `view_cnt` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '浏览量',
   `stock_cnt` int(11) unsigned NOT NULL DEFAULT '99999' COMMENT '库存量',
   `sale_cnt` int(11) NOT NULL DEFAULT '0' COMMENT '销售量',
+  `comment_cnt` int(11) NOT NULL DEFAULT '0' COMMENT '评论量',
   `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后插入时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='周边表';
 
 
+DROP TABLE IF EXISTS `order`;
+CREATE TABLE `order` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `order_sn` varchar(40) NOT NULL DEFAULT '' COMMENT '随机订单号',
+  `member_id` bigint(11) NOT NULL DEFAULT '0' COMMENT '会员id',
+  `total_price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '订单应付金额',
+  `yun_price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '运费金额',
+  `pay_price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '订单实付金额',
+  `pay_sn` varchar(128) NOT NULL DEFAULT '' COMMENT '第三方流水号',
+  `prepay_id` varchar(128) NOT NULL DEFAULT '' COMMENT '第三方预付id',
+  `note` text NOT NULL COMMENT '备注信息',
+  `status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '1：支付完成 0 无效 -1 申请退款 -2 退款中 -9 退款成功  -8 待支付  -7 完成支付待确认',
+  `express_status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '快递状态，-8 待支付 -7 已付款待发货 1：确认收货 0：失败',
+  `express_address_id` int(11) NOT NULL DEFAULT '0' COMMENT '快递地址id',
+  `express_info` varchar(1000) NOT NULL DEFAULT '' COMMENT '快递信息',
+  `comment_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '评论状态',
+  `pay_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '付款到账时间',
+  `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最近一次更新时间',
+  `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_order_sn` (`order_sn`),
+  KEY `idx_member_id_status` (`member_id`,`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='周边购买订单表';
+
 
 DROP TABLE IF EXISTS `order_product`;
 CREATE TABLE `order_product` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `order_id` int(11) unsigned NOT NULL COMMENT '订单',
+  `member_id` bigint(11) NOT NULL DEFAULT '0' COMMENT '会员id',
   `product_id` int(11) unsigned NOT NULL COMMENT '产品',
-  `product_num` int(11) unsigned NOT NULL COMMENT '产品数',
+  `product_num` int(11) unsigned NOT NULL DEFAULT 1 COMMENT '购买数, 默认1份',
+  `price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '商品总价格，售价 * 数量',
+  `note` text NOT NULL COMMENT '备注信息',
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态：1：成功 0 失败',
   `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后插入时间',
   PRIMARY KEY (`id`)
@@ -271,6 +305,18 @@ CREATE TABLE `cart` (
   KEY `idx_member_id` (`member_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='购物车表';
 
+DROP TABLE IF EXISTS `product_comments`;
+CREATE TABLE `product_comments` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `member_id` int(11) NOT NULL DEFAULT '0' COMMENT '会员id',
+  `product_ids` varchar(200) NOT NULL DEFAULT '' COMMENT '商品ids',
+  `order_id` int(11) NOT NULL DEFAULT '0' COMMENT '订单id',
+  `score` tinyint(4) NOT NULL DEFAULT '0' COMMENT '评分',
+  `content` varchar(200) NOT NULL DEFAULT '' COMMENT '评论内容',
+  `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '插入时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_member_id` (`member_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='会员评论表';
 
 DROP TABLE IF EXISTS `feedback`;
 CREATE TABLE `feedback` (

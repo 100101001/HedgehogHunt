@@ -40,7 +40,7 @@ class MemberService():
         url = 'https://api.weixin.qq.com/sns/jscode2session?appid={0}&secret={1}&' \
               'js_code={2}&grant_type=authorization_code'.format(appid, appkey, code)
 
-        r = requests.get(url)
+        r = requests.get(url, headers={'Connection': 'close'})
         res = json.loads(r.text)
 
         openid = None

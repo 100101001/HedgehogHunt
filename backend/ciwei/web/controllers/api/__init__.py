@@ -21,6 +21,7 @@ from web.controllers.api.QrCode import *
 from web.controllers.api.Order import *
 from web.controllers.api.Product import *
 from web.controllers.api.Thanks import *
+from web.controllers.api.Cart import *
 
 @route_api.route("/")
 def index():

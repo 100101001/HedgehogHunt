@@ -1,7 +1,7 @@
 import time
 from application import app, db
 from common.libs import Helper
-from common.models.ciwei.Order import Order
+from common.models.ciwei.ThankOrder import ThankOrder
 
 
 def payment_hmac_sha256_or_md5_sign(data, key=app.config['OPENCS_APP']['mch_key'], sign_type="HMAC-SHA256"):
@@ -39,7 +39,7 @@ def place_db_order(member_info, price):
     :param price: 订单需付款
     :return:
     """
-    order = Order()
+    order = ThankOrder()
     order.member_id = member_info.id
     order.openid = member_info.openid
     order.price = price
@@ -72,7 +72,7 @@ def place_wx_prepay_order(openid, order, resp):
         "out_trade_no": order.id,  # 数据库订单id
         "total_fee": order.price,  # TODO:订单价格
         "spbill_create_ip": app.config['IP'],
-        "time_expire": time.strftime("%Y%m%d%H%M%S", time.localtime()+5*60),  # TODO：订单5分钟内未支付即失效
+        "time_expire": time.strftime("%Y%m%d%H%M%S", time.gmtime(time.time()+5*60)),  # TODO：订单5分钟内未支付即失效
         "notify_url": UrlManager.buildApiUrl("/order/notify"),  # TODO：微信异步通知支付结果
         "trade_type": "JSAPI",
         "limit_pay": "no_credit",  # 限制支付方式
@@ -94,7 +94,7 @@ def place_wx_prepay_order(openid, order, resp):
             data = {
                 "appId": app.config['OPENCS_APP']['appid'],
                 "timeStamp": int(time.time()),
-                "nonceStr": Helper.genRandomStr(16),
+                "nonceStr": genRandomStr(16),
                 "package": "prepay_id=" + data['prepay_id'],
                 "signType": "HMAC-SHA256",
             }
@@ -117,7 +117,7 @@ def paid(data):
     :return:无
     """
     if 'out_trade_no' in data and 'openid' in data and 'transaction_id' in data and 'time_end' in data:
-        order = Order.query.filter(id=data['out_trade_no'], openid=data['openid']).with_for_update().first()
+        order = ThankOrder.query.filter(id=data['out_trade_no'], openid=data['openid']).with_for_update().first()
         if order.status == 0:
             order.transaction_id = data['transaction_id']
             order.paid_time = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(data['time_end'], "%Y%m%d%H%M%S"))
@@ -208,5 +208,5 @@ def trans_xml_to_dict(xml):
     return dict([(item.name, item.text) for item in xml.find_all()])
 
 def verify_total_fee(order_id, total_fee):
-    order = Order.query.filter(id=order_id).first()
+    order = ThankOrder.query.filter(id=order_id).first()
     return order.price == total_fee

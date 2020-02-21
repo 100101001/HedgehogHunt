@@ -52,7 +52,7 @@ def notify_payment_result():
     :see:https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_7
     :return: 通知微信接收到正确的通知了
     """
-    req = OrderService.trans_xml_to_dict(request.text)
+    req = OrderService.trans_xml_to_dict(request.data)
     resp = {"return_code": "FAIL"}
     # 验证签名
     if not OrderService.verify_sign(req, req['sign_type'] if 'sign_type' in req else "MD5"):
@@ -92,15 +92,15 @@ def query_payment_result():
     # 订单不存在
     # 微信已通知,直接返回订单状态
     # 查询微信后台状态
-    from common.models.ciwei.Order import Order
-    order = Order.query.filter_by(id=req['order_id']).first()
+    from common.models.ciwei.ThankOrder import ThankOrder
+    order = ThankOrder.query.filter_by(id=req['order_id']).first()
     if not order:
         resp['msg'] = "无效订单号"
     elif order.wx_payment_result_notified:
         resp['code'] = 200
         resp['data'] = {"trade_state": order.status_desc}
     else:
-        got_result, trade_state = OrderService.query_payment_result()
+        got_result, trade_state = OrderService.query_payment_result(order.id)
         if got_result:
             resp['code'] = 200
             resp['data'] = {"trade_state": trade_state}

@@ -20,5 +20,6 @@ class Product(db.Model):
     view_cnt = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
     stock_cnt = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
     sale_cnt = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
+    comment_cnt = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
     updated_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
     created_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
