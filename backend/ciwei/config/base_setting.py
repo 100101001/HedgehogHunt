@@ -39,6 +39,12 @@ OPENCS_APP = {
     'mch_key': ''
 }
 
+PRODUCT = {
+    'ext': 'jpg',
+    'prefix_path': '/web/static/product/',
+    'prefix_url': '/static/product/'
+}
+
 QR_CODE = {
     'ext': 'jpg',
     'prefix_path': '/web/static/qr_code/',

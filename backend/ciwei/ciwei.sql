@@ -4,8 +4,20 @@ USE `ciwei_db`;
 #flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables member  --outfile "common/models/jmall/Member.py"  --flask
 #flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables report  --outfile "common/models/ciwei/Report.py" --flask
 #flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables order  --outfile "common/models/ciwei/Order.py" --flask
-#flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables qr_code  --outfile "common/models/ciwei/QrCode.py" --flask
-#flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables goods  --outfile "common/models/ciwei/Goods.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables qr_code  --outfile "common/models/ciwei/QrCode.py" --flask
+
+# 新增匹配数字段
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables goods  --outfile "common/models/ciwei/Goods.py" --flask
+# 购物页新增表
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables campus  --outfile "common/models/ciwei/Campus.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product  --outfile "common/models/ciwei/Product.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product_cat  --outfile "common/models/ciwei/ProductCat.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables campus_product  --outfile "common/models/ciwei/CampusProduct.py" --flask
+# 购物车新增表
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables cart  --outfile "common/models/ciwei/Cart.py" --flask
+# 订单页新增表
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables order_product  --outfile "common/models/ciwei/OrderProduct.py" --flask
+
 DROP TABLE IF EXISTS `user`;
 
 CREATE TABLE `user` (
@@ -171,16 +183,94 @@ CREATE TABLE `thanks` (
 DROP TABLE IF EXISTS `order`;
 CREATE TABLE `order` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `member_id` int(11) unsigned NOT NULL  COMMENT '会员id',
-  `openid` varchar(80) NOT NULL DEFAULT '' COMMENT '第三方id',
+  `member_id` int(11) unsigned NOT NULL COMMENT '会员id',
+  `openid` varchar(32) NOT NULL COMMENT '下单微信用户',
   `transaction_id` varchar(64) DEFAULT '' COMMENT '微信支付交易号',
   `price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '支付金额',
   `status` tinyint(1) NOT NULL DEFAULT '-1' COMMENT '状态 -1=刚创建, 0=微信预下单-未支付,  1=微信支付成功, 2=微信已关单, 3=微信支付错误',
-  `paid_time` timestamp COMMENT '支付完成时间',
+  `paid_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '支付完成时间',
   `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后插入时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='微信支付的订单';
+
+DROP TABLE IF EXISTS `campus`;
+CREATE TABLE `campus`(
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `name` varchar(80) NOT NULL DEFAULT '' COMMENT '大学名',
+    `code` varchar(80) NOT NULL DEFAULT '' COMMENT '代号',
+    `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
+    `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后插入时间',
+    PRIMARY KEY (`id`)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='大学表';
+
+DROP TABLE IF EXISTS `campus_product`;
+CREATE TABLE `campus_product` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `campus_id` int(11) unsigned NOT NULL COMMENT '大学',
+  `product_id` int(11) unsigned NOT NULL COMMENT '产品',
+  `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
+  `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后插入时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='大学周边表';
+
+DROP TABLE IF EXISTS `product`;
+CREATE TABLE `product` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `cat_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '周边类别',
+  `name` varchar(80) NOT NULL DEFAULT '' COMMENT '周边名',
+  `price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '单价',
+  `main_image` varchar(100) NOT NULL DEFAULT '' COMMENT '主图',
+  `pics` varchar(1000) NOT NULL DEFAULT '' COMMENT '组图',
+  `tags` varchar(200) NOT NULL DEFAULT '' COMMENT 'tag关键字，以'',''相连',
+  `description` varchar(2000) NOT NULL DEFAULT '' COMMENT '详情描述',
+  `status` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '状态 1：有效 0：无效',
+  `view_cnt` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '浏览量',
+  `stock_cnt` int(11) unsigned NOT NULL DEFAULT '99999' COMMENT '库存量',
+  `sale_cnt` int(11) NOT NULL DEFAULT '0' COMMENT '销售量',
+  `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
+  `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后插入时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='周边表';
+
+
+
+DROP TABLE IF EXISTS `order_product`;
+CREATE TABLE `order_product` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `order_id` int(11) unsigned NOT NULL COMMENT '订单',
+  `product_id` int(11) unsigned NOT NULL COMMENT '产品',
+  `product_num` int(11) unsigned NOT NULL COMMENT '产品数',
+  `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
+  `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后插入时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单包含的周边表';
+
+
+DROP TABLE IF EXISTS `product_cat`;
+CREATE TABLE `product_cat` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL DEFAULT '' COMMENT '类别名称',
+  `weight` tinyint(4) NOT NULL DEFAULT '1' COMMENT '权重',
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态 1：有效 0：无效',
+  `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
+  `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='周边分类';
+
+DROP TABLE IF EXISTS `cart`;
+CREATE TABLE `cart` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `member_id` int(11) unsigned NOT NULL COMMENT '会员的ID',
+  `product_id` int(11) unsigned NOT NULL COMMENT '产品',
+  `product_num` int(11) unsigned NOT NULL COMMENT '产品数',
+  `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
+  `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后插入时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_member_id` (`member_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='购物车表';
+
 
 DROP TABLE IF EXISTS `feedback`;
 CREATE TABLE `feedback` (

@@ -24,7 +24,7 @@ def get_wx_qr_code():
     # 会员已有二维码
     if member_info.has_qr_code:
         resp['code'] = 200
-        resp['data']['qr_code_url'] = {'qr_code_url': UrlManager.buildImageUrl(member_info.qr_code, image_type=1)}
+        resp['data']['qr_code_url'] = {'qr_code_url': UrlManager.buildImageUrl(member_info.qr_code, image_type='QR_CODE')}
         return jsonify(resp)
 
     # 调API获取二维码
@@ -46,7 +46,7 @@ def get_wx_qr_code():
         # 存成文件,db新增二维码
         path = QrCodeService.save_wx_qr_code(member_info, wx_resp)
         resp['code'] = 200
-        resp['data']['qr_code_url'] = {'qr_code_url': UrlManager.buildImageUrl(path, image_type=1)}
+        resp['data']['qr_code_url'] = {'qr_code_url': UrlManager.buildImageUrl(path, image_type='QR_CODE')}
         return jsonify(resp)
 
 
@@ -69,7 +69,7 @@ def get_db_qr_code():
         resp['msg'] = "会员无二维码"
         return jsonify(resp)
     resp['code'] = 200
-    resp['data'] = {'qr_code_url': UrlManager.buildImageUrl(qr_code.qr_code, image_type=1)}
+    resp['data'] = {'qr_code_url': UrlManager.buildImageUrl(qr_code.qr_code, image_type='QR_CODE')}
     return jsonify(resp)
 
 

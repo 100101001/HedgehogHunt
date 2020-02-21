@@ -21,7 +21,7 @@ class UrlManager(object):
         return UrlManager.buildUrl(path)
 
     @staticmethod
-    def buildImageUrl(path, image_type=0):
+    def buildImageUrl(path, image_type='UPLOAD'):
         """
         :param path:
         :param image_type: 0-UPLOAD, 1-QR_CODE
@@ -30,10 +30,7 @@ class UrlManager(object):
         # 返回绝对路径
         # url='域名'+"图片前缀"+"key"
         app_config = app.config
-        if image_type == 0:
-            url = app_config['APP']['domain'] + app_config['UPLOAD']['prefix_url'] + path
-        else:
-            url = app_config['APP']['domain'] + app_config['QR_CODE']['prefix_url'] + path
+        url = app_config['APP']['domain'] + app_config[image_type]['prefix_url'] + path
         return url
 
     @staticmethod
