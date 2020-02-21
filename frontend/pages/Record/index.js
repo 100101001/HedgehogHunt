@@ -1,4 +1,3 @@
-var goodsData = require("../../data/posts-data.js");
 var util = require("../../utils/util.js");
 var app = getApp();
 //从Mine/Mine跳转至此

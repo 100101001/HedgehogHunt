@@ -85,8 +85,10 @@ Page({
     var campus = this.data.unis[id].option
     var name = this.data.unis[id].id
     console.log(campus)
-    wx.navigateTo({
-      url: 'product/index?campus=' + campus+'&campus_name='+ encodeURIComponent(name),
+    app.globalData.campus_id = campus
+    app.globalData.campus_name = name
+    wx.redirectTo({
+      url: '/mall/pages/index?campus_id=' + campus+'&campus_name='+ encodeURIComponent(name),
     })
   }
 })

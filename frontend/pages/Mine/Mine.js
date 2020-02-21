@@ -1,7 +1,6 @@
 const navigate = require("../template/navigate-bar/navigate-bar-template.js")
 var util = require("../../utils/util.js");
 var app=getApp();
-const HedgeHogClient = require('../../utils/api').HedgeHogClient
 Page({
   data: {
     

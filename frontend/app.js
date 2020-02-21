@@ -29,7 +29,9 @@ App({
     business_type: {
       found: 1,
       lost: 0
-    }
+    },
+    campus_id : -1, //学校id
+    campus_name:"" //学校名
   },
   onLaunch: function () {
     // 展示本地存储能力

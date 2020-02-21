@@ -18,18 +18,31 @@
     "pages/Mine/userinfo/index",
     "pages/Find/edit/edit",
     "pages/Qrcode/index",
-    "pages/Qrcode/Mobile/index",
-    "pages/Homepage/product/index",
-    "pages/Homepage/product/info"
+    "pages/Qrcode/Mobile/index"
+
+  ],
+  "subpackages":[
+    {
+      "root": "mall",
+      "pages":[
+        "pages/index",
+        "pages/info",
+        "pages/my/index",
+        "pages/cart/index",
+        "pages/my/order_list",
+        "pages/my/addressList",
+        "pages/my/commentList"
+      ]
+    }
   ],
   "window": {
     "navigationBarBackgroundColor": "#f7931e",
     "navigationBarTitleText": "刺猬寻物"
   },
   "sitemapLocation": "sitemap.json",
-  "permission":{
-    "scope.userLocation":{
-      "desc":"物品的定位将更加精确"
+  "permission": {
+    "scope.userLocation": {
+      "desc": "物品的定位将更加精确"
     }
   }
 }
