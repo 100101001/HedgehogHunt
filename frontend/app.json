@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/Homepage/homepage",
+    "pages/Homepage/homepage/pay/pay",
     "pages/index/index",
     "pages/Record/index",
     "pages/Thanks/record/index",
@@ -14,20 +15,21 @@
     "pages/Release/Release",
     "pages/login/index",
     "pages/Mine/connect/index",
-    "pages/Homepage/homepage/pay/pay",
     "pages/Mine/userinfo/index",
     "pages/Find/edit/edit",
     "pages/Qrcode/index",
-    "pages/Qrcode/Mobile/index"
+    "pages/Qrcode/Mobile/index",
+    "pages/Homepage/product",
+    "pages/Homepage/product/info"
   ],
   "window": {
     "navigationBarBackgroundColor": "#f7931e",
     "navigationBarTitleText": "刺猬寻物"
   },
   "sitemapLocation": "sitemap.json",
-  "permission":{
-    "scope.userLocation":{
-      "desc":"物品的定位将更加精确"
+  "permission": {
+    "scope.userLocation": {
+      "desc": "物品的定位将更加精确"
     }
   }
 }
