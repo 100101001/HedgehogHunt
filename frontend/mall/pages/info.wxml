@@ -1,4 +1,4 @@
-<import src="../../wxParse/wxParse.wxml" />
+<import src="../wxParse/wxParse.wxml" />
 <view class="container"> 
   <!--商品轮播图--> 
    <view class="swiper-container">
