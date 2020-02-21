@@ -130,7 +130,7 @@ Page({
     getInfo: function () {
         var that = this;
         wx.request({
-            url: app.buildUrl("/food/info"),
+            url: app.buildUrl("/product/info"),
             header: app.getRequestHeader(),
             data: {
                 id: that.data.id
