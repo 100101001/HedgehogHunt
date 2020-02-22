@@ -32,7 +32,7 @@ Page({
         this.getComments();
     },
     goShopCar: function () {
-        wx.reLaunch({
+        wx.navigateTo({
             url: "/mall/pages/cart/index"
         });
     },
