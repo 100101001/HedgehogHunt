@@ -116,7 +116,7 @@ class MemberService():
         query = query.filter(Good.member_id != goods_info.member_id)
         if goods_info.business_type == 1:
             # 发布的是失物招领，找到了对应的寻物启事
-            goods_list = query.filter_by(business_type=0).with_for_update().all()
+            goods_list = query.filter_by(business_type=0).all()
             if goods_list:
                 # 获取用户的信息
                 member_ids = selectFilterObj(goods_list, "member_id")
@@ -128,7 +128,7 @@ class MemberService():
                     SubscribeService.send_recommend_subscribe(item)
         else:
             # 发布的是寻物启事，找到了对应的失物招领,给用户返回失物招领的列表
-            goods_list = query.filter_by(business_type=1).with_for_update().all()
+            goods_list = query.filter_by(business_type=1).all()
             if goods_list:
                 member_info = g.member_info
                 for item in goods_list:

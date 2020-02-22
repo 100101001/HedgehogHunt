@@ -18,6 +18,7 @@ USE `ciwei_db`;
 # flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables cart  --outfile "common/models/ciwei/Cart.py" --flask
 # 订单页新增表
 # flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables order_product  --outfile "common/models/ciwei/OrderProduct.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables address  --outfile "common/models/ciwei/Address.py" --flask
 # flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables order  --outfile "common/models/ciwei/Order.py" --flask
 # 感谢酬金修改表名
 # flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables thank_order  --outfile "common/models/ciwei/ThankOrder.py" --flask
@@ -79,19 +80,27 @@ ALTER TABLE member AUTO_INCREMENT = 100000;
 #     PRIMARY KEY (`id`)
 # ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='匹配推荐';
 
-# CREATE TABLE `address`(
-#     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-#     `member_id`  int(11) unsigned NOT NULL COMMENT '会员id',
-#     `openid` varchar(80) NOT NULL DEFAULT '' COMMENT '第三方id',
-#     `city_name` varchar(10) NOT NULL DEFAULT '' COMMENT '城市',
-#     `county_name` varchar(10) NOT NULL DEFAULT '' COMMENT '区',
-#     `province_name` varchar(10) NOT NULL DEFAULT '' COMMENT '省',
-#     `national_code` varchar(10) NOT NULL DEFAULT '' COMMENT '省号',
-#     `postal_code` varchar(10) NOT NULL DEFAULT '' COMMENT '邮政编码',
-#     `detail_info` varchar(10) NOT NULL DEFAULT '' COMMENT '城市',
-#     `tel_number` varchar(15) NOT NULL DEFAULT '' COMMENT '手机',
-#     `user_name` varchar(15) NOT NULL DEFAULT '' COMMENT '收货人'
-# )ENGINE =InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '地址';
+DROP TABLE IF EXISTS `address`;
+CREATE TABLE `address` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `member_id` int(11) NOT NULL DEFAULT '0' COMMENT '会员id',
+  `nickname` varchar(20) NOT NULL DEFAULT '' COMMENT '收货人姓名',
+  `mobile` varchar(11) NOT NULL DEFAULT '' COMMENT '收货人手机号码',
+  `province_id` int(11) NOT NULL DEFAULT '0' COMMENT '省id',
+  `province_str` varchar(50) NOT NULL DEFAULT '' COMMENT '省名称',
+  `city_id` int(11) NOT NULL DEFAULT '0' COMMENT '城市id',
+  `city_str` varchar(50) NOT NULL DEFAULT '' COMMENT '市名称',
+  `area_id` int(11) NOT NULL DEFAULT '0' COMMENT '区域id',
+  `area_str` varchar(50) NOT NULL DEFAULT '' COMMENT '区域名称',
+  `address` varchar(100) NOT NULL DEFAULT '' COMMENT '详细地址',
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否有效 1：有效 0：无效',
+  `is_default` TINYINT(1)  NOT NULL  DEFAULT '0'  COMMENT '默认地址',
+  `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
+  `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_member_id_status` (`member_id`,`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='会员收货地址';
+
 DROP TABLE IF EXISTS `qr_code`;
 CREATE TABLE `qr_code` (
   `id` int(11) unsigned NOT NULL  AUTO_INCREMENT,

@@ -1,6 +1,3 @@
-#!/usr/bin/python3.6.8
-#Editor weichaoxu
-
 # -*- coding:utf-8 -*-
 from flask import Blueprint
 route_api=Blueprint('api_page',__name__)
@@ -18,11 +15,12 @@ from web.controllers.api.Feedback import *
 from web.controllers.api.Static import *
 from web.controllers.api.Adv import *
 from web.controllers.api.QrCode import *
-from web.controllers.api.Order import *
-from web.controllers.api.Product import *
+from web.controllers.api.ThankOrder import *
 from web.controllers.api.Thanks import *
-from web.controllers.api.Cart import *
-
+from web.controllers.api.mall.Product import *
+from web.controllers.api.mall.Cart import *
+from web.controllers.api.mall.ProductOrder import *
+from web.controllers.api.mall.Address import *
 @route_api.route("/")
 def index():
     return "Jmall Api V1.0"

@@ -73,7 +73,7 @@ def place_wx_prepay_order(openid, order, resp):
         "total_fee": order.price,  # TODO:订单价格
         "spbill_create_ip": app.config['IP'],
         "time_expire": time.strftime("%Y%m%d%H%M%S", time.gmtime(time.time()+5*60)),  # TODO：订单5分钟内未支付即失效
-        "notify_url": UrlManager.buildApiUrl("/order/notify"),  # TODO：微信异步通知支付结果
+        "notify_url": UrlManager.buildApiUrl("/thank/order/notify"),  # TODO：微信异步通知支付结果
         "trade_type": "JSAPI",
         "limit_pay": "no_credit",  # 限制支付方式
         "openid": openid

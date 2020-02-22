@@ -1,12 +1,12 @@
 from flask import g, request
 
 from application import db
-from common.libs import OrderService
+from common.libs import ThankOrderService
 from web.controllers.api import route_api, jsonify
 
 
 # TODO：下订单和支付是一体的
-@route_api.route("/order/place", methods=['GET', 'POST'])
+@route_api.route("/thank/order/place", methods=['GET', 'POST'])
 def place_payment_order():
     """
     新增支付订单
@@ -30,10 +30,10 @@ def place_payment_order():
 
     openid = member_info.openid
     # 新增订单
-    order = OrderService.place_db_order(member_info, price)
+    order = ThankOrderService.place_db_order(member_info, price)
 
     # 调用微信支付的统一下单接口, 获取prepay_id, 签名返回前端
-    OrderService.place_wx_prepay_order(openid, order, resp)
+    ThankOrderService.place_wx_prepay_order(openid, order, resp)
 
     db.session.commit()
     return jsonify(resp)
@@ -41,7 +41,7 @@ def place_payment_order():
 
 # TODO:获取微信推送支付结果, 更新订单状态
 # TODO:return_code 是否指小程序支付API请求发送成功/失败
-@route_api.route("/order/notify", methods=['GET', 'POST'])
+@route_api.route("/thank/order/notify", methods=['GET', 'POST'])
 def notify_payment_result():
     """
     获取微信推送支付结果, 更新订单状态
@@ -52,10 +52,10 @@ def notify_payment_result():
     :see:https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_7
     :return: 通知微信接收到正确的通知了
     """
-    req = OrderService.trans_xml_to_dict(request.data)
+    req = ThankOrderService.trans_xml_to_dict(request.data)
     resp = {"return_code": "FAIL"}
     # 验证签名
-    if not OrderService.verify_sign(req, req['sign_type'] if 'sign_type' in req else "MD5"):
+    if not ThankOrderService.verify_sign(req, req['sign_type'] if 'sign_type' in req else "MD5"):
         resp['return_msg'] = "签名失败"
     else:
         # 接受了通知且签名校验成功(不管通知的return_code)
@@ -63,13 +63,13 @@ def notify_payment_result():
         # 小程序API调用成功
         if req['return_code'] == "SUCCESS" and req['result_code'] == "SUCCESS":
             # 检查订单金额一致
-            if OrderService.verify_total_fee(req['out_trade_no'], req['total_fee']):
+            if ThankOrderService.verify_total_fee(req['out_trade_no'], req['total_fee']):
                 # 更新订单状态为已支付
-                OrderService.paid(req)
+                ThankOrderService.paid(req)
     return jsonify(resp)
 
 
-@route_api.route("/order/query", methods=['GET', 'POST'])
+@route_api.route("/thank/order/query", methods=['GET', 'POST'])
 def query_payment_result():
     """
     确认支付
@@ -100,7 +100,7 @@ def query_payment_result():
         resp['code'] = 200
         resp['data'] = {"trade_state": order.status_desc}
     else:
-        got_result, trade_state = OrderService.query_payment_result(order.id)
+        got_result, trade_state = ThankOrderService.query_payment_result(order.id)
         if got_result:
             resp['code'] = 200
             resp['data'] = {"trade_state": trade_state}

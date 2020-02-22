@@ -159,8 +159,9 @@ def recordDelete():
     id_list = req['id_list'][1:-1].split(',')
     if op_status == 0:
         for i in id_list:
-            goods_info = Good.query.filter_by(id=int(i)).with_for_update().first()
+            goods_info = Good.query.filter_by(id=int(i)).first()
             goods_info.status = 7
+            db.session.add(goods_info)
     elif op_status == 1:
         mark_id_list = member_info.mark_id.split('#')
         for i in id_list:
@@ -176,7 +177,7 @@ def recordDelete():
     elif op_status == 4:
         # 物品和举报状态为 5
         id_list_int = [int(i) for i in id_list]
-        goods_list = Good.query.filter(Good.id.in_(id_list_int)).with_for_update().all()
+        goods_list = Good.query.filter(Good.id.in_(id_list_int)).all()
         report_map = getDictFilterField(Report, Report.record_id, "record_id", id_list_int)
         user_info = User.query.filter_by(member_id=member_info.id).first()
         if not user_info:
@@ -189,11 +190,14 @@ def recordDelete():
                 report_item = report_map[item.id]
                 report_item.user_id = user_info.uid
                 report_item.status = 5
+                db.session.add(report_item)
 
                 item.user_id = user_info.uid
                 item.report_status = 5
                 item.updated_time = report_item.updated_time = getCurrentDate()
+                db.session.add(item)
 
+    db.session.add(member_info)
     db.session.commit()
     resp['code'] = 200
     return jsonify(resp)

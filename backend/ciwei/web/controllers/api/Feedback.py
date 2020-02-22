@@ -220,7 +220,7 @@ def feedbackInfo():
     if not id:
         resp['msg'] = "参数为空"
         return jsonify(resp)
-    feedback_info = Feedback.query.filter_by(id=id).with_for_update().first()
+    feedback_info = Feedback.query.filter_by(id=id).first()
     if not feedback_info:
         resp['msg'] = '参数错误'
         return jsonify(resp)
@@ -277,13 +277,13 @@ def feedbackBlock():
         resp['msg'] = "没有管理员信息"
         resp['data'] = str(member_info.id) + "+" + member_info.name
         return jsonify(resp)
-    feedback_info = Feedback.query.filter_by(id=feedback_id).with_for_update().first()
+    feedback_info = Feedback.query.filter_by(id=feedback_id).first()
     if not feedback_info:
-        resp['msg'] = "参数错误"
+        resp['msg'] = "没有反馈信息"
         return jsonify(resp)
-    select_member_info = Member.query.filter_by(id=select_member_id).with_for_update().first()
+    select_member_info = Member.query.filter_by(id=select_member_id).first()
     if not select_member_info:
-        resp['msg'] = "参数错误"
+        resp['msg'] = "没有用户信息"
         return jsonify(resp)
 
     # 更新反馈者为管理员id

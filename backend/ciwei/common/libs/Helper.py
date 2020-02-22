@@ -7,6 +7,8 @@ from flask import render_template
 import datetime
 import uuid
 
+from common.models.ciwei.Member import Member
+
 
 def iPagination(params):
     import math
@@ -98,7 +100,7 @@ def getDictFilterField(db_model, select_field, key_field, field_list):
         # filter_by只能做简单的查询，filter才可以做复杂的查询功能
         query = query.filter(select_field.in_(field_list))
 
-    model_list = query.with_for_update().all()
+    model_list = query.all()
     if not model_list:
         return ret
     for item in model_list:
@@ -125,12 +127,12 @@ def selectFilterObj(obj, field):
             continue
 
         ret.append(getattr(item, field))
-        # if field=='member_id':
-        #     member_info=Member.query.filter_by(id=item.member_id).first()
+        # if field == 'member_id':
+        #     member_info = Member.query.filter_by(id=item.member_id).first()
         #     if not member_info:
         #         continue
         #     else:
-        #         ret.append(getattr(item,field))
+        #         ret.append(getattr(item, field))
         #         new_obj.append(item)
         # else:
         #     ret.append(getattr(item, field))

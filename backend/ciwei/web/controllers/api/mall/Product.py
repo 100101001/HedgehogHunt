@@ -2,10 +2,13 @@
 from flask import request, g
 from sqlalchemy import or_
 
+from common.libs.Helper import getDictFilterField, selectFilterObj
 from common.libs.UrlManager import UrlManager
-from common.models.ciwei.Cart import Cart
-from common.models.ciwei.Product import Product
-from common.models.ciwei.ProductCat import ProductCat
+from common.models.ciwei.Member import Member
+from common.models.ciwei.mall.ProductComments import ProductComment
+from common.models.ciwei.mall.Cart import Cart
+from common.models.ciwei.mall.Product import Product
+from common.models.ciwei.mall.ProductCat import ProductCat
 from web.controllers.api import route_api, jsonify
 
 
@@ -124,7 +127,7 @@ def productInfo():
     product_info = Product.query.filter_by(id=product_id).first()
     if not product_info or not product_info.status:
         resp['code'] = -1
-        resp['msg'] = "美食已下架"
+        resp['msg'] = "周边已下架"
         return jsonify(resp)
 
     member_info = g.member_info
@@ -136,7 +139,7 @@ def productInfo():
         "name": product_info.name,
         "summary": product_info.description,
         "total_count": product_info.sale_cnt,
-        # "comment_count": product_info.comment_count,
+        "comment_count": product_info.comment_cnt,
         'main_image': UrlManager.buildImageUrl(product_info.main_image, image_type='PRODUCT'),
         "price": str(product_info.price),
         "stock": product_info.stock_cnt,
@@ -146,8 +149,8 @@ def productInfo():
     return jsonify(resp)
 
 
-@route_api.route("/product/info")
-def info():
+@route_api.route("/product/comments")
+def productComments():
     """
 
     :return:
@@ -155,56 +158,28 @@ def info():
     resp = {'code': 200, 'msg': '操作成功~', 'data': {}}
     req = request.values
 
-    # 按id查找到周边,组合需要返回的信息
+    # 找到所有用户评论,组合返回
     product_id = int(req['id']) if 'id' in req else 0
-    product_info = Product.query.filter_by(id=product_id).first()
-    if not product_info or not product_info.status:
-        resp['code'] = -1
-        resp['msg'] = "美食已下架"
-        return jsonify(resp)
-
-    member_info = g.member_info
-    cart_number = 0
-    if member_info:
-        cart_number = Cart.query.filter_by(member_id=member_info.id).count()
-    resp['data']['info'] = {
-        "id": product_info.id,
-        "name": product_info.name,
-        "summary": product_info.description,
-        "total_count": product_info.sale_cnt,
-        "comment_count": product_info.comment_count,
-        'main_image': UrlManager.buildImageUrl(product_info.main_image),
-        "price": str(product_info.price),
-        "stock": product_info.stock_cnt,
-        "pics": [UrlManager.buildImageUrl(product_info.main_image)]
-    }
-    resp['data']['cart_number'] = cart_number
+    query = ProductComment.query.filter(ProductComment.product_ids.ilike("%_{0}_%".format(product_id)))
+    comment_list = query.order_by(ProductComment.id.desc()).limit(5).all()
+    data_list = []
+    if comment_list:
+        f = selectFilterObj(comment_list, "member_id")
+        member_map = getDictFilterField(Member, Member.id, "id", f)
+        for item in comment_list:
+            if item.member_id not in member_map:
+                continue
+            tmp_member_info = member_map[item.member_id]
+            tmp_data = {
+                'score': item.score,
+                'date': item.created_time.strftime("%Y-%m-%d %H:%M:%S"),
+                "content": item.content,
+                "user": {
+                    'nickname': tmp_member_info.nickname,
+                    'avatar_url': tmp_member_info.avatar,
+                }
+            }
+            data_list.append(tmp_data)
+    resp['data']['list'] = data_list
+    resp['data']['count'] = query.count()
     return jsonify(resp)
-
-# @route_api.route("/food/comments")
-# def foodComments():
-#     resp = {'code': 200, 'msg': '操作成功~', 'data': {}}
-#     req = request.values
-#     id = int(req['id']) if 'id' in req else 0
-#     query = MemberComments.query.filter( MemberComments.food_ids.ilike("%_{0}_%".format(id)) )
-#     list = query.order_by( MemberComments.id.desc() ).limit(5).all()
-#     data_list = []
-#     if list:
-#         member_map = getDictFilterField( Member,Member.id,"id",selectFilterObj( list,"member_id" ) )
-#         for item in list:
-#             if item.member_id not in member_map:
-#                 continue
-#             tmp_member_info = member_map[ item.member_id ]
-#             tmp_data = {
-#                 'score':item.score_desc,
-#                 'date': item.created_time.strftime("%Y-%m-%d %H:%M:%S"),
-#                 "content":item.content,
-#                 "user":{
-#                     'nickname':tmp_member_info.nickname,
-#                     'avatar_url':tmp_member_info.avatar,
-#                 }
-#             }
-#             data_list.append( tmp_data )
-#     resp['data']['list'] = data_list
-#     resp['data']['count'] = query.count()
-#     return jsonify(resp)

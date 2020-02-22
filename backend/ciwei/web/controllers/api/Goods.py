@@ -149,7 +149,7 @@ def endCreate():
         return jsonify(resp)
     goods_info = Good.query.filter_by(id=goods_id).with_for_update().first()
     if not goods_info:
-        resp['msg'] = '参数错误'
+        resp['msg'] = '没有找到相关帖子信息'
         return jsonify(resp)
 
     # 更新id号物品的状态 7->1
@@ -308,9 +308,9 @@ def goodsApplicate():
     if not goods_id:
         resp['msg'] = '参数为空'
         return jsonify(resp)
-    goods_info = Good.query.filter_by(id=goods_id).with_for_update().first()
+    goods_info = Good.query.filter_by(id=goods_id).first()
     if not goods_info:
-        resp['msg'] = '参数错误'
+        resp['msg'] = '没有找到相关帖子信息'
         return jsonify(resp)
 
     # 在物品的mark_id字段加入认领用户的id
@@ -372,13 +372,13 @@ def goodsGotback():
     if not goods_id:
         resp['msg'] = '参数为空'
         return jsonify(resp)
-    goods_info = Good.query.filter_by(id=goods_id).with_for_update().first()
+    goods_info = Good.query.filter_by(id=goods_id).first()
     if not goods_info:
-        resp['msg'] = '参数错误'
+        resp['msg'] = '没有找到相关帖子信息'
         return jsonify(resp)
     author_info = Member.query.filter_by(id=goods_info.member_id).first()
     if not author_info:
-        resp['msg'] = '发布者信息缺失'
+        resp['msg'] = '没有找到相关发布者信息'
         return jsonify(resp)
 
     # 更新物品和会员
@@ -434,9 +434,9 @@ def goodsInfo():
     if not goods_id:
         resp['msg'] = '参数为空'
         return jsonify(resp)
-    goods_info = Good.query.filter_by(id=goods_id).with_for_update().first()
+    goods_info = Good.query.filter_by(id=goods_id).first()
     if not goods_info:
-        resp['msg'] = '参数错误'
+        resp['msg'] = '没有找到相关帖子信息'
         return jsonify(resp)
     author_info = Member.query.filter_by(id=goods_info.member_id).first()
     if not author_info:
@@ -582,21 +582,21 @@ def editGoods():
         return jsonify(resp)
     goods_id = req['id'] if 'id' in req else None
     if not goods_id:
-        resp['msg'] = "参数为空"
+        resp['msg'] = "数据上传失败"
         resp['data'] = req
         return jsonify(resp)
     business_type = int(req['business_type']) if 'business_type' in req else None
     if business_type != 0 and business_type != 1:
-        resp['msg'] = "参数为空"
+        resp['msg'] = "数据上传失败"
         resp['data'] = req
         return jsonify(resp)
     name = req["goods_name"] if 'goods_name' in req else None
     if not name:
-        resp['msg'] = "参数为空"
+        resp['msg'] = "数据上传失败"
         return jsonify(resp)
     goods_info = Good.query.filter_by(id=goods_id).with_for_update().first()
     if not goods_info:
-        resp['msg'] = "参数错误"
+        resp['msg'] = "没有该条帖子记录"
         resp['data'] = req
         return jsonify(resp)
 
@@ -641,17 +641,17 @@ def updatePics():
         return jsonify(resp)
     goods_id = req['id'] if 'id' in req else None
     if not goods_id:
-        resp['msg'] = "参数为空"
+        resp['msg'] = "上传数据失败"
         resp['data'] = req
         return jsonify(resp)
     img_url = req['img_url'] if 'img_url' in req else ''
     if not img_url:
-        resp['msg'] = "参数为空"
+        resp['msg'] = "上传数据失败"
         resp['data'] = req
         return jsonify(resp)
     goods_info = Good.query.filter_by(id=goods_id).with_for_update().first()
     if not goods_info:
-        resp['msg'] = "参数错误"
+        resp['msg'] = "没有该条记录"
         resp['data'] = req
         return jsonify(resp)
 

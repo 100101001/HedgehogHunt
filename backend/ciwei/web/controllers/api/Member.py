@@ -310,15 +310,18 @@ def restoreMember():
 
     # 将用户的status改为1
     select_member_id = int(req['id']) if ('id' in req and req['id']) else 0
-    select_member_info = Member.query.filter_by(id=select_member_id).with_for_update().first()
+    select_member_info = Member.query.filter_by(id=select_member_id).first()
     select_member_info.status = 1
     select_member_info.updated_time = getCurrentDate()
+    db.session.add(select_member_info)
 
     # 将用户发布的物品status从8改为1
-    goods_list = Good.query.filter(Good.member_id == select_member_id, Good.status == 8).with_for_update().all()
+    goods_list = Good.query.filter(Good.member_id == select_member_id, Good.status == 8).all()
     for item in goods_list:
         item.status = 1
         item.updated_time = getCurrentDate()
+        db.session.add(item)
+
     db.session.commit()
     return jsonify(resp)
 

@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from application import db
 
 
-class Campu(db.Model):
+class Campus(db.Model):
     __tablename__ = 'campus'
 
     id = db.Column(db.Integer, primary_key=True)
