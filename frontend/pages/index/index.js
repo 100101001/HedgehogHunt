@@ -7,7 +7,8 @@ Page({
     angle: 0,
     userInfo: {},
     member_status: 1,
-    goods_id: 0
+    goods_id: 0,
+    isScanQrcode: true
   },
   goToIndex: function () {
     var goods_id = this.data.goods_id;
@@ -45,6 +46,9 @@ Page({
     /***********扫二维码开始******************/
     var openid = this.getOpenId(options)
     if (openid == null) {
+      this.setData({
+        isScanQrcode: false
+      })
       // 无二维码==>走韦朝旭代码
       app.checkLogin();
       app.getNewRecommend();
@@ -77,6 +81,11 @@ Page({
               url: "/pages/Qrcode/Mobile/index?openid=" + openid
             })
           }
+        },
+        fail: res => {
+          this.setData({
+            isScanQrcode: false
+          })
         }
       })
     } else {
