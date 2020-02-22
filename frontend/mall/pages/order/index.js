@@ -50,12 +50,12 @@ Page({
     },
     addressSet: function () {
         wx.navigateTo({
-            url: "/pages/my/addressSet?id=0"
+            url: "/mall/pages/my/addressSet?id=0"
         });
     },
     selectAddress: function () {
         wx.navigateTo({
-            url: "/pages/my/addressList"
+            url: "/mall/pages/my/addressList"
         });
     },
     getOrderInfo: function () {

@@ -70,7 +70,7 @@ Page({
         var list = that.data.list;
         list[parseInt(index)].number++;
         that.setPageData(that.getSaveHide(), that.totalPrice(), that.allSelect(), that.noSelect(), list);
-        this.setCart(list[parseInt(index)].food_id, list[parseInt(index)].number);
+        this.setCart(list[parseInt(index)].product_id, list[parseInt(index)].number);
     },
     //减数量
     jianBtnTap: function (e) {
@@ -80,7 +80,7 @@ Page({
             list[parseInt(index)].number--;
             this.setPageData(this.getSaveHide(), this.totalPrice(), this.allSelect(), this.noSelect(), list);
 
-            this.setCart(list[parseInt(index)].food_id, list[parseInt(index)].number);
+            this.setCart(list[parseInt(index)].product_id, list[parseInt(index)].number);
         }
     },
     //编辑默认全不选
@@ -137,14 +137,14 @@ Page({
                 continue;
             }
             data['goods'].push({
-                "id": list[i].food_id,
+                "id": list[i].product_id,
                 "price": list[i].price,
                 "number": list[i].number
             });
         }
 
         wx.navigateTo({
-            url: "/pages/order/index?data=" + JSON.stringify(data)
+            url: "/mall/pages/order/index?data=" + JSON.stringify(data)
         });
     },
     //如果没有显示去光光按钮事件
@@ -160,7 +160,7 @@ Page({
         list = list.filter(function (item) {
             if (item.active) {
                 goods.push({
-                    "id": item.food_id
+                    "id": item.product_id
                 })
             }
 
@@ -203,10 +203,10 @@ Page({
             }
         });
     },
-    setCart: function (food_id, number) {
+    setCart: function (product_id, number) {
         var that = this;
         var data = {
-            "id": food_id,
+            "id": product_id,
             "number": number
         };
         wx.request({

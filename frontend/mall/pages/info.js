@@ -33,7 +33,7 @@ Page({
     },
     goShopCar: function () {
         wx.reLaunch({
-            url: "/pages/cart/index"
+            url: "/mall/pages/cart/index"
         });
     },
     toAddShopCar: function () {
@@ -82,7 +82,7 @@ Page({
             hideShopPopup: true
         });
         wx.navigateTo({
-            url: "/pages/order/index?data=" + JSON.stringify(data)
+            url: "/mall/pages/order/index?data=" + JSON.stringify(data)
         });
     },
     /**
@@ -139,9 +139,7 @@ Page({
                 var resp = res.data;
                 if (resp.code != 200) {
                     app.alert({"content": resp.msg});
-                    wx.navigateTo({
-                        url: "/pages/food/index"
-                    });
+                    wx.navigateBack({})
                     return;
                 }
 
@@ -158,7 +156,7 @@ Page({
     getComments:function(){
         var that = this;
         wx.request({
-            url: app.buildUrl("/food/comments"),
+            url: app.buildUrl("/product/comments"),
             header: app.getRequestHeader(),
             data: {
                 id: that.data.id
@@ -181,7 +179,7 @@ Page({
         var that = this;
         return {
             title: that.data.info.name,
-            path: '/pages/food/info?id=' + that.data.info.id,
+            path: '/mall/pages/info?id=' + that.data.info.id,
             success: function (res) {
                 // 转发成功
                 wx.request({

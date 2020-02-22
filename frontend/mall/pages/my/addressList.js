@@ -32,7 +32,7 @@ Page({
     },
     addressSet: function (e) {
         wx.navigateTo({
-            url: "/pages/my/addressSet?id=" + e.currentTarget.dataset.id
+            url: "/mall/pages/my/addressSet?id=" + e.currentTarget.dataset.id
         })
     },
     getList:function(){

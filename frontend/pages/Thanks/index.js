@@ -66,7 +66,7 @@ Page({
       var that = this
       //后端下支付单
       wx.request({
-        'url': app.buildUrl('/order/place'),
+        'url': app.buildUrl('/thank/order/place'),
         'header': app.getRequestHeader(),
         'method': 'POST',
         'data': {
@@ -86,7 +86,7 @@ Page({
               complete: function (res) {
                 //后端查询支付状态
                 wx.request({
-                  url: app.buildUrl('/order/query'),
+                  url: app.buildUrl('/thank/order/query'),
                   method: 'post',
                   header: app.getRequestHeader(),
                   success: function (res) {
