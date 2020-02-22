@@ -3,26 +3,58 @@ Page({
   data: {
     loadingHidden: true,
     imglist: [],
-    notify_id: ""
+    notify_id: "",
+    hasAskSubscribe: false,
+    isAskingSubscribe: false,
+    dataReady: false
   },
   onLoad: function (options) {
-    var auther_id = options.auther_id;
-    if (auther_id) {
-      console.log(auther_id);
-      var business_type = 1;
-      this.setData({
-        auther_id: auther_id
-      })
-    } else {
-      var openid = options.openid == undefined ? "" : options.openid
-      var business_type = options.business_type;
-    }
-    this.setData({
-      notify_id: openid,
-      business_type: business_type,
-      location: ""
-    });
-    this.setInitData();
+    wx.showActionSheet({
+      itemList: ['寻物启事', '失物招领'],
+      success: res => {
+        var auther_id = options.auther_id;
+        if (auther_id) {
+          console.log(auther_id);
+          var business_type = 1;
+          this.setData({
+            auther_id: auther_id
+          })
+        } else {
+          var openid = options.openid == undefined ? "" : options.openid
+          var business_type = res.tapIndex;
+        }
+        this.setData({
+          notify_id: openid,
+          business_type: business_type,
+          location: "",
+          dataReady: true
+        });
+        this.setInitData();
+      },
+      fail(res) {
+        wx.redirectTo({
+          url: '../../Homepage/homepage',
+        })
+      }
+    })
+    // var auther_id = options.auther_id;
+    // if (auther_id) {
+    //   console.log(auther_id);
+    //   var business_type = 1;
+    //   this.setData({
+    //     auther_id: auther_id
+    //   })
+    // } else {
+
+    //   var openid = options.openid == undefined ? "" : options.openid
+    //   var business_type = options.business_type;
+    // }
+    // this.setData({
+    //   notify_id: openid,
+    //   business_type: business_type,
+    //   location: ""
+    // });
+    // this.setInitData();
   },
   onShow: function () {
 
@@ -177,8 +209,11 @@ Page({
         'openid': that.data.notify_id
       },
       success: function (res) {
+        wx.showToast({
+          title: '感谢您的举手之劳',
+        })
         that.setData({
-          notify_id:""
+          notify_id: ""
         })
       }
     })
@@ -419,4 +454,26 @@ Page({
       location: location === undefined ? "" : location
     });
   },
+  askSubscribe: function () {
+    this.setData({
+      isAskingSubscribe: true
+    })
+    var that = this
+    if (!this.data.hasAskSubscribe && this.data.isAskingSubscribe) {
+      //用户选择接受/拒绝订阅消息
+      wx.requestSubscribeMessage({
+        tmplIds: [
+          app.globalData.subscribe.recommend,
+          app.globalData.subscribe.finished,
+          app.globalData.subscribe.thanks
+        ], //首次(被)匹配，已完成，(被)答谢
+        complete: function (res) {
+          that.setData({
+            hasAskSubscribe: true,
+            isAskingSubscribe: false
+          })
+        }
+      })
+    }
+  }
 });

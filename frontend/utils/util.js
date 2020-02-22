@@ -52,7 +52,7 @@ function onNavigateTap(id) {
   var urls = [
     "/pages/Homepage/homepage",
     "/pages/Find/Find?business_type=1",
-    "/pages/Release/Release",
+    "/pages/Release/release/index",
     "/pages/Find/Find?business_type=0",
     "/pages/Mine/Mine",
   ]

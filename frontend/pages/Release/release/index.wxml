@@ -1,5 +1,5 @@
 <!--import src="../template/upload-pics/upload-pics-template.wxml" /-->
-<view class="container">
+<view class="container" wx:if="{{dataReady}}">
   <loading hidden="{{loadingHidden}}" wx:if="{{ !upload_qrcode }}">上传第{{i}}张图片..</loading>
   <form class="goods-box" bindsubmit="formSubmit">
     <view class="price-and-location">
@@ -45,7 +45,8 @@
       <view class="tips-views">物品描述</view>
       <textarea class="summary" maxlength="{{false}}" name="summary" placeholder="{{summary_placeholder}}" value="{{summary_value}}"></textarea>
     </view>
-    <button class="submit-btn" form-type="submit">提交发布</button>
+    <button class="submit-btn" bindtap="askSubscribe" wx:if="{{!hasAskSubscribe}}">提交发布</button>
+    <button class="submit-btn" form-type="submit" wx:if="{{hasAskSubscribe}}">提交发布</button>
     <view class="tips-btn" wx:if="{{auther_id}}">信息将会直接提交给<text style="font-weight:600;">{{info_owner_name}}</text></view>
   </form>
 </view>
