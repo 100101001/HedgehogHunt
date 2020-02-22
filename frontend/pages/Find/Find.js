@@ -46,6 +46,9 @@ Page({
       },
       ]
     } else {
+      wx.setNavigationBarTitle({
+        title: '寻物启事',
+      })
       var [isSelecteds, urls] = util.onNavigateTap(3);
       var categories = [{
         id: -1,

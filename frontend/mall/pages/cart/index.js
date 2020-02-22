@@ -149,8 +149,11 @@ Page({
     },
     //如果没有显示去光光按钮事件
     toIndexPage: function () {
+        var campus_name = app.globalData.campus_name
+        var campus_id = app.globalData.campus_id
         wx.redirectTo({
-            url: '../index?campus=',
+            url: '/mall/pages/index?campus_id='+campus_id+
+            '&campus_name='+encodeURIComponent(campus_name),
         })
     },
     //选中删除的数据

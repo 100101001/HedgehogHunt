@@ -75,7 +75,7 @@ swiper-item image {
 }
 
 .type-item-on {
-  border-bottom: 4rpx solid #e64340;
+  border-bottom: 4rpx solid #f3931e;
 }
 
 .goods-container {
@@ -256,7 +256,7 @@ swiper-item image {
   width: 150rpx;
   height: 70rpx;
   margin-right: 0rpx;
-  background-color: blueviolet;
+  background-color: #f3971e;
   font-size: 28rpx;
   align-items: center;
   border-top-left-radius: 0rpx;

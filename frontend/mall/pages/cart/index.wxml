@@ -1,6 +1,7 @@
 <!--mall\pages\cart\index.wxml-->
 <import src="../template/navigate-bar1/navigate-bar1-template.wxml" />
 <view class="container">
+  <!--无购物车记录-->
 	<view class="title-box" wx:if="{{ !list.length }}">
 		购物车空空如也～
 	</view>
@@ -8,6 +9,7 @@
 		去逛逛
 	</view>
 
+	<!--列表渲染购物车记录-->
 	<view class="list-top" wx:if="{{ list.length }}">
 		<view class="label">购物车</view>
 		<view class="edit-btn" hidden="{{!saveHidden}}" bindtap="editTap">编辑</view>
@@ -34,6 +36,8 @@
 			</view>
 		</view>
 	</view>
+	
+	<!---下单-->
 	<view class="jiesuan-box" wx:if="{{ list.length }}">
 		<view class="left-price">
 			<view class="all-selected  {{allSelect?'active':''}}" bindtap="bindAllSelect">全选</view>
