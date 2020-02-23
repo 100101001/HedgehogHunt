@@ -72,7 +72,7 @@ def place_wx_prepay_order(openid, order, resp):
         "out_trade_no": order.id,  # 数据库订单id
         "total_fee": order.price,  # TODO:订单价格
         "spbill_create_ip": app.config['IP'],
-        "time_expire": time.strftime("%Y%m%d%H%M%S", time.gmtime(time.time()+5*60)),  # TODO：订单5分钟内未支付即失效
+        "time_expire": time.strftime("%Y%m%d%H%M%S", time.gmtime(time.time() + 5 * 60)),  # TODO：订单5分钟内未支付即失效
         "notify_url": UrlManager.buildApiUrl("/thank/order/notify"),  # TODO：微信异步通知支付结果
         "trade_type": "JSAPI",
         "limit_pay": "no_credit",  # 限制支付方式
@@ -81,7 +81,7 @@ def place_wx_prepay_order(openid, order, resp):
     # 计算签名
     data["sign"] = payment_hmac_sha256_or_md5_sign(data)
     xml_data = trans_dict_to_xml(data)
-    wx_resp = requests.post(url, data=xml_data.encode("utf-8"))
+    wx_resp = requests.post(url, data=xml_data.encode("utf-8"), headers={'Content-type': 'application/xml'})
     wx_resp.encoding = "utf-8"
 
     # 处理API响应
@@ -170,12 +170,12 @@ def query_payment_result(order_id):
 
 
 def genRandomStr(num):
-    import random
-    import string
     """
     :param num: 字符数
     :return: 生成的随机字符串
     """
+    import random
+    import string
     return ''.join(random.sample(string.ascii_letters + string.digits, num))
 
 
@@ -206,6 +206,7 @@ def trans_xml_to_dict(xml):
         return {}
     # find_all() 迭代字典 => tuple组成的list => dict
     return dict([(item.name, item.text) for item in xml.find_all()])
+
 
 def verify_total_fee(order_id, total_fee):
     order = ThankOrder.query.filter(id=order_id).first()

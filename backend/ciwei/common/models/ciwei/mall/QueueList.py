@@ -5,20 +5,12 @@ from flask_sqlalchemy import SQLAlchemy
 from application import db
 
 
-class ProductCat(db.Model):
-    __tablename__ = 'product_cat'
+class QueueList(db.Model):
+    __tablename__ = 'queue_list'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False, unique=True, server_default=db.FetchedValue())
-    weight = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
+    queue_name = db.Column(db.String(30), nullable=False, server_default=db.FetchedValue())
+    data = db.Column(db.String(500), nullable=False, server_default=db.FetchedValue())
     status = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
     updated_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
     created_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
-
-    @property
-    def status_desc(self):
-        status_mapping = {
-            "1": "正常",
-            "0": "已删除"
-        }
-        return status_mapping[str(self.status)]

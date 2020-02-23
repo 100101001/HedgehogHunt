@@ -53,7 +53,9 @@ def notify_payment_result():
     :return: 通知微信接收到正确的通知了
     """
     req = ThankOrderService.trans_xml_to_dict(request.data)
-    resp = {"return_code": "FAIL"}
+    from application import app
+    app.logger.info(req)
+    resp = {"return_code": "FAIL", "return_msg": "OK"}
     # 验证签名
     if not ThankOrderService.verify_sign(req, req['sign_type'] if 'sign_type' in req else "MD5"):
         resp['return_msg'] = "签名失败"

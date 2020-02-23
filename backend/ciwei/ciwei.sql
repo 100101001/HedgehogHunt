@@ -9,17 +9,21 @@ USE `ciwei_db`;
 # 新增匹配数字段
 # flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables goods  --outfile "common/models/ciwei/Goods.py" --flask
 # 购物页新增表
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables campus  --outfile "common/models/ciwei/Campus.py" --flask
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product  --outfile "common/models/ciwei/Product.py" --flask
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product_cat  --outfile "common/models/ciwei/ProductCat.py" --flask
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables campus_product  --outfile "common/models/ciwei/CampusProduct.py" --flask
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product_comments  --outfile "common/models/ciwei/ProductComments.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables campus  --outfile "common/models/ciwei/mall/Campus.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product  --outfile "common/models/ciwei/mall/Product.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product_cat  --outfile "common/models/ciwei/mall/ProductCat.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables campus_product  --outfile "common/models/ciwei/mall/CampusProduct.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product_comments  --outfile "common/models/ciwei/mall/ProductComments.py" --flask
 # 购物车新增表
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables cart  --outfile "common/models/ciwei/Cart.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables cart  --outfile "common/models/ciwei/mall/Cart.py" --flask
 # 订单页新增表
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables order_product  --outfile "common/models/ciwei/OrderProduct.py" --flask
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables address  --outfile "common/models/ciwei/Address.py" --flask
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables order  --outfile "common/models/ciwei/Order.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables order_product  --outfile "common/models/ciwei/mall/OrderProduct.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables address  --outfile "common/models/ciwei/mall/Address.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables order  --outfile "common/models/ciwei/mall/Order.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product_stock_change_log  --outfile "common/models/ciwei/mall/ProductStockChangeLog.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product_sale_change_log  --outfile "common/models/ciwei/mall/ProductSaleChangeLog.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables queue_list  --outfile "common/models/ciwei/mall/QueueList.py" --flask
+# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables order_callback_data  --outfile "common/models/ciwei/mall/OrderCallBackData.py" --flask
 # 感谢酬金修改表名
 # flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables thank_order  --outfile "common/models/ciwei/ThankOrder.py" --flask
 
@@ -326,6 +330,55 @@ CREATE TABLE `product_comments` (
   PRIMARY KEY (`id`),
   KEY `idx_member_id` (`member_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='会员评论表';
+
+DROP TABLE IF EXISTS `product_stock_change_log`;
+CREATE TABLE `product_stock_change_log` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL COMMENT '商品id',
+  `unit` int(11) NOT NULL DEFAULT '0' COMMENT '变更多少',
+  `total_stock` int(11) NOT NULL DEFAULT '0' COMMENT '变更之后总量',
+  `note` varchar(100) NOT NULL DEFAULT '' COMMENT '备注字段',
+  `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_product_id` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='数据库存变更表';
+
+DROP TABLE IF EXISTS `product_sale_change_log`;
+CREATE TABLE `product_sale_change_log` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL DEFAULT '0' COMMENT '商品id',
+  `quantity` int(11) NOT NULL DEFAULT '0' COMMENT '售卖数量',
+  `price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '售卖金额',
+  `member_id` int(11) NOT NULL DEFAULT '0' COMMENT '会员id',
+  `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '售卖时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_product_id` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品销售情况';
+
+
+DROP TABLE IF EXISTS `queue_list`;
+CREATE TABLE `queue_list` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `queue_name` varchar(30) NOT NULL DEFAULT '' COMMENT '队列名字',
+  `data` varchar(500) NOT NULL DEFAULT '' COMMENT '队列数据',
+  `status` tinyint(1) NOT NULL DEFAULT '-1' COMMENT '状态 -1 待处理 1 已处理',
+  `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
+  `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='事件队列表';
+
+
+DROP TABLE IF EXISTS `order_callback_data`;
+CREATE TABLE `order_callback_data` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_id` int(11) NOT NULL DEFAULT '0' COMMENT '支付订单id',
+  `pay_data` text NOT NULL COMMENT '支付回调信息',
+  `refund_data` text NOT NULL COMMENT '退款回调信息',
+  `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
+  `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `order_id` (`order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='微信支付回调数据表';
 
 DROP TABLE IF EXISTS `feedback`;
 CREATE TABLE `feedback` (

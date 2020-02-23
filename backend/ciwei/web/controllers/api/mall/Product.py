@@ -171,6 +171,7 @@ def productComments():
                 continue
             tmp_member_info = member_map[item.member_id]
             tmp_data = {
+                'id': item.id,
                 'score': item.score,
                 'date': item.created_time.strftime("%Y-%m-%d %H:%M:%S"),
                 "content": item.content,

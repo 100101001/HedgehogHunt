@@ -81,7 +81,7 @@ def send_notify_message(data, number):
     from twilio.rest import Client
     client = Client(app.config['TWILIO_SERVICE']['accountSID'], app.config['TWILIO_SERVICE']['authToken'])
     try:
-        client.messages.create(body=message, from_=app.config['TWILIO_SERVICE']['twilioNumber'], to=number)
+        client.messages.create(body=message, from_=app.config['TWILIO_SERVICE']['twilioNumber'], to='+86'+number)
         app.logger.info("已通知 %s", number)
     except Exception:
         app.logger.error("通知失败 %s", number)

@@ -3,9 +3,13 @@ import json
 
 from flask import request, jsonify, g
 
+from application import db
+from common.libs.Helper import getCurrentDate
 from common.libs.mall.CartService import CartService
 from common.libs.UrlManager import UrlManager
+from common.libs.mall.PayService import PayService
 from common.models.ciwei.mall.Address import Address
+from common.models.ciwei.mall.Order import Order
 from common.models.ciwei.mall.Product import Product
 from web.controllers.api import route_api
 
@@ -94,12 +98,46 @@ def orderCreate():
             'mobile': address_info.mobile,
             'nickname': address_info.nickname,
             "address": "%s%s%s%s" % (
-            address_info.province_str, address_info.city_str, address_info.area_str, address_info.address)
+                address_info.province_str, address_info.city_str, address_info.area_str, address_info.address)
         }
     }
     resp = target.createOrder(member_info.id, items, params)
     # 如果是来源购物车的，下单成功将下单的商品去掉
     if resp['code'] == 200 and src_type == "cart":
         CartService.deleteItem(member_info.id, items)
+
+    return jsonify(resp)
+
+
+@route_api.route("/order/ops", methods=["POST"])
+def orderOps():
+    """
+    关闭订单的数据库操作：更新库存,订单状态,日志
+    确认订单的数据库操作:更新物流状态
+    :return:
+    """
+    resp = {'code': 200, 'msg': '操作成功~', 'data': {}}
+    req = request.values
+    member_info = g.member_info
+    order_sn = req['order_sn'] if 'order_sn' in req else ''
+    act = req['act'] if 'act' in req else ''
+    order_info = Order.query.filter_by(order_sn=order_sn, member_id=member_info.id).first()
+    if not order_info:
+        resp['code'] = -1
+        resp['msg'] = "系统繁忙。请稍后再试~~"
+        return jsonify(resp)
+
+    if act == "cancel":
+        target_pay = PayService()
+        ret = target_pay.closeOrder(pay_order_id=order_info.id)
+        if not ret:
+            resp['code'] = -1
+            resp['msg'] = "系统繁忙。请稍后再试~~"
+            return jsonify(resp)
+    elif act == "confirm":
+        order_info.express_status = 1
+        order_info.updated_time = getCurrentDate()
+        db.session.add(order_info)
+        db.session.commit()
 
     return jsonify(resp)

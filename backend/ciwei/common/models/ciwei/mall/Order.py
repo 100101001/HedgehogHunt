@@ -2,7 +2,7 @@
 from sqlalchemy import BigInteger, Column, DateTime, Index, Integer, Numeric, String, Text
 from sqlalchemy.schema import FetchedValue
 from flask_sqlalchemy import SQLAlchemy
-from application import db
+from application import db, app
 
 
 class Order(db.Model):
@@ -28,3 +28,32 @@ class Order(db.Model):
     pay_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
     updated_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
     created_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
+
+    @property
+    def pay_status(self):
+        tmp_status = self.status
+        if self.status == 1:
+            tmp_status = self.express_status
+            if self.express_status == 1 and self.comment_status == 0:
+                tmp_status = -5
+            if self.express_status == 1 and self.comment_status == 1:
+                tmp_status = 1
+        return tmp_status
+
+    @property
+    def status_desc(self):
+        pay_status_display_mapping = {
+            "0": "订单关闭",
+            "1": "支付成功",
+            "-8": "待支付",
+            "-7": "待发货",
+            "-6": "待确认",
+            "-5": "待评价"
+        }
+        return pay_status_display_mapping[str(self.pay_status)]
+
+    @property
+    def order_number(self):
+        order_number = self.created_time.strftime("%Y%m%d%H%M%S")
+        order_number = order_number + str(self.id).zfill(5)
+        return order_number
