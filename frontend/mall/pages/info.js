@@ -19,7 +19,7 @@ Page({
         shopType: "addShopCar",//购物类型，加入购物车或立即购买，默认为加入购物车,
         id: 0,
         shopCarNum: 4,
-        commentCount:2
+        commentCount: 2
     },
     onLoad: function (e) {
         var that = this;
@@ -27,7 +27,7 @@ Page({
             id: e.id
         });
     },
-    onShow:function(){
+    onShow: function () {
         this.getInfo();
         this.getComments();
     },
@@ -61,7 +61,7 @@ Page({
             data: data,
             success: function (res) {
                 var resp = res.data;
-                app.alert({"content": resp.msg});
+                app.alert({ "content": resp.msg });
                 that.setData({
                     hideShopPopup: true
                 });
@@ -138,7 +138,7 @@ Page({
             success: function (res) {
                 var resp = res.data;
                 if (resp.code != 200) {
-                    app.alert({"content": resp.msg});
+                    app.alert({ "content": resp.msg });
                     wx.navigateBack({})
                     return;
                 }
@@ -146,14 +146,14 @@ Page({
                 that.setData({
                     info: resp.data.info,
                     buyNumMax: resp.data.info.stock,
-                    shopCarNum:resp.data.cart_number
+                    shopCarNum: resp.data.cart_number
                 });
 
                 WxParse.wxParse('article', 'html', resp.data.info.summary, that, 5);
             }
         });
     },
-    getComments:function(){
+    getComments: function () {
         var that = this;
         wx.request({
             url: app.buildUrl("/product/comments"),
@@ -164,7 +164,7 @@ Page({
             success: function (res) {
                 var resp = res.data;
                 if (resp.code != 200) {
-                    app.alert({"content": resp.msg});
+                    app.alert({ "content": resp.msg });
                     return;
                 }
 
@@ -203,4 +203,11 @@ Page({
     onNavigateTap: function (event) {
         navigate.onNavigateTap(event, this)
     },
+    //点击预览图片
+    previewImage: function (e) {
+        wx.previewImage({
+            current: this.data.info.main_image, // 当前显示图片的http链接
+            urls: [this.data.info.main_image] // 需要预览的图片http链接列表
+        })
+    }
 });

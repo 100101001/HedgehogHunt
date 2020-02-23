@@ -4,7 +4,7 @@
    <view class="swiper-container">
         <swiper class="swiper_box" autoplay="{{autoplay}}" interval="{{interval}}" duration="{{duration}}" bindchange="swiperchange">
             <block wx:for="{{info.pics}}" wx:key="id">
-                <swiper-item>
+                <swiper-item bindtap="previewImage">
                     <image src="{{item}}" class="slide-image" width="355" height="150" mode="aspectFit" lazy-load="true"/>
                 </swiper-item>
             </block>
@@ -22,7 +22,7 @@
         <view class="goods-price" style="color:#999;font-size:24rpx;">购买{{info.total_count}}次</view>
         <view class="goods-price" style="color:#999;font-size:24rpx;">共收到 {{info.comment_count}} 次好评</view>
         <view class="goods-info-fx">
-          <image src='/images/qd.png' />
+          <image src='/images/icons/share.png' />
           <button open-type="share">分享</button>
           <text>分享有赏</text>
         </view>
