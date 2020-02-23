@@ -44,7 +44,7 @@ page{
     margin-bottom: 10rpx;
 }
 .order-status .right-text .red{
-    color:#e64340;
+    color:#f3971e;
 }
 .order-status .right-text .des{
     font-size:24rpx;

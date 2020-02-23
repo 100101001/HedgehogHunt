@@ -37,7 +37,7 @@
     <!--用户评价-->
     <view class="goods-des-info" style="margin-top:35rpx;" wx:if="{{commentList}}">
         <view class="label-title" style="border-bottom:1px solid #eee;">大家评价<text style="color:red">（{{commentCount}}）</text></view>
-        <view class="goods-text" style="margin-top:15rpx;border-bottom:1px solid #eee;" wx:for="{{commentList}}">
+        <view class="goods-text" style="margin-top:15rpx;border-bottom:1px solid #eee;" wx:for="{{commentList}}" wx:key="id">
           <view style="width:100rpx;float:left;">
             <image style="width: 100rpx; height: 100rpx;" src="{{item.user.avatar_url}}"></image>
             <view style="text-align:center;width:100rpx;">{{item.score}}</view>

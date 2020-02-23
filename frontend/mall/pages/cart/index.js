@@ -3,7 +3,9 @@ var app = getApp();
 const navigate = require("../template/navigate-bar1/navigate-bar1-template.js")
 const utils = require("../../utils/util.js")
 Page({
-    data: {},
+    data: {
+        dataReady: false
+    },
     onLoad: function () {
         //设置底部导航栏
         var [isSelecteds, urls] = utils.onNavigateTap(1);
@@ -12,6 +14,9 @@ Page({
         })
     },
     onShow: function () {
+        this.setData({
+            dataReady: false
+        })
         this.getCartList();
     },
     //每项前面的选中框
@@ -122,6 +127,7 @@ Page({
             totalPrice: total,
             allSelect: allSelect,
             noSelect: noSelect,
+            dataReady: true
         });
     },
     //去结算
@@ -152,8 +158,8 @@ Page({
         var campus_name = app.globalData.campus_name
         var campus_id = app.globalData.campus_id
         wx.redirectTo({
-            url: '/mall/pages/index?campus_id='+campus_id+
-            '&campus_name='+encodeURIComponent(campus_name),
+            url: '/mall/pages/index?campus_id=' + campus_id +
+                '&campus_name=' + encodeURIComponent(campus_name),
         })
     },
     //选中删除的数据

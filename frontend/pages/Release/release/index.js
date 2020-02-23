@@ -6,37 +6,49 @@ Page({
     notify_id: "",
     hasAskSubscribe: false,
     isAskingSubscribe: false,
-    dataReady: false
+    dataReady: false,
+    submitDisable: false
   },
   onLoad: function (options) {
-    wx.showActionSheet({
-      itemList: ['寻物启事', '失物招领'],
-      success: res => {
-        var auther_id = options.auther_id;
-        if (auther_id) {
-          console.log(auther_id);
-          var business_type = 1;
+    var openid = options.openid == undefined ? "" : options.openid
+    if (openid == "") {
+      wx.showActionSheet({
+        itemList: ['寻物启事', '失物招领'],
+        success: res => {
+          var auther_id = options.auther_id;
+          if (auther_id) {
+            console.log(auther_id);
+            var business_type = 1;
+            this.setData({
+              auther_id: auther_id
+            })
+          } else {
+            var business_type = res.tapIndex;
+          }
           this.setData({
-            auther_id: auther_id
+            notify_id: openid,
+            business_type: business_type,
+            location: "",
+            dataReady: true
+          });
+          this.setInitData();
+        },
+        fail(res) {
+          wx.redirectTo({
+            url: '../../Homepage/homepage',
           })
-        } else {
-          var openid = options.openid == undefined ? "" : options.openid
-          var business_type = res.tapIndex;
         }
-        this.setData({
-          notify_id: openid,
-          business_type: business_type,
-          location: "",
-          dataReady: true
-        });
-        this.setInitData();
-      },
-      fail(res) {
-        wx.redirectTo({
-          url: '../../Homepage/homepage',
-        })
-      }
-    })
+      })
+    } else {
+      this.setData({
+        notify_id: openid,
+        business_type: 1,
+        location: "",
+        dataReady: true
+      });
+      this.setInitData();
+    }
+
     // var auther_id = options.auther_id;
     // if (auther_id) {
     //   console.log(auther_id);
@@ -172,6 +184,9 @@ Page({
   },
   //表单提交
   formSubmit: function (e) {
+    this.setData({
+      submitDisable: true
+    })
     var data = e.detail.value;
     var tips_obj = this.data.tips_obj;
     var is_empty = app.judgeEmpty(data, tips_obj);
@@ -242,6 +257,9 @@ Page({
       },
       fail: function (res) {
         app.serverBusy();
+        this.setData({
+          submitDisable: false
+        })
         return;
       },
       complete: function (res) {
@@ -284,6 +302,9 @@ Page({
           },
           fail: function (res) {
             app.serverBusy();
+            this.setData({
+              submitDisable: false
+            })
             return;
           },
           complete: function (res) { },
@@ -365,7 +386,8 @@ Page({
       },
       complete: function (res) {
         that.setData({
-          loadingHidden: true
+          loadingHidden: true,
+          submitDisable: false
         });
       },
     });

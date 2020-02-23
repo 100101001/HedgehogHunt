@@ -41,9 +41,13 @@ Page({
                     app.alert({"content": resp.msg});
                     return;
                 }
-                wx.navigateTo({
-                    url: "/pages/my/order_list"
+                wx.reLaunch({
+                    url: "/mall/pages/my/order_list"
                 });
+            }, 
+            fail: function(resp){
+                wx.hideLoading()
+                app.serverBusy()               
             }
         });
 

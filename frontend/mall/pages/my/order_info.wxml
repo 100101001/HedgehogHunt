@@ -29,7 +29,7 @@
     </view>
     <view class="goods-list">
         <view class="list-title">商品信息</view>
-            <block wx:for-items="{{info.goods}}" wx:key="{{index}}">
+            <block wx:for-items="{{info.goods}}" wx:key="index">
                 <view class="a-goods">
                     <view class="img-box">
                       <image src="{{item.pic_url}}" class="img" />

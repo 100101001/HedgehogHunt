@@ -46,7 +46,7 @@
       <textarea class="summary" maxlength="{{false}}" name="summary" placeholder="{{summary_placeholder}}" value="{{summary_value}}"></textarea>
     </view>
     <button class="submit-btn" bindtap="askSubscribe" wx:if="{{!hasAskSubscribe}}">提交发布</button>
-    <button class="submit-btn" form-type="submit" wx:if="{{hasAskSubscribe}}">提交发布</button>
+    <button class="submit-btn" form-type="submit" wx:if="{{hasAskSubscribe}}" disabled="{{submitDisable}}">提交发布</button>
     <view class="tips-btn" wx:if="{{auther_id}}">信息将会直接提交给<text style="font-weight:600;">{{info_owner_name}}</text></view>
   </form>
 </view>

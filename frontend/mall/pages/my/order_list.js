@@ -16,7 +16,7 @@ Page({
     },
     orderDetail: function (e) {
         wx.navigateTo({
-            url: "/pages/my/order_info?order_sn=" + e.currentTarget.dataset.id
+            url: "/mall/pages/my/order_info?order_sn=" + e.currentTarget.dataset.id
         })
     },
     onLoad: function (options) {

@@ -1,6 +1,6 @@
 <!--mall\pages\cart\index.wxml-->
 <import src="../template/navigate-bar1/navigate-bar1-template.wxml" />
-<view class="container">
+<view class="container" wx:if="{{dataReady}}">
   <!--无购物车记录-->
 	<view class="title-box" wx:if="{{ !list.length }}">
 		购物车空空如也～

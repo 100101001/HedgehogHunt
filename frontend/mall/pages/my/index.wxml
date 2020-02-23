@@ -7,14 +7,14 @@
 	</view>
 	<view style="height:20rpx;background: #eee;width:100%;"></view>
 	<view class="my-item">
-		<navigator url="/pages/Homepage/product/my/order_list" hover-class="navigator-hover">我的订单</navigator>
+		<navigator url="/mall/pages/my/order_list" hover-class="navigator-hover">我的订单</navigator>
 	</view>
 	<view class="my-item">
-		<navigator url="/pages/Homepage/product/my/addressList" hover-class="navigator-hover">我的收货地址</navigator>
+		<navigator url="/mall/pages/my/addressList" hover-class="navigator-hover">我的收货地址</navigator>
 	</view>
 
 	<view class="my-item">
-		<navigator url="/pages/Homepage/product/my/commentList" hover-class="navigator-hover">我的评价</navigator>
+		<navigator url="/mall/pages/my/commentList" hover-class="navigator-hover">我的评价</navigator>
 	</view>
 
 </view>
