@@ -139,6 +139,7 @@ def productInfo():
     cart_number = 0
     if member_info:
         cart_number = Cart.query.filter_by(member_id=member_info.id).count()
+        has_in_cart = Cart.query.filter(Cart.member_id == member_info.id, Cart.product_id == product_id).first()
     resp['data']['info'] = {
         "id": product_info.id,
         "name": product_info.name,
@@ -151,6 +152,7 @@ def productInfo():
         "pics": [UrlManager.buildImageUrl(product_info.main_image, image_type='PRODUCT')]
     }
     resp['data']['cart_number'] = cart_number
+    resp['data']['has_in_cart'] = has_in_cart is not None
     return jsonify(resp)
 
 
