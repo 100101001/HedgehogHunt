@@ -18,8 +18,10 @@ Page({
         shopCarInfo: {},
         shopType: "addShopCar",//购物类型，加入购物车或立即购买，默认为加入购物车,
         id: 0,
-        shopCarNum: 4,
-        commentCount: 2
+        shopCarNum: 0,
+        commentCount: 2,
+        oldShopCarNum: 0,
+        hasInCart: false
     },
     onLoad: function (e) {
         var that = this;
@@ -59,13 +61,21 @@ Page({
     },
     addShopCar: function () {
         if (!app.loginTip()) {
-            return;
+            return
+        }
+        if(this.data.shopCarNum >= 99 && !this.data.hasInCart){
+            app.alert({'content':"购物车已满，请清空购物车后重试"})
+            this.setData({
+                hideShopPopup: true
+            })
+            return
         }
         var that = this;
         var data = {
             "id": this.data.info.id,
             "number": this.data.buyNumber
         };
+        var hasInCart = that.data.hasInCart
         wx.request({
             url: app.buildUrl("/cart/set"),
             header: app.getRequestHeader(),
@@ -76,7 +86,7 @@ Page({
                 app.alert({ "content": resp.msg });
                 that.setData({
                     hideShopPopup: true,
-                    shopCarNum: that.data.shopCarNum + that.data.buyNumber
+                    shopCarNum: hasInCart? that.data.oldShopCarNum : that.data.oldShopCarNum + 1
                 });
             }
         });
@@ -159,7 +169,9 @@ Page({
                 that.setData({
                     info: resp.data.info,
                     buyNumMax: resp.data.info.stock,
-                    shopCarNum: resp.data.cart_number
+                    shopCarNum: resp.data.cart_number,
+                    oldShopCarNum: resp.data.cart_number,
+                    hasInCart: resp.data.has_in_cart,
                 });
 
                 WxParse.wxParse('article', 'html', resp.data.info.summary, that, 5);
