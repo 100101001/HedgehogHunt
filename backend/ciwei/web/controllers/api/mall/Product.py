@@ -2,45 +2,50 @@
 from flask import request, g
 from sqlalchemy import or_
 
+from application import db
 from common.libs.Helper import getDictFilterField, selectFilterObj
 from common.libs.UrlManager import UrlManager
 from common.models.ciwei.Member import Member
-from common.models.ciwei.mall.ProductComments import ProductComment
+from common.models.ciwei.mall.Campus import Campus
+from common.models.ciwei.mall.ProductComments import ProductComments
 from common.models.ciwei.mall.Cart import Cart
 from common.models.ciwei.mall.Product import Product
 from common.models.ciwei.mall.ProductCat import ProductCat
 from web.controllers.api import route_api, jsonify
 
 
-# @route_api.route("/product/campus", methods=['GET'])
-# def product_campus():
-#     resp = {'code': -1, 'msg': "获取周边列表成功", 'data': {}}
-#     req = request.values
-#
-#     campus_id = int(req['campus']) if 'campus' in req and req['campus'] else -1
-#     p = int(req['p']) if ('p' in req and req['p']) else 1
-#     if p < 1:
-#         p = 1
-#     page_size = 10
-#     offset = (p - 1) * page_size
-#     product_ids = db.session.query(CampusProduct.id).filter_by(campus_id=campus_id) \
-#         .offset(offset).limit(page_size).all()
-#
-#     products = []
-#     for item in product_ids:
-#         product = Product.query.filter_by(id=item.id).first()
-#         tmp_data = {
-#             'id': product.id,
-#             'name': product.name,
-#             'price': float(product.price),
-#             'stock_cnt': product.stock,
-#             'sold_cnt': product.sale_cnt
-#         }
-#         products.append(tmp_data)
-#
-#     resp['code'] = 200
-#     resp['data']['productList'] = products
-#     return jsonify(resp)
+@route_api.route("/campus/search", methods=['GET'])
+def product_campus():
+    resp = {'code': -1, 'msg': "成功", 'data': {}}
+    req = request.values
+
+    campus = req['school'] if 'school' in req and req['school'] else ''
+
+    p = int(req['p']) if ('p' in req and req['p']) else 1
+    if p < 1:
+        p = 1
+    page_size = 10
+    offset = (p - 1) * page_size
+    if campus:
+        query = Campus.query.filter(Campus.name.ilike('%{}%'.format(campus))).offset(offset)
+    else:
+        query = Campus.query.offset(offset)
+
+    campus_list = query.limit(page_size).all()
+
+    unis = []
+    for item in campus_list:
+        tmp_data = {
+            'id': item.name,
+            'url': UrlManager.buildImageUrl(item.main_image, image_type='UNIS'),
+            'option': item.id
+        }
+        unis.append(tmp_data)
+
+    resp['code'] = 200
+    resp['data']['unis'] = unis
+    resp['data']['has_more'] = query.count() > page_size
+    return jsonify(resp)
 
 
 @route_api.route("/product/index")
@@ -160,8 +165,8 @@ def productComments():
 
     # 找到所有用户评论,组合返回
     product_id = int(req['id']) if 'id' in req else 0
-    query = ProductComment.query.filter(ProductComment.product_ids.ilike("%_{0}_%".format(product_id)))
-    comment_list = query.order_by(ProductComment.id.desc()).limit(5).all()
+    query = ProductComments.query.filter(ProductComments.product_ids.ilike("%_{0}_%".format(product_id)))
+    comment_list = query.order_by(ProductComments.id.desc()).limit(5).all()
     data_list = []
     if comment_list:
         f = selectFilterObj(comment_list, "member_id")

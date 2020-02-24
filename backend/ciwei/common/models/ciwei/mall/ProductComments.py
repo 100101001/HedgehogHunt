@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from application import db
 
 
-class ProductComment(db.Model):
+class ProductComments(db.Model):
     __tablename__ = 'product_comments'
 
     id = db.Column(db.Integer, primary_key=True)

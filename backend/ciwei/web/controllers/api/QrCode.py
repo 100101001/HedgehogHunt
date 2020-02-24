@@ -28,8 +28,8 @@ def get_wx_qr_code():
         return jsonify(resp)
 
     # 调API获取二维码
-    from common.libs import WechatService
-    token = WechatService.get_wx_token()
+    from common.libs.mall.WechatService import WeChatService
+    token = WeChatService.get_wx_token()
     if not token:
         resp['msg'] = "微信繁忙"
         return jsonify(resp)
@@ -114,14 +114,14 @@ def get_sms_code():
     if cache.get(params['phone']) is None:
         number = '+86' + params['phone']
         smsCode = QrCodeService.generate_sms_code()
-        # save to db or phone-smsCode cache used by checkSmsCode
-        cache.set(params['phone'], smsCode)
         # send sms
         message = "[闪寻] Your verification code is: " + smsCode
         client = Client(app.config['TWILIO_SERVICE']['accountSID'], app.config['TWILIO_SERVICE']['authToken'])
         try:
             client.messages.create(body=message, from_=app.config['TWILIO_SERVICE']['twilioNumber'], to=number)
             app.logger.info("验证码已发 %s successfuly", number)
+            # save to db or phone-smsCode cache used by checkSmsCode
+            cache.set(params['phone'], smsCode, timeout=300)
             resp['code'] = 200
             return jsonify(resp)
         except Exception:

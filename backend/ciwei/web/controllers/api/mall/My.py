@@ -1,13 +1,17 @@
 import datetime
 import json
+import os
+import time
 
 from flask import g, request, jsonify
 
-from common.libs.Helper import selectFilterObj, getDictFilterField
+from common.libs.Helper import selectFilterObj, getDictFilterField, seconds2str
 from common.libs.UrlManager import UrlManager
+from common.libs.mall.PayService import PayService
 from common.models.ciwei.mall.Order import Order
 from common.models.ciwei.mall.OrderProduct import OrderProduct
 from common.models.ciwei.mall.Product import Product
+from common.models.ciwei.mall.ProductComments import ProductComments
 from web.controllers.api import route_api
 
 
@@ -24,7 +28,8 @@ def myOrderList():
     # 状态过滤
     query = Order.query.filter_by(member_id=member_info.id)
     if status == -8:  # 等待付款
-        query = query.filter(Order.status == -8)
+        query = query.filter(Order.status == -8, Order.updated_time > seconds2str(time.time() - 1800))
+        PayService().autoCloseOrder(member_id=member_info.id)
     elif status == -7:  # 待发货
         query = query.filter(Order.status == 1, Order.express_status == -7, Order.comment_status == 0)
     elif status == -6:  # 待确认
@@ -123,4 +128,26 @@ def myOrderInfo():
             }
             info['goods'].append(tmp_data)
     resp['data']['info'] = info
+    return jsonify(resp)
+
+
+@route_api.route("/my/comment/list")
+def myCommentList():
+    resp = {'code': 200, 'msg': '操作成功~', 'data': {}}
+    member_info = g.member_info
+    comment_list = ProductComments.query.filter_by(member_id=member_info.id) \
+        .order_by(ProductComments.id.desc()).all()
+    data_comment_list = []
+    if comment_list:
+        order_ids = selectFilterObj(comment_list, "order_id")
+        order_map = getDictFilterField(Order, Order.id, "id", order_ids)
+        for item in comment_list:
+            tmp_order_info = order_map[item.order_id]
+            tmp_data = {
+                "date": item.created_time.strftime("%Y-%m-%d %H:%M:%S"),
+                "content": item.content,
+                "order_number": tmp_order_info.order_number
+            }
+            data_comment_list.append(tmp_data)
+    resp['data']['list'] = data_comment_list
     return jsonify(resp)

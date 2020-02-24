@@ -1,7 +1,7 @@
 import requests
 
 from application import app
-from common.libs import WechatService
+from common.libs.mall.WechatService import WeChatService
 
 
 def send_recommend_subscribe(goods_info):
@@ -61,7 +61,7 @@ def send_subscribe(openid, template, data):
     :param data: 模板数据
     :return:
     """
-    token = WechatService.get_wx_token()
+    token = WeChatService.get_wx_token()
     url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token={}".format(
         token)
     data = {

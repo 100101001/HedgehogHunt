@@ -23,7 +23,7 @@ class Application(Flask):
 
 
 db = SQLAlchemy()
-cache = Cache(config={'CACHE_TYPE': 'simple', 'CACHE_DEFAULT_TIMEOUT': 90})
+cache = Cache(config={'CACHE_TYPE': 'simple', 'CACHE_DEFAULT_TIMEOUT': 7200})
 # app=Application(__name__,template_folder=os.getcwd()+'/web/templates',root_path=os.getcwd(),static_folder=os.getcwd()+'/web/static')
 app = Application(__name__, root_path=os.getcwd(), static_folder=os.getcwd() + '/web/static')
 manager = Manager(app)

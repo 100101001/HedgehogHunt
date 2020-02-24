@@ -79,6 +79,29 @@ def getCurrentDate(date_format="%Y-%m-%d %H:%M:%S"):
     return datetime.datetime.now().strftime(date_format)
 
 
+def str2seconds(format_time='', date_format="%Y-%m-%d %H:%M:%S"):
+    """
+    将格式时间串转成时间戳
+    :param format_time:
+    :param date_format:
+    :return:
+    """
+    import time
+    return time.mktime(time.strptime(format_time, date_format))
+
+
+def seconds2str(seconds, date_format="%Y-%m-%d %H:%M:%S"):
+    """
+    时间戳转成时间串
+    :param seconds:
+    :param date_format:
+    :return:
+    """
+    import time
+    return time.strftime(date_format, time.localtime(seconds))
+
+
+
 '''
 根据某个字段获取一个dict值出来
 '''

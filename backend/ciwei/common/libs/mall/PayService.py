@@ -6,7 +6,7 @@ import random
 import time
 
 from application import db
-from common.libs.Helper import getCurrentDate
+from common.libs.Helper import getCurrentDate, seconds2str
 from common.libs.mall.ProductService import ProductService
 from common.libs.mall.QueueService import QueueService
 from common.models.ciwei.mall.Order import Order
@@ -235,3 +235,14 @@ class PayService:
             if not Order.query.filter_by(order_sn=sn).first():
                 break
         return sn
+
+    def autoCloseOrder(self, member_id=0):
+        """
+        自动关单
+        :param member_id:
+        :return:
+        """
+        order_list = Order.query.filter(Order.member_id == member_id, Order.status == -8,
+                                        Order.updated_time <= seconds2str(time.time() - 1800)).all()
+        for order in order_list:
+            self.closeOrder(pay_order_id=order.id)

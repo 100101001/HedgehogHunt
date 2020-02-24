@@ -217,6 +217,7 @@ CREATE TABLE `campus`(
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
     `name` varchar(80) NOT NULL DEFAULT '' COMMENT '大学名',
     `code` varchar(80) NOT NULL DEFAULT '' COMMENT '代号',
+    `main_image` varchar(100) NOT NULL DEFAULT '' COMMENT '主图',
     `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
     `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后插入时间',
     PRIMARY KEY (`id`)

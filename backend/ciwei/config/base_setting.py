@@ -36,11 +36,18 @@ OPENCS_APP = {
     'appkey': 'bd8a906e46adc59dd0e7e3110e90c46c',
     # TODO: 开通微信支付后,填写商户ID,商户签名密钥
     'mch_id': '',
-    'mch_key': ''
+    'mch_key': '',
+    'callback_url': '/api/order/callback'
+}
+
+UNIS = {
+    'ext': ['jpg', 'bmp', 'jpeg', 'png'],
+    'prefix_path': '/web/static/unis/',
+    'prefix_url': '/static/unis/'
 }
 
 PRODUCT = {
-    'ext': 'jpg',
+    'ext': ['jpg', 'bmp', 'jpeg', 'png'],
     'prefix_path': '/web/static/product/',
     'prefix_url': '/static/product/'
 }
