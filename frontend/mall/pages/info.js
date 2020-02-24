@@ -32,23 +32,35 @@ Page({
         this.getComments();
     },
     goShopCar: function () {
+        if (!app.loginTip()) {
+            return;
+        }
         wx.navigateTo({
             url: "/mall/pages/cart/index"
         });
     },
     toAddShopCar: function () {
+        if (!app.loginTip()) {
+            return;
+        }
         this.setData({
             shopType: "addShopCar"
         });
         this.bindGuiGeTap();
     },
     tobuy: function () {
+        if (!app.loginTip()) {
+            return;
+        }
         this.setData({
             shopType: "tobuy"
         });
         this.bindGuiGeTap();
     },
     addShopCar: function () {
+        if (!app.loginTip()) {
+            return;
+        }
         var that = this;
         var data = {
             "id": this.data.info.id,
@@ -63,7 +75,8 @@ Page({
                 var resp = res.data;
                 app.alert({ "content": resp.msg });
                 that.setData({
-                    hideShopPopup: true
+                    hideShopPopup: true,
+                    shopCarNum: that.data.shopCarNum + that.data.buyNumber
                 });
             }
         });

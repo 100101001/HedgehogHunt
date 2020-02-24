@@ -17,6 +17,7 @@ App({
     shopName: "刺猬寻物",
     // domain: "http://127.0.0.1:8999/api",
     domain: "http://192.168.0.115:8999/api",
+    //domain: "http://192.168.1.12:8999/api",
     member_id: null,
     member_status: 1,
     is_adm: true,

@@ -41,7 +41,7 @@ Page({
                     app.alert({"content": resp.msg});
                     return;
                 }
-                wx.reLaunch({
+                wx.redirectTo({
                     url: "/mall/pages/my/order_list"
                 });
             }, 
@@ -81,7 +81,7 @@ Page({
                 }
 
                 that.setData({
-                    goods_list: resp.data.food_list,
+                    goods_list: resp.data.goods_list,
                     default_address: resp.data.default_address,
                     yun_price: resp.data.yun_price,
                     pay_price: resp.data.pay_price,

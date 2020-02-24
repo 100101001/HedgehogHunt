@@ -77,11 +77,8 @@ Page({
         goods_name: '',
         owner_name: '',
         filter_address: '',
-        loadingMoreHidden: true,
-        regFlag: app.globalData.regFlag,
+        loadingMoreHidden: true
       });
-    this.setInitData();
-    this.onPullDownRefresh();
   },
   //轮播图变化
   swiperchange: function(e) {
@@ -90,6 +87,12 @@ Page({
     })
   },
   onShow: function() {
+    var regFlag = app.globalData.regFlag;
+    this.setData({
+      regFlag: regFlag,
+    });
+    this.setInitData();
+    this.onPullDownRefresh();
     // this.getBanners();
   },
   catClick: function(e) {

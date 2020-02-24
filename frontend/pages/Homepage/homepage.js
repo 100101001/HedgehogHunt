@@ -2,53 +2,77 @@ const navigate = require("../template/navigate-bar/navigate-bar-template.js")
 var util = require("../../utils/util.js");
 var app = getApp();
 Page({
+  data:{
+    schoolInput: "",
+    unis: [],
+    p: 1,
+    searching: false
+  },
   onLoad: function () {
     var textArray = {
       text1: "信息为网友发布",
       text2: "私下联系请自行判断真伪"
     };
-    var unis = [{
-      "id": "同济大学",
-      "url": "/images/unis/TJU.jpeg",
-      "option": "1"
-    },
-    {
-      "id": "北京大学",
-      "url": "/images/unis/PKU.jpeg",
-      "option": "2"
-    },
-    {
-      "id": "北京师范",
-      "url": "/images/unis/BNU.jpeg",
-      "option": "3"
-    },
-    {
-      "id": "东南大学",
-      "url": "/images/unis/SEU.jpg",
-      "option": "4"
-    },
-    {
-      "id": "西安交大",
-      "url": "/images/unis/XJTU.jpeg",
-      "option": "5"
-    },
-    {
-      "id": "四川大学",
-      "url": "/images/unis/SCU.jpeg",
-      "option": "6"
-    }
-    ]
     //设置底部导航栏
     var [isSelecteds, urls] = util.onNavigateTap(0);
     var total_new = app.globalData.total_new;
     isSelecteds['total_new'] = total_new;
     this.setData({
       isSelecteds: isSelecteds,
-      textArray: textArray,
-      unis: unis,
+      textArray: textArray
     })
   },
-
+  onShow: function(){
+    this.getUniversityList()
+  },
+  getUniversityList: function(){
+    var that = this
+    this.setData({
+      searching: true
+    })
+    console.log(that.data.schoolInput)
+    wx.request({
+      url: app.buildUrl('/campus/search'),
+      data: {
+        p: that.data.p,
+        school : that.data.schoolInput
+      },
+      success: function(res){
+        var resp = res.data
+        if(resp.code!=200){
+          app.alert({
+            'content':resp.msg
+          })
+          return
+        }
+        that.setData({
+          loadingMoreHidden: resp.data.has_more,
+          unis: that.data.unis.concat(resp.data.unis),
+          p: that.data.p + 1
+        })
+      },
+      complete: function(res){
+        that.setData({
+          searching: false
+        })
+      }
+    })
+  },
+  onReachBottom: function(e){
+    this.getUniversityList()
+  },
+  listenerSchoolInput: function(e){
+    this.setData({
+      schoolInput: e.detail.value
+    })
+  },
+  searchSchool: function(e){
+    this.setData({
+      unis: [],
+      p: 1
+    })
+    this.getUniversityList(true)
+  },
   //点击意见反馈之后跳转
   onAboutUsTap: function (event) {
     wx.navigateTo({
