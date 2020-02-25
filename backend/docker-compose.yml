@@ -1,0 +1,19 @@
+db:
+  image: mysql:5.7
+  expose:
+    - "3306"
+  volumes:
+    - ./mysql:/var/lib/mysql
+  environment:
+    - MYSQL_DATABASE=ciwei_db
+    - MYSQL_ROOT_PASSWORD=wcx9517530 
+ 
+web:
+  build: .
+  command: python /code/manager.py runserver
+  volumes:
+    - ./ciwei:/code
+  ports:
+    - "8999:8999"
+  links:
+    - db
