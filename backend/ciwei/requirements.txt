@@ -9,4 +9,7 @@ twilio
 Flask-Caching
 bs4
 lxml
+
+# 以下是测试依赖
+mock
 # uwsgi

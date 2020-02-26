@@ -7,6 +7,7 @@ from common.libs.Helper import getDictFilterField, selectFilterObj
 from common.libs.UrlManager import UrlManager
 from common.models.ciwei.Member import Member
 from common.models.ciwei.mall.Campus import Campus
+from common.models.ciwei.mall.CampusProduct import CampusProduct
 from common.models.ciwei.mall.ProductComments import ProductComments
 from common.models.ciwei.mall.Cart import Cart
 from common.models.ciwei.mall.Product import Product
@@ -51,6 +52,8 @@ def product_campus():
 @route_api.route("/product/index")
 def productIndex():
     resp = {'code': 200, 'msg': '操作成功~', 'data': {}}
+    req = request.values
+    campus = int(req['campus']) if 'campus' in req else -1
 
     # 类别
     cat_list = ProductCat.query.filter_by(status=1).order_by(ProductCat.weight.desc()).all()
@@ -68,8 +71,12 @@ def productIndex():
     resp['data']['cat_list'] = data_cat_list
 
     # 销量冠军轮播图
-    product_list = Product.query.filter_by(status=1) \
-        .order_by(Product.sale_cnt.desc(), Product.id.desc()).limit(3).all()
+    query = Product.query.filter_by(status=1)
+    if campus != -1:
+        product_ids = db.session.query(CampusProduct.product_id).filter_by(campus_id=campus).all()
+        query = query.filter(Product.id.in_(product_ids))
+
+    product_list = query.order_by(Product.sale_cnt.desc(), Product.id.desc()).limit(3).all()
 
     data_product_list = []
     if product_list:
@@ -90,6 +97,7 @@ def productSearch():
     req = request.values
     cat_id = int(req['cat_id']) if 'cat_id' in req else 0
     mix_kw = str(req['mix_kw']) if 'mix_kw' in req else ''
+    campus = int(req['campus']) if 'campus' in req else -1
     p = int(req['p']) if 'p' in req else 1
 
     if p < 1:
@@ -98,12 +106,17 @@ def productSearch():
     page_size = 10
     offset = (p - 1) * page_size
     query = Product.query.filter_by(status=1)
+
     if cat_id > 0:
         query = query.filter_by(cat_id=cat_id)
 
     if mix_kw:
         rule = or_(Product.name.ilike("%{0}%".format(mix_kw)), Product.tags.ilike("%{0}%".format(mix_kw)))
         query = query.filter(rule)
+
+    if campus != -1:
+        product_ids = db.session.query(CampusProduct.product_id).filter_by(campus_id=campus).all()
+        query = query.filter(Product.id.in_(product_ids))
 
     product_list = query.order_by(Product.sale_cnt.desc(), Product.id.desc()) \
         .offset(offset).limit(page_size).all()

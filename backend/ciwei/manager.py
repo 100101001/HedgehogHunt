@@ -4,7 +4,7 @@ import www
 
 # web server:自定义命令
 manager.add_command('runserver',
-                    Server(host=app.config['IP'], port=app.config['SERVER_PORT'], use_debugger=True, use_reloader=True))
+                    Server(host='0.0.0.0', port=app.config['SERVER_PORT'], use_debugger=True, use_reloader=True))
 
 
 def main():
