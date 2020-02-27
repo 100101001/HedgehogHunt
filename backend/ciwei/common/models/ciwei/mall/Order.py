@@ -1,38 +1,43 @@
 # coding: utf-8
+import decimal
+
 from sqlalchemy import BigInteger, Column, DateTime, Index, Integer, Numeric, String, Text
-from sqlalchemy.schema import FetchedValue
+from sqlalchemy.dialects.mssql import TINYINT
+from sqlalchemy.dialects.mysql import INTEGER
 from flask_sqlalchemy import SQLAlchemy
 from application import db, app
+from datetime import datetime
 
 
 class Order(db.Model):
     __tablename__ = 'order'
     __table_args__ = (
         db.Index('idx_member_id_status', 'member_id', 'status'),
-        {'comment': '周边购买订单表'}
+        {'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8mb4', 'comment': '周边购买订单表'}
     )
 
-    id = db.Column(db.Integer, primary_key=True)
-    order_sn = db.Column(db.String(40), nullable=False, unique=True, server_default=db.FetchedValue(), comment="随机订单号")
-    member_id = db.Column(db.BigInteger, nullable=False, server_default=db.FetchedValue(), comment="会员id")
-    total_price = db.Column(db.Numeric(10, 2), nullable=False, server_default=db.FetchedValue(), comment="订单应付金额")
-    yun_price = db.Column(db.Numeric(10, 2), nullable=False, server_default=db.FetchedValue(), comment="运费金额")
-    pay_price = db.Column(db.Numeric(10, 2), nullable=False, server_default=db.FetchedValue(), comment="订单实付金额")
-    pay_sn = db.Column(db.String(128), nullable=False, server_default=db.FetchedValue(), comment="第三方流水号")
-    prepay_id = db.Column(db.String(128), nullable=False, server_default=db.FetchedValue(), comment="第三方预付id")
+    id = db.Column(INTEGER(11, unsigned=True), primary_key=True, autoincrement=True)
+    order_sn = db.Column(db.String(40), nullable=False, unique=True, default='', comment="随机订单号")
+    member_id = db.Column(INTEGER(11, unsigned=True), nullable=False, default=0, comment="会员id")
+    total_price = db.Column(db.Numeric(10, 2), nullable=False, default=decimal.Decimal(0.00), comment="订单应付金额")
+    yun_price = db.Column(db.Numeric(10, 2), nullable=False, default=decimal.Decimal(0.00), comment="运费金额")
+    pay_price = db.Column(db.Numeric(10, 2), nullable=False, default=decimal.Decimal(0.00), comment="订单实付金额")
+    pay_sn = db.Column(db.String(128), nullable=False, default='', comment="第三方流水号")
+    prepay_id = db.Column(db.String(128), nullable=False, default='', comment="第三方预付id")
     note = db.Column(db.Text, nullable=False, comment="备注信息")
-    status = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue(), comment="1：支付完成 0 无效 -1 申请退款 -2 "
-                                                                                             "退款中 -9 退款成功  -8 待支付  -7"
-                                                                                             " 完成支付待确认")
-    express_status = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue(), comment="快递状态，-8 待支付 -7 "
-                                                                                                     "已付款待发货 1：确认收货 "
-                                                                                                     "0：失败")
-    express_address_id = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue(), comment="快递地址id")
-    express_info = db.Column(db.String(1000), nullable=False, server_default=db.FetchedValue(), comment="快递信息")
-    comment_status = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue(), comment="评论状态")
-    pay_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue(), comment="付款到账时间")
-    updated_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue(), comment="最近一次更新时间")
-    created_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue(), comment="插入时间")
+    status = db.Column(TINYINT(), nullable=False, default=0, comment="1：支付完成 0 无效 -1 申请退款 -2 "
+                                                                     "退款中 -9 退款成功  -8 待支付  -7"
+                                                                     " 完成支付待确认")
+    express_status = db.Column(TINYINT(), nullable=False, default=0, comment="快递状态，-8 待支付 -7 "
+                                                                             "已付款待发货 1：确认收货 "
+                                                                             "0：失败")
+    express_address_id = db.Column(db.Integer, nullable=False, default=0, comment="快递地址id")
+    express_info = db.Column(db.String(1000), nullable=False, default='', comment="快递信息")
+    comment_status = db.Column(TINYINT(), nullable=False, default=0, comment="评论状态")
+    pay_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment="付款到账时间")
+    updated_time = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now,
+                             comment="最后一次更新时间")
+    created_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment="插入时间")
 
     @property
     def pay_status(self):

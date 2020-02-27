@@ -10,7 +10,8 @@ Flask-Caching
 bs4
 lxml
 flask-migrate
+# uwsgi
 
 # 以下是测试依赖
 mock
-# uwsgi
+coverage

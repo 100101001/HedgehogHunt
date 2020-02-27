@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from application import app
-from flask import request,g,jsonify
+from flask import request, g, jsonify
 
 from common.models.ciwei.Member import Member
 import re
@@ -8,6 +8,8 @@ import re
 '''
 api认证
 '''
+
+
 @app.before_request
 def before_request_api():
     api_ignore_urls = app.config['API_IGNORE_URLS']
@@ -20,19 +22,22 @@ def before_request_api():
     if member_info:
         g.member_info = member_info
 
-    pattern = re.compile('%s' % "|".join( api_ignore_urls ))
+    pattern = re.compile('%s' % "|".join(api_ignore_urls))
     if pattern.match(path):
         return
 
-    if not member_info :
+    if not member_info:
         resp = {'code': -1, 'msg': 'please login~', 'data': {}}
         return jsonify(resp)
 
     return
 
+
 '''
 判断用户是否已经登录
 '''
+
+
 def check_member_login():
     auth_cookie = request.headers.get("Authorization")
 
@@ -48,7 +53,6 @@ def check_member_login():
         member_info = Member.query.filter_by(id=auth_info[1]).first()
     except Exception:
         return False
-
 
     if member_info is None:
         return False
