@@ -104,11 +104,10 @@ Page({
     navigate.onNavigateTap(event, this)
   },
   goBuy: function (e) {
-    console.log(e)
     var id = e.currentTarget.dataset.id
     var campus = this.data.unis[id].option
     var name = this.data.unis[id].id
-    console.log(campus)
+    console.log("campus:"+campus)
     app.globalData.campus_id = campus
     app.globalData.campus_name = name
     wx.redirectTo({

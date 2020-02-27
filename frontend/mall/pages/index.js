@@ -59,7 +59,7 @@ Page({
             goods: [],
             loadingMoreHidden: true
         });
-        this.getFoodList();
+        this.getProductList();
     },
     tapBanner: function (e) {
         if (e.currentTarget.dataset.id != 0) {
@@ -78,6 +78,9 @@ Page({
         wx.request({
             url: app.buildUrl("/product/index"),
             header: app.getRequestHeader(),
+            data: {
+                campus: app.globalData.campus_id
+            },
             success: function (res) {
                 var resp = res.data;
                 if (resp.code != 200) {
@@ -89,7 +92,7 @@ Page({
                     banners: resp.data.banner_list,
                     categories: resp.data.cat_list
                 });
-                that.getFoodList();
+                that.getProductList();
             }
         });
     },
@@ -102,15 +105,15 @@ Page({
             p: 1,
             goods: []
         });
-        this.getFoodList();
+        this.getProductList();
     },
     onReachBottom: function () {
         var that = this;
         setTimeout(function () {
-            that.getFoodList();
+            that.getProductList();
         }, 500);
     },
-    getFoodList: function () {
+    getProductList: function () {
         var that = this;
         if (that.data.processing) {
             return;
@@ -131,6 +134,7 @@ Page({
                 cat_id: that.data.activeCategoryId,
                 mix_kw: that.data.searchInput,
                 p: that.data.p,
+                campus: app.globalData.campus_id
             },
             success: function (res) {
                 var resp = res.data;

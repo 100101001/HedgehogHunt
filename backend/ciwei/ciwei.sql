@@ -163,7 +163,7 @@ CREATE TABLE `advs` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='顶部导航栏的广告表，按天收费，先提交并付费，管理员审核通过后发布，否则返还钱';
 
-
+#TODO status默认值是已读？？
 DROP TABLE IF EXISTS `report`;
 CREATE TABLE `report` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -179,6 +179,7 @@ CREATE TABLE `report` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='举报消息表';
 
+#TODO status默认值是已读？？
 DROP TABLE IF EXISTS `thanks`;
 CREATE TABLE `thanks` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,

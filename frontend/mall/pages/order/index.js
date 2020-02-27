@@ -9,7 +9,8 @@ Page({
         pay_price: "0.00",
         total_price: "0.00",
         params: null,
-        express_address_id:0
+        express_address_id: 0,
+        has_qrcode: app.globalData.has_qrcode
     },
     onLoad: function (e) {
         var that = this;
@@ -19,9 +20,25 @@ Page({
     },
     onShow: function () {
         var that = this;
-         this.getOrderInfo();
+        this.getOrderInfo();
     },
     createOrder: function (e) {
+        // 第一次可能没拿到
+        if (!this.data.has_qrcode) {
+            wx.request({
+                method: 'post',
+                url: app.buildUrl('/qrcode/wx'),
+                header: app.getRequestHeader(1),
+                success: res =>{
+                    if(res.data.code===200){
+                        app.globalData.has_qrcode = true
+                        this.setData({
+                            has_qrcode: true
+                        })
+                    }
+                }
+            })
+        }
         wx.showLoading();
         var that = this;
         var data = {
@@ -38,16 +55,16 @@ Page({
                 wx.hideLoading();
                 var resp = res.data;
                 if (resp.code != 200) {
-                    app.alert({"content": resp.msg});
+                    app.alert({ "content": resp.msg });
                     return;
                 }
                 wx.redirectTo({
                     url: "/mall/pages/my/order_list"
                 });
-            }, 
-            fail: function(resp){
+            },
+            fail: function (resp) {
                 wx.hideLoading()
-                app.serverBusy()               
+                app.serverBusy()
             }
         });
 
@@ -63,6 +80,21 @@ Page({
         });
     },
     getOrderInfo: function () {
+        if (!app.globalData.has_qrcode) {
+            wx.request({
+                method: 'post',
+                url: app.buildUrl('/qrcode/wx'),
+                header: app.getRequestHeader(1),
+                success: res =>{
+                    if(res.data.code===200){
+                        app.globalData.has_qrcode = true
+                        this.setData({
+                            has_qrcode: true
+                        })
+                    }
+                }
+            })
+        }
         var that = this;
         var data = {
             type: this.data.params.type,
@@ -76,7 +108,7 @@ Page({
             success: function (res) {
                 var resp = res.data;
                 if (resp.code != 200) {
-                    app.alert({"content": resp.msg});
+                    app.alert({ "content": resp.msg });
                     return;
                 }
 
@@ -88,9 +120,9 @@ Page({
                     total_price: resp.data.total_price,
                 });
 
-                if( that.data.default_address ){
+                if (that.data.default_address) {
                     that.setData({
-                         express_address_id: that.data.default_address.id
+                        express_address_id: that.data.default_address.id
                     });
                 }
             }
