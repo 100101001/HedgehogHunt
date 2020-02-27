@@ -20,7 +20,6 @@ class TestQrCode(ApiBaseTest):
         db.session.add(self.member1)
         db.session.add(self.member2)
         db.session.commit()
-        print(self.member1.id)
 
     def test_get_wx_qr_code(self):
         """

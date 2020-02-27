@@ -6,8 +6,7 @@ from flask_migrate import Migrate
 # from common.libs.UrlManager import UrlManager
 import os
 
-# 引入www是测试需要勿删除
-from www import *
+
 # 测试需要使用绝对路径无论从哪里调用都共用base_setting.py
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -42,4 +41,5 @@ migrate = Migrate(app=app, db=db)
 # app.add_template_global(UrlManager.buildUrl, 'buildUrl')
 # app.add_template_global(UrlManager.buildImageUrl, 'buildImageUrl')
 
-
+# 引入www是测试需要勿删除
+from www import *

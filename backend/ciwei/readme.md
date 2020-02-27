@@ -15,34 +15,23 @@
     flask db upgrade                      # 运行迁移脚本
     flask db downgrade                    # 回滚迁移
 
-## 所见即所得编辑器ueditor
-
-    <script src="{{ buildStaticUrl('/plugins/ueditor/ueditor.config.js') }}"></script>
-    <script src="{{ buildStaticUrl('/plugins/ueditor/ueditor.all.min.js') }}"></script>
-    <script src="{{ buildStaticUrl('/plugins/ueditor/lang/zh-cn/zh-cn.js') }}"></script>
-
-
-    UE.getEditor('editor',{
-       toolbars: [
-            [ 'undo', 'redo', '|',
-                'bold', 'italic', 'underline', 'strikethrough', 'removeformat', 'formatmatch', 'autotypeset', 'blockquote', 'pasteplain', '|', 'forecolor', 'backcolor', 'insertorderedlist', 'insertunorderedlist', 'selectall',  '|','rowspacingtop', 'rowspacingbottom', 'lineheight'],
-            [ 'customstyle', 'paragraph', 'fontfamily', 'fontsize', '|',
-                'directionalityltr', 'directionalityrtl', 'indent', '|',
-                'justifyleft', 'justifycenter', 'justifyright', 'justifyjustify', '|', 'touppercase', 'tolowercase', '|',
-                'link', 'unlink'],
-            [ 'imagenone', 'imageleft', 'imageright', 'imagecenter', '|',
-                'insertimage', 'insertvideo', '|',
-                'horizontal', 'spechars','|','inserttable', 'deletetable', 'insertparagraphbeforetable', 'insertrow', 'deleterow', 'insertcol', 'deletecol', 'mergecells', 'mergeright', 'mergedown', 'splittocells', 'splittorows', 'splittocols' ]
-
-        ],
-        enableAutoSave:true,
-        saveInterval:60000,
-        elementPathEnabled:false,
-        zIndex:4,
-        serverUrl:common_ops.buildUrl(  '/upload/ueditor' )
-    });
-
-
+## API 测试
+    # create new test class -> CTRL+SHIFT+T ->  target_directory(under tests package)
+    # write a test class
+    from tests.utils.TestHelper import ApiBaseTest  
+    class testXXX(ApiBaseTest):
+        def setUp(self)->None:
+            super.setUp()
+            # customize data preparaotion here
+            
+        def test_method1(self):
+            res = do_something
+            self.assrtTrue(res.statusCode == 200, "msg")
+        
+        def tearDown(self):
+            super().tearDown()
+            # customize operations here
+            
 
 ##可参考资料
 * [python-Flask（jinja2）语法：过滤器](https://www.jianshu.com/p/3127ac233518)
