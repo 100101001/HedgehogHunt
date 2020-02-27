@@ -4,6 +4,8 @@ from sqlalchemy.schema import FetchedValue
 from application import db
 class Adv(db.Model):
     __tablename__ = 'advs'
+    __table_args__ = ({'comment': '顶部导航栏的广告表，按天收费，先提交并付费，管理员审核通过后发布，否则返还钱'})
+
     id = db.Column(db.Integer, primary_key=True)
     member_id = db.Column(db.Integer, nullable=False)
     uu_id = db.Column(db.String(80), nullable=False, server_default=db.FetchedValue())

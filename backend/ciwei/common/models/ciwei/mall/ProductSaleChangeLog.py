@@ -7,10 +7,11 @@ from application import db
 
 class ProductSaleChangeLog(db.Model):
     __tablename__ = 'product_sale_change_log'
+    __table_args__ = ({'comment': '商品销售情况'})
 
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, nullable=False, index=True, server_default=db.FetchedValue())
-    quantity = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
-    price = db.Column(db.Numeric(10, 2), nullable=False, server_default=db.FetchedValue())
-    member_id = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
-    created_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
+    product_id = db.Column(db.Integer, nullable=False, index=True, server_default=db.FetchedValue(), comment="商品id")
+    quantity = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue(), comment="售卖数量")
+    price = db.Column(db.Numeric(10, 2), nullable=False, server_default=db.FetchedValue(), comment="售卖金额")
+    member_id = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue(), comment="会员id")
+    created_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue(), comment="售卖时间")

@@ -7,6 +7,9 @@ from tests.util import TestHelper
 
 # TODO:开辟测试环境OR数据库回滚
 class TestQrCode(TestCase):
+    def setUp(self):
+        db
+
     def test_get_wx_qr_code(self):
         headers = {
             'Authorization': 'opLxO5Q3CloBEmwcarKrF_kSA574#100000',
@@ -31,3 +34,4 @@ class TestQrCode(TestCase):
         image_resp = requests.get(url)
         self.assertTrue(image_resp.status_code == 200, "返回微信二维码图片失败")
         self.assertTrue(image_resp.headers.get('Content-Type') == 'image/jpeg', "返回的不是二维码图片")
+

@@ -7,16 +7,19 @@ from application import db
 
 class ThankOrder(db.Model):
     __tablename__ = 'thank_order'
+    __table_args__ = ({'comment': '答谢支付的订单'})
 
     id = db.Column(db.Integer, primary_key=True)
-    member_id = db.Column(db.Integer, nullable=False)
-    openid = db.Column(db.String(32), nullable=False)
-    transaction_id = db.Column(db.String(64), server_default=db.FetchedValue())
-    price = db.Column(db.Numeric(10, 2), nullable=False, server_default=db.FetchedValue())
-    status = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
-    paid_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
-    updated_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
-    created_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
+    member_id = db.Column(db.Integer, nullable=False, comment="会员id")
+    openid = db.Column(db.String(32), nullable=False, comment="第三方id")
+    transaction_id = db.Column(db.String(64), server_default=db.FetchedValue(), comment="微信支付交易号")
+    price = db.Column(db.Numeric(10, 2), nullable=False, server_default=db.FetchedValue(), comment="支付金额")
+    status = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue(), comment="状态 -1=刚创建, 0=微信预下单-未支付, "
+                                                                                             " 1=微信支付成功, 2=微信已关单, "
+                                                                                             "3=微信支付错误")
+    paid_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue(), comment="支付完成时间")
+    updated_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue(), comment="最后更新时间")
+    created_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue(), comment="插入时间")
 
     @property
     def status_desc(self):

@@ -2,6 +2,7 @@ from flask import Flask
 from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
 from flask_script import Manager
+from flask_migrate import Migrate
 # from common.libs.UrlManager import UrlManager
 import os
 
@@ -27,6 +28,7 @@ cache = Cache(config={'CACHE_TYPE': 'simple', 'CACHE_DEFAULT_TIMEOUT': 7200})
 # app=Application(__name__,template_folder=os.getcwd()+'/web/templates',root_path=os.getcwd(),static_folder=os.getcwd()+'/web/static')
 app = Application(__name__, root_path=os.getcwd(), static_folder=os.getcwd() + '/web/static')
 manager = Manager(app)
+migrate = Migrate(app=app, db=db)
 
 # """函数模板,将类中的方法引入进来，注入到"""
 # app.add_template_global(UrlManager.buildStaticUrl, 'buildStaticUrl')

@@ -1,4 +1,4 @@
-Python Flask订餐系统
+闪寻
 =====================
 ##启动
 * export ops_config=local|production && python manage.py runserver
@@ -7,6 +7,13 @@ Python Flask订餐系统
 
     flask-sqlacodegen 'mysql://root:123456@127.0.0.1/goods_db' --outfile "common/models/model.py"  --flask
     flask-sqlacodegen 'mysql://root:wcx9517530@127.0.0.1/goods_db' --tables  --outfile "common/models/Image.py"  --flask
+
+## flask-migration
+    export FLASK_APP=manager.py            # 设置环境变量
+    flask db init                          # 执行一次生成migrations目录即可
+    flask db migrate -m "新增匹配次数列"     # 生成数据库迁移脚本
+    flask db upgrade                      # 运行迁移脚本
+    flask db downgrade                    # 回滚迁移
 
 ## 所见即所得编辑器ueditor
 
@@ -40,3 +47,4 @@ Python Flask订餐系统
 ##可参考资料
 * [python-Flask（jinja2）语法：过滤器](https://www.jianshu.com/p/3127ac233518)
 * [SQLAlchemy 各种查询语句写法](https://wxnacy.com/2017/08/14/python-2017-08-14-sqlalchemy-filter/)
+* [flask-migration 操作指南](migrations/操作指南.md)

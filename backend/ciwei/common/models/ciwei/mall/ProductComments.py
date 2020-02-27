@@ -7,14 +7,15 @@ from application import db
 
 class ProductComments(db.Model):
     __tablename__ = 'product_comments'
+    __table_args__ = ({'comment': '会员评论表'})
 
     id = db.Column(db.Integer, primary_key=True)
-    member_id = db.Column(db.Integer, nullable=False, index=True, server_default=db.FetchedValue())
-    product_ids = db.Column(db.String(200), nullable=False, server_default=db.FetchedValue())
-    order_id = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
-    score = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue())
-    content = db.Column(db.String(200), nullable=False, server_default=db.FetchedValue())
-    created_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue())
+    member_id = db.Column(db.Integer, nullable=False, index=True, server_default=db.FetchedValue(), comment="会员id")
+    product_ids = db.Column(db.String(200), nullable=False, server_default=db.FetchedValue(), comment="商品ids")
+    order_id = db.Column(db.Integer, nullable=False, index=True, server_default=db.FetchedValue(), comment="订单id")
+    score = db.Column(db.Integer, nullable=False, server_default=db.FetchedValue(), comment="评分")
+    content = db.Column(db.String(200), nullable=False, server_default=db.FetchedValue(), comment="评论内容")
+    created_time = db.Column(db.DateTime, nullable=False, server_default=db.FetchedValue(), comment="插入时间")
 
     @property
     def score_desc(self):
