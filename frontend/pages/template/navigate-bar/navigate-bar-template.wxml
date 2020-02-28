@@ -1,34 +1,52 @@
 <template name="navigate-bar-template">
-  <view class="navigate_icon_container">
-    <view catchtap='onNavigateTap' class="home_icon_container" data-id="0">
-      <image class="our_icon" style='width:77rpx; height:70rpx' src="{{isSelected0? '/images/icons/home_select.png':'/images/icons/home.png'}}"></image>
-      <view class="icon_text" wx:if="{{isSelected0}}" style="color:#f7931e">首页</view>
-      <view class="icon_text" wx:if="{{!isSelected0}}" style="color:#b3b3b3">首页</view>
-    </view>
+	<view class="navigate-bar-template">
+		<!--用户未点击关闭浮窗--->
+		<view class="hint-qrcode-container" wx:if="{{showHintQrcode}}">
+			<view class="hint-qrcode-text-container">
+				<!--未登录-->
+				<view class="hint-qrcode-text" wx:if="{{regFlag && !hasQrcode}}">获取专属二维码，失物闪寻~</view>
+				<navigator class="hint-navigator" url="/pages/Mine/userinfo/index" hover-class="hint-navigator-hover" wx:if="{{regFlag && !hasQrcode}}">[去获取]</navigator>
+				<!--登录无二维码-->
+				<view class="hint-qrcode-text" wx:if="{{!regFlag}}">登录后可获取专属二维码~</view>
+				<navigator class="hint-navigator" url="/pages/login/index" hover-class="hint-navigator-hover" wx:if="{{!regFlag}}">[去登录]</navigator>
+				<!--登录且有二维码-->
+				<view class="hint-qrcode-text" wx:if="{{regFlag && hasQrcode}}">前往看查看我的专属二维码~</view>
+				<navigator class="hint-navigator" url="/pages/Mine/userinfo/index" hover-class="hint-navigator-hover" wx:if="{{regFlag && hasQrcode}}">[去查看]</navigator>
+				<view class="close-hint" bindtap="closeQrcodeHint">x</view>
+			</view>
+			<view class="arrow"></view>
+		</view>
+		<view class="navigate_icon_container">
+			<view catchtap='onNavigateTap' class="home_icon_container" data-id="0">
+				<image class="our_icon" style='width:77rpx; height:70rpx' src="{{isSelected0? '/images/icons/home_select.png':'/images/icons/home.png'}}"></image>
+				<view class="icon_text" wx:if="{{isSelected0}}" style="color:#f7931e">首页</view>
+				<view class="icon_text" wx:if="{{!isSelected0}}" style="color:#b3b3b3">首页</view>
+			</view>
 
-    <view catchtap='onNavigateTap' class="icon_container" data-id="1">
-      <image class="our_icon" style='width:60rpx; height:70rpx' src="{{isSelected1? '/images/icons/find_select.png':'/images/icons/find.png'}}"></image>
-      <view class="icon_text" wx:if="{{isSelected1}}" style="color:#f7931e">待领</view>
-      <view class="icon_text" wx:if="{{!isSelected1}}" style="color:#b3b3b3">待领</view>
-    </view>
+			<view catchtap='onNavigateTap' class="icon_container" data-id="1">
+				<image class="our_icon" style='width:60rpx; height:70rpx' src="{{isSelected1? '/images/icons/find_select.png':'/images/icons/find.png'}}"></image>
+				<view class="icon_text" wx:if="{{isSelected1}}" style="color:#f7931e">待领</view>
+				<view class="icon_text" wx:if="{{!isSelected1}}" style="color:#b3b3b3">待领</view>
+			</view>
 
-    <view catchtap='onNavigateTap' class="find_icon_container" data-id="3">
-      <image class="our_icon" style='width:60rpx; height:70rpx' src="{{isSelected3? '/images/icons/lost_select.png':'/images/icons/lost.png'}}"></image>
-      <view class="icon_text" wx:if="{{isSelected3}}" style="color:#f7931e">待寻</view>
-      <view class="icon_text" wx:if="{{!isSelected3}}" style="color:#b3b3b3">待寻</view>
-    </view>
+			<view catchtap='onNavigateTap' class="find_icon_container" data-id="3">
+				<image class="our_icon" style='width:60rpx; height:70rpx' src="{{isSelected3? '/images/icons/lost_select.png':'/images/icons/lost.png'}}"></image>
+				<view class="icon_text" wx:if="{{isSelected3}}" style="color:#f7931e">待寻</view>
+				<view class="icon_text" wx:if="{{!isSelected3}}" style="color:#b3b3b3">待寻</view>
+			</view>
 
-    <view catchtap='onNavigateTap' class="icon_container" data-id="4">
-      <image class="our_icon" style='width:77rpx; height:64rpx' src="{{isSelected4? '/images/icons/mine_select.png':'/images/icons/mine.png'}}"></image>
-      <view class="icon_text" wx:if="{{isSelected4}}" style="color:#f7931e">我的</view>
-      <view class="icon_text" wx:if="{{!isSelected4}}" style="color:#b3b3b3">我的</view>
-      <view class="content_tip" wx:if="{{total_new && total_new!=0}}">{{total_new}}</view>
-    </view>
-  </view>
+			<view catchtap='onNavigateTap' class="icon_container" data-id="4">
+				<image class="our_icon" style='width:77rpx; height:64rpx' src="{{isSelected4? '/images/icons/mine_select.png':'/images/icons/mine.png'}}"></image>
+				<view class="icon_text" wx:if="{{isSelected4}}" style="color:#f7931e">我的</view>
+				<view class="icon_text" wx:if="{{!isSelected4}}" style="color:#b3b3b3">我的</view>
+				<view class="content_tip" wx:if="{{total_new && total_new!=0}}">{{total_new}}</view>
+			</view>
+		</view>
 
-  <view catchtap='onNavigateTap' class="release_icon_container" data-id="2">
-    <image class="release_icon" style='width:126rpx; height:126rpx' src="{{isSelected2? '/images/icons/release_select.png':'/images/icons/release.png'}}"></image>
-    <view class="release_text" wx:if="{{isSelected2}}" style="color:#f7931e">发布</view>
-    <view class="release_text" wx:if="{{!isSelected2}}" style="color:#b3b3b3">发布</view>
-  </view>
+		<view catchtap='onNavigateTap' class="release_icon_container" data-id="2">
+			<image class="release_icon" style='width:126rpx; height:126rpx' src="{{isSelected2? '/images/icons/release_select.png':'/images/icons/release.png'}}"></image>
+			<view class="release_text" wx:if="{{isSelected2}}" style="color:#f7931e">发布</view>
+			<view class="release_text" wx:if="{{!isSelected2}}" style="color:#b3b3b3">发布</view>
+		</view>
+	</view>
 </template>

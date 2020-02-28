@@ -23,7 +23,15 @@ Page({
     })
   },
   onShow: function(){
+    var isSelecteds = this.data.isSelecteds
+    isSelecteds['showHintQrcode'] = app.globalData.showHintQrcode
+    isSelecteds['regFlag'] = app.globalData.regFlag
+    isSelecteds['hasQrcode'] = app.globalData.has_qrcode
+    this.setData({
+      isSelecteds: isSelecteds
+    })
     this.getUniversityList()
+    
   },
   getUniversityList: function(){
     var that = this
@@ -111,5 +119,9 @@ Page({
     wx.navigateTo({
       url: '/mall/pages/index?campus_id=' + campus + '&campus_name=' + encodeURIComponent(name),
     })
+  },
+  closeQrcodeHint: function(e){
+    console.log("点击了关闭")
+    navigate.closeQrcodeHint(this)
   }
 })

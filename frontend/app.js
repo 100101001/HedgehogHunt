@@ -33,6 +33,7 @@ App({
     },
     campus_id : -1, //学校id
     campus_name:"", //学校名
+    showHintQrcode: true //用户未关闭提示浮窗
   },
   onLaunch: function () {
     // 展示本地存储能力
@@ -326,7 +327,7 @@ App({
       }
     });
   },
-  login: function (e) {
+  login: function (e, callback=null) {
     var that = this;
     if (!e.detail.userInfo) {
       that.alert({
@@ -358,7 +359,6 @@ App({
               return;
             }
             that.setCache("token", res.data.data.token);
-            that.globalData.memberInfo = res.data.data.member_info
             that.checkLogin();
             // that.alert({
             //   'content': '登录成功,5秒后自动返回之前页面，欢迎继续使用～'

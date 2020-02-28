@@ -1,5 +1,5 @@
 
-var app=getApp();
+var app = getApp();
 Page({
   data: {
     //判断小程序的API，回调，参数，组件等是否在当前版本可用。
@@ -8,8 +8,9 @@ Page({
   },
 
   onLoad: function () {
-    
+
   },
+
   login: function (e) {
     app.login(e);
   },

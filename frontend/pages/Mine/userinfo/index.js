@@ -105,7 +105,9 @@ Page({
         header:app.getRequestHeader(1),
         success: function (res) {
           var resp = res.data
-          if (resp.code === 200) {       
+          if (resp.code === 200) {
+            app.globalData.has_qrcode = true
+            app.globalData.qr_code_list = [resp.data.qr_code_url]
             that.setData({
               qrCode: resp.data.qr_code_url,
               has_qrcode: true,

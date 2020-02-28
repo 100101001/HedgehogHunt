@@ -91,7 +91,6 @@ Page({
   },
   previewItemImage: function (e) {
     var index = e.currentTarget.dataset.index;
-    console.log(index);
     wx.previewImage({
       current: this.data.info.pics[index], // 当前显示图片的http链接
       urls: this.data.info.pics // 需要预览的图片http链接列表

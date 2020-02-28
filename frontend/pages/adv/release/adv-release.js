@@ -237,7 +237,6 @@ Page({
         id: id
       },
       success: function(res) {
-        console.log('success');
         var resp = res.data;
         if (resp.code !== 200) {
           app.alert({

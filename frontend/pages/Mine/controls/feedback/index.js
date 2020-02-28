@@ -54,7 +54,6 @@ Page({
     // 删除图片
     deleteImg: function (e) {
         let index = e.currentTarget.dataset.index;
-        console.log(index);
         let imglist = this.data.imglist;
         imglist.splice(index, 1);
         this.setData({
@@ -68,7 +67,6 @@ Page({
     },
     formSubmit: function (e) {
         var data = e.detail.value;
-        console.log(data);
         var img_list = this.data.imglist;
         var url = "/feedback/create";
         this.uploadData(data, url, img_list);
