@@ -20,10 +20,10 @@
     "pages/Qrcode/index",
     "pages/Qrcode/Mobile/index"
   ],
-  "subpackages":[
+  "subpackages": [
     {
       "root": "mall",
-      "pages":[
+      "pages": [
         "pages/index",
         "pages/info",
         "pages/my/index",
@@ -47,3 +47,4 @@
     }
   }
 }
+

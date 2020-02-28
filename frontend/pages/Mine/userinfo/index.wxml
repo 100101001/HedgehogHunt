@@ -23,5 +23,6 @@
       <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode && show_qrcode}}">隐藏</view>
     </view>
   </view>
-  <image class="qr_code" src="{{qrCode}}" bindtap="previewImage" data-id="0" wx:if="{{show_qrcode}}"></image>
+  <image class="qr_code" src="{{qrCode}}" bindtouchstart='touchstart' bindtouchend='touchend' bindtap='saveImg' data-id="0" wx:if="{{show_qrcode}}"></image>
+  <text class="save-qrcode-text" wx:if="{{show_qrcode}}">长按保存</text>
 </view>

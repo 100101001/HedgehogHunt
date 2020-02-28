@@ -77,7 +77,7 @@ Page({
         itemList: ['绑定手机号', '更换手机号', '随便扫扫'],
         success(res) {
           if (res.tapIndex < 2) {
-            wx.reLaunch({
+            wx.redirectTo({
               url: "/pages/Qrcode/Mobile/index?openid=" + openid
             })
           }
@@ -90,7 +90,7 @@ Page({
       })
     } else {
       //别人扫码发布帖子，通知失主
-      wx.reLaunch({
+      wx.redirectTo({
         url: "/pages/Release/release/index?business_type=1&openid=" + openid
       })
     }

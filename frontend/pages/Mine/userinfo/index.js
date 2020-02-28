@@ -2,7 +2,6 @@ var util = require("../../../utils/util.js");
 var app = getApp();
 Page({
   data: {
-   
     userInfo: {},
     has_qrcode: false,
     show_qrcode: false,
@@ -20,7 +19,7 @@ Page({
     this.setData({
       items: [{
         name: "姓名",
-        value: receiver==""? "-":receiver,
+        value: receiver == "" ? "-" : receiver,
       },
       {
         name: "电话",
@@ -42,31 +41,33 @@ Page({
     //尝试获取数据库存储的该会员的二维码，根据状态码
     //判断是否获取到了，以此
     //设置页面数据has_qrcode，和qrCode
-    wx.request({
-      method: 'post',
-      url: app.buildUrl('/qrcode/db'),
-      header:app.getRequestHeader(1),
-      success: function (res) {
-        var resp = res.data
-        if (resp.code == 200) {
-          that.setData({
-            qrCode: resp.data.qr_code_url,
-            has_qrcode: true
-          })
-        } else if (resp.code == 201) {
-          that.setData({
-            has_qrcode: false
-          })
-        } else if (resp.code == -1) {
-          app.serverInternalError()
-        }
-      },
-      fail: function (res) {
-        app.serverBusy()
-      }
-    })
+    // wx.request({
+    //   method: 'post',
+    //   url: app.buildUrl('/qrcode/db'),
+    //   header: app.getRequestHeader(1),
+    //   success: function (res) {
+    //     var resp = res.data
+    //     if (resp.code == 200) {
+    //       that.setData({
+    //         qrCode: resp.data.qr_code_url,
+    //         has_qrcode: true
+    //       })
+    //     } else if (resp.code == 201) {
+    //       that.setData({
+    //         has_qrcode: false
+    //       })
+    //     } else if (resp.code == -1) {
+    //       app.serverInternalError()
+    //     }
+    //   },
+    //   fail: function (res) {
+    //     app.serverBusy()
+    //   }
+    // })
     this.setData({
-      userInfo: app.globalData.memberInfo
+      userInfo: app.globalData.memberInfo,
+      has_qrcode: app.globalData.has_qrcode,
+      qrCode: app.globalData.has_qrcode ? app.globalData.qr_code_list[0] : ""
     });
   },
   onChooseAddresTap: function (event) {
@@ -102,7 +103,7 @@ Page({
       wx.request({
         method: 'post',
         url: app.buildUrl('/qrcode/wx'),
-        header:app.getRequestHeader(1),
+        header: app.getRequestHeader(1),
         success: function (res) {
           var resp = res.data
           if (resp.code === 200) {
@@ -122,8 +123,6 @@ Page({
           app.serverBusy()
         }
       })
-    } else {
-      //从db直接拿
     }
   },
   checkQrCode: function () {
@@ -132,14 +131,60 @@ Page({
       show_qrcode: show_qrcode
     });
   },
-  //预览图片
-  previewImage: function (e) {
-    var id = e.currentTarget.dataset.id;
-    var qr_code_list = this.data.qr_code_list;
-    wx.previewImage({
-      current: qr_code_list[id], // 当前显示图片的http链接  
-      urls: qr_code_list // 需要预览的图片http链接列表  
-    })
-  }
 
+  //开始点击的时间
+  touchstart: function (e) {
+    this.setData({ touchstart: e.timeStamp })
+  },
+
+  //点击结束的时间
+  touchend: function (e) {
+    this.setData({ touchend: e.timeStamp })
+  },
+
+  //保存图片
+  saveImg: function (e) {
+    var that = this
+    var touched_time = that.data.touchend - that.data.touchstart
+    //0.3s
+    if (touched_time > 300) {
+      wx.showLoading({
+        title: '保存中，请稍等~',
+      })
+      wx.getSetting({
+        success: function (res) {
+          wx.authorize({
+            scope: 'scope.writePhotosAlbum',
+            success: function () {
+              var img_url = that.data.qrCode //图片地址
+              wx.downloadFile({ //下载文件资源到本地，客户端直接发起一个 HTTP GET 请求，返回文件的本地临时路径
+                url: img_url,
+                success: function (res) {
+                  // 下载成功后再保存到本地
+                  wx.saveImageToPhotosAlbum({
+                    filePath: res.tempFilePath,//返回的临时文件路径，下载后的文件会存储到一个临时文件
+                    success: function (res) {
+                      wx.showToast({
+                        title: '保存到本地相册',
+                        complete:res=>{
+                          wx.hideLoading({
+                            complete: (res) => {},
+                          })
+                        }
+                      })
+                    },
+                    fail:function(res){
+                      wx.hideLoading({
+                        complete: (res) => {},
+                      })
+                    }
+                  })
+                }
+              })
+            }
+          })
+        }
+      })
+    }
+  },
 })

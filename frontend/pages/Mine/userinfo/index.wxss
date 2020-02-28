@@ -152,5 +152,11 @@ page{
   width: 500rpx;
 }
 
+.save-qrcode-text{
+  color: #999;
+  text-align: center;
+  margin: 5rpx auto;
+}
+
 
 

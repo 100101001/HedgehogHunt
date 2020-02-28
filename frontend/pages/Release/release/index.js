@@ -11,35 +11,8 @@ Page({
   },
   onLoad: function (options) {
     var openid = options.openid == undefined ? "" : options.openid
-    if (openid == "") {
-      wx.showActionSheet({
-        itemList: ['寻物启事', '失物招领'],
-        success: res => {
-          var auther_id = options.auther_id;
-          if (auther_id) {
-            console.log(auther_id);
-            var business_type = 1;
-            this.setData({
-              auther_id: auther_id
-            })
-          } else {
-            var business_type = res.tapIndex;
-          }
-          this.setData({
-            notify_id: openid,
-            business_type: business_type,
-            location: "",
-            dataReady: true
-          });
-          this.setInitData();
-        },
-        fail(res) {
-          wx.redirectTo({
-            url: '../../Homepage/homepage',
-          })
-        }
-      })
-    } else {
+    var auther_id = options.auther_id == undefined ? "" : options.auther_id
+    if (openid != "") { //扫码发布
       this.setData({
         notify_id: openid,
         business_type: 1,
@@ -47,26 +20,37 @@ Page({
         dataReady: true
       });
       this.setInitData();
-    }
-
-    // var auther_id = options.auther_id;
-    // if (auther_id) {
-    //   console.log(auther_id);
-    //   var business_type = 1;
-    //   this.setData({
-    //     auther_id: auther_id
-    //   })
-    // } else {
-
-    //   var openid = options.openid == undefined ? "" : options.openid
-    //   var business_type = options.business_type;
-    // }
-    // this.setData({
-    //   notify_id: openid,
-    //   business_type: business_type,
-    //   location: ""
-    // });
-    // this.setInitData();
+    }else{
+      if (auther_id != "") { //归还
+        this.setData({
+          auther_id: auther_id,
+          notify_id: openid,
+          business_type: 1,
+          location: "",
+          dataReady: true
+        })
+        this.setInitData();
+      }
+      else { //常规发布
+        wx.showActionSheet({
+          itemList: ['寻物启事', '失物招领'],
+          success: res => {
+            this.setData({
+              notify_id: openid,
+              business_type: res.tapIndex,
+              location: "",
+              dataReady: true
+            });
+            this.setInitData();
+          },
+          fail(res) {
+            wx.redirectTo({
+              url: '../../Homepage/homepage',
+            })
+          }
+        })
+      }
+    }   
   },
   onShow: function () {
 

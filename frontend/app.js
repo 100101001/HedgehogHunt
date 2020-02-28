@@ -31,8 +31,8 @@ App({
       found: 1,
       lost: 0
     },
-    campus_id : -1, //学校id
-    campus_name:"", //学校名
+    campus_id: -1, //学校id
+    campus_name: "", //学校名
     showHintQrcode: true //用户未关闭提示浮窗
   },
   onLaunch: function () {
@@ -114,11 +114,11 @@ App({
     wx.showModal({
       title: title,
       content: content,
-      showCancel: false,
+      showCancel: params.showCancel == undefined ? false : params.showCancel,
       success: function (res) {
         if (res.confirm) { //用户点击确定
           if (params.hasOwnProperty('cb_confirm') && typeof (params.cb_confirm) == "function") {
-            params.cb_confirm();
+            params.cb_confirm(params.cb_confirm_param);
           }
         } else {
           if (params.hasOwnProperty('cb_cancel') && typeof (params.cb_cancel) == "function") {
@@ -302,7 +302,7 @@ App({
             that.globalData.id = res.data.data.id;
             that.globalData.openid = res.data.data.token.split("#")[0]
             that.globalData.regFlag = true;
-            that.globalData.memberInfo = res.data.data.member_info 
+            that.globalData.memberInfo = res.data.data.member_info
             if (callback != undefined) {
               callback(qrcode_openid)
             } else {
@@ -311,6 +311,10 @@ App({
                 icon: 'success',
                 duration: 1500,
                 success: function (res) {
+                  var pages = getCurrentPages()
+                  if (pages.length == 1 && pages[0].route == "pages/index/index") {
+                    return
+                  }
                   setTimeout(function () {
                     wx.navigateBack({})
                   }, 1000);
@@ -327,7 +331,7 @@ App({
       }
     });
   },
-  login: function (e, callback=null) {
+  login: function (e, callback = null) {
     var that = this;
     if (!e.detail.userInfo) {
       that.alert({

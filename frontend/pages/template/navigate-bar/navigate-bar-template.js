@@ -11,7 +11,7 @@ const onNavigateTap = function (event, object) {
   object.setData({
     isSelecteds: isSelecteds
   })
-  
+
   //发布信息页面没有导航栏
   if (id == 2) {
     wx.navigateTo({
@@ -25,19 +25,33 @@ const onNavigateTap = function (event, object) {
 }
 
 const closeQrcodeHint = function (that) {
+  app.alert({
+    'title': '温馨提示',
+    'content': '关闭后，请点击【我的->个人信息】可' + (app.globalData.has_qrcode ? '查看' : '获取') + '您的专属二维码~',
+    'cb_confirm': function (that) {
+      app.globalData.showHintQrcode = false
+      var isSelecteds = that.data.isSelecteds
+      isSelecteds['showHintQrcode'] = false
+      that.setData({
+        isSelecteds: isSelecteds
+      })
+    },
+    'cb_confirm_param': that,
+    'showCancel': true
+  })
+}
+
+const closeQrcodeHintConfirm = function (that) {
   app.globalData.showHintQrcode = false
   var isSelecteds = that.data.isSelecteds
   isSelecteds['showHintQrcode'] = false
   that.setData({
     isSelecteds: isSelecteds
   })
-  app.alert({
-    'title': '温馨提示',
-    'content': '点击【我的->个人信息】可' + (app.globalData.has_qrcode ? '查看' : '获取') + '您的专属二维码~'
-  })
 }
 
 module.exports = {
   onNavigateTap: onNavigateTap,
-  closeQrcodeHint: closeQrcodeHint
+  closeQrcodeHint: closeQrcodeHint,
+  closeQrcodeHintConfirm: closeQrcodeHintConfirm
 }
