@@ -1,6 +1,6 @@
 <import src="../../template/mine-item/mine-item-template.wxml" />
 <view class="user">
-  <image class="avatar" src="{{userInfo.avatarUrl}}"></image>
+  <image class="avatar" src="{{userInfo.avatar}}"></image>
   <view class="nickname">{{userInfo.nickname}}</view>
 </view>
 

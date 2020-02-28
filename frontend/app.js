@@ -32,7 +32,7 @@ App({
       lost: 0
     },
     campus_id : -1, //学校id
-    campus_name:"" //学校名
+    campus_name:"", //学校名
   },
   onLaunch: function () {
     // 展示本地存储能力
@@ -55,7 +55,6 @@ App({
             success: res => {
               // 可以将 res 发送给后台解码出 unionId
               that.globalData.userInfo = res.userInfo
-              console.log("获取到了用户信息")
               // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
               // 所以此处加入 callback 以防止这种情况
               if (that.userInfoReadyCallback) {
@@ -268,6 +267,10 @@ App({
     });
   },
   checkLogin: function (callback = undefined, qrcode_openid = undefined) {
+    //已登录就不再重复登录
+    if (this.globalData.regFlag && this.getCache("token") != "") {
+      return
+    }
     var that = this;
     wx.login({
       success: function (res) {
@@ -298,6 +301,7 @@ App({
             that.globalData.id = res.data.data.id;
             that.globalData.openid = res.data.data.token.split("#")[0]
             that.globalData.regFlag = true;
+            that.globalData.memberInfo = res.data.data.member_info 
             if (callback != undefined) {
               callback(qrcode_openid)
             } else {
@@ -333,7 +337,6 @@ App({
     var data = e.detail.userInfo;
     wx.login({
       success: function (res) {
-        console.log("微信登录成功")
         if (!res.code) {
           that.alert({
             'content': '登录失败，请再次登录～～'
@@ -348,7 +351,6 @@ App({
           method: 'POST',
           data: data,
           success: function (res) {
-            console.log("会员注册或者登录成功")
             if (res.data.code != 200) {
               that.alert({
                 'content': res.data.msg
@@ -366,7 +368,6 @@ App({
             // }, 5000);
           },
           fail: function (res) {
-            console.log("会员注册或者登录失败")
             that.serverBusy();
             return;
           },

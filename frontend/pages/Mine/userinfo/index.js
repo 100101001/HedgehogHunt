@@ -49,13 +49,11 @@ Page({
       success: function (res) {
         var resp = res.data
         if (resp.code == 200) {
-          console.log("获取到了数据库的qrcode")
           that.setData({
             qrCode: resp.data.qr_code_url,
             has_qrcode: true
           })
         } else if (resp.code == 201) {
-          console.log("没获取到数据库的qrcode")
           that.setData({
             has_qrcode: false
           })
@@ -68,7 +66,7 @@ Page({
       }
     })
     this.setData({
-      userInfo: app.globalData.userInfo
+      userInfo: app.globalData.memberInfo
     });
   },
   onChooseAddresTap: function (event) {
@@ -128,7 +126,6 @@ Page({
   },
   checkQrCode: function () {
     var show_qrcode = !this.data.show_qrcode;
-    console.log("点了查看 " + show_qrcode)
     this.setData({
       show_qrcode: show_qrcode
     });

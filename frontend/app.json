@@ -1,7 +1,7 @@
 {
   "pages": [
-    "pages/Homepage/homepage",
     "pages/index/index",
+    "pages/Homepage/homepage",
     "pages/Record/index",
     "pages/Thanks/record/index",
     "pages/Thanks/index",
@@ -19,7 +19,6 @@
     "pages/Find/edit/edit",
     "pages/Qrcode/index",
     "pages/Qrcode/Mobile/index"
-
   ],
   "subpackages":[
     {

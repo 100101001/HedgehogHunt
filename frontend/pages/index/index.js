@@ -28,11 +28,11 @@ Page({
     }
     /****(member_)id干什么用的？？***/
     if (goods_id) {
-      wx.reLaunch({
+      wx.redirectTo({
         url: '/pages/Find/info?goods_id=' + goods_id,
       })
     } else {
-      wx.reLaunch({
+      wx.redirectTo({
         url: '/pages/Find/Find?business_type=1',
       })
     }
@@ -53,7 +53,7 @@ Page({
       app.checkLogin();
       app.getNewRecommend();
       // 去默认首页
-      this.goToIndex();
+      //this.goToIndex()
     } else {
       //有二维码
       app.checkLogin(this.qrCodeNavigate, openid);

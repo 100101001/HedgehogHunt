@@ -30,7 +30,6 @@ Page({
     this.setData({
       searching: true
     })
-    console.log(that.data.schoolInput)
     wx.request({
       url: app.buildUrl('/campus/search'),
       data: {
@@ -107,10 +106,9 @@ Page({
     var id = e.currentTarget.dataset.id
     var campus = this.data.unis[id].option
     var name = this.data.unis[id].id
-    console.log("campus:"+campus)
     app.globalData.campus_id = campus
     app.globalData.campus_name = name
-    wx.redirectTo({
+    wx.navigateTo({
       url: '/mall/pages/index?campus_id=' + campus + '&campus_name=' + encodeURIComponent(name),
     })
   }

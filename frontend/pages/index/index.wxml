@@ -1,6 +1,5 @@
 <!--start.wxml-->
-
-<view class="container" bindtap='goToIndex'>
+<view class="container">
   <view class="remind-box" wx:if="{{remind}}">
     <image class="remind-img" src="/images/more/loading.gif"></image>
   </view>

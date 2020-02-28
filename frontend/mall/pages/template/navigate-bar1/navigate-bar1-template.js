@@ -10,7 +10,7 @@ const onNavigateTap = function (event, that) {
   that.setData({
     isSelecteds: isSelecteds
   })
-  wx.reLaunch({
+  wx.redirectTo({
     url: urls[id],
   })
 }
