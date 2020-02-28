@@ -1,6 +1,7 @@
 import requests
 
 from application import app
+from common.libs.Helper import datetime2str
 from common.libs.mall.WechatService import WeChatService
 
 
@@ -14,11 +15,13 @@ def send_recommend_subscribe(goods_info):
     goods_info.recommended_times += 1
     if goods_info.recommended_times > 1:
         return
+
     data = {
             "thing1": {"value": "有人丢了你捡到的东西了!" if goods_info.business_type == 1 else "有人捡到你丢的东西了!"},
             "thing2": {"value": goods_info.name},
-            "thing3": {"value": goods_info.create_time}
+            "thing3": {"value": datetime2str(goods_info.created_time)}
     }
+    print(data)
     send_subscribe(goods_info.openid, "recommend", data)
 
 
@@ -31,7 +34,7 @@ def send_finished_subscribe(goods_info):
     data = {
             "name1": {"value": goods_info.name},
             "thing2": {"value": "认领成功" if goods_info.business_type == 1 else "归还成功"},
-            "date4": {"value": goods_info.updated_time}
+            "date4": {"value": datetime2str(goods_info.updated_time)}
     }
     send_subscribe(goods_info.openid, "finished", data)
 
@@ -48,7 +51,7 @@ def send_thank_subscribe(thanks_info):
         "name1": thanks_info.owner_name,
         "thing2": thanks_info.goods_name,
         "amount3": thanks_info.price,
-        "date5": thanks_info.updated_time
+        "date5": datetime2str(thanks_info.updated_time)
     }
     send_subscribe(member.openid, "thanks", data)
 

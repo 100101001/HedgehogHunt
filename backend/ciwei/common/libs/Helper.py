@@ -100,7 +100,8 @@ def seconds2str(seconds, date_format="%Y-%m-%d %H:%M:%S"):
     import time
     return time.strftime(date_format, time.localtime(seconds))
 
-
+def datetime2str(target, date_format="%Y-%m-%d %H:%M:%S"):
+    return target.strftime(date_format)
 
 '''
 根据某个字段获取一个dict值出来
