@@ -126,6 +126,7 @@ def checkReg():
         'qr_code_list': qr_code_list,
         'member_status': member_info.status,
         'id': member_info.id,
+        'member_info': Helper.queryToDict(member_info)
     }
     return jsonify(resp)
 

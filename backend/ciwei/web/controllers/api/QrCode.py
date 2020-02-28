@@ -46,7 +46,7 @@ def get_wx_qr_code():
         # 存成文件,db新增二维码
         path = QrCodeService.save_wx_qr_code(member_info, wx_resp)
         resp['code'] = 200
-        resp['data']['qr_code_url'] = {'qr_code_url': UrlManager.buildImageUrl(path, image_type='QR_CODE')}
+        resp['data'] = {'qr_code_url': UrlManager.buildImageUrl(path, image_type='QR_CODE')}
         return jsonify(resp)
 
 

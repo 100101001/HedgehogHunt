@@ -1,7 +1,6 @@
 jmall/
 backend/ciwei/web/static/upload/
 backend/ciwei/web/static/qr_code/
-backend/ciwei/web/static/product/
 backend/ciwei/Lib/
 backend/ciwei/Scripts/
 __pycache__/

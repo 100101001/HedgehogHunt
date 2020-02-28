@@ -29,7 +29,7 @@ class TestQrCode(ApiBaseTest):
         image_url_resp = self.client.get('/api/qrcode/wx',
                                          headers=self.get_api_headers(openid=self.member1.openid,
                                                                       member_id=str(self.member1.id))).json
-        with self.client.get(image_url_resp['data']['qr_code_url']['qr_code_url']) as image_resp:
+        with self.client.get(image_url_resp['data']['qr_code_url']) as image_resp:
             self.assertTrue(image_resp.status_code == 200, "返回微信二维码图片失败")
             self.assertTrue(image_resp.headers.get('Content-Type') == 'image/jpeg', "返回的不是二维码图片")
 
