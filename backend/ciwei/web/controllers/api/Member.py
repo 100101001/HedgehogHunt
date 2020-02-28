@@ -111,7 +111,7 @@ def checkReg():
         is_user = True
 
     if member_info.qr_code:
-        qr_code_url = UrlManager.buildImageUrl(member_info.qr_code)
+        qr_code_url = UrlManager.buildImageUrl(member_info.qr_code, image_type='QR_CODE')
         qr_code_list = [qr_code_url]
         has_qrcode = True
     else:
