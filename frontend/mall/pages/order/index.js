@@ -29,8 +29,8 @@ Page({
                 method: 'post',
                 url: app.buildUrl('/qrcode/wx'),
                 header: app.getRequestHeader(1),
-                success: res =>{
-                    if(res.data.code===200){
+                success: res => {
+                    if (res.data.code === 200) {
                         app.globalData.has_qrcode = true
                         this.setData({
                             has_qrcode: true
@@ -38,6 +38,13 @@ Page({
                     }
                 }
             })
+        }
+        if (this.data.default_address.id == undefined) {
+            app.alert({
+                'title': '温馨提示',
+                'content': '请增加收货地址！'
+            })
+            return
         }
         wx.showLoading();
         var that = this;
@@ -85,8 +92,8 @@ Page({
                 method: 'post',
                 url: app.buildUrl('/qrcode/wx'),
                 header: app.getRequestHeader(1),
-                success: res =>{
-                    if(res.data.code===200){
+                success: res => {
+                    if (res.data.code === 200) {
                         app.globalData.has_qrcode = true
                         this.setData({
                             has_qrcode: true
