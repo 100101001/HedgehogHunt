@@ -11,9 +11,17 @@ const onNavigateTap = function (event, object) {
   object.setData({
     isSelecteds: isSelecteds
   })
-  wx.redirectTo({
-    url: urls[id],
-  })
+  
+  //发布信息页面没有导航栏
+  if (id == 2) {
+    wx.navigateTo({
+      url: urls[id]
+    })
+  } else {
+    wx.redirectTo({
+      url: urls[id],
+    })
+  }
 }
 
 const closeQrcodeHint = function (that) {
@@ -25,7 +33,7 @@ const closeQrcodeHint = function (that) {
   })
   app.alert({
     'title': '温馨提示',
-    'content':'点击【我的->个人信息】可'+(app.globalData.has_qrcode? '查看':'获取')+'您的专属二维码~'
+    'content': '点击【我的->个人信息】可' + (app.globalData.has_qrcode ? '查看' : '获取') + '您的专属二维码~'
   })
 }
 
