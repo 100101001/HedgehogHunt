@@ -1,5 +1,5 @@
 #!/usr/bin/python3.6.8
-#Editor weichaoxu
+# Editor weichaoxu
 
 # -*- coding:utf-8 -*-
 from common.models.ciwei.Member import Member
@@ -8,15 +8,16 @@ from common.models.ciwei.Goods import Good
 from common.models.ciwei.Thanks import Thank
 from common.models.ciwei.Report import Report
 from web.controllers.api import route_api
-from flask import request,jsonify,g
-from application import app,db
+from flask import request, jsonify, g
+from application import app, db
 from sqlalchemy import or_
-from common.libs.Helper import getCurrentDate,selectFilterObj,getDictFilterField
+from common.libs.Helper import getCurrentDate, selectFilterObj, getDictFilterField
 from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
 
-#查询所有举报信息
-@route_api.route("/report/goods-search",methods=['GET','POST'])
+
+# 查询所有举报信息
+@route_api.route("/report/goods-search", methods=['GET', 'POST'])
 def reportGoodsSearch():
     resp = {'code': 200, 'msg': 'search successfully(search)', 'data': {}}
     req = request.values
@@ -34,12 +35,12 @@ def reportGoodsSearch():
     query = query.filter_by(record_type=record_type)
     # #将对应的用户信息取出来，组合之后返回
     reports_list = query.order_by(Report.id.desc()).offset(offset).limit(10).all()
-    record_ids =selectFilterObj(reports_list,'record_id')
+    record_ids = selectFilterObj(reports_list, 'record_id')
 
     owner_name = req['owner_name'] if 'owner_name' in req else ''
     mix_kw = str(req['mix_kw']) if 'mix_kw' in req else ''
 
-    record_query=Good.query.filter(Good.id.in_(record_ids))
+    record_query = Good.query.filter(Good.id.in_(record_ids))
     if owner_name:
         rule = or_(Good.owner_name.ilike("%{0}%".format(owner_name)))
         record_query = record_query.filter(rule)
@@ -78,7 +79,8 @@ def reportGoodsSearch():
     resp['data']['has_more'] = 0 if len(data_goods_list) < page_size else 1
     return jsonify(resp)
 
-@route_api.route("/report/thanks-search",methods=['GET','POST'])
+
+@route_api.route("/report/thanks-search", methods=['GET', 'POST'])
 def reportThanksSearch():
     resp = {'code': 200, 'msg': 'search successfully(search)', 'data': {}}
     req = request.values
@@ -96,14 +98,14 @@ def reportThanksSearch():
     query = query.filter_by(record_type=record_type)
     # #将对应的用户信息取出来，组合之后返回
     reports_list = query.order_by(Report.id.desc()).offset(offset).limit(10).all()
-    record_ids =selectFilterObj(reports_list,'record_id')
+    record_ids = selectFilterObj(reports_list, 'record_id')
 
     owner_name = req['owner_name'] if 'owner_name' in req else ''
     mix_kw = str(req['mix_kw']) if 'mix_kw' in req else ''
 
-    records_list=[]
-    if record_type==1:
-        record_query=Good.query.filter(Good.id.in_(record_ids))
+    records_list = []
+    if record_type == 1:
+        record_query = Good.query.filter(Good.id.in_(record_ids))
         # if owner_name:
         #     rule = or_(Good.owner_name.ilike("%{0}%".format(owner_name)))
         #     record_query = record_query.filter(rule)
@@ -135,7 +137,7 @@ def reportThanksSearch():
 
         for item in records_list:
             tmp_member_info = member_map[item.member_id]
-            if record_type==1:
+            if record_type == 1:
                 tmp_data = {
                     "id": item.id,
                     "goods_name": item.name,
@@ -169,7 +171,8 @@ def reportThanksSearch():
     resp['data']['has_more'] = 0 if len(data_goods_list) < page_size else 1
     return jsonify(resp)
 
-#查看举报详情
+
+# 查看举报详情
 @route_api.route('/report/goods-info')
 def reportGoodsInfo():
     resp = {'code': 200, 'msg': 'operate successfully(get info)', 'data': {}}
@@ -186,7 +189,7 @@ def reportGoodsInfo():
     # 用户能否看到地址,如果是在mark列表或者发布者可以看到地址和电话
     show_location = True
 
-    report_info=Report.query.filter_by(record_id=id).first()
+    report_info = Report.query.filter_by(record_id=id).first()
     auther_info = Member.query.filter_by(id=report_info.report_member_id).first()
     if not auther_info:
         resp['code'] = -1
@@ -199,6 +202,8 @@ def reportGoodsInfo():
     location_list[3] = eval(location_list[3])
     # 浏览量加一
     goods_info.view_count = goods_info.view_count + 1
+    db.session.add(goods_info)
+
     resp['data']['info'] = {
         "id": goods_info.id,
         "goods_name": goods_info.name,
@@ -220,7 +225,7 @@ def reportGoodsInfo():
     }
 
     resp['data']['show_location'] = show_location
-    db.session.add(goods_info)
+
     db.session.commit()
 
     if not report_info:
@@ -229,31 +234,32 @@ def reportGoodsInfo():
         return jsonify(resp)
 
     report_member_info = Member.query.filter_by(id=report_info.report_member_id).first()
-    #没有找到用户信息则返回
+    # 没有找到用户信息则返回
     if not report_member_info:
         resp['data']['report_auth_info'] = {}
-        resp['msg']='举报者信息丢失'
+        resp['msg'] = '举报者信息丢失'
         resp['data']['report_id'] = report_info.id
         return jsonify(resp)
 
-    resp['data']['report_auth_info']={
-        "avatar":report_member_info.avatar,
-        "auther_name":report_member_info.nickname,
+    resp['data']['report_auth_info'] = {
+        "avatar": report_member_info.avatar,
+        "auther_name": report_member_info.nickname,
         "updated_time": str(report_member_info.updated_time),
         "is_auth": False,
-        "goods_status":goods_info.status,
+        "goods_status": goods_info.status,
     }
 
-    resp['data']['ids']={
-        "auther_id":auther_info.id,
-        "report_member_id":report_member_info.id,
-        "goods_id":goods_info.id,
-        "report_id":report_info.id
+    resp['data']['ids'] = {
+        "auther_id": auther_info.id,
+        "report_member_id": report_member_info.id,
+        "goods_id": goods_info.id,
+        "report_id": report_info.id
     }
 
     return jsonify(resp)
 
-#拉黑发布者或者举报者
+
+# 拉黑发布者或者举报者
 @route_api.route('/report/block')
 def reportBlock():
     resp = {'code': 200, 'msg': 'operate successfully(block)', 'data': {}}
@@ -272,32 +278,32 @@ def reportBlock():
         resp['data'] = str(member_info.id) + "+" + member_info.nickname
         return jsonify(resp)
 
-    report_status=int(req['report_status']) if 'report_status' in req else "nonono"
-    auther_id=int(req['auther_id'])
-    report_member_id=int(req['report_member_id'])
-    goods_id=int(req['goods_id'])
-    report_id=int(req['report_id'])
+    report_status = int(req['report_status']) if 'report_status' in req else "nonono"
+    auther_id = int(req['auther_id'])
+    report_member_id = int(req['report_member_id'])
+    goods_id = int(req['goods_id'])
+    report_id = int(req['report_id'])
 
-    auther_info=Member.query.filter_by(id=auther_id).first()
-    report_member_info=Member.query.filter_by(id=report_member_id).first()
-    goods_info=Good.query.filter_by(id=goods_id).first()
-    report_info=Report.query.filter_by(id=report_id).first()
+    auther_info = Member.query.filter_by(id=auther_id).first()
+    report_member_info = Member.query.filter_by(id=report_member_id).first()
+    goods_info = Good.query.filter_by(id=goods_id).first()
+    report_info = Report.query.filter_by(id=report_id).first()
 
-    report_info.status=report_status
-    report_info.user_id=user_info.uid
-    goods_info.report_status=report_status
-    goods_info.user_id=user_info.uid
-    #拉黑举报者
-    if report_status==2:
-        report_member_info.status=0
-    #拉黑发布者
-    elif report_status==3:
-        auther_info.status=0
-    #没有违规
+    report_info.status = report_status
+    report_info.user_id = user_info.uid
+    goods_info.report_status = report_status
+    goods_info.user_id = user_info.uid
+    # 拉黑举报者
+    if report_status == 2:
+        report_member_info.status = 0
+    # 拉黑发布者
+    elif report_status == 3:
+        auther_info.status = 0
+    # 没有违规
     else:
         pass
 
-    auther_info.updated_time=report_info.updated_time=goods_info.updated_time=report_info.updated_time=getCurrentDate()
+    auther_info.updated_time = report_info.updated_time = goods_info.updated_time = report_info.updated_time = getCurrentDate()
     db.session.add(auther_info)
     db.session.add(report_info)
     db.session.add(report_member_info)

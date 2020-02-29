@@ -65,6 +65,7 @@ def save_wx_qr_code(member_info, wx_resp):
     db.session.commit()
     member_info.qr_code_id = qr_code.id
     member_info.qr_code = qr_code_relative_path
+    db.session.add(member_info)
     db.session.commit()
     app.logger.info('二维码文件，两个表更新：OK')
     return qr_code_relative_path

@@ -123,6 +123,7 @@ def paid(data):
             order.paid_time = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(data['time_end'], "%Y%m%d%H%M%S"))
             order.updated_time = Helper.getCurrentDate()
             order.status = 1
+            db.session.add(order)
             db.session.commit()
 
 

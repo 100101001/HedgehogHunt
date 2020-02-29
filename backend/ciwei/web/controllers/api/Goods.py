@@ -63,6 +63,7 @@ def createGoods():
     goods_info = model_goods
     MemberService.updateCredits(member_info)
 
+    db.session.commit()
     # 返回商品记录的id，用于后续添加图片
     # 判断图片是否已经存在于服务器上
     resp['code'] = 200
@@ -120,6 +121,7 @@ def addGoodsPics():
     pics_list.append(pic_url)
     goods_info.main_image = pics_list[0]
     goods_info.pics = ",".join(pics_list)
+    db.session.add(goods_info)
     db.session.commit()
 
     # 返回成功上传
@@ -169,7 +171,9 @@ def endCreate():
         target_goods_info = Good.query.filter_by(id=target_goods_id).with_for_update().first()
         if target_goods_info:
             target_goods_info.status = 2
+            db.session.add(target_goods_info)
     MemberService.recommendGoods(goods_info)
+    db.session.add(goods_info)
     db.session.commit()
 
     resp['code'] = 200
@@ -327,6 +331,7 @@ def goodsApplicate():
     goods_info.status = 2
     goods_info.tap_count = goods_info.tap_count + 1
     goods_info.updated_time = getCurrentDate()
+    db.session.add(goods_info)
 
     # 在用户的mark_id字段加入认领物品的id
     member_mark_id = member_info.mark_id
@@ -337,8 +342,9 @@ def goodsApplicate():
     else:
         member_info.mark_id = str(goods_info.id)
     member_info.updated_time = getCurrentDate()
+    db.session.add(member_info)
+    
     db.session.commit()
-
     # TODO：认领后可见地址？？
     # 通知前端物品状态更新
     resp['code'] = 200
@@ -396,6 +402,8 @@ def goodsGotback():
     goods_info.status = 3
     goods_info.tap_count = goods_info.tap_count + 1
     goods_info.updated_time = getCurrentDate()
+    db.session.add(goods_info)
+
     from common.libs import SubscribeService
     SubscribeService.send_finished_subscribe(goods_info)
 
@@ -406,6 +414,8 @@ def goodsGotback():
     else:
         member_info.gotback_id = str(goods_info.id)
     member_info.updated_time = getCurrentDate()
+    db.session.add(member_info)
+
     db.session.commit()
 
     # 拿回者可见地址
@@ -460,8 +470,11 @@ def goodsInfo():
         if goods_id in recommend_id_list.keys() and recommend_id_list[goods_id] == 0:
             recommend_id_list[goods_id] = 1
         member_info.recommend_id = MemberService.joinRecommendDict(recommend_id_list)
+        db.session.add(member_info)
     # 浏览量加一(TODO:同一次登陆会话看多少次应都只算一次浏览)
     goods_info.view_count = goods_info.view_count + 1
+    db.session.add(goods_info)
+
     db.session.commit()
 
     # 作者可以编辑, 和查看地址
@@ -546,6 +559,7 @@ def goodsReport():
     # TODO：发起举报的会员的积分+5？
     record_info.report_status = 1
     record_info.updated_time = getCurrentDate()
+    db.session.add(record_info)
 
     model_report = Report()
     model_report.status = 1
@@ -613,6 +627,8 @@ def editGoods():
     goods_info.business_type = business_type
     goods_info.mobile = req['mobile']
     goods_info.updated_time = getCurrentDate()
+    db.session.add(goods_info)
+
     db.session.commit()
 
     # 通过链接发送之后的图片是逗号连起来的字符串
@@ -666,6 +682,7 @@ def updatePics():
     goods_info.main_image = pics_list[0]
     goods_info.pics = ",".join(pics_list)
     goods_info.updated_time = getCurrentDate()
+    db.session.add(goods_info)
     db.session.commit()
 
     resp['code'] = 200

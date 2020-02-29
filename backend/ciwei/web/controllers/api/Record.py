@@ -167,12 +167,14 @@ def recordDelete():
         for i in id_list:
             mark_id_list.remove(i)
             member_info.mark_id = '#'.join(mark_id_list)
+            db.session.add(member_info)
             # TODO：物品的mark_id也要去掉？？
     elif op_status == 2:
         recommend_id_dict = MemberService.getRecommendDict(member_info.recommend_id, False)
         for i in id_list:
             del recommend_id_dict[int(i)]
         member_info.recommend_id = MemberService.joinRecommendDict(recommend_id_dict)
+        db.session.add(member_info)
         # TODO:物品的recommend_id也要去掉？？
     elif op_status == 4:
         # 物品和举报状态为 5
@@ -197,7 +199,6 @@ def recordDelete():
                 item.updated_time = report_item.updated_time = getCurrentDate()
                 db.session.add(item)
 
-    db.session.add(member_info)
     db.session.commit()
     resp['code'] = 200
     return jsonify(resp)

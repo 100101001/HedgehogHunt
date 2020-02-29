@@ -344,6 +344,7 @@ def memberShare():
     # 会员credits加5
     member_info.credits = member_info.credits + 5
     member_info.updated_time = getCurrentDate()
+    db.session.add(member_info)
     db.session.commit()
 
     return jsonify(resp)
