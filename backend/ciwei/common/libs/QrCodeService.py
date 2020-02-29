@@ -78,7 +78,8 @@ def send_notify_message(data, number):
     :param number:
     :return:
     """
-    message = "遗失物品：" + data['goods_name'] + ", 遗失地点:" + data['location'][1]
+    message = "[闪寻] You've lost " + data['goods_name'] + " at " + data['location'][1]
+    app.logger.info("发送消息:{}".format(message))
     from twilio.rest import Client
     client = Client(app.config['TWILIO_SERVICE']['accountSID'], app.config['TWILIO_SERVICE']['authToken'])
     try:
