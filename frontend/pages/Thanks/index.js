@@ -134,9 +134,11 @@ Page({
         wx.showToast({
           title: '答谢成功！',
           icon: 'success',
-          duration: 2000
-        });
-        that.goHome();
+          duration: 2000,
+          complete:function(){
+            that.goHome()
+          }
+        })
       },
       fail: function (res) {
         wx.hideLoading();
@@ -148,5 +150,10 @@ Page({
         return;
       }
     });
+  },
+  goHome: function (e) {
+    wx.reLaunch({
+      url: "../Find/Find?business_type=1",
+    })
   }
 })
