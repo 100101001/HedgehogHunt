@@ -109,10 +109,11 @@ Page({
       url: '../Record/index?op_status=' + op_status,
     })
   },
-  goThanksList: function () {
-    app.globalData.op_status = 2;
+  goThanksList: function (event) {
+    //app.globalData.op_status = 2;
+    var op_status = event.currentTarget.dataset.op_status * 1;
     wx.navigateTo({
-      url: '../Thanks/record/index',
+      url: '../Thanks/record/index?op_status=' + op_status,
     })
   },
   //点击导航
