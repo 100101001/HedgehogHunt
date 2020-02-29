@@ -4,6 +4,7 @@ from twilio.rest import Client
 from application import app, db, cache
 from common.libs import QrCodeService
 from common.libs.UrlManager import UrlManager
+from common.models.ciwei.Member import Member
 from common.models.ciwei.QrCode import QrCode
 from web.controllers.api import route_api
 
@@ -156,6 +157,9 @@ def check_sms_code():
         cache.delete(phone)
         qr_code = QrCode.query.filter_by(openid=qrcode_openid).first()
         qr_code.mobile = phone
+        g.member_info.mobile = phone
+        db.session.add(qr_code)
+        db.session.add(g.member_info)
         app.logger.info("手机号 %s 绑定成功", phone)
         db.session.commit()
         # register
