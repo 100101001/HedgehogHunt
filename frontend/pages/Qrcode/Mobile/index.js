@@ -104,8 +104,9 @@ Page({
       }, 1000)
       //后端发送短信
       wx.request({
-        method:'post',
-        url:app.buildUrl('/qrcode/sms'),
+        method: 'post',
+        url: app.buildUrl('/qrcode/sms'),
+        header: app.getRequestHeader(1),
         data: {
           "phone": phoneNum
         },
@@ -125,9 +126,9 @@ Page({
             })
           }
         },
-        fail:function(res) {
+        fail: function (res) {
           that.alert({
-            content:"验证码发送失败"
+            content: "验证码发送失败"
           })
         }
       })
@@ -143,6 +144,7 @@ Page({
       // 请求后端校验码，后端校验成功就绑定成功，否则就提示短信码失败
       wx.request({
         method: 'post',
+        header: app.getRequestHeader(1),
         url: app.buildUrl("/qrcode/check/sms"),
         data: {
           phone: that.data.phoneNum,
