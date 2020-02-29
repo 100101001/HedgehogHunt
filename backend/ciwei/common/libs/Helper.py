@@ -100,8 +100,14 @@ def seconds2str(seconds, date_format="%Y-%m-%d %H:%M:%S"):
     import time
     return time.strftime(date_format, time.localtime(seconds))
 
+
 def datetime2str(target, date_format="%Y-%m-%d %H:%M:%S"):
-    return target.strftime(date_format)
+    if isinstance(target, str):
+        return target
+    if isinstance(target, datetime.datetime):
+        return target.strftime(date_format)
+    raise AttributeError("target 的数据类型是" + type(target))
+
 
 '''
 根据某个字段获取一个dict值出来

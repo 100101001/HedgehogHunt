@@ -73,4 +73,4 @@ def send_subscribe(openid, template, data):
         "data": data
     }
     wx_resp = requests.post(url, json=data).json()
-    app.logger.info("完成消息 错误码:{} 错误信息：{}".format(wx_resp['errcode'], wx_resp['errmsg']))
+    app.logger.info("完成{}消息 错误码:{} 错误信息：{}".format(template, wx_resp['errcode'], wx_resp['errmsg']))
