@@ -312,7 +312,7 @@ App({
                 duration: 1500,
                 success: function (res) {
                   var pages = getCurrentPages()
-                  if (pages.length == 1 && pages[0].route == "pages/index/index") {
+                  if (pages.length == 1) {
                     return
                   }
                   setTimeout(function () {

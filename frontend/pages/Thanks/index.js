@@ -20,11 +20,6 @@ Page({
       data: data
     })
   },
-  goHome: function (e) {
-    wx.reLaunch({
-      url: "../Find/Find?business_type=1",
-    })
-  },
   listenerTextInput: function (e) {
     this.setData({
       thanks_text: e.detail.value

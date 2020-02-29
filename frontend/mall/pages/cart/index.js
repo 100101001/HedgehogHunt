@@ -227,11 +227,6 @@ Page({
             }
         });
     },
-    onUnload: function () {
-        wx.reLaunch({
-            url: 'product/index',
-        })
-    },
     //点击导航
     onNavigateTap: function (event) {
         navigate.onNavigateTap(event, this)

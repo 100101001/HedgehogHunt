@@ -20,7 +20,7 @@ Page({
         dataReady: true
       });
       this.setInitData();
-    }else{
+    } else {
       if (auther_id != "") { //归还
         this.setData({
           auther_id: auther_id,
@@ -50,7 +50,7 @@ Page({
           }
         })
       }
-    }   
+    }
   },
   onShow: function () {
 
@@ -92,7 +92,7 @@ Page({
         })
       },
       complete: function (res) {
-        console.log(res)
+
       }
     })
   },
@@ -171,30 +171,71 @@ Page({
     this.setData({
       submitDisable: true
     })
-    var data = e.detail.value;
-    var tips_obj = this.data.tips_obj;
-    var is_empty = app.judgeEmpty(data, tips_obj);
-    if (is_empty) {
-      return;
-    }
-    //上传发布数据
-    var business_type = this.data.business_type;
-    data['business_type'] = business_type;
-    data['location'] = this.data.location;
-    var img_list = this.data.imglist;
-    if (img_list.length === 0) {
-      app.alert({
-        'content': "至少要提交一张图片"
-      });
-      return;
-    }
-    //通知失主
-    if (this.data.notify_id !== "") {
-      this.sendNotification(data)
-    }
-    data['img_list'] = img_list;
-    var url = "/goods/create";
-    this.uploadData(data, url, img_list);
+    console.log(e)
+    wx.requestSubscribeMessage({
+      tmplIds: [
+        app.globalData.subscribe.recommend,
+        app.globalData.subscribe.finished,
+        app.globalData.subscribe.thanks
+      ], //首次(被)匹配，已完成，(被)答谢
+      complete: (res) => {
+        console.log(res)
+        var items = this.data.items
+        var data = {
+          location: this.data.location[1],
+          goods_name: items[0].value,
+          mobile: items[2].value,
+          owner_name: items[1].value,
+          summary: this.data.summary_value
+        }
+        var tips_obj = this.data.tips_obj
+        var is_empty = app.judgeEmpty(data, tips_obj)
+        if (is_empty) {
+          return;
+        }
+        //上传发布数据
+        data['business_type'] = this.data.business_type
+        data['location'] = this.data.location
+        var img_list = this.data.imglist
+        if (img_list.length === 0) {
+          app.alert({
+            'content': "至少要提交一张图片"
+          });
+          return;
+        }
+        //通知失主
+        if (this.data.notify_id !== "") {
+          this.sendNotification(data)
+        }
+        data['img_list'] = img_list
+        var url = "/goods/create";
+        this.uploadData(data, url, img_list);
+      }
+    })
+    // var data = e.detail.value;
+    // var tips_obj = this.data.tips_obj;
+    // var is_empty = app.judgeEmpty(data, tips_obj);
+    // if (is_empty) {
+    //   return;
+    // }
+    // //上传发布数据
+    // var business_type = this.data.business_type;
+    // data['business_type'] = business_type;
+    // data['location'] = this.data.location;
+    // var img_list = this.data.imglist;
+    // if (img_list.length === 0) {
+    //   app.alert({
+    //     'content': "至少要提交一张图片"
+    //   });
+    //   return;
+    // }
+    // //通知失主
+    // if (this.data.notify_id !== "") {
+    //   this.sendNotification(data)
+    // }
+    // data['img_list'] = img_list;
+    // var url = "/goods/create";
+    // this.uploadData(data, url, img_list);
   },
   //通知失主
   sendNotification: function (data) {
@@ -343,7 +384,6 @@ Page({
       header: app.getRequestHeader(),
       data: data,
       success: function (res) {
-        console.log('success');
         var resp = res.data;
         if (resp.code !== 200) {
           app.alert({
@@ -360,7 +400,7 @@ Page({
         //提交完之后清空全局变量
         app.globalData.info = {};
         var business_type = that.data.business_type;
-        wx.reLaunch({
+        wx.redirectTo({
           url: '../../Find/Find?business_type=' + business_type,
         });
       },
@@ -396,14 +436,14 @@ Page({
         name: "goods_name",
         placeholder: "例:校园卡",
         label: "物品名称",
-        value: info.goods_name,
+        value: info.goods_name == undefined ? "" : info.goods_name,
         icons: "/images/icons/goods_name.png",
       },
       {
         name: "owner_name",
         placeholder: "例:可可",
         label: "失主姓名",
-        value: info.owner_name,
+        value: info.owner_name == undefined ? "" : info.owner_name,
         icons: "/images/icons/discount_price.png",
       },
       {
@@ -427,12 +467,14 @@ Page({
         placeholder: "例:校园卡",
         label: "物品名称",
         icons: "/images/icons/goods_name.png",
+        value: ""
       },
       {
         name: "owner_name",
         placeholder: "例:可可",
         label: "姓名",
         icons: "/images/icons/discount_price.png",
+        value: ""
       },
       {
         name: "mobile",
@@ -440,6 +482,7 @@ Page({
         label: "联系电话",
         value: "高危非必填",
         icons: "/images/icons/goods_type.png",
+        value: ""
       },
       ];
       var summary_placeholder = "添加寻物描述：物品丢失大致时间、地点，记号等...";
@@ -460,26 +503,39 @@ Page({
       location: location === undefined ? "" : location
     });
   },
-  askSubscribe: function () {
+  // askSubscribe: function () {
+  //   this.setData({
+  //     isAskingSubscribe: true
+  //   })
+  //   var that = this
+  //   if (!this.data.hasAskSubscribe && this.data.isAskingSubscribe) {
+  //     //用户选择接受/拒绝订阅消息
+  //     wx.requestSubscribeMessage({
+  //       tmplIds: [
+  //         app.globalData.subscribe.recommend,
+  //         app.globalData.subscribe.finished,
+  //         app.globalData.subscribe.thanks
+  //       ], //首次(被)匹配，已完成，(被)答谢
+  //       complete: function (res) {
+  //         that.setData({
+  //           hasAskSubscribe: true,
+  //           isAskingSubscribe: false
+  //         })
+  //       }
+  //     })
+  //   }
+  // }
+  listenerInput: function (e) {
+    var idx = e.currentTarget.dataset.id
+    var items = this.data.items
+    items[idx].value = e.detail.value
     this.setData({
-      isAskingSubscribe: true
+      items: items
     })
-    var that = this
-    if (!this.data.hasAskSubscribe && this.data.isAskingSubscribe) {
-      //用户选择接受/拒绝订阅消息
-      wx.requestSubscribeMessage({
-        tmplIds: [
-          app.globalData.subscribe.recommend,
-          app.globalData.subscribe.finished,
-          app.globalData.subscribe.thanks
-        ], //首次(被)匹配，已完成，(被)答谢
-        complete: function (res) {
-          that.setData({
-            hasAskSubscribe: true,
-            isAskingSubscribe: false
-          })
-        }
-      })
-    }
+  },
+  listenSummaryInput: function (e) {
+    this.setData({
+      summary_value: e.detail.value
+    })
   }
 });

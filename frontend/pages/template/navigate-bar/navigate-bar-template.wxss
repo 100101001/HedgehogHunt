@@ -3,8 +3,8 @@
 }
 
 .hint-qrcode-container {
-  margin-left: 10%;
-  margin-right: 10%;
+  margin-left: 9%;
+  margin-right: 11%;
   width: 80%;
   position: fixed;
   bottom: 180rpx;
