@@ -161,6 +161,7 @@ Page({
               icon: 'success',
               duration: 1200
             })
+            app.globalData.memberInfo.mobile = that.data.phoneNum
             that.cancelLoading()
             that.redirectTo("/pages/Find/Find?business_type=1")
             return
