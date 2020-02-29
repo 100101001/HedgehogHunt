@@ -266,7 +266,7 @@ Page({
       return;
     }
     wx.navigateTo({
-      url: "../../Release/Release",
+      url: "../../Release/release/index",
     })
   },
   //归还按钮

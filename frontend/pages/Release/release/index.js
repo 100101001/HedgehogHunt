@@ -45,7 +45,7 @@ Page({
           },
           fail(res) {
             wx.redirectTo({
-              url: '../../Homepage/homepage',
+              url: '../../Find/Find',
             })
           }
         })
@@ -400,7 +400,8 @@ Page({
         //提交完之后清空全局变量
         app.globalData.info = {};
         var business_type = that.data.business_type;
-        wx.redirectTo({
+        //帖子详情中的去发布
+        wx.reLaunch({
           url: '../../Find/Find?business_type=' + business_type,
         });
       },
