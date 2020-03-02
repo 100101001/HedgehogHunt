@@ -148,6 +148,18 @@ CREATE TABLE `goods` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='物品表';
 
+DROP TABLE IF EXISTS `product_option`
+CREATE TABLE `product_option`(
+	`id`	int(11) unsigned not null AUTO_INCREMENT,
+	`product_id`	int(11) unsigned not null,
+	`option_id`	int(11) unsigned not null,
+	`summary`	varchar(50) not null ,
+	`status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '1：有效 0：无效',
+  `updated_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
+  `created_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+    PRIMARY KEY (`id`),
+	KEY `idx_product_option_product_id` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='周边规格表';
 
 DROP TABLE IF EXISTS `advs`;
 CREATE TABLE `advs` (

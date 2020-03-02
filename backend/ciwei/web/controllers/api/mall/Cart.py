@@ -17,13 +17,21 @@ def cartIndex():
     :return:
     """
     resp = {'code': 200, 'msg': '添加购物车成功~', 'data': {}}
+    req = request.values
     member_info = g.member_info
     if not member_info:
         resp['code'] = -1
         resp['msg'] = "获取失败，伪登录~~"
         return jsonify(resp)
 
-    cart_product_list = Cart.query.filter_by(member_id=member_info.id).all()
+    p = int(req['p']) if ('p' in req and req['p']) else 1
+    if p < 1:
+        p = 1
+    page_size = 5
+    offset = (p - 1) * page_size
+
+    query = Cart.query.filter_by(member_id=member_info.id).offset(offset)
+    cart_product_list = query.limit(page_size).all()
     data_cart_list = []
     if cart_product_list:
         # 购物车记录了product_id,生成 id->product的映射
@@ -39,11 +47,13 @@ def cartIndex():
                 "name": tmp_product_info.name,
                 "price": str(tmp_product_info.price),
                 "pic_url": UrlManager.buildImageUrl(tmp_product_info.main_image, image_type='PRODUCT'),
-                "active": True
+                "active": True,
+                "option_desc": tmp_product_info.option_desc
             }
             data_cart_list.append(tmp_data)
 
     resp['data']['list'] = data_cart_list
+    resp['data']['has_more'] = len(query.all()) > page_size
     return jsonify(resp)
 
 
@@ -80,6 +90,46 @@ def setCart():
         return jsonify(resp)
 
     ret = CartService.setItems(member_id=member_info.id, product_id=product_info.id, number=number)
+    if not ret:
+        resp['code'] = -1
+        resp['msg'] = "添加购物车失败-4~~"
+        return jsonify(resp)
+    return jsonify(resp)
+
+
+@route_api.route("/cart/add", methods=["POST"])
+def addCart():
+    """
+    向购物车添加 / 更新数量
+    :return:
+    """
+    resp = {'code': 200, 'msg': '添加购物车成功~', 'data': {}}
+    req = request.values
+    product_id = int(req['id']) if 'id' in req else 0
+    number = int(req['number']) if 'number' in req else 0
+    if product_id < 1 or number < 1:
+        resp['code'] = -1
+        resp['msg'] = "添加购物车失败-1~~"
+        return jsonify(resp)
+
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "添加购物车失败-2~~"
+        return jsonify(resp)
+
+    product_info = Product.query.filter_by(id=product_id).first()
+    if not product_info:
+        resp['code'] = -1
+        resp['msg'] = "添加购物车失败-3~~"
+        return jsonify(resp)
+
+    if product_info.stock_cnt < number:
+        resp['code'] = -1
+        resp['msg'] = "添加购物车失败,库存不足~~"
+        return jsonify(resp)
+
+    ret = CartService.addItems(member_id=member_info.id, product_id=product_info.id, number=number)
     if not ret:
         resp['code'] = -1
         resp['msg'] = "添加购物车失败-4~~"

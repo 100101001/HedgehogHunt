@@ -35,6 +35,7 @@ app = Application(__name__, template_folder=APP_ROOT + '/web/templates', root_pa
 manager = Manager(app)
 # 数据库迁移
 migrate = Migrate(app=app, db=db)
+migrate.init_app(app, db)
 
 # """函数模板,将类中的方法引入进来，注入到"""
 # app.add_template_global(UrlManager.buildStaticUrl, 'buildStaticUrl')

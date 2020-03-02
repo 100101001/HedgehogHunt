@@ -1,4 +1,3 @@
-
 from application import db
 from common.libs.Helper import getCurrentDate
 from common.models.ciwei.mall.Cart import Cart
@@ -42,6 +41,34 @@ class CartService:
 
         model_cart.product_id = product_id
         model_cart.product_num = number
+        model_cart.updated_time = getCurrentDate()
+        db.session.add(model_cart)
+        db.session.commit()
+        return True
+
+    @staticmethod
+    def addItems(member_id=0, product_id=0, number=0):
+        """
+        :param member_id:
+        :param product_id:
+        :param number:
+        :return:向购物车添加/更新数量成功与否
+        """
+        # 校验参数
+        if member_id < 1 or product_id < 1 or number < 1:
+            return False
+        # 更新数量/添加
+        cart_info = Cart.query.filter_by(product_id=product_id, member_id=member_id).first()
+        if cart_info:
+            model_cart = cart_info
+        else:
+            model_cart = Cart()
+            model_cart.member_id = member_id
+            model_cart.created_time = getCurrentDate()
+            model_cart.product_num = 0
+
+        model_cart.product_id = product_id
+        model_cart.product_num += number
         model_cart.updated_time = getCurrentDate()
         db.session.add(model_cart)
         db.session.commit()
