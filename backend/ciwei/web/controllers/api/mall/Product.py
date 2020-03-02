@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import request, g
-from sqlalchemy import or_, desc, func
+from sqlalchemy import or_, desc, func, distinct
 
 from application import db
 from common.libs.Helper import getDictFilterField, selectFilterObj
@@ -113,14 +113,30 @@ def productSearch():
 
     page_size = 10
     offset = (p - 1) * page_size
-    query = Product.query.filter_by(status=1)
 
+    if campus != -1:
+        product_ids = db.session.query(CampusProduct.product_id).filter_by(campus_id=campus).all()
+        # 计算某个大学的产品中所有相同id的销量
+        product_list = db.session.query(Product.common_id, (func.sum(Product.sale_cnt)).label('total_sale')) \
+            .group_by(Product.common_id).filter(Product.status == 1, Product.common_id.in_(product_ids)) \
+            .order_by(desc('total_sale'), Product.common_id.desc()).all()
+        common_id_list = [item[0] for item in product_list]
+    else:
+        # 计算所有相同id的销量
+        product_list = db.session.query(Product.common_id, (func.sum(Product.sale_cnt)).label('total_sale')) \
+            .group_by(Product.common_id).filter(Product.status == 1) \
+            .order_by(desc('total_sale'), Product.common_id.desc()).all()
+        common_id_list = [item[0] for item in product_list]
+
+    query = db.session.query(distinct(Product.common_id)).filter(Product.common_id.in_(common_id_list))
     if cat_id > 0:
         query = query.filter_by(cat_id=cat_id)
 
     if mix_kw:
         rule = or_(Product.name.ilike("%{0}%".format(mix_kw)), Product.tags.ilike("%{0}%".format(mix_kw)))
         query = query.filter(rule)
+
+    common_id_list = query.offset(offset).limit(page_size).all()
 
     # if campus != -1:
     #     product_ids = db.session.query(CampusProduct.product_id).filter_by(campus_id=campus).all()
@@ -129,21 +145,10 @@ def productSearch():
     # product_list = query.order_by(Product.sale_cnt.desc(), Product.id.desc()) \
     #     .offset(offset).limit(page_size).all()
     # 全部
-    if campus != -1:
-        product_ids = db.session.query(CampusProduct.product_id).filter_by(campus_id=campus).all()
-        # 计算某个大学的产品中所有相同id的销量
-        product_id_list = db.session.query(Product.common_id, (func.sum(Product.sale_cnt)).label('total_sale')) \
-            .group_by(Product.common_id).filter(Product.status == 1, Product.common_id.in_(product_ids)) \
-            .order_by(desc('total_sale'), Product.common_id.desc()).all()
-    else:
-        # 计算所有相同id的销量
-        product_id_list = db.session.query(Product.common_id, (func.sum(Product.sale_cnt)).label('total_sale')) \
-            .group_by(Product.common_id).filter(Product.status == 1) \
-            .order_by(desc('total_sale'), Product.common_id.desc()).all()
 
     product_list = []
-    for product_id in product_id_list:
-        product_list.append(Product.query.filter_by(common_id=product_id[0]).order_by(Product.price).first())
+    for common_id in common_id_list:
+        product_list.append(Product.query.filter_by(common_id=common_id[0]).order_by(Product.price).first())
 
     data_product_list = []
     if product_list:
