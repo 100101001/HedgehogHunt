@@ -49,6 +49,6 @@
 			</view>
 		</view>
 	</view>
-	<view hidden="{{loadingMoreHidden ? true : false}}" class="no-more-goods">哥也是有底线的</view>
+	<view hidden="{{loadingMoreHidden ? true : false}}" class="no-more-goods">我也是有底线的</view>
 </view>
 <template is="navigate-bar1-template" data="{{...isSelecteds}}" />

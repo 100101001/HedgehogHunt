@@ -257,3 +257,12 @@ page {
 .jiesuan-box .total {
     color: #f7931e;
 }
+
+
+.no-more-goods {
+    text-align: center;
+    font-size: 24rpx;
+    padding-bottom: 228rpx;
+    margin-top: 30rpx;
+    color: #999;
+  }

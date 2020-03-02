@@ -20,8 +20,10 @@ Page({
         id: 0,
         shopCarNum: 0,
         commentCount: 2,
-        oldShopCarNum: 0,
-        hasInCart: false
+        notInCart: [],
+        infos: [],
+        info: {},
+        selected_id: 0
     },
     onLoad: function (e) {
         var that = this;
@@ -63,8 +65,8 @@ Page({
         if (!app.loginTip()) {
             return
         }
-        if(this.data.shopCarNum >= 99 && !this.data.hasInCart){
-            app.alert({'content':"购物车已满，请清空购物车后重试"})
+        if (this.data.shopCarNum >= 99) {
+            app.alert({ 'content': "购物车已满，请清空购物车后重试" })
             this.setData({
                 hideShopPopup: true
             })
@@ -75,9 +77,10 @@ Page({
             "id": this.data.info.id,
             "number": this.data.buyNumber
         };
-        var hasInCart = that.data.hasInCart
+        var notInCart = that.data.notInCart
+        var idx = notInCart.indexOf(this.data.info.id)
         wx.request({
-            url: app.buildUrl("/cart/set"),
+            url: app.buildUrl("/cart/add"),
             header: app.getRequestHeader(),
             method: 'POST',
             data: data,
@@ -86,8 +89,14 @@ Page({
                 app.alert({ "content": resp.msg });
                 that.setData({
                     hideShopPopup: true,
-                    shopCarNum: hasInCart? that.data.oldShopCarNum : that.data.oldShopCarNum + 1
+                    shopCarNum: idx >= 0 ? that.data.shopCarNum + 1 : that.data.shopCarNum
                 });
+                if (idx >= 0) {
+                    notInCart.splice(idx, idx + 1)
+                    that.setData({
+                        notInCart: notInCart
+                    })
+                }
             }
         });
     },
@@ -165,16 +174,17 @@ Page({
                     wx.navigateBack({})
                     return;
                 }
-
+                var selected_id = that.data.selected_id
                 that.setData({
-                    info: resp.data.info,
+                    selected_id: selected_id == 0 ? 0 : selected_id,
+                    info: resp.data.info[selected_id],
+                    infos: resp.data.info,
                     buyNumMax: resp.data.info.stock,
                     shopCarNum: resp.data.cart_number,
-                    oldShopCarNum: resp.data.cart_number,
-                    hasInCart: resp.data.has_in_cart,
+                    notInCart: resp.data.not_in_cart,
                 });
 
-                WxParse.wxParse('article', 'html', resp.data.info.summary, that, 5);
+                WxParse.wxParse('article', 'html', resp.data.info[0].summary, that, 5);
             }
         });
     },
@@ -234,5 +244,15 @@ Page({
             current: this.data.info.main_image, // 当前显示图片的http链接
             urls: [this.data.info.main_image] // 需要预览的图片http链接列表
         })
+    },
+    //切换商品规格
+    setOption: function (e) {
+        var idx = e.currentTarget.dataset.id
+        var info = this.data.infos[idx]
+        this.setData({
+            info: info,
+            selected_id: idx
+        })
+        WxParse.wxParse('article', 'html', info.summary, this, 5);
     }
 });

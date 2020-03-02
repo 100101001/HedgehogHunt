@@ -4,7 +4,10 @@ const navigate = require("../template/navigate-bar1/navigate-bar1-template.js")
 const utils = require("../../utils/util.js")
 Page({
     data: {
-        dataReady: false
+        dataReady: false,
+        p: 1,
+        list: [],
+        loadingMoreHidden: false
     },
     onLoad: function () {
         //设置底部导航栏
@@ -193,6 +196,9 @@ Page({
         var that = this;
         wx.request({
             url: app.buildUrl("/cart/index"),
+            data: {
+                p: that.data.p
+            },
             header: app.getRequestHeader(),
             success: function (res) {
                 var resp = res.data;
@@ -201,11 +207,13 @@ Page({
                     return;
                 }
                 that.setData({
-                    list: resp.data.list,
+                    list: that.data.list.concat(resp.data.list),
                     saveHidden: true,
                     totalPrice: 0.00,
                     allSelect: true,
-                    noSelect: false
+                    noSelect: false,
+                    p: that.data.p + 1,
+                    loadingMoreHidden: resp.data.has_more
                 });
 
                 that.setPageData(that.getSaveHide(), that.totalPrice(), that.allSelect(), that.noSelect(), that.data.list);
@@ -230,5 +238,12 @@ Page({
     //点击导航
     onNavigateTap: function (event) {
         navigate.onNavigateTap(event, this)
-    }
+    },
+    onReachBottom: function () {
+        var that = this;
+        console.log("onreach")
+        setTimeout(function () {
+            that.getCartList();
+        }, 500);
+    },
 });
