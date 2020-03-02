@@ -9,7 +9,7 @@ SQLALCHEMY_ECHO = True
 PAGE_SIZE = 50
 PAGE_DISPLAY = 10
 
-SQLALCHEMY_DATABASE_URI = 'mysql://root:wcx9517530@127.0.0.1/ciwei_db2?charset=utf8mb4'
+SQLALCHEMY_DATABASE_URI = 'mysql://root:wcx9517530@127.0.0.1/ciwei_db?charset=utf8mb4'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_ENCODING = 'utf-8'
 
