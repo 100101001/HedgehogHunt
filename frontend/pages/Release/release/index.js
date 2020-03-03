@@ -191,6 +191,9 @@ Page({
         var tips_obj = this.data.tips_obj
         var is_empty = app.judgeEmpty(data, tips_obj)
         if (is_empty) {
+          this.setData({
+            submitDisable: false
+          })
           return;
         }
         //上传发布数据
@@ -201,6 +204,9 @@ Page({
           app.alert({
             'content': "至少要提交一张图片"
           });
+          this.setData({
+            submitDisable: false
+          })
           return;
         }
         //通知失主
@@ -249,9 +255,6 @@ Page({
         'openid': that.data.notify_id
       },
       success: function (res) {
-        wx.showToast({
-          title: '感谢您的举手之劳',
-        })
         that.setData({
           notify_id: ""
         })
