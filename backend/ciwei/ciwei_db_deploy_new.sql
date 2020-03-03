@@ -11,7 +11,7 @@
  Target Server Version : 50729
  File Encoding         : 65001
 
- Date: 03/03/2020 06:49:21
+ Date: 03/03/2020 15:09:46
 */
 
 SET NAMES utf8mb4;
@@ -146,7 +146,7 @@ CREATE TABLE `cart`  (
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_cart_member_id`(`member_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 40 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '购物车表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 47 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '购物车表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for feedback
@@ -235,12 +235,6 @@ CREATE TABLE `member`  (
   `recommend_id` varchar(3000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '系统推荐的物品id,字符串',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 100003 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of member
--- ----------------------------
-INSERT INTO `member` VALUES (100000, 0, 3, 'L  yx', '', 75, '', '', '', 2, 'https://wx.qlogo.cn/mmopen/vi_32/SV42VibIREXs9x9LsPerNKSmtID351W69g7SAzfoWXYqbvBiaJtcPyUp4yAnedJlyWo1C4zqX1ySGPDv7JtPNubw/132', '20200228/948e1d97-ee65-490e-9fd8-4810c411fb78.jpg', 'opLxO5Q3CloBEmwcarKrF_kSA574', 1, '2020-02-28 03:02:55', '2020-02-05 20:05:17', '', '', '');
-INSERT INTO `member` VALUES (100002, 0, 1, 'ellen li', '', 35, '', '', '', 2, 'https://wx.qlogo.cn/mmopen/vi_32/7jCR4QflwchksTBcyakicSepWVQdfbHIQL2glRrkY7ic52iaXqfuBb2tlQ8ELlaGWZDXFgKM4zAMeQZSiaaJtibI3gQ/132', '20200219/60e2ee6f-e305-4c0a-90ec-ac7786a65389.jpg', 'opLxO5fubMUl7GdPFgZOUaDHUik8', 1, '2020-02-23 18:42:08', '2020-02-18 06:19:25', '2', '2', '');
 
 -- ----------------------------
 -- Table structure for order
@@ -450,12 +444,6 @@ CREATE TABLE `qr_code`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_qr_code_openid`(`openid`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '二维码表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of qr_code
--- ----------------------------
-INSERT INTO `qr_code` VALUES (1, 100002, 'opLxO5fubMUl7GdPFgZOUaDHUik8', '17717090831', NULL, '', '', '20200219/60e2ee6f-e305-4c0a-90ec-ac7786a65389.jpg', '2020-02-18 19:14:25', '2020-02-18 19:14:25');
-INSERT INTO `qr_code` VALUES (3, 100000, 'opLxO5Q3CloBEmwcarKrF_kSA574', '', NULL, '', '', '20200228/948e1d97-ee65-490e-9fd8-4810c411fb78.jpg', '2020-02-28 03:02:55', '2020-02-28 03:02:55');
 
 -- ----------------------------
 -- Table structure for queue_list
