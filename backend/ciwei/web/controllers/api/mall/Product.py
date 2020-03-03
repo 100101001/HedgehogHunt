@@ -181,6 +181,7 @@ def productInfo():
 
     member_info = g.member_info
     cart_number = 0
+    not_in_cart = []
     if member_info:
         cart_number = Cart.query.filter_by(member_id=member_info.id).count()
         # 购物车没有的所有规格的该款商品的id
