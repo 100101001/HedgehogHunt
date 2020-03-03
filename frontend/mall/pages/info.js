@@ -23,7 +23,8 @@ Page({
         notInCart: [],
         infos: [],
         info: {},
-        selected_id: 0
+        selected_id: 0,
+        dataReady: false
     },
     onLoad: function (e) {
         var that = this;
@@ -182,6 +183,7 @@ Page({
                     buyNumMax: resp.data.info.stock,
                     shopCarNum: resp.data.cart_number,
                     notInCart: resp.data.not_in_cart,
+                    dataReady: true
                 });
 
                 WxParse.wxParse('article', 'html', resp.data.info[0].summary, that, 5);
