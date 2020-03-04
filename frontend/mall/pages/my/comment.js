@@ -2,7 +2,7 @@
 var app = getApp();
 Page({
     data: {
-        "content": "非常愉快的订餐体验~~",
+        "content": "收到货了，物品无损坏，很喜欢~~",
         "score": 10,
         "order_sn": ""
     },
@@ -41,8 +41,8 @@ Page({
                     return;
                 }
 
-                wx.navigateTo({
-                    url: "/pages/my/commentList"
+                wx.redirectTo({
+                    url: "/mall/pages/my/commentList"
                 });
             }
         });

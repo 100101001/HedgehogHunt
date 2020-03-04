@@ -44,7 +44,7 @@ page{
     margin-bottom: 10rpx;
 }
 .order-status .right-text .red{
-    color:#e64340;
+    color:#f7931e;
 }
 .order-status .right-text .des{
     font-size:24rpx;
@@ -168,7 +168,7 @@ page{
 }
 .confirm-btn{
     background:#ffffff;
-    border:1rpx solid #e64340;
+    border:1rpx solid #f7931e;
     border-radius:6rpx;
     width:164rpx;
     height:60rpx;
@@ -176,7 +176,7 @@ page{
     text-align: center;
     margin: 20rpx 30rpx 20rpx auto;
     font-size:26rpx;
-    color:#e64340;
+    color:#f7931e;
     text-align:center;
 }
 .a-goods .text-box .arow{
@@ -272,7 +272,7 @@ page{
     text-align: center;
     height: 100%;
     line-height: 100rpx;
-    background-color: #e64340;
+    background-color: #f7931e;
     font-size:32rpx;
     color:#ffffff;
     border-radius: 0;
@@ -289,6 +289,6 @@ page{
 }
 
 .jiesuan-box .total{
-    color: #e64340;
+    color: #f7931e;
     text-align: right;
 }

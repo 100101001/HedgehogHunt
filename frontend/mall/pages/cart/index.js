@@ -18,7 +18,9 @@ Page({
     },
     onShow: function () {
         this.setData({
-            dataReady: false
+            dataReady: false,
+            p: 1,
+            list: []
         })
         this.getCartList();
     },
@@ -152,7 +154,7 @@ Page({
             });
         }
 
-        wx.navigateTo({
+        wx.redirectTo({
             url: "/mall/pages/order/index?data=" + JSON.stringify(data)
         });
     },

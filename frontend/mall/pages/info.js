@@ -40,7 +40,7 @@ Page({
         if (!app.loginTip()) {
             return;
         }
-        wx.navigateTo({
+        wx.redirectTo({
             url: "/mall/pages/cart/index"
         });
     },

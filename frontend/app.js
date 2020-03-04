@@ -17,6 +17,7 @@ App({
     shopName: "刺猬寻物",
     // domain: "http://127.0.0.1:8999/api",
     domain: "http://192.168.0.116:8999/api",
+    //domain: "http://188.131.240.205:8999/api",
     //domain: "http://192.168.1.12:8999/api",
     member_id: null,
     member_status: 1,
@@ -332,6 +333,9 @@ App({
     });
   },
   login: function (e, callback = null) {
+    if(this.globalData.regFlag && this.getCache('token')!=''){
+      wx.navigateBack()
+    }
     var that = this;
     if (!e.detail.userInfo) {
       that.alert({

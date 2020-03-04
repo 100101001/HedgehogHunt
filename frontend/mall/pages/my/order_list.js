@@ -50,11 +50,11 @@ Page({
         });
     },
     toPay: function (e) {
-        app.alert({
-            'title': '温馨提示',
-            'content': '模块正在开发中,敬请期待!'
-        })
-        return
+        // app.alert({
+        //     'title': '温馨提示',
+        //     'content': '模块正在开发中,敬请期待!'
+        // })
+        // return
         var that = this;
         wx.request({
             url: app.buildUrl("/order/pay"),
@@ -77,6 +77,7 @@ Page({
                     'signType': 'MD5',
                     'paySign': pay_info.paySign,
                     'success': function (res) {
+                        
                     },
                     'fail': function (res) {
                     }
@@ -89,7 +90,7 @@ Page({
     },
     orderComment: function (e) {
         wx.navigateTo({
-            url: "/pages/my/comment?order_sn=" + e.currentTarget.dataset.id
+            url: "/mall/pages/my/comment?order_sn=" + e.currentTarget.dataset.id
         });
     },
     orderOps: function (order_sn, act, msg) {
