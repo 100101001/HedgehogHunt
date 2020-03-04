@@ -174,6 +174,7 @@ def productInfo():
     # 按option_id排序,返回前端的数组索引==option_id
     product_infos = Product.query.filter_by(common_id=product_id).order_by(Product.option_id).all()
     comment_cnt = db.session.query(func.sum(Product.comment_cnt)).filter_by(common_id=product_id).scalar()
+    sale_cnt = db.session.query(func.sum(Product.sale_cnt)).filter_by(common_id=product_id).scalar()
     if not product_infos[0] or not product_infos[0].status:
         resp['code'] = -1
         resp['msg'] = "周边已下架"
@@ -195,7 +196,7 @@ def productInfo():
             "id": product_info.id,  # 加入购物车用
             "name": product_info.name,
             "summary": product_info.description,
-            "total_count": product_info.sale_cnt,
+            "total_count": str(sale_cnt),
             "comment_count": str(comment_cnt),
             'main_image': UrlManager.buildImageUrl(product_info.main_image, image_type='PRODUCT'),
             "price": str(product_info.price),
@@ -218,8 +219,12 @@ def productComments():
     req = request.values
 
     # 找到所有用户评论,组合返回
-    product_id = int(req['id']) if 'id' in req else 0
-    query = ProductComments.query.filter(ProductComments.product_ids.ilike("%_{0}_%".format(product_id)))
+    common_id = int(req['id']) if 'id' in req else 0
+    product_ids = db.session.query(Product.id).filter_by(common_id=common_id).all()
+    # *将数组展开
+    rule = or_(*[ProductComments.product_ids.ilike("%_{0}_%".format(product_id[0])) for product_id in product_ids])
+    query = ProductComments.query.filter(rule)
+
     comment_list = query.order_by(ProductComments.id.desc()).limit(5).all()
     data_list = []
     if comment_list:

@@ -5,7 +5,8 @@ import time
 
 from flask import g, request, jsonify
 
-from common.libs.Helper import selectFilterObj, getDictFilterField, seconds2str
+from application import db
+from common.libs.Helper import selectFilterObj, getDictFilterField, seconds2str, getCurrentDate
 from common.libs.UrlManager import UrlManager
 from common.libs.mall.PayService import PayService
 from common.models.ciwei.mall.Order import Order
@@ -150,4 +151,48 @@ def myCommentList():
             }
             data_comment_list.append(tmp_data)
     resp['data']['list'] = data_comment_list
+    return jsonify(resp)
+
+
+@route_api.route("/my/comment/add", methods=["POST"])
+def myCommentAdd():
+    resp = {'code': 200, 'msg': '操作成功~', 'data': {}}
+    member_info = g.member_info
+    req = request.values
+    order_sn = req['order_sn'] if 'order_sn' in req else ''
+    score = int(req['score']) if 'score' in req else 10
+    content = req['content'] if 'content' in req else ''
+
+    order_info = Order.query.filter_by(member_id=member_info.id, order_sn=order_sn).first()
+    if not order_info:
+        resp['code'] = -1
+        resp['msg'] = "系统繁忙，请稍后再试~~"
+        return jsonify(resp)
+
+    if order_info.comment_status:
+        resp['code'] = -1
+        resp['msg'] = "已经评价过了~~"
+        return jsonify(resp)
+
+    order_items = OrderProduct.query.filter_by(order_id=order_info.id).all()
+    if score == 10:
+        for order_item in order_items:
+            product = Product.query.filter_by(id=order_item.product_id).first()
+            product.comment_cnt += 1
+
+    product_ids = selectFilterObj(order_items, "product_id")
+    tmp_food_ids_str = '_'.join(str(s) for s in product_ids if s not in [None])
+    model_comment = ProductComments()
+    model_comment.product_ids = "_%s_" % tmp_food_ids_str
+    model_comment.member_id = member_info.id
+    model_comment.order_id = order_info.id
+    model_comment.score = score
+    model_comment.content = content
+    db.session.add(model_comment)
+
+    order_info.comment_status = 1
+    order_info.updated_time = getCurrentDate()
+    db.session.add(order_info)
+
+    db.session.commit()
     return jsonify(resp)

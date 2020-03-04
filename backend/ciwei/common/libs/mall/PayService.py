@@ -177,6 +177,9 @@ class PayService:
 
             pay_order_items = OrderProduct.query.filter_by(order_id=pay_order_id).all()
             for order_item in pay_order_items:
+                tmp_product = Product.query.filter_by(id=order_item.product_id).first()
+                tmp_product.sale_cnt += order_item.product_num
+                db.session.add(tmp_product)
                 tmp_model_sale_log = ProductSaleChangeLog()
                 tmp_model_sale_log.product_id = order_item.product_id
                 tmp_model_sale_log.quantity = order_item.product_num
@@ -191,11 +194,6 @@ class PayService:
             print(e)
             return False
 
-        # 加入通知队列，做消息提醒和
-        QueueService.addQueue("pay", {
-            "member_id": order_info.member_id,
-            "pay_order_id": order_info.id
-        })
         return True
 
     def addPayCallbackData(self, pay_order_id=0, type='pay', data=''):
@@ -208,7 +206,7 @@ class PayService:
         """
         # 新增
         model_callback = OrderCallbackData()
-        model_callback.pay_order_id = pay_order_id
+        model_callback.order_id = pay_order_id
         if type == "pay":
             model_callback.pay_data = data
             model_callback.refund_data = ''
