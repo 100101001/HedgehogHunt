@@ -36,8 +36,8 @@ OPENCS_APP = {
     'appid': 'wx3a7bac4ab0184c76',
     'appkey': 'bd8a906e46adc59dd0e7e3110e90c46c',
     # TODO: 开通微信支付后,填写商户ID,商户签名密钥
-    'mch_id': '',
-    'mch_key': '',
+    'mch_id': '1578527401',
+    'mch_key': '01e1856cee125886ad9b3314e52dbc87',
     'callback_url': '/api/order/callback'
 }
 
