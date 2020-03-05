@@ -278,6 +278,23 @@ CREATE TABLE `order_callback_data`  (
   UNIQUE INDEX `ix_order_callback_data_order_id`(`order_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '微信支付回调数据表' ROW_FORMAT = Dynamic;
 
+
+-- ----------------------------
+-- Table structure for thank_order_callback_data
+-- ----------------------------
+DROP TABLE IF EXISTS `thank_order_callback_data`;
+CREATE TABLE `thank_order_callback_data`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `thank_order_id` int(11) NOT NULL DEFAULT 0 COMMENT '支付订单id',
+  `pay_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '支付回调信息',
+  `refund_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '退款回调信息',
+  `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
+  `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `ix_order_callback_data_order_id`(`thank_order_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '答谢微信支付回调数据表' ROW_FORMAT = Dynamic;
+
+
 -- ----------------------------
 -- Table structure for order_product
 -- ----------------------------
@@ -483,6 +500,7 @@ CREATE TABLE `report`  (
 DROP TABLE IF EXISTS `thank_order`;
 CREATE TABLE `thank_order`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `order_sn` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '随机订单号',
   `member_id` int(11) UNSIGNED NOT NULL COMMENT '会员id',
   `openid` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '第三方id',
   `transaction_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '微信支付交易号',
