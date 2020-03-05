@@ -9,7 +9,7 @@ Page({
   },
   onLoad: function () {
     //会员基本信息
-    var receiver = app.globalData.memberInfo.name == "" ? wx.getStorageSync('receiver') == "" : app.globalData.memberInfo.name
+    var receiver = app.globalData.memberInfo.name == "" ? wx.getStorageSync('receiver') : app.globalData.memberInfo.name
     var mobile = app.globalData.memberInfo.mobile == "" ? wx.getStorageSync('mobile') : app.globalData.memberInfo.mobile
     var address = app.globalData.memberInfo.location == "" ? wx.getStorageSync('location') : app.globalData.memberInfo.location
     this.setData({
