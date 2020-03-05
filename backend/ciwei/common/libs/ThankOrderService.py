@@ -5,6 +5,7 @@ import random
 from application import app, db
 from common.libs import Helper
 from common.libs.Helper import getCurrentDate
+from common.models.ciwei.MemberBalanceChangeLog import MemberBalanceChangeLog
 from common.models.ciwei.ThankOrder import ThankOrder
 from common.models.ciwei.ThankOrderCallbackData import ThankOrderCallbackData
 from common.models.ciwei.mall.Order import Order
@@ -52,7 +53,6 @@ def place_db_order(member_info, price):
     order.price = price
     order.updated_time = order.created_time = Helper.getCurrentDate()
     db.session.add(order)
-    db.session.commit()
     return order
 
 
@@ -122,9 +122,7 @@ def place_wx_prepay_order(openid, order, resp):
             }
             data['paySign'] = payment_hmac_sha256_or_md5_sign(data)
             data.pop("appId")
-            data["order_id"] = order.id
             resp['data'] = data
-            resp['code'] = 200
         else:
             resp['msg'] = "微信下单失败, 错误信息" + data['return_msg']
     else:
@@ -256,3 +254,21 @@ def addPayCallbackData(thank_order_sn='', data=''):
     db.session.add(model_callback)
     db.session.commit()
     return True
+
+
+def setMemberBalanceChange(member_info=None, unit=0, note="答谢"):
+    """
+    记录会员账户余额变化
+    :param member_info:
+    :param unit:
+    :param note:
+    :return:
+    """
+    balance_change_model = MemberBalanceChangeLog()
+    balance_change_model.member_id = member_info.id
+    balance_change_model.openid = member_info.openid
+    balance_change_model.unit = unit
+    balance_change_model.total_balance = member_info.balance
+    balance_change_model.note = note
+    balance_change_model.created_time = getCurrentDate()
+    db.session.add(balance_change_model)

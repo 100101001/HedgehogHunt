@@ -1,65 +1,101 @@
-#!/usr/bin/python3.6.8
-# Editor weichaoxu
-
 # -*- coding:utf-8 -*-
-from common.models.ciwei.Member import Member
-from common.models.ciwei.User import User
-from common.models.ciwei.Goods import Good
-from common.models.ciwei.Thanks import Thank
-from common.models.ciwei.Report import Report
-from web.controllers.api import route_api
-from flask import request, jsonify, g
-import json
-from sqlalchemy import or_
-from application import app, db
-from common.libs.Helper import getCurrentDate, selectFilterObj, getDictFilterField
-from common.libs.MemberService import MemberService
-from common.libs.UrlManager import UrlManager
+
 from decimal import Decimal
+
+from flask import request, jsonify, g
+from sqlalchemy import or_
+
+from application import app, db
+
+from common.libs import ThankOrderService
+from common.libs.Helper import getCurrentDate, selectFilterObj, getDictFilterField
+from common.models.ciwei.Member import Member
+from common.models.ciwei.Report import Report
+from common.models.ciwei.ThankOrder import ThankOrder
+from common.models.ciwei.Thanks import Thank
+from common.models.ciwei.User import User
+from web.controllers.api import route_api
 
 
 @route_api.route("/thanks/create", methods=['GET', 'POST'])
 def thanksCreate():
-    resp = {'code': 200, 'msg': 'create thanks record successfully(search)', 'data': {}}
-    req = request.values
 
-    member_info = g.member_info
-    if not member_info:
-        resp['code'] = -1
-        resp['msg'] = "用户信息异常"
+    try:
+        resp = {'code': 200, 'msg': 'create thanks record successfully(search)', 'data': {}}
+        req = request.values
+
+        member_info = g.member_info
+        if not member_info:
+            resp['code'] = -1
+            resp['msg'] = "用户信息异常"
+            return jsonify(resp)
+
+        thanks_model = Thank()
+        thanks_model.member_id = member_info.id
+
+        target_member_id = int(req['auther_id']) if 'auther_id' in req else 0
+        thanks_model.target_member_id = target_member_id
+        business_type = int(req['business_type'])
+        if business_type == 1:
+            thanks_model.business_desc = "拾到"
+        else:
+            thanks_model.business_desc = "丢失"
+        goods_id = int(req['goods_id']) if 'goods_id' in req else 0
+        goods_name = req['goods_name'] if 'goods_name' in req else ''
+        owner_name = req['owner_name'] if 'owner_name' in req else ''
+        thanks_model.goods_name = goods_name
+        thanks_model.owner_name = owner_name
+        target_price = Decimal(req['target_price']).quantize(Decimal('0.00')) if 'target_price' in req else 0.00
+        # 设置答谢金额和
+        if target_price < 0:
+            resp['code'] = -1
+            resp['msg'] = "答谢金额错误"
+            return jsonify(resp)
+        thanks_model.thank_price = target_price
+        if thanks_model.thank_price == 0.00:
+            # 无金额答谢
+            thanks_model.order_id = 0
+        else:
+            # 金额转入目标用户余额
+            order_sn = req['order_sn'] if 'order_sn' in req and req['order_sn'] else ''
+            if not order_sn:
+                resp['code'] = -1
+                resp['msg'] = "缺少付款信息"
+                return jsonify(resp)
+            if order_sn != 'no':
+                order_id = db.session.query(ThankOrder.id).filter_by(order_sn=order_sn).first()
+                if not order_id:
+                    resp['code'] = -1
+                    resp['msg'] = "缺少付款信息"
+                    return jsonify(resp)
+                thanks_model.order_id = order_id[0]
+            else:
+                thanks_model.order_id = 0
+            target_member_info = Member.query.filter_by(id=target_member_id).first()
+            target_member_info.balance += thanks_model.thank_price
+            target_member_info.updated_time = getCurrentDate()
+            ThankOrderService.setMemberBalanceChange(member_info=target_member_info, unit=thanks_model.thank_price,
+                                                     note="答谢收款")
+            db.session.add(target_member_info)
+        thanks_model.summary = req['thanks_text'] if 'thanks_text' in req else ''
+        thanks_model.goods_id = goods_id
+        thanks_model.created_time = thanks_model.updated_time = getCurrentDate()
+
+        db.session.add(thanks_model)
+        db.session.commit()
+        resp['data']['id'] = thanks_model.id
+        res = jsonify(resp)
+    except Exception as e:
+        app.logger.error(request.path+': '+e)
+        db.session.rollback()
+        resp = {'code': -1, 'msg': '服务器内部异常', 'data': {}}
         return jsonify(resp)
-
-    thanks_model = Thank()
-    thanks_model.member_id = member_info.id
-
-    target_member_id = int(req['auther_id']) if 'auther_id' in req else 0
-    thanks_model.target_member_id = target_member_id
-    business_type = int(req['business_type'])
-    if business_type == 1:
-        thanks_model.business_desc = "拾到"
-    else:
-        thanks_model.business_desc = "丢失"
-    goods_id = int(req['goods_id']) if 'goods_id' in req else 0
-    goods_name = req['goods_name'] if 'goods_name' in req else ''
-    owner_name = req['owner_name'] if 'owner_name' in req else ''
-    thanks_model.goods_name = goods_name
-    thanks_model.owner_name = owner_name
-    thanks_model.price = Decimal(req['target_price']).quantize(Decimal('0.00')) if 'target_price' in req else 0.00
-    if thanks_model.price == 0.00:
-        thanks_model.order_id = 0
-    else:
-        thanks_model.order_id = req['order_id']
-    thanks_model.summary = req['thanks_text'] if 'thanks_text' in req else ''
-    thanks_model.goods_id = goods_id
-
-    thanks_model.created_time = thanks_model.updated_time = getCurrentDate()
-
-    db.session.add(thanks_model)
-    db.session.commit()
-    from common.libs import SubscribeService
-    SubscribeService.send_thank_subscribe(thanks_model)
-    resp['data']['id'] = thanks_model.id
-    return jsonify(resp)
+    try:
+        from common.libs import SubscribeService
+        SubscribeService.send_thank_subscribe(thanks_model)
+    except Exception as e:
+        app.logger.error(request.path+': '+e)
+    return res
 
 
 # 查询所有记录
@@ -131,7 +167,7 @@ def thanksSearch():
                 "updated_time": str(item.updated_time),
                 "business_desc": item.business_desc,
                 "summary": item.summary,
-                "reward": "0.00",
+                "reward": str(item.thank_price),
                 "auther_name": item_auther_info.nickname,
                 "avatar": item_auther_info.avatar,
                 "selected": False,

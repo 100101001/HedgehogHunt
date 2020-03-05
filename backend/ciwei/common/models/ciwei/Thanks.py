@@ -1,4 +1,5 @@
 # coding: utf-8
+import decimal
 from datetime import datetime
 
 from sqlalchemy import Column, DateTime, Integer, String
@@ -17,6 +18,7 @@ class Thank(db.Model):
     user_id = db.Column(INTEGER(11, unsigned=True), nullable=False, default=0, comment="拉黑会员的管理员id")
     member_id = db.Column(INTEGER(11, unsigned=True), nullable=False, comment="发布感谢的会员id")
     order_id = db.Column(INTEGER(11, unsigned=True), nullable=False, comment="微信支付的订单id")
+    thank_price = db.Column(db.Numeric(10, 2), nullable=False, default=decimal.Decimal(0.00), comment="答谢总金额")
     target_member_id = db.Column(INTEGER(11, unsigned=True), nullable=False, comment="接受消息的会员id")
     goods_id = db.Column(INTEGER(11, unsigned=True), nullable=False, comment="物品id")
     summary = db.Column(db.String(200), nullable=False, default='', comment="描述")
