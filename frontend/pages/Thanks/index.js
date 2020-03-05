@@ -6,7 +6,7 @@ Page({
     thanks_text: "",
     items: [
       { "name": 0, value: "0元", price: 0, checked: "true" },
-      { "name": 1, value: "0.5元", price: 0.5 },
+      { "name": 1, value: "0.01元", price: 0.01 },
       { "name": 2, value: "1元", price: 1 },
       { "name": 3, value: "自定义", price: "" }
     ],
@@ -69,9 +69,10 @@ Page({
         },
         'success': function (res) {
           console.log(res)
-          if (res.code == 200) {
+          var resp = res.data
+          var data = resp.data
+          if (resp.code == 200) {
             //前端微信支付
-            data = res.data
             wx.requestPayment({
               timeStamp: data['timeStamp'],
               nonceStr: data['nonceStr'],
@@ -79,23 +80,30 @@ Page({
               signType: data['signType'],
               paySign: data['paySign'],
               complete: function (res) {
+                console.log(res)
+                if(res.errMsg == "requestPayment:fail cancel"){
+                  app.alert({'content': "支付失败"})
+                }
+                if(res.errMsg == "requestPayment:ok"){
+                  that.createThank(price, data.order_id)
+                }
                 //后端查询支付状态
-                wx.request({
-                  url: app.buildUrl('/thank/order/query'),
-                  method: 'post',
-                  header: app.getRequestHeader(),
-                  success: function (res) {
-                    resp = res.data
-                    if (resp.code == 200) {
-                      that.createThank(price, resp.data.order_id)
-                    } else {
-                      app.alert({ 'content': resp.msg })
-                    }
-                  },
-                  fail: function (res) {
-                    app.alert({ 'content': res.data.msg })
-                  }
-                })
+                // wx.request({
+                //   url: app.buildUrl('/thank/order/query'),
+                //   method: 'post',
+                //   header: app.getRequestHeader(),
+                //   success: function (res) {
+                //     resp = res.data
+                //     if (resp.code == 200) {
+                //       that.createThank(price, resp.data.order_id)
+                //     } else {
+                //       app.alert({ 'content': resp.msg })
+                //     }
+                //   },
+                //   fail: function (res) {
+                //     app.alert({ 'content': res.data.msg })
+                //   }
+                // })
               }
             })
           } else {
@@ -112,10 +120,10 @@ Page({
   createThank: function (price, order_id = "") {
     var thanks_text = this.data.thanks_text;
     var data = this.data.data;
-    data['price'] = price;
+    data['target_price'] = price;
     data['thanks_text'] = thanks_text;
     data['order_id'] = order_id
-    console.log(data);
+    data['owner_name'] = app.globalData.memberInfo.nickname
     var that = this;
     //后端创建感谢记录
     wx.request({
