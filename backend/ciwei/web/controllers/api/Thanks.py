@@ -40,13 +40,15 @@ def thanksCreate():
     else:
         thanks_model.business_desc = "丢失"
     goods_id = int(req['goods_id']) if 'goods_id' in req else 0
-    goods_name = req['goods_name'] if 'goods_name' in req else 0
-    owner_name = req['owner_name'] if 'owner_name' in req else 0
+    goods_name = req['goods_name'] if 'goods_name' in req else ''
+    owner_name = req['owner_name'] if 'owner_name' in req else ''
     thanks_model.goods_name = goods_name
     thanks_model.owner_name = owner_name
     thanks_model.price = Decimal(req['target_price']).quantize(Decimal('0.00')) if 'target_price' in req else 0.00
     if thanks_model.price == 0.00:
         thanks_model.order_id = 0
+    else:
+        thanks_model.order_id = req['order_id']
     thanks_model.summary = req['thanks_text'] if 'thanks_text' in req else ''
     thanks_model.goods_id = goods_id
 

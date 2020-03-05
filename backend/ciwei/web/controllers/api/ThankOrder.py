@@ -55,9 +55,10 @@ def notify_payment_result():
     req = ThankOrderService.trans_xml_to_dict(request.data)
     from application import app
     app.logger.info(req)
+
     resp = {"return_code": "FAIL", "return_msg": "OK"}
     # 验证签名
-    if not ThankOrderService.verify_sign(req, req['sign_type'] if 'sign_type' in req else "MD5"):
+    if not ThankOrderService.verify_sign(req, "HMAC-SHA256"):
         resp['return_msg'] = "签名失败"
     else:
         # 接受了通知且签名校验成功(不管通知的return_code)
@@ -68,6 +69,7 @@ def notify_payment_result():
             if ThankOrderService.verify_total_fee(req['out_trade_no'], req['total_fee']):
                 # 更新订单状态为已支付
                 ThankOrderService.paid(req)
+            ThankOrderService.addPayCallbackData(thank_order_sn=req['out_trade_no'], data=request.data)
     return jsonify(resp)
 
 
@@ -87,7 +89,7 @@ def query_payment_result():
     if not g.member_info:
         resp['msg'] = "未登录"
         return jsonify(resp)
-    if 'order_id' not in req:
+    if 'out_trade_no' not in req:
         resp['msg'] = "缺订单号"
         return jsonify(resp)
 

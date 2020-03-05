@@ -1,7 +1,13 @@
+import hashlib
 import time
+import random
+
 from application import app, db
 from common.libs import Helper
+from common.libs.Helper import getCurrentDate
 from common.models.ciwei.ThankOrder import ThankOrder
+from common.models.ciwei.ThankOrderCallbackData import ThankOrderCallbackData
+from common.models.ciwei.mall.Order import Order
 
 
 def payment_hmac_sha256_or_md5_sign(data, key=app.config['OPENCS_APP']['mch_key'], sign_type="HMAC-SHA256"):
@@ -40,6 +46,7 @@ def place_db_order(member_info, price):
     :return:
     """
     order = ThankOrder()
+    order.order_sn = geneOrderSn()
     order.member_id = member_info.id
     order.openid = member_info.openid
     order.price = price
@@ -47,6 +54,22 @@ def place_db_order(member_info, price):
     db.session.add(order)
     db.session.commit()
     return order
+
+
+def geneOrderSn():
+    """
+    :return:不重复的流水号
+    """
+    m = hashlib.md5()
+    sn = None
+    while True:
+        # 毫秒级时间戳-千万随机数
+        sn_str = "%s-%s" % (int(round(time.time() * 1000)), random.randint(0, 9999999))
+        m.update(sn_str.encode("utf-8"))
+        sn = m.hexdigest()
+        if not Order.query.filter_by(order_sn=sn).first():
+            break
+    return sn
 
 
 # TODO:前端控制下单频率
@@ -69,13 +92,11 @@ def place_wx_prepay_order(openid, order, resp):
         "nonce_str": genRandomStr(16),
         "sign_type": "HMAC-SHA256",
         "body": "闪寻-充值",
-        "out_trade_no": order.id,  # 数据库订单id
-        "total_fee": order.price,  # TODO:订单价格
-        "spbill_create_ip": app.config['IP'],
-        "time_expire": time.strftime("%Y%m%d%H%M%S", time.gmtime(time.time() + 5 * 60)),  # TODO：订单5分钟内未支付即失效
-        "notify_url": UrlManager.buildApiUrl("/thank/order/notify"),  # TODO：微信异步通知支付结果
+        "out_trade_no": order.order_sn,  # 数据库订单id
+        "total_fee": int(order.price * 100),  # TODO:订单价格
+        "time_expire": time.strftime("%Y%m%d%H%M%S", time.localtime(time.time() + 5 * 60)),  # TODO：订单5分钟内未支付即失效
+        "notify_url": "http://188.131.240.205:8999/api/thank/order/notify",  # TODO：微信异步通知支付结果
         "trade_type": "JSAPI",
-        "limit_pay": "no_credit",  # 限制支付方式
         "openid": openid
     }
     # 计算签名
@@ -86,6 +107,7 @@ def place_wx_prepay_order(openid, order, resp):
 
     # 处理API响应
     data = trans_xml_to_dict(wx_resp.text)
+    app.logger.info(data)
     if data['return_code'] == "SUCCESS":
         # 下单成功
         order.status = 0
@@ -93,13 +115,14 @@ def place_wx_prepay_order(openid, order, resp):
             resp['msg'] = "微信下单成功"
             data = {
                 "appId": app.config['OPENCS_APP']['appid'],
-                "timeStamp": int(time.time()),
+                "timeStamp": str(int(time.time())),
                 "nonceStr": genRandomStr(16),
                 "package": "prepay_id=" + data['prepay_id'],
-                "signType": "HMAC-SHA256",
+                "signType": "HMAC-SHA256"
             }
             data['paySign'] = payment_hmac_sha256_or_md5_sign(data)
             data.pop("appId")
+            data["order_id"] = order.id
             resp['data'] = data
             resp['code'] = 200
         else:
@@ -117,7 +140,8 @@ def paid(data):
     :return:无
     """
     if 'out_trade_no' in data and 'openid' in data and 'transaction_id' in data and 'time_end' in data:
-        order = ThankOrder.query.filter(id=data['out_trade_no'], openid=data['openid']).with_for_update().first()
+        order = ThankOrder.query.filter(ThankOrder.order_sn == data['out_trade_no'],
+                                        ThankOrder.openid == data['openid']).with_for_update().first()
         if order.status == 0:
             order.transaction_id = data['transaction_id']
             order.paid_time = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(data['time_end'], "%Y%m%d%H%M%S"))
@@ -131,10 +155,10 @@ def verify_sign(data, sign_type):
     """
     验证微信返回数据签名正确
     :param data: 微信响应体
-    :param sign_type: 签名哈希
+    :param sign_type: 签名哈希(根据统一下单的签名算法)
     :return: 签名是否正确 boolean
     """
-    return data.pop("sign") == payment_hmac_sha256_or_md5_sign(data, sign_type=sign_type)
+    return data.pop("sign").upper() == payment_hmac_sha256_or_md5_sign(data, sign_type=sign_type)
 
 
 def query_payment_result(order_id):
@@ -210,5 +234,25 @@ def trans_xml_to_dict(xml):
 
 
 def verify_total_fee(order_id, total_fee):
-    order = ThankOrder.query.filter(id=order_id).first()
-    return order.price == total_fee
+    order = ThankOrder.query.filter_by(order_sn=order_id).first()
+    return int(order.price * 100) == int(total_fee)
+
+
+def addPayCallbackData(thank_order_sn='', data=''):
+    """
+    微信支付回调记录
+    :param thank_order_sn:
+    :param data:
+    :return:
+    """
+    # 新增
+    thank_order_id = db.session.query(ThankOrder.id).filter_by(order_sn=thank_order_sn).first()
+    model_callback = ThankOrderCallbackData()
+    model_callback.thank_order_id = thank_order_id[0]
+    # 不搞退款
+    model_callback.pay_data = data
+    model_callback.refund_data = ''
+    model_callback.created_time = model_callback.updated_time = getCurrentDate()
+    db.session.add(model_callback)
+    db.session.commit()
+    return True

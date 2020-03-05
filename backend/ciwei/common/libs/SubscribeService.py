@@ -50,7 +50,7 @@ def send_thank_subscribe(thanks_info):
     data = {
         "name1": thanks_info.owner_name,
         "thing2": thanks_info.goods_name,
-        "amount3": thanks_info.price,
+        "amount3": str(thanks_info.price),
         "date5": datetime2str(thanks_info.updated_time)
     }
     send_subscribe(member.openid, "thanks", data)
