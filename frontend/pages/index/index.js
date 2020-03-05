@@ -74,9 +74,9 @@ Page({
     if (openid == app.globalData.openid) {
       //自己扫码更换绑定手机号
       wx.showActionSheet({
-        itemList: ['绑定手机号', '更换手机号', '随便扫扫'],
+        itemList: ['绑定手机号', '随便扫扫'],
         success(res) {
-          if (res.tapIndex < 2) {
+          if (res.tapIndex == 0) {
             wx.redirectTo({
               url: "/pages/Qrcode/Mobile/index?openid=" + openid
             })
