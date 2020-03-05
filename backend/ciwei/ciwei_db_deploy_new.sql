@@ -39,7 +39,7 @@ CREATE TABLE `address`  (
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_member_id_status`(`member_id`, `status`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员收货地址' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员收货地址' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for advs
@@ -146,7 +146,7 @@ CREATE TABLE `cart`  (
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_cart_member_id`(`member_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 47 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '购物车表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '购物车表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for feedback
@@ -219,6 +219,7 @@ CREATE TABLE `member`  (
   `qr_code_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '小程序二维码id',
   `nickname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员名',
   `salt` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '加密生成的字符串',
+  `balance` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '用户账户余额',
   `credits` int(11) NOT NULL DEFAULT 0 COMMENT '会员积分',
   `mobile` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员手机号码',
   `name` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '注册会员的姓名，用于后期做匹配',
@@ -234,7 +235,23 @@ CREATE TABLE `member`  (
   `gotback_id` varchar(2000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户最终取回的物品id,字符串',
   `recommend_id` varchar(3000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '系统推荐的物品id,字符串',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 100003 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 100000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for member_balance_change_log
+-- ----------------------------
+DROP TABLE IF EXISTS `member_balance_change_log`;
+CREATE TABLE `member_balance_change_log`  (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `member_id` int(11) UNSIGNED NOT NULL COMMENT '会员id',
+  `openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '第三方id',
+  `unit` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '变更多少',
+  `total_balance` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '变更之后总量',
+  `note` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '备注字段',
+  `created_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `ix_member_balance_change_log_member_id`(`member_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员账户余额变更表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for order
@@ -261,7 +278,7 @@ CREATE TABLE `order`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `idx_order_sn`(`order_sn`) USING BTREE,
   INDEX `idx_member_id_status`(`member_id`, `status`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '周边购买订单表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '周边购买订单表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for order_callback_data
@@ -314,7 +331,7 @@ CREATE TABLE `order_product`  (
   INDEX `ix_order_product_member_id`(`member_id`) USING BTREE,
   INDEX `ix_order_product_order_id`(`order_id`) USING BTREE,
   INDEX `ix_order_product_status`(`status`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '订单包含的周边表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT =1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '订单包含的周边表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for product
@@ -441,7 +458,7 @@ CREATE TABLE `product_stock_change_log`  (
   `created_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_product_stock_change_log_product_id`(`product_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据库存变更表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据库存变更表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for qr_code
@@ -460,7 +477,7 @@ CREATE TABLE `qr_code`  (
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_qr_code_openid`(`openid`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '二维码表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '二维码表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for queue_list
@@ -521,6 +538,7 @@ CREATE TABLE `thanks`  (
   `user_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拉黑会员的管理员id',
   `member_id` int(11) UNSIGNED NOT NULL COMMENT '发布感谢的会员id',
   `order_id` int(11) UNSIGNED NOT NULL COMMENT '微信支付的订单id',
+  `thank_price` decimal(10, 2) UNSIGNED NOT NULL DEFAULT 0.00 COMMENT '答谢总金额',
   `target_member_id` int(11) UNSIGNED NOT NULL COMMENT '接受消息的会员id',
   `goods_id` int(11) NOT NULL COMMENT '物品id',
   `summary` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
@@ -532,7 +550,7 @@ CREATE TABLE `thanks`  (
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '答谢表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '答谢表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for user
