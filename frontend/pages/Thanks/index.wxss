@@ -136,3 +136,11 @@
 .amount_box text{
   margin-bottom: 40rpx;
 }
+
+.account_money{
+  color: #f7931e;
+  font-size: smaller;
+  margin-top: 10rpx;
+  text-align: center;
+  font-weight: 600;
+}
