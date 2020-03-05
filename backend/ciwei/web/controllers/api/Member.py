@@ -348,3 +348,23 @@ def memberShare():
     db.session.commit()
 
     return jsonify(resp)
+
+
+@route_api.route("/member/contactinfo/set", methods=['POST', 'GET'])
+def setContactInfo():
+    resp = {'code': 200, 'msg': '联络信息添加成功', 'data': {}}
+    req = request.values
+    # 检查登陆
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "用户信息异常"
+        return jsonify(resp)
+
+    member_info.mobile = req['mobile'] if 'mobile' in req and req['mobile'] else ''
+    member_info.name = req['name'] if 'name' in req and req['name'] else ''
+    member_info.location = req['location'] if 'location' in req and req['location'] else ''
+    db.session.add(member_info)
+    db.session.commit()
+    return jsonify(resp)
+

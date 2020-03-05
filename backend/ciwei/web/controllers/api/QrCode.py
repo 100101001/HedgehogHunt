@@ -16,16 +16,22 @@ def get_wx_qr_code():
     :return:二维码图片URL
     """
     resp = {'code': -1, 'msg': '', 'data': {}}
+    req = request.values
 
     member_info = g.member_info
     if not member_info:
         resp['msg'] = '请先登录'
         return jsonify(resp)
 
+    member_info.name = req['name'] if 'name' in req and req['name'] else member_info.name
+    member_info.mobile = req['mobile'] if 'mobile' in req and req['mobile'] else member_info.mobile
+    member_info.location = req['location'] if 'location' in req and req['location'] else member_info.location
+
     # 会员已有二维码
     if member_info.has_qr_code:
         resp['code'] = 200
-        resp['data']['qr_code_url'] = {'qr_code_url': UrlManager.buildImageUrl(member_info.qr_code, image_type='QR_CODE')}
+        resp['data']['qr_code_url'] = {'qr_code_url': UrlManager.buildImageUrl(member_info.qr_code,
+                                                                               image_type='QR_CODE')}
         return jsonify(resp)
 
     # 调API获取二维码
@@ -169,3 +175,23 @@ def check_sms_code():
         app.logger.info("手机号 %s 错误码", phone)
         resp['code'] = 401
         return jsonify(resp)
+
+
+@route_api.route("/qrcode/contactinfo/set", methods=['POST','GET'])
+def setQrcodeContactInfo():
+    resp = {'code': 200, 'msg': '二维码的联络信息绑定成功', 'data': {}}
+    req = request.values
+    # 检查登陆
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "用户信息异常"
+        return jsonify(resp)
+    qr_code = QrCode.query.filter_by(openid=member_info.openid).first()
+    qr_code.mobile = req['mobile'] if 'mobile' in req and req['mobile'] else ''
+    qr_code.name = req['name'] if 'name' in req and req['name'] else ''
+    qr_code.location = req['location'] if 'location' in req and req['location'] else ''
+    db.session.add(qr_code)
+    db.session.commit()
+    return jsonify(resp)
+
