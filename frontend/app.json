@@ -6,18 +6,14 @@
     "pages/Thanks/record/index",
     "pages/Thanks/index",
     "pages/Find/info/info",
-    "pages/Report/index",
     "pages/Mine/Mine",
     "pages/Find/Find",
     "pages/Release/release/index",
-    "pages/Report/info/info",
     "pages/Release/Release",
     "pages/login/index",
     "pages/Mine/connect/index",
-    "pages/Homepage/homepage/pay/pay",
     "pages/Mine/userinfo/index",
     "pages/Find/edit/edit",
-    "pages/Qrcode/index",
     "pages/Qrcode/Mobile/index"
   ],
   "subpackages": [
@@ -28,11 +24,20 @@
         "pages/info",
         "pages/my/index",
         "pages/cart/index",
+        "pages/order/index",
         "pages/my/order_list",
         "pages/my/order_info",
         "pages/my/addressList",
         "pages/my/commentList",
-        "pages/order/index"
+        "pages/my/comment",
+        "pages/my/addressSet"
+      ]
+    },
+    {
+      "root":"pages/Report",
+      "pages":[
+        "index",
+        "info/info"
       ]
     }
   ],
