@@ -4,8 +4,6 @@ Page({
     loadingHidden: true,
     imglist: [],
     notify_id: "",
-    hasAskSubscribe: false,
-    isAskingSubscribe: false,
     dataReady: false,
     submitDisable: false
   },
@@ -218,30 +216,6 @@ Page({
         this.uploadData(data, url, img_list);
       }
     })
-    // var data = e.detail.value;
-    // var tips_obj = this.data.tips_obj;
-    // var is_empty = app.judgeEmpty(data, tips_obj);
-    // if (is_empty) {
-    //   return;
-    // }
-    // //上传发布数据
-    // var business_type = this.data.business_type;
-    // data['business_type'] = business_type;
-    // data['location'] = this.data.location;
-    // var img_list = this.data.imglist;
-    // if (img_list.length === 0) {
-    //   app.alert({
-    //     'content': "至少要提交一张图片"
-    //   });
-    //   return;
-    // }
-    // //通知失主
-    // if (this.data.notify_id !== "") {
-    //   this.sendNotification(data)
-    // }
-    // data['img_list'] = img_list;
-    // var url = "/goods/create";
-    // this.uploadData(data, url, img_list);
   },
   //通知失主
   sendNotification: function (data) {
@@ -395,6 +369,7 @@ Page({
           return
         }
         that.setInitData();
+        app.getNewRecommend()
         wx.showToast({
           title: '提交成功',
           icon: 'success',
@@ -484,9 +459,8 @@ Page({
         name: "mobile",
         placeholder: "高危非必填",
         label: "联系电话",
-        value: "高危非必填",
         icons: "/images/icons/goods_type.png",
-        value: ""
+        value: "高危非必填",
       },
       ];
       var summary_placeholder = "添加寻物描述：物品丢失大致时间、地点，记号等...";
@@ -507,28 +481,6 @@ Page({
       location: location === undefined ? "" : location
     });
   },
-  // askSubscribe: function () {
-  //   this.setData({
-  //     isAskingSubscribe: true
-  //   })
-  //   var that = this
-  //   if (!this.data.hasAskSubscribe && this.data.isAskingSubscribe) {
-  //     //用户选择接受/拒绝订阅消息
-  //     wx.requestSubscribeMessage({
-  //       tmplIds: [
-  //         app.globalData.subscribe.recommend,
-  //         app.globalData.subscribe.finished,
-  //         app.globalData.subscribe.thanks
-  //       ], //首次(被)匹配，已完成，(被)答谢
-  //       complete: function (res) {
-  //         that.setData({
-  //           hasAskSubscribe: true,
-  //           isAskingSubscribe: false
-  //         })
-  //       }
-  //     })
-  //   }
-  // }
   listenerInput: function (e) {
     var idx = e.currentTarget.dataset.id
     var items = this.data.items
