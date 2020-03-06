@@ -161,7 +161,7 @@ def orderPay():
         return jsonify(resp)
 
     app_config = app.config['OPENCS_APP']
-    notify_url = 'http://188.131.240.205:8999' + app_config['callback_url']
+    notify_url = app.config['APP']['domain'] + app_config['callback_url']
 
     target_wechat = WeChatService(merchant_key=app_config['mch_key'])
 

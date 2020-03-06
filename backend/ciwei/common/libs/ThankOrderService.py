@@ -95,7 +95,7 @@ def place_wx_prepay_order(openid, order, resp):
         "out_trade_no": order.order_sn,  # 数据库订单id
         "total_fee": int(order.price * 100),  # TODO:订单价格
         "time_expire": time.strftime("%Y%m%d%H%M%S", time.localtime(time.time() + 5 * 60)),  # TODO：订单5分钟内未支付即失效
-        "notify_url": "http://188.131.240.205:8999/api/thank/order/notify",  # TODO：微信异步通知支付结果
+        "notify_url": app.config['APP']['domain']+"/thank/order/notify",  # TODO：微信异步通知支付结果
         "trade_type": "JSAPI",
         "openid": openid
     }
