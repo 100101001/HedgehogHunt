@@ -91,7 +91,7 @@ def place_wx_prepay_order(openid, order, resp):
         "mch_id": app.config['OPENCS_APP']['mch_id'],
         "nonce_str": genRandomStr(16),
         "sign_type": "HMAC-SHA256",
-        "body": "闪寻-充值",
+        "body": "闪寻-答谢",
         "out_trade_no": order.order_sn,  # 数据库订单id
         "total_fee": int(order.price * 100),  # TODO:订单价格
         "time_expire": time.strftime("%Y%m%d%H%M%S", time.localtime(time.time() + 5 * 60)),  # TODO：订单5分钟内未支付即失效

@@ -30,8 +30,7 @@ def get_wx_qr_code():
     # 会员已有二维码
     if member_info.has_qr_code:
         resp['code'] = 200
-        resp['data']['qr_code_url'] = {'qr_code_url': UrlManager.buildImageUrl(member_info.qr_code,
-                                                                               image_type='QR_CODE')}
+        resp['data']['qr_code_url'] = UrlManager.buildImageUrl(member_info.qr_code, image_type='QR_CODE')
         return jsonify(resp)
 
     # 调API获取二维码
@@ -177,7 +176,7 @@ def check_sms_code():
         return jsonify(resp)
 
 
-@route_api.route("/qrcode/contactinfo/set", methods=['POST','GET'])
+@route_api.route("/qrcode/contactinfo/set", methods=['POST', 'GET'])
 def setQrcodeContactInfo():
     resp = {'code': 200, 'msg': '二维码的联络信息绑定成功', 'data': {}}
     req = request.values
@@ -194,4 +193,3 @@ def setQrcodeContactInfo():
     db.session.add(qr_code)
     db.session.commit()
     return jsonify(resp)
-

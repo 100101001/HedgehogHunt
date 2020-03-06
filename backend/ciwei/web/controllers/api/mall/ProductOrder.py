@@ -161,7 +161,7 @@ def orderPay():
         return jsonify(resp)
 
     app_config = app.config['OPENCS_APP']
-    notify_url = app.config['APP']['domain'] + app_config['callback_url']
+    notify_url = 'http://188.131.240.205:8999' + app_config['callback_url']
 
     target_wechat = WeChatService(merchant_key=app_config['mch_key'])
 
@@ -169,7 +169,7 @@ def orderPay():
         'appid': app_config['appid'],
         'mch_id': app_config['mch_id'],
         'nonce_str': target_wechat.get_nonce_str(),
-        'body': '订餐',  # 商品描述
+        'body': '闪寻周边',  # 商品描述
         'out_trade_no': order_info.order_sn,  # 商户订单号
         'total_fee': int(order_info.total_price * 100),
         'notify_url': notify_url,

@@ -19,7 +19,7 @@ def send_recommend_subscribe(goods_info):
     data = {
             "thing1": {"value": "有人丢了你捡到的东西了!" if goods_info.business_type == 1 else "有人捡到你丢的东西了!"},
             "thing2": {"value": goods_info.name},
-            "thing3": {"value": datetime2str(goods_info.created_time)}
+            "time3": {"value": datetime2str(goods_info.created_time)},
     }
     print(data)
     send_subscribe(goods_info.openid, "recommend", data)
@@ -48,7 +48,7 @@ def send_thank_subscribe(thanks_info):
     from common.models.ciwei.Member import Member
     member = Member.query.filter_by(id=thanks_info.target_member_id).first()
     data = {
-        "name1": thanks_info.owner_name,
+        "name1": member.name if member.name else member.nickname,
         "thing2": thanks_info.goods_name,
         "amount3": str(thanks_info.thank_price),
         "date5": datetime2str(thanks_info.updated_time)
