@@ -9,8 +9,7 @@ Page({
         pay_price: "0.00",
         total_price: "0.00",
         params: null,
-        express_address_id: 0,
-        has_qrcode: app.globalData.has_qrcode
+        express_address_id: 0
     },
     onLoad: function (e) {
         var that = this;
@@ -23,22 +22,6 @@ Page({
         this.getOrderInfo();
     },
     createOrder: function (e) {
-        // 第一次可能没拿到
-        if (!this.data.has_qrcode) {
-            wx.request({
-                method: 'post',
-                url: app.buildUrl('/qrcode/wx'),
-                header: app.getRequestHeader(1),
-                success: res => {
-                    if (res.data.code === 200) {
-                        app.globalData.has_qrcode = true
-                        this.setData({
-                            has_qrcode: true
-                        })
-                    }
-                }
-            })
-        }
         if (this.data.default_address.id == undefined) {
             app.alert({
                 'title': '温馨提示',
@@ -88,17 +71,13 @@ Page({
     },
     getOrderInfo: function () {
         if (!app.globalData.has_qrcode) {
-            wx.request({
-                method: 'post',
-                url: app.buildUrl('/qrcode/wx'),
-                header: app.getRequestHeader(1),
-                success: res => {
-                    if (res.data.code === 200) {
-                        app.globalData.has_qrcode = true
-                        this.setData({
-                            has_qrcode: true
-                        })
-                    }
+            app.alert({
+                'title':'温馨提示',
+                'content':'请先去获取二维码',
+                'cb_confirm': function(){
+                    wx.navigateTo({
+                      url: '/pages/Mine/userinfo/index',
+                    })
                 }
             })
         }
