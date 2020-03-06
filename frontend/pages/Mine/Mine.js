@@ -11,26 +11,19 @@ Page({
     this.setData({
       is_user: is_user
     })
-    var [isSelecteds, urls] = util.onNavigateTap(4);
-    var total_new = app.globalData.total_new;
-    var recommend_new = app.globalData.recommend_new;
-    var thanks_new = app.globalData.thanks_new;
-    isSelecteds['total_new'] = total_new;
-    this.setData({
-      isSelecteds: isSelecteds,
-      recommend_new: recommend_new,
-      thanks_new: thanks_new
-    })
-    this.setLoadData();
   },
   onShow: function () {
-    var isSelecteds = this.data.isSelecteds
+    var [isSelecteds, urls] = util.onNavigateTap(4);
+    isSelecteds['total_new'] = app.globalData.total_new;
     isSelecteds['showHintQrcode'] = app.globalData.showHintQrcode
     isSelecteds['regFlag'] = app.globalData.regFlag
     isSelecteds['hasQrcode'] = app.globalData.has_qrcode
     this.setData({
       isSelecteds: isSelecteds,
+      recommend_new: app.globalData.recommend_new,
+      thanks_new: app.globalData.thanks_new
     })
+    this.setLoadData();
   },
   setLoadData: function () {
     var items1 = [

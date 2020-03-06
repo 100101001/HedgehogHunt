@@ -63,19 +63,43 @@ page {
 
 .type-navbar-item {
   border-bottom: 4rpx solid #fff;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
 }
 
 .type-item-on {
   border-bottom: 4rpx solid #f7931e;
   color: #f7931e;
 }
-
+.content_tip {
+  font-size: 20rpx;
+  font-weight: 600;
+  color: #fff;
+  margin: 10rpx 0 0 15rpx;
+  background-color: #f7931e;
+  height: 30rpx;
+  width: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-radius: 50%;
+}
+.message_container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 140rpx;
+}
+/* 
 .container{
   display: flex;
   flex-direction: column;
   justify-content: center;
   margin-top: 70rpx;
-}
+} */
 
 .goods_container {
   box-shadow:12rpx 12rpx 12rpx gainsboro;

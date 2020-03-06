@@ -3,7 +3,7 @@ var util = require("../../utils/util.js");
 var app = getApp();
 Page({
   data: {
-    banners: ["/images/goods/camera.jpg", "/images/goods/ear_phone.jpg"],
+    banners: ["/images/logo.jpg"],
     activeCategoryId: -1,
     categories: [{
       id: -1,
@@ -27,7 +27,6 @@ Page({
     //如果没有页面参数，则默认跳转失物招领页面
     var business_type = options.business_type ? options.business_type : 1;
     if (business_type == 1) {
-      var [isSelecteds, urls] = util.onNavigateTap(1);
       var categories = [{
         id: -1,
         name: '全部',
@@ -49,7 +48,7 @@ Page({
       wx.setNavigationBarTitle({
         title: '寻物启事',
       })
-      var [isSelecteds, urls] = util.onNavigateTap(3);
+
       var categories = [{
         id: -1,
         name: '全部',
@@ -68,9 +67,7 @@ Page({
       },
       ]
     };
-    isSelecteds['total_new'] = app.globalData.total_new;
     this.setData({
-      isSelecteds: isSelecteds,
       filter_address: '',
       business_type: business_type,
       categories: categories,
@@ -87,7 +84,12 @@ Page({
     })
   },
   onShow: function () {
-    var isSelecteds = this.data.isSelecteds
+    if (this.data.business_type == 1) {
+      var [isSelecteds, urls] = util.onNavigateTap(1);
+    } else {
+      var [isSelecteds, urls] = util.onNavigateTap(3);
+    }
+    isSelecteds['total_new'] = app.globalData.total_new;
     isSelecteds['showHintQrcode'] = app.globalData.showHintQrcode
     isSelecteds['regFlag'] = app.globalData.regFlag
     isSelecteds['hasQrcode'] = app.globalData.has_qrcode
@@ -388,5 +390,12 @@ Page({
   },
   closeQrcodeHint: function (e) {
     navigate.closeQrcodeHint(this)
-  }
+  },
+  //点击预览图片
+  previewImage: function (e) {
+    wx.previewImage({
+      current: this.data.info.main_image, // 当前显示图片的http链接
+      urls: [this.data.info.main_image] // 需要预览的图片http链接列表
+    })
+  },
 })

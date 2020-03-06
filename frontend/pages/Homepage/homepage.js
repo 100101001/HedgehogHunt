@@ -13,17 +13,14 @@ Page({
       text1: "信息为网友发布",
       text2: "私下联系请自行判断真伪"
     };
-    //设置底部导航栏
-    var [isSelecteds, urls] = util.onNavigateTap(0);
-    var total_new = app.globalData.total_new;
-    isSelecteds['total_new'] = total_new;
     this.setData({
-      isSelecteds: isSelecteds,
       textArray: textArray
     })
   },
   onShow: function(){
-    var isSelecteds = this.data.isSelecteds
+    //设置底部导航栏
+    var [isSelecteds, urls] = util.onNavigateTap(0);
+    isSelecteds['total_new'] = app.globalData.total_new;
     isSelecteds['showHintQrcode'] = app.globalData.showHintQrcode
     isSelecteds['regFlag'] = app.globalData.regFlag
     isSelecteds['hasQrcode'] = app.globalData.has_qrcode
@@ -121,7 +118,6 @@ Page({
     })
   },
   closeQrcodeHint: function(e){
-    console.log("点击了关闭")
     navigate.closeQrcodeHint(this)
   }
 })

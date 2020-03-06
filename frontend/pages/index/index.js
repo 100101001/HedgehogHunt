@@ -50,13 +50,14 @@ Page({
         isScanQrcode: false
       })
       // 无二维码==>走韦朝旭代码
-      app.checkLogin();
-      app.getNewRecommend();
+      app.checkLogin()
+      app.getNewRecommend()
       // 去默认首页
       //this.goToIndex()
     } else {
       //有二维码
-      app.checkLogin(this.qrCodeNavigate, openid);
+      app.checkLogin(this.qrCodeNavigate, openid)
+      app.getNewRecommend()
     }
     /****************扫二维码结束******************/
   },
