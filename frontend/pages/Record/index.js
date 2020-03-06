@@ -23,11 +23,11 @@ Page({
       var check_cat = [
         {
           id: 1,
-          name: '待找回'
+          name: '待找回/认领'
         },
         {
           id: 2,
-          name: '已找回',
+          name: '已找回/认领',
         },
         {
           id: 3,
