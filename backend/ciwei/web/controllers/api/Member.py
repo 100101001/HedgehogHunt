@@ -372,16 +372,12 @@ def decryptPhone():
         resp['code'] = -1
         resp['msg'] = "手机号获取失败"
         return jsonify(resp)
-    # 处理加密的手机号
-    encrypted_data += '=='
     # 获取加密向量
     iv = req['iv'] if 'iv' in req and req['iv'] else ''
     if not iv:
         resp['code'] = -1
         resp['msg'] = "手机号获取失败"
         return jsonify(resp)
-    # 处理加密向量
-    iv += '=='
     # 获取session_key
     session_key = req['session_key'] if 'session_key' in req and req['session_key'] else ''
     if not session_key:

@@ -6,9 +6,6 @@ import xml.etree.ElementTree as ET
 import requests
 
 from application import app, cache
-import base64
-import json
-from Crypto.Cipher import AES
 
 
 class WeChatService:
@@ -114,28 +111,32 @@ class WeChatService:
             return token
 
 
-class WXBizDataCrypt:
-    """
-    解密手机号
-    """
-    def __init__(self, app_id, session_key):
-        self.app_id = app_id
-        self.session_key = session_key
+import base64
+import json
+from Crypto.Cipher import AES
 
-    def decrypt(self, encrypted_data, iv):
+
+class WXBizDataCrypt:
+    def __init__(self, appId, sessionKey):
+        self.appId = appId
+        self.sessionKey = sessionKey
+
+    def decrypt(self, encryptedData, iv):
+
         # base64 decode
-        session_key = base64.b64decode(self.session_key)
-        encrypted_data = base64.b64decode(encrypted_data)
+        sessionKey = base64.b64decode(self.sessionKey)
+        encryptedData = base64.b64decode(encryptedData)
         iv = base64.b64decode(iv)
 
-        cipher = AES.new(session_key, AES.MODE_CBC, iv)
+        cipher = AES.new(sessionKey, AES.MODE_CBC, iv)
 
-        decrypted = json.loads(self._unpad(cipher.decrypt(encrypted_data)).decode())
+        decrypted = json.loads(self._unpad(cipher.decrypt(encryptedData)).decode())
 
-        if decrypted['watermark']['appid'] != self.app_id:
-            raise Exception('Invalid app id')
+        if decrypted['watermark']['appid'] != self.appId:
+            raise Exception('Invalid Buffer')
 
         return decrypted
 
     def _unpad(self, s):
+
         return s[:-ord(s[len(s) - 1:])]
