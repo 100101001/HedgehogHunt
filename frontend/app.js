@@ -287,9 +287,13 @@ App({
           },
           success: function (res) {
             if (res.data.code !== 200) {
+              if(res.data.code == -2){
+                that.setCache("loginInfo", res.data.data)
+              }
               return;
             }
             that.setCache("token", res.data.data.token);
+            that.setCache("loginInfo", res.data.data.login_info)       
             that.globalData.is_adm = res.data.data.is_adm;
             that.globalData.is_user = res.data.data.is_user;
             that.globalData.has_qrcode = res.data.data.has_qrcode;
@@ -364,12 +368,6 @@ App({
             }
             that.setCache("token", res.data.data.token);
             that.checkLogin();
-            // that.alert({
-            //   'content': '登录成功,5秒后自动返回之前页面，欢迎继续使用～'
-            // });
-            // setTimeout(function () {
-            //   wx.navigateBack({})
-            // }, 5000);
           },
           fail: function (res) {
             that.serverBusy();

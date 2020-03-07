@@ -1,20 +1,25 @@
-<import src="../../template/mine-item/mine-item-template.wxml" />
 <view class="user">
-  <image class="avatar" src="{{userInfo.avatar}}"></image>
-  <view class="nickname">{{userInfo.nickname}}</view>
+  <image class="avatar" src="{{avatar}}"></image>
+  <view class="nickname">{{nickname}}</view>
 </view>
 
 <view class="userinfo">
   <view class="fundation_message">基本信息</view>
-  <block wx:for="{{items}}" wx:key="index">
-    <view class="userinfo_container" bindtap="{{item.act}}">
-      <view class="title">{{item.name}}</view>
+      <view class="userinfo_container" bindtap="onEditName">
+      <view class="title">姓名</view>
       <view class="next">
-        <view class="content">{{item.value}}</view>
-        <image class='next_img' src='{{item.src}}'></image>
+        <view class="content">{{name}}</view>
+        <image class='next_img' src='/images/icons/write.png'></image>
       </view>
     </view>
-  </block>
+
+    <view class="userinfo_container" bindtap="onEditMobile">
+      <view class="title">手机</view>
+      <view class="next">
+        <view class="content">{{mobile}}</view>
+        <image class='next_img' src='/images/icons/write.png'></image>
+      </view>
+    </view>
   <!-- 提现余额，满十元可提现 -->
   <view class="userinfo_container" data-id="4">
     <view class="title">账户余额</view>
@@ -34,3 +39,11 @@
   <image class="qr_code" src="{{qrCode}}" bindtouchstart='touchstart' bindtouchend='touchend' bindtap='saveImg' data-id="0" wx:if="{{show_qrcode}}"></image>
   <text class="save-qrcode-text" wx:if="{{show_qrcode}}">长按保存</text>
 </view>
+
+<modal class="edit-modal" hidden="{{hiddenNameModal}}" title="编辑姓名" confirm-text="确定" cancel-text="取消" bindcancel="cancelNameEdit" bindconfirm="confirmNameEdit" >
+  <view><input type='text' focus='{{nameInputfocus}}' cursor-spacing='100' placeholder="请输入姓名" auto-focus bindinput="listenerNameInput"/></view>
+</modal>
+
+<modal class="edit-modal" hidden="{{hiddenMobileModal}}" title="编辑手机" no-cancel="true" confirm-text="取消" bindconfirm="cancelMobileEdit">
+  <view> <button class='bottom' type='primary' open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber">一键绑定</button></view>
+</modal>

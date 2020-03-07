@@ -59,14 +59,6 @@ page{
   text-align: center;
 }
 
-/*条目图片样式
-.item_img {
-  margin-bottom: 25rpx;
-  width: 50rpx;
-  height: 50rpx;
-  opacity: 0.8;
-}
-*/
 .title {
   margin-left: 30rpx;
   font-size: 24rpx;
@@ -116,7 +108,7 @@ page{
   font-weight: 600;
   width: 100rpx;
   text-align:left;
-  margin-left: 20rpx;
+  margin-right: 185rpx;
   color: #f7931e;
 }
 
@@ -169,5 +161,7 @@ page{
   margin: 5rpx auto;
 }
 
-
+.edit-modal{
+  border-radius: 50rpx;
+}
 

@@ -132,7 +132,7 @@ Page({
   },
   onShareAppMessage: function (Options) {
     return {
-      title: '我在刺猬寻物找东西，你也快来看看吧~',
+      title: '我在【闪寻-失物招领】找东西，你也快来看看吧~',
       path: '/pages/index/index',
       success: function (res) {
         wx.request({

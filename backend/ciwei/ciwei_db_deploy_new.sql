@@ -83,11 +83,11 @@ CREATE TABLE `campus`  (
 -- Records of campus
 -- ----------------------------
 INSERT INTO `campus` VALUES (1, '同济大学', 'TJ', 'TJU.jpeg', '2020-02-20 12:20:29', '2020-02-20 12:20:29');
-INSERT INTO `campus` VALUES (2, '北京大学', 'PKU', 'PKU.jpeg', '2020-02-20 12:20:41', '2020-02-20 12:20:41');
-INSERT INTO `campus` VALUES (3, '北京师范', 'BNU', 'BNU.jpeg', '2020-02-24 18:22:16', '2020-02-24 18:22:16');
-INSERT INTO `campus` VALUES (4, '东南大学', 'SEU', 'SEU.jpg', '2020-02-24 18:22:35', '2020-02-24 18:22:35');
-INSERT INTO `campus` VALUES (5, '西安交大', 'XJTU', 'XJTU.jpeg', '2020-02-24 18:22:55', '2020-02-24 18:22:55');
-INSERT INTO `campus` VALUES (6, '四川大学', 'SCU', 'SCU.jpeg', '2020-02-24 18:23:11', '2020-02-24 18:23:11');
+-- INSERT INTO `campus` VALUES (2, '北京大学', 'PKU', 'PKU.jpeg', '2020-02-20 12:20:41', '2020-02-20 12:20:41');
+-- INSERT INTO `campus` VALUES (3, '北京师范', 'BNU', 'BNU.jpeg', '2020-02-24 18:22:16', '2020-02-24 18:22:16');
+-- INSERT INTO `campus` VALUES (4, '东南大学', 'SEU', 'SEU.jpg', '2020-02-24 18:22:35', '2020-02-24 18:22:35');
+-- INSERT INTO `campus` VALUES (5, '西安交大', 'XJTU', 'XJTU.jpeg', '2020-02-24 18:22:55', '2020-02-24 18:22:55');
+-- INSERT INTO `campus` VALUES (6, '四川大学', 'SCU', 'SCU.jpeg', '2020-02-24 18:23:11', '2020-02-24 18:23:11');
 
 -- ----------------------------
 -- Table structure for campus_product
@@ -109,29 +109,29 @@ CREATE TABLE `campus_product`  (
 INSERT INTO `campus_product` VALUES (1, 1, 1, '2020-02-20 12:22:41', '2020-02-20 12:22:41');
 INSERT INTO `campus_product` VALUES (2, 1, 2, '2020-02-20 12:22:55', '2020-02-20 12:22:55');
 INSERT INTO `campus_product` VALUES (3, 1, 3, '2020-02-20 12:22:59', '2020-02-20 12:22:59');
-INSERT INTO `campus_product` VALUES (4, 2, 1, '2020-02-20 12:23:02', '2020-02-20 12:23:02');
-INSERT INTO `campus_product` VALUES (5, 2, 2, '2020-02-20 12:23:05', '2020-02-20 12:23:05');
-INSERT INTO `campus_product` VALUES (6, 2, 3, '2020-02-20 12:23:09', '2020-02-20 12:23:09');
-INSERT INTO `campus_product` VALUES (7, 2, 4, '2020-02-26 12:39:11', '2020-02-26 12:39:11');
-INSERT INTO `campus_product` VALUES (8, 3, 1, '2020-02-28 06:03:14', '2020-02-28 06:03:14');
-INSERT INTO `campus_product` VALUES (9, 3, 2, '2020-02-28 06:03:18', '2020-02-28 06:03:18');
-INSERT INTO `campus_product` VALUES (10, 3, 4, '2020-02-28 06:03:25', '2020-02-28 06:03:25');
-INSERT INTO `campus_product` VALUES (11, 4, 1, '2020-02-28 06:03:30', '2020-02-28 06:03:30');
-INSERT INTO `campus_product` VALUES (12, 4, 4, '2020-02-28 06:03:34', '2020-02-28 06:03:34');
-INSERT INTO `campus_product` VALUES (13, 4, 3, '2020-02-28 06:03:38', '2020-02-28 06:03:38');
-INSERT INTO `campus_product` VALUES (14, 5, 2, '2020-02-28 06:03:43', '2020-02-28 06:03:43');
-INSERT INTO `campus_product` VALUES (15, 5, 3, '2020-02-28 06:03:47', '2020-02-28 06:03:47');
-INSERT INTO `campus_product` VALUES (16, 5, 4, '2020-02-28 06:03:51', '2020-02-28 06:03:51');
-INSERT INTO `campus_product` VALUES (17, 6, 1, '2020-02-28 06:03:55', '2020-02-28 06:03:55');
-INSERT INTO `campus_product` VALUES (18, 6, 2, '2020-02-28 06:03:59', '2020-02-28 06:03:59');
-INSERT INTO `campus_product` VALUES (19, 6, 3, '2020-02-28 06:04:02', '2020-02-28 06:04:02');
-INSERT INTO `campus_product` VALUES (20, 6, 4, '2020-02-28 06:04:06', '2020-02-28 06:04:06');
-INSERT INTO `campus_product` VALUES (21, 1, 4, '2020-03-02 20:05:53', '2020-03-02 20:05:53');
-INSERT INTO `campus_product` VALUES (22, 1, 5, '2020-03-02 20:05:57', '2020-03-02 20:05:57');
-INSERT INTO `campus_product` VALUES (23, 1, 6, '2020-03-02 20:25:50', '2020-03-02 20:25:50');
-INSERT INTO `campus_product` VALUES (24, 2, 5, '2020-03-02 22:48:29', '2020-03-02 22:48:29');
-INSERT INTO `campus_product` VALUES (25, 2, 4, '2020-03-02 22:48:38', '2020-03-02 22:48:38');
-INSERT INTO `campus_product` VALUES (26, 3, 4, '2020-03-02 22:48:43', '2020-03-02 22:48:43');
+INSERT INTO `campus_product` VALUES (4, 1, 4, '2020-03-02 20:05:53', '2020-03-02 20:05:53');
+INSERT INTO `campus_product` VALUES (5, 1, 5, '2020-03-02 20:05:57', '2020-03-02 20:05:57');
+INSERT INTO `campus_product` VALUES (6, 1, 6, '2020-03-02 20:25:50', '2020-03-02 20:25:50');
+-- INSERT INTO `campus_product` VALUES (7, 2, 4, '2020-02-26 12:39:11', '2020-02-26 12:39:11');
+-- INSERT INTO `campus_product` VALUES (8, 3, 1, '2020-02-28 06:03:14', '2020-02-28 06:03:14');
+-- INSERT INTO `campus_product` VALUES (9, 3, 2, '2020-02-28 06:03:18', '2020-02-28 06:03:18');
+-- INSERT INTO `campus_product` VALUES (10, 3, 4, '2020-02-28 06:03:25', '2020-02-28 06:03:25');
+-- INSERT INTO `campus_product` VALUES (11, 4, 1, '2020-02-28 06:03:30', '2020-02-28 06:03:30');
+-- INSERT INTO `campus_product` VALUES (12, 4, 4, '2020-02-28 06:03:34', '2020-02-28 06:03:34');
+-- INSERT INTO `campus_product` VALUES (13, 4, 3, '2020-02-28 06:03:38', '2020-02-28 06:03:38');
+-- INSERT INTO `campus_product` VALUES (14, 5, 2, '2020-02-28 06:03:43', '2020-02-28 06:03:43');
+-- INSERT INTO `campus_product` VALUES (15, 5, 3, '2020-02-28 06:03:47', '2020-02-28 06:03:47');
+-- INSERT INTO `campus_product` VALUES (16, 5, 4, '2020-02-28 06:03:51', '2020-02-28 06:03:51');
+-- INSERT INTO `campus_product` VALUES (17, 6, 1, '2020-02-28 06:03:55', '2020-02-28 06:03:55');
+-- INSERT INTO `campus_product` VALUES (18, 6, 2, '2020-02-28 06:03:59', '2020-02-28 06:03:59');
+-- INSERT INTO `campus_product` VALUES (19, 6, 3, '2020-02-28 06:04:02', '2020-02-28 06:04:02');
+-- INSERT INTO `campus_product` VALUES (20, 6, 4, '2020-02-28 06:04:06', '2020-02-28 06:04:06');
+-- INSERT INTO `campus_product` VALUES (21, 2, 1, '2020-02-20 12:23:02', '2020-02-20 12:23:02');
+-- INSERT INTO `campus_product` VALUES (22, 2, 2, '2020-02-20 12:23:05', '2020-02-20 12:23:05');
+-- INSERT INTO `campus_product` VALUES (23, 2, 3, '2020-02-20 12:23:09', '2020-02-20 12:23:09');
+-- INSERT INTO `campus_product` VALUES (24, 2, 5, '2020-03-02 22:48:29', '2020-03-02 22:48:29');
+-- INSERT INTO `campus_product` VALUES (25, 2, 4, '2020-03-02 22:48:38', '2020-03-02 22:48:38');
+-- INSERT INTO `campus_product` VALUES (26, 3, 4, '2020-03-02 22:48:43', '2020-03-02 22:48:43');
 
 -- ----------------------------
 -- Table structure for cart
@@ -154,6 +154,7 @@ CREATE TABLE `cart`  (
 DROP TABLE IF EXISTS `feedback`;
 CREATE TABLE `feedback`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `uu_id` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '唯一标识',
   `user_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '处理反馈消息的管理员id',
   `member_id` int(11) UNSIGNED NOT NULL COMMENT '反馈消息的会员id',
   `summary` varchar(10000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
@@ -363,18 +364,18 @@ CREATE TABLE `product`  (
 -- ----------------------------
 -- Records of product
 -- ----------------------------
-INSERT INTO `product` VALUES (1, 1, 0, '防水', 1, '稿纸', 10.00, '20200303/稿纸1.jpg', '20200303/稿纸1.jpg', '', '爱丢笔记本的TJer，快把实惠的稿纸带回家吧~', 1, 0, 99999, 0, 0, '2020-02-25 19:33:24', '2020-02-20 12:21:28');
-INSERT INTO `product` VALUES (2, 2, 0, '三折伞', 2, '伞', 40.00, '20200303/雨伞1.jpg', '20200303/雨伞1.jpg', '', '独特的闪寻伞，教室门口的一把回头伞，妈妈再也不怕我雨天上学丢伞了', 1, 0, 99999, 0, 0, '2020-02-28 14:04:59', '2020-02-20 12:21:42');
-INSERT INTO `product` VALUES (3, 3, 0, '圆形纯LOGO', 2, '钥匙扣', 30.00, '20200303/钥匙扣1.jpg', '20200303/钥匙扣1.jpg', '', '闪寻的可爱刺猬LOGO，闪寻粉丝纪念品', 1, 0, 99999, 0, 0, '2020-03-03 04:33:34', '2020-02-20 12:22:17');
-INSERT INTO `product` VALUES (4, 3, 1, '圆形LOGO二维码', 2, '钥匙扣', 30.00, '20200303/钥匙扣2.jpg', '20200303/钥匙扣2.jpg', '', '闪寻LOGO迷你居于二维码中央，身形小巧，易于携带', 1, 0, 99999, 0, 0, '2020-02-28 14:04:59', '2020-02-20 12:22:17');
-INSERT INTO `product` VALUES (5, 3, 2, '二维码附信息方卡', 2, '钥匙扣', 30.00, '20200303/钥匙扣3.jpg', '20200303/钥匙扣3.jpg', '', '信息卡上附带联络方式，方便捡到的人直接联系爱丢东西的你', 1, 0, 99999, 0, 0, '2020-03-03 04:33:34', '2020-02-20 12:22:17');
-INSERT INTO `product` VALUES (6, 4, 0, '手账必备', 1, '胶带', 30.00, '20200303/胶带1.jpg', '20200303/胶带1.jpg', '', '轻松一粘，易丢物品闪寻~', 1, 0, 99999, 0, 0, '2020-02-26 12:39:37', '2020-02-26 12:39:37');
-INSERT INTO `product` VALUES (7, 5, 0, 'LOGO二维码', 2, '徽章', 20.00, '20200303/徽章1.jpg', '20200303/徽章1.jpg', '', 'LOGO二维码', 1, 0, 99999, 0, 0, '2020-03-02 16:56:34', '2020-03-02 16:56:34');
-INSERT INTO `product` VALUES (8, 5, 1, '纯LOGO', 2, '徽章', 10.00, '20200303/徽章2.jpg', '20200303/徽章2.jpg', '', '纯LOGO', 1, 0, 99999, 0, 0, '2020-03-02 16:56:34', '2020-03-02 16:56:34');
-INSERT INTO `product` VALUES (9, 5, 2, '纯二维码', 2, '徽章', 20.00, '20200303/徽章3.jpg', '20200303/徽章3.jpg', '', '纯二维码', 1, 0, 99999, 0, 0, '2020-03-02 16:56:34', '2020-03-02 16:56:34');
-INSERT INTO `product` VALUES (10, 5, 3, '组合', 2, '徽章', 50.00, '20200303/徽章4.jpg', '20200303/徽章4.jpg', '', '包含所有徽章，组合价更优惠~', 1, 0, 99999, 0, 0, '2020-03-02 16:56:34', '2020-03-02 16:56:34');
-INSERT INTO `product` VALUES (11, 6, 0, '水印', 1, '印章', 50.00, '20200303/印章1.jpg', '20200303/印章1.jpg', '', '可以敲在书本上，你的闪寻名片', 1, 0, 99999, 0, 0, '2020-03-03 04:33:34', '2020-03-02 20:24:22');
-INSERT INTO `product` VALUES (12, 6, 1, '钢印', 1, '印章', 90.00, '20200303/印章2.jpg', '20200303/印章2.jpg', '', '可以敲在书本上，你的闪寻名片', 1, 0, 99999, 0, 0, '2020-03-03 04:33:34', '2020-03-02 20:24:31');
+INSERT INTO `product` VALUES (1, 1, 0, '防水', 1, '稿纸', 10.00, '20200303/paper1.jpg', '20200303/paper1.jpg', '', '爱丢笔记本的TJer，快把实惠的稿纸带回家吧~', 1, 0, 99999, 0, 0, '2020-02-25 19:33:24', '2020-02-20 12:21:28');
+INSERT INTO `product` VALUES (2, 2, 0, '三折伞', 2, '伞', 40.00, '20200303/umbrella1.jpg', '20200303/umbrella1.jpg', '', '独特的闪寻伞，教室门口的一把回头伞，妈妈再也不怕我雨天上学丢伞了', 1, 0, 99999, 0, 0, '2020-02-28 14:04:59', '2020-02-20 12:21:42');
+INSERT INTO `product` VALUES (3, 3, 0, '圆形纯LOGO', 2, '钥匙扣', 30.00, '20200303/keyring1.jpg', '20200303/keyring1.jpg', '', '闪寻的可爱刺猬LOGO，闪寻粉丝纪念品', 1, 0, 99999, 0, 0, '2020-03-03 04:33:34', '2020-02-20 12:22:17');
+INSERT INTO `product` VALUES (4, 3, 1, '圆形LOGO二维码', 2, '钥匙扣', 30.00, '20200303/keyring2.jpg', '20200303/keyring2.jpg', '', '闪寻LOGO迷你居于二维码中央，身形小巧，易于携带', 1, 0, 99999, 0, 0, '2020-02-28 14:04:59', '2020-02-20 12:22:17');
+INSERT INTO `product` VALUES (5, 3, 2, '二维码附信息方卡', 2, '钥匙扣', 30.00, '20200303/keyring3.jpg', '20200303/keyring3.jpg', '', '信息卡上附带联络方式，方便捡到的人直接联系爱丢东西的你', 1, 0, 99999, 0, 0, '2020-03-03 04:33:34', '2020-02-20 12:22:17');
+INSERT INTO `product` VALUES (6, 4, 0, '手账必备', 1, '胶带', 30.00, '20200303/tape1.jpg', '20200303/tape1.jpg', '', '轻松一粘，易丢物品闪寻~', 1, 0, 99999, 0, 0, '2020-02-26 12:39:37', '2020-02-26 12:39:37');
+INSERT INTO `product` VALUES (7, 5, 0, 'LOGO二维码', 2, '徽章', 20.00, '20200303/badge1.jpg', '20200303/badge1.jpg', '', 'LOGO二维码', 1, 0, 99999, 0, 0, '2020-03-02 16:56:34', '2020-03-02 16:56:34');
+INSERT INTO `product` VALUES (8, 5, 1, '纯LOGO', 2, '徽章', 10.00, '20200303/badge2.jpg', '20200303/badge2.jpg', '', '纯LOGO', 1, 0, 99999, 0, 0, '2020-03-02 16:56:34', '2020-03-02 16:56:34');
+INSERT INTO `product` VALUES (9, 5, 2, '纯二维码', 2, '徽章', 20.00, '20200303/badge3.jpg', '20200303/badge3.jpg', '', '纯二维码', 1, 0, 99999, 0, 0, '2020-03-02 16:56:34', '2020-03-02 16:56:34');
+INSERT INTO `product` VALUES (10, 5, 3, '组合', 2, '徽章', 50.00, '20200303/badge4.jpg', '20200303/badge4.jpg', '', '包含所有徽章，组合价更优惠~', 1, 0, 99999, 0, 0, '2020-03-02 16:56:34', '2020-03-02 16:56:34');
+INSERT INTO `product` VALUES (11, 6, 0, '水印', 1, '印章', 50.00, '20200303/stamper1.jpg', '20200303/stamper1.jpg', '', '可以敲在书本上，你的闪寻名片', 1, 0, 99999, 0, 0, '2020-03-03 04:33:34', '2020-03-02 20:24:22');
+INSERT INTO `product` VALUES (12, 6, 1, '钢印', 1, '印章', 90.00, '20200303/stamper2.jpg', '20200303/stamper2.jpg', '', '可以敲在书本上，你的闪寻名片', 1, 0, 99999, 0, 0, '2020-03-03 04:33:34', '2020-03-02 20:24:31');
 
 -- ----------------------------
 -- Table structure for product_cat

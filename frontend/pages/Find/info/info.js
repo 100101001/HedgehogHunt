@@ -17,9 +17,9 @@ Page({
     }
     var is_auth = this.data.info.is_auth;
     if (is_auth) {
-      var start = "我在刺猬寻物"
+      var start = "我在【闪寻-失物招领】"
     } else {
-      var start = "有人在刺猬寻物"
+      var start = "有人在【闪寻-失物招领】"
     }
     var title_msg = start + type_name + end;
     return {

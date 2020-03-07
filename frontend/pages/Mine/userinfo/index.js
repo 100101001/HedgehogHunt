@@ -1,130 +1,207 @@
-var util = require("../../../utils/util.js");
 var app = getApp();
 Page({
   data: {
     userInfo: {},
     has_qrcode: false,
     show_qrcode: false,
-    qrCode: ""
+    qrCode: "",
+    hiddenNameModal: true,
+    hiddenMobileModal: true,
+    nameInputfocus: false
   },
   onLoad: function () {
     //会员基本信息
-    var receiver = app.globalData.memberInfo.name == "" ? wx.getStorageSync('receiver') : app.globalData.memberInfo.name
-    var mobile = app.globalData.memberInfo.mobile == "" ? wx.getStorageSync('mobile') : app.globalData.memberInfo.mobile
-    var address = app.globalData.memberInfo.location == "" ? wx.getStorageSync('location') : app.globalData.memberInfo.location
+    var name = app.globalData.memberInfo.name
+    var mobile = app.globalData.memberInfo.mobile
     var balance = app.globalData.memberInfo.balance
     this.setData({
-      items: [{
-        name: "姓名",
-        value: receiver == "" ? "-" : receiver,
-      },
-      {
-        name: "电话",
-        value: mobile == "" ? "-" : mobile,
-      },
-      {
-        name: "收件地址",
-        value: address == "" ? "-" : address,
-      },
-      {
-        name: "编辑个人信息",
-        value: "",
-        act: "onChooseAddresTap",
-        src: '/images/icons/write.png',
-      }
-      ],
-    })
-    this.setData({
-      userInfo: app.globalData.memberInfo,
+      avatar: app.globalData.memberInfo.avatar,
+      nickname: app.globalData.memberInfo.nickname,
+      mobile: mobile == "" ? "-" : mobile,
+      name: name == "" ? "-" : name,
       has_qrcode: app.globalData.has_qrcode,
       qrCode: app.globalData.has_qrcode ? app.globalData.qr_code_list[0] : "",
       balance: balance
     });
   },
-  onChooseAddresTap: function (event) {
-    var that = this;
-    var items = that.data.items;
-    var has_qrcode = this.data.has_qrcode
-    wx.chooseAddress({
-      success(res) {
-        console.log(res)
-        items[0].value = app.globalData.memberInfo.name = res.userName;
-        items[1].value = app.globalData.memberInfo.mobile = res.telNumber;
-        items[2].value = app.globalData.memberInfo.location = res.cityName + res.countyName + res.detailInfo;
-        wx.request({
-          url: app.buildUrl('/member/contactinfo/set'),
-          header: app.getRequestHeader(),
-          method: 'POST',
-          data: {
-            mobile: res.telNumber,
-            name: res.userName,
-            location: res.cityName + res.countyName + res.detailInfo
-          }
-        })
-        if (has_qrcode) {
-          wx.request({
-            url: app.buildUrl('/qrcode/contactinfo/set'),
-            header: app.getRequestHeader(),
-            method: 'POST',
-            data: {
-              mobile: res.telNumber,
-              name: res.userName,
-              location: res.cityName + res.countyName + res.detailInfo
+  getPhoneNumber(e) {
+    var msg = e.detail.errMsg
+    var that = this
+    var session_key = app.getCache("loginInfo").session_key
+    var encryptedData = e.detail.encryptedData
+    var iv = e.detail.iv;
+    if(msg == "getPhoneNumber:fail:user deny"){
+      this.setData({
+        hiddenMobileModal: true
+      })
+      return
+    }
+    if (msg == 'getPhoneNumber:ok') {
+      wx.checkSession({
+        success: function () {
+          that.deciyption(session_key, encryptedData, iv);
+        },
+        fail: function (res) {
+          console.log(res)
+          wx.login({
+            success: res => {
+              wx.request({
+                method: 'POST',
+                url: app.buildUrl('/member/login/wx'),
+                header: {
+                  'content-type': 'application/json',
+                },
+                data: { code: res.code },
+                success: function (res) {
+                  var resp = res.data
+                  if(resp.code!==200){
+                    app.alert({
+                      'content': resp.msg
+                    })
+                    return
+                  }
+                  var loginInfo = resp.data;
+                  app.setCache('loginInfo', loginInfo);
+                  that.deciyption(loginInfo.session_key, encryptedData, iv);
+                }
+              })
             }
           })
         }
-        that.setData({
-          items: items
+      })
+    }
+  },
+  deciyption(session_key, encryptedData, iv) {
+    wx.request({
+      method: 'POST',
+      url: app.buildUrl('/member/set/phone'),
+      header: app.getRequestHeader(1),
+      data: {
+        session_key: session_key,
+        encrypted_data: encryptedData,
+        iv: iv
+      },
+      success: res => {
+        var resp = res.data
+        if (resp.code !== 200) {
+          app.alert({
+            'content': resp.msg
+          })
+          return
+        }
+        app.globalData.memberInfo.mobile = resp.data.mobile
+        this.setData({
+          hiddenMobileModal: true,
+          mobile: resp.data.mobile
         })
-        wx.setStorage({
-          key: 'receiver',
-          data: items[0].value
-        });
-        wx.setStorage({
-          key: 'mobile',
-          data: items[1].value
-        });
-        wx.setStorage({
-          key: 'address',
-          data: items[2].value
-        });
       }
     })
   },
-  getQrCode: function () {
+  onEditMobile: function () {
+    this.setData({
+      hiddenMobileModal: false
+    })
+  },
+  cancelMobileEdit: function () {
+    this.setData({
+      hiddenMobileModal: true
+    })
+  },
+  onEditName: function () {
+    this.setData({
+      hiddenNameModal: false,
+      nameInputfocus: true
+    })
+  },
+  cancelNameEdit: function () {
+    this.setData({
+      hiddenNameModal: true,
+      nameInputfocus: false
+    })
+  },
+  confirmNameEdit: function (e) {
+    if (this.data.editName == "") {
+      app.alert({
+        'content': '姓名不能为空'
+      })
+      return
+    }
+    if(this.data.name == this.data.editName){
+      app.alert({
+        'content': '未修改'
+      })
+      return
+    }
     var that = this
-    var items = this.data.items
-    if (items[0].value == "-" || items[1].value == "-") {
-      app.alert({ 'content': '先【编辑个人信息】完善联络信息' })
+    wx.request({
+      method: 'POST',
+      url: app.buildUrl('/member/set/name'),
+      header: app.getRequestHeader(),
+      data: { name: that.data.editName },
+      success: res => {
+        console.log(res)
+        var resp = res.data
+        if (resp.code !== 200) {
+          app.alert({
+            'content': resp.msg
+          })
+          return
+        }
+        app.globalData.memberInfo.name = resp.data.name
+        this.setData({
+          name: resp.data.name,
+          hiddenNameModal: true,
+          nameInputfocus: false
+        })
+      }
+    })
+  },
+  listenerNameInput: function (e) {
+    this.setData({
+      editName: e.detail.value
+    })
+  },
+  getQrCode: function () {
+    var name = this.data.name
+    var mobile = this.data.mobile
+    if (name == "-") {
+      app.alert({ 'content': '姓名不能为空' })
+      return
+    }
+    if (mobile == "-") {
+      app.alert({ 'content': '手机不能为空' })
       return
     }
     if (!this.data.has_qrcode) {
+      wx.showLoading({
+        title: '正在获取..',
+      })
+      var that = this
       wx.request({
         method: 'post',
         url: app.buildUrl('/qrcode/wx'),
-        data: {
-          name: items[0].value,
-          mobile: items[1].value,
-          location: items[2].value
-        },
         header: app.getRequestHeader(),
         success: function (res) {
           var resp = res.data
-          if (resp.code === 200) {
-            app.globalData.has_qrcode = true
-            app.globalData.qr_code_list = [resp.data.qr_code_url]
-            that.setData({
-              qrCode: resp.data.qr_code_url,
-              has_qrcode: true,
-              show_qrcode: true
+          if(resp.code!==200){
+            app.alert({
+              'content': resp.msg
             })
+            return
           }
-          else {
-            app.serverInternalError()
-          }
+          app.globalData.has_qrcode = true
+          app.globalData.qr_code_list = [resp.data.qr_code_url]
+          that.setData({
+            qrCode: resp.data.qr_code_url,
+            has_qrcode: true,
+            show_qrcode: true
+          })
         },
         fail: function (res) {
           app.serverBusy()
+        },
+        complete:res=>{
+          wx.hideLoading()
         }
       })
     }
@@ -135,17 +212,14 @@ Page({
       show_qrcode: show_qrcode
     });
   },
-
   //开始点击的时间
   touchstart: function (e) {
     this.setData({ touchstart: e.timeStamp })
   },
-
   //点击结束的时间
   touchend: function (e) {
     this.setData({ touchend: e.timeStamp })
   },
-
   //保存图片
   saveImg: function (e) {
     var that = this
@@ -193,10 +267,10 @@ Page({
   },
   onWithDrawTap: function () {
     var balance = this.data.balance
-    if (balance < 50) {
+    if (balance < 10) {
       app.alert({
         'title': '温馨提示',
-        'content': '账户余额不足￥50不能提现'
+        'content': '账户余额不足￥10不能提现'
       })
       return
     }

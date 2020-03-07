@@ -86,7 +86,7 @@ Page({
                     return
                 }
                 //获取商品的id,之后用于提交图片
-                var id = resp.id;
+                var id = resp.data.id;
                 that.uploadImage(id, img_list);
             },
             fail: function (res) {
@@ -119,11 +119,6 @@ Page({
                 formData: {'id': id},
                 name: 'file',//文件名，不要修改，Flask直接读取
                 success: function (res) {
-                    // var resp = JSON.parse(res.data);
-                    //     if (resp.code !== 200) {
-                    //         app.alert({'content': resp.msg});
-                    //         return;
-                    //     }
                     if (end_s) {
                         that.endCreate(id);
                     }
@@ -154,14 +149,16 @@ Page({
                         return
                     }
                     wx.showToast({
-                        title: '提交成功,感谢反馈！',
+                        title: '提交成功,感谢反馈！    ',
                         icon: 'success',
                         duration: 2000
                     });
                     that.setData({
                         loadingHidden: true,
                     });
-                    wx.navigateBack();
+                    setTimeout(function () {
+                        wx.navigateBack({})
+                      }, 2000);
                 },
                 fail: function (res) {
                         app.serverBusy();
