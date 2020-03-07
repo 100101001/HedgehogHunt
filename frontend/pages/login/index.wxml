@@ -12,7 +12,7 @@
  
         <button class='bottom' type='primary' open-type="getUserInfo" bindgetuserinfo="login" 
         wx:if="{{getUserInfo}}">
-            授权登录
+            授权用户信息
         </button>
         <button class='bottom' type='primary' open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber"
          wx:if="{{getPhone}}">微信用户快捷登录</button>
