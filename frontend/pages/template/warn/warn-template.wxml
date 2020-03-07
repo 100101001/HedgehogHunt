@@ -2,11 +2,14 @@
   <view class='warning'>
     <image class='warning_img' src='/images/icons/warning.png'></image>
     <swiper autoplay='true' vertical='true' circular='true'>
-      <swiper-item>
+      <swiper-item class="sw_item">
         <text class="swiper_text">{{text1}}</text>
       </swiper-item>
-      <swiper-item>
+      <swiper-item class="sw_item">
         <text class="swiper_text">{{text2}}</text>
+      </swiper-item>
+      <swiper-item class="sw_item">
+        <text class="swiper_text">{{text3}}</text>
       </swiper-item>
     </swiper>
   </view>

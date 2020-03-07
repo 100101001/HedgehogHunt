@@ -10,8 +10,9 @@ Page({
   },
   onLoad: function () {
     var textArray = {
-      text1: "信息为网友发布",
-      text2: "私下联系请自行判断真伪"
+      text1: "好看又实用校园闪寻周边可附着在物品上",
+      text2: "在物品遗失后可帮助物主快速寻回物品",
+      text3: "快来点击获取你学校专属的闪寻周边吧！",
     };
     this.setData({
       textArray: textArray

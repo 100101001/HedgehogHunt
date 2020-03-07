@@ -3,7 +3,7 @@ Page({
   data: {
     show_qr_code: true,
     qr_code_list: [
-      "/images/more/mhx.jpg",
+      "/images/more/wcx.jpg",
       "/images/more/wcx.jpg",
     ],
   },

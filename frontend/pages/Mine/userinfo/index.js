@@ -12,6 +12,7 @@ Page({
     var receiver = app.globalData.memberInfo.name == "" ? wx.getStorageSync('receiver') : app.globalData.memberInfo.name
     var mobile = app.globalData.memberInfo.mobile == "" ? wx.getStorageSync('mobile') : app.globalData.memberInfo.mobile
     var address = app.globalData.memberInfo.location == "" ? wx.getStorageSync('location') : app.globalData.memberInfo.location
+    var balance = app.globalData.memberInfo.balance
     this.setData({
       items: [{
         name: "姓名",
@@ -36,7 +37,8 @@ Page({
     this.setData({
       userInfo: app.globalData.memberInfo,
       has_qrcode: app.globalData.has_qrcode,
-      qrCode: app.globalData.has_qrcode ? app.globalData.qr_code_list[0] : ""
+      qrCode: app.globalData.has_qrcode ? app.globalData.qr_code_list[0] : "",
+      balance: balance
     });
   },
   onChooseAddresTap: function (event) {
@@ -59,7 +61,7 @@ Page({
             location: res.cityName + res.countyName + res.detailInfo
           }
         })
-        if(has_qrcode){
+        if (has_qrcode) {
           wx.request({
             url: app.buildUrl('/qrcode/contactinfo/set'),
             header: app.getRequestHeader(),
@@ -93,7 +95,7 @@ Page({
     var that = this
     var items = this.data.items
     if (items[0].value == "-" || items[1].value == "-") {
-      app.alert({'content':'请先完善个人信息'})
+      app.alert({ 'content': '先【编辑个人信息】完善联络信息' })
       return
     }
     if (!this.data.has_qrcode) {
@@ -189,4 +191,18 @@ Page({
       })
     }
   },
+  onWithDrawTap: function () {
+    var balance = this.data.balance
+    if (balance < 50) {
+      app.alert({
+        'title': '温馨提示',
+        'content': '账户余额不足￥50不能提现'
+      })
+      return
+    }
+    app.alert({
+      'title': '温馨提示',
+      'content': '提现模块正在开发中，请联系客服提现'
+    })
+  }
 })

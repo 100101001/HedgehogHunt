@@ -16,8 +16,8 @@
         <view class="confirm-btn" catchtap='goToIndex' wx:if="{{member_status==1 && !isScanQrcode}}">
           <text>逛一逛</text>
         </view>
-        <view class="warn" wx:if="{{member_status==0}}">该账号（会员id:{{id}}）疑似违规被管理员限制登录！若有疑问请发送邮件到：1651168@tongji.edu.cn进行咨询</view>
-        <text class="copyright">Copyright ©刺猬寻物</text>
+        <view class="warn" wx:if="{{member_status==0}}">该账号（会员id:{{id}}）疑似违规被管理员限制登录！若有疑问请发送邮件到：990527197@qq.com进行咨询</view>
+        <text class="copyright">Copyright ©闪寻-失物招领</text>
       </view>
     </view>
   </block>

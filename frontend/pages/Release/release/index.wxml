@@ -38,8 +38,8 @@
         <image class="add-pic-icon" src="/images/icons/add-pics.png"></image>
       </view>
     </view>
-    <view class="tips-views" wx:if="{{business_type==0}}">发布寻物启事前可以先去首页看看有没有人发布失物招领~</view>
-    <view class="tips-views" wx:if="{{business_type==1}}">发布失物招领前可以先去首页看看有没有人发布寻物启事~</view>
+    <view class="tips-views" wx:if="{{business_type==0}}">发布寻物启事前可以先去待领页看看有没有人发布失物招领~</view>
+    <view class="tips-views" wx:if="{{business_type==1}}">发布失物招领前可以先去待寻页看看有没有人发布寻物启事~</view>
     <view class="hrz"></view>
     <view class="summary-container">
       <view class="tips-views">物品描述</view>

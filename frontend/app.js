@@ -14,9 +14,10 @@ App({
     memberInfo: null,
     version: "1.0",
     regFlag: false,
-    shopName: "刺猬寻物",
+    shopName: "闪寻-失物招领",
     // domain: "http://127.0.0.1:8999/api",
-    domain: "http://192.168.0.116:8999/api",
+    //domain: "http://192.168.0.116:8999/api",
+    domain: "https://ciwei.opencs.cn/api",
     //domain: "http://188.131.240.205:8999/api",
     //domain: "http://192.168.1.12:8999/api",
     member_id: null,
@@ -42,11 +43,6 @@ App({
     logs.unshift(Date.now())
     wx.setStorageSync('logs', logs)
     // 登录
-    // wx.login({
-    //   success: res => {
-    //     // 发送 res.code 到后台换取 openId, sessionKey, unionId
-    //   }
-    // })
     // 获取用户信息
     var that = this
     wx.getSetting({

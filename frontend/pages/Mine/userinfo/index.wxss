@@ -109,6 +109,17 @@ page{
   margin-left: 20rpx;
 }
 
+
+.content2 {
+  margin-top: -20rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  width: 100rpx;
+  text-align:left;
+  margin-left: 20rpx;
+  color: #f7931e;
+}
+
 /*账户信息*/
 .recharge_btn {
   color: #f7931e;

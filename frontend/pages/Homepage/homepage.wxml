@@ -8,14 +8,13 @@
     </view>
     <button class="search_button" bindtap="searchSchool" disabled="{{searching}}">搜索</button>
   </view>
+  <template is="warn-template" data="{{...textArray}}" />
   <block wx:for="{{unis}}" wx:key="id" wx:for-index="idx">
     <view class="image-container" bindtap="goBuy" data-id="{{idx}}"> 
       <image src="{{item.url}}" mode="aspectFill" />
     </view>
   </block>
-  <view wx:if="{{!loadingMoreHidden}}" class="no-more-goods">没有更多学校了~可以联系加盟</view>
+  <view wx:if="{{!loadingMoreHidden}}" class="no-more-goods">没有更多校园专属闪寻周边了~可以联系客服加盟</view>
   <view wx:if="{{loadingMoreHidden}}" class="no-more-goods">上滑加载更多～</view>
 </view>
-
-<!-- <template is="warn-template" data="{{...textArray}}" /> -->
 <template is="navigate-bar-template" data="{{...isSelecteds}}" />
