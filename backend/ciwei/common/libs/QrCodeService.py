@@ -60,7 +60,6 @@ def save_wx_qr_code(member_info, wx_resp):
                      openid=member_info.openid,
                      name=member_info.name,
                      mobile=member_info.mobile,
-                     location=member_info.location,
                      qr_code=qr_code_relative_path,
                      updated_time=now,
                      created_time=now)

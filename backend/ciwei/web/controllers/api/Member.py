@@ -1,7 +1,7 @@
 #!/usr/bin/python3.6.8
 from flask import request, jsonify, g
 
-from application import db
+from application import db, app
 from common.libs import Helper
 from common.libs.Helper import getCurrentDate
 from common.libs.MemberService import MemberService
@@ -26,6 +26,7 @@ def login():
 
     # 检查参数：code
     code = req['code'] if 'code' in req else ''
+
     if not code or len(code) < 1:
         resp['code'] = -1
         resp['msg'] = "need code"
@@ -43,6 +44,7 @@ def login():
     nickname = req['nickName'] if 'nickName' in req else ''
     sex = req['gender'] if 'gender' in req else 0
     avatar = req['avatarUrl'] if 'avatarUrl' in req else ''
+    mobile = req['mobile'] if 'mobile' in req and req['mobile'] else ''
     '''
     判断是否已经注册过，注册了直接返回一些信息即可
     '''
@@ -54,6 +56,7 @@ def login():
         model_member.avatar = avatar
         model_member.updated_time = model_member.created_time = getCurrentDate()
         model_member.openid = openid
+        model_member.mobile = mobile
         db.session.add(model_member)
         db.session.commit()
         member_info = model_member
@@ -82,15 +85,19 @@ def checkReg():
         return jsonify(resp)
 
     # 查询是否是管理员
-    openid = MemberService.getWeChatOpenId(code)
+    openid, session_key = MemberService.getWeChatOpenId(code, get_session_key=True)
     if openid is None:
         resp['code'] = -1
         resp['msg'] = "call wechat error"
         return jsonify(resp)
     member_info = Member.query.filter_by(openid=openid).first()
     if not member_info:
-        resp['code'] = -1
+        resp['code'] = -2
         resp['member_status'] = -2
+        resp['data'] = {
+            'openid': openid,
+            'session_key': session_key
+        }
         resp['msg'] = "binding information not queried"
         return jsonify(resp)
     is_adm = False
@@ -126,7 +133,11 @@ def checkReg():
         'qr_code_list': qr_code_list,
         'member_status': member_info.status,
         'id': member_info.id,
-        'member_info': Helper.queryToDict(member_info)
+        'member_info': Helper.queryToDict(member_info),
+        'login_info': {
+            'openid': openid,
+            'session_key': session_key
+        }
     }
     return jsonify(resp)
 
@@ -350,21 +361,130 @@ def memberShare():
     return jsonify(resp)
 
 
-@route_api.route("/member/contactinfo/set", methods=['POST', 'GET'])
-def setContactInfo():
-    resp = {'code': 200, 'msg': '联络信息添加成功', 'data': {}}
+@route_api.route("/member/phone/decrypt", methods=['POST', 'GET'])
+def decryptPhone():
+    resp = {'code': 200, 'msg': '已获取手机号', 'data': {}}
+    from common.libs.mall.WechatService import WXBizDataCrypt
+    req = request.get_json()
+    # 获取加密手机号
+    encrypted_data = req['encrypted_data'] if 'encrypted_data' in req and req['encrypted_data'] else ''
+    if not encrypted_data:
+        resp['code'] = -1
+        resp['msg'] = "手机号获取失败"
+        return jsonify(resp)
+    # 处理加密的手机号
+    encrypted_data += '=='
+    # 获取加密向量
+    iv = req['iv'] if 'iv' in req and req['iv'] else ''
+    if not iv:
+        resp['code'] = -1
+        resp['msg'] = "手机号获取失败"
+        return jsonify(resp)
+    # 处理加密向量
+    iv += '=='
+    # 获取session_key
+    session_key = req['session_key'] if 'session_key' in req and req['session_key'] else ''
+    if not session_key:
+        resp['code'] = -1
+        resp['msg'] = "手机号获取失败"
+        return jsonify(resp)
+    appId = app.config['OPENCS_APP']['appid']
+    # 解密手机号
+    pc = WXBizDataCrypt(appId, session_key)
+    mobile_obj = pc.decrypt(encrypted_data, iv)
+    mobile = mobile_obj['phoneNumber']
+    app.logger.info("手机号是：{}".format(mobile))
+    resp['data'] = {
+        'mobile': mobile
+    }
+    return jsonify(resp)
+
+
+@route_api.route('/member/login/wx', methods=['POST'])
+def getUserInfo():
+    resp = {'code': 200, 'msg': '已获取手机号', 'data': {}}
+    req = request.get_json()
+    code = req['code'] if 'code' in req and req['code'] else ''
+    if not code:
+        resp['code'] = -1
+        resp['msg'] = "手机号获取失败"
+        return jsonify(resp)
+    openid, session_key = MemberService.getWeChatOpenId(code, get_session_key=True)
+    if openid is None:
+        resp['code'] = -1
+        resp['msg'] = "手机号获取失败"
+        return jsonify(resp)
+    resp['data'] = {
+        'openid': openid,
+        'session_key': session_key
+    }
+    return jsonify(resp)
+
+
+@route_api.route('/member/set/name', methods=['POST'])
+def setName():
+    resp = {'code': 200, 'msg': '修改成功', 'data': {}}
     req = request.values
-    # 检查登陆
+    name = req['name'] if 'name' in req and req['name'] else ''
     member_info = g.member_info
     if not member_info:
         resp['code'] = -1
-        resp['msg'] = "用户信息异常"
+        resp['msg'] = "请先登录"
         return jsonify(resp)
 
-    member_info.mobile = req['mobile'] if 'mobile' in req and req['mobile'] else ''
-    member_info.name = req['name'] if 'name' in req and req['name'] else ''
-    member_info.location = req['location'] if 'location' in req and req['location'] else ''
+    member_info.name = name
+    member_info.updated_time = getCurrentDate()
     db.session.add(member_info)
     db.session.commit()
+    resp['data'] = {'name': member_info.name}
     return jsonify(resp)
 
+
+@route_api.route('/member/set/phone', methods=['POST'])
+def setPhone():
+    resp = {'code': 200, 'msg': '修改手机号成功', 'data': {}}
+
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "请先登录"
+        return jsonify(resp)
+
+    from common.libs.mall.WechatService import WXBizDataCrypt
+    req = request.get_json()
+    # 获取加密手机号
+    encrypted_data = req['encrypted_data'] if 'encrypted_data' in req and req['encrypted_data'] else ''
+    if not encrypted_data:
+        resp['code'] = -1
+        resp['msg'] = "手机号获取失败"
+        return jsonify(resp)
+    # 处理加密的手机号
+    encrypted_data += '=='
+    # 获取加密向量
+    iv = req['iv'] if 'iv' in req and req['iv'] else ''
+    if not iv:
+        resp['code'] = -1
+        resp['msg'] = "手机号获取失败"
+        return jsonify(resp)
+    # 处理加密向量
+    iv += '=='
+    # 获取session_key
+    session_key = req['session_key'] if 'session_key' in req and req['session_key'] else ''
+    if not session_key:
+        resp['code'] = -1
+        resp['msg'] = "手机号获取失败"
+        return jsonify(resp)
+    appId = app.config['OPENCS_APP']['appid']
+    # 解密手机号
+    pc = WXBizDataCrypt(appId, session_key)
+    mobile_obj = pc.decrypt(encrypted_data, iv)
+    mobile = mobile_obj['phoneNumber']
+    app.logger.info("手机号是：{}".format(mobile))
+    member_info.mobile = mobile
+    member_info.updated_time = getCurrentDate()
+    db.session.add(member_info)
+    db.session.commit()
+    resp['data'] = {
+        'mobile': mobile
+    }
+    return jsonify(resp)

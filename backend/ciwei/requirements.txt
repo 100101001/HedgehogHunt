@@ -10,6 +10,7 @@ Flask-Caching
 bs4
 lxml
 flask-migrate
+pycrypto
 # uwsgi
 
 # 以下是测试依赖

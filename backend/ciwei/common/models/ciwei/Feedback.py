@@ -11,6 +11,7 @@ class Feedback(db.Model):
     __table_args__ = ({'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8mb4', 'comment': '反馈表'})
 
     id = db.Column(INTEGER(11, unsigned=True), primary_key=True, autoincrement=True)
+    uu_id = db.Column(db.String(80), nullable=False, default='', comment="唯一标识")
     user_id = db.Column(INTEGER(11, unsigned=True), nullable=False, default=0, comment="处理反馈消息的管理员id")
     member_id = db.Column(INTEGER(11, unsigned=True), nullable=False, comment="反馈消息的会员id")
     summary = db.Column(db.String(10000), nullable=False, default='', comment="描述")

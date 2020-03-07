@@ -34,7 +34,7 @@ class MemberService():
         return ("".join(keylist))
 
     @staticmethod
-    def getWeChatOpenId(code):
+    def getWeChatOpenId(code, get_session_key=False):
         appid = app.config['OPENCS_APP']['appid']
         appkey = app.config['OPENCS_APP']['appkey']
         url = 'https://api.weixin.qq.com/sns/jscode2session?appid={0}&secret={1}&' \
@@ -44,9 +44,16 @@ class MemberService():
         res = json.loads(r.text)
 
         openid = None
+        session_key = None
         if 'openid' in res:
             openid = res['openid']
-        return openid
+        if 'session_key' in res:
+            session_key = res['session_key']
+
+        if get_session_key:
+            return openid, session_key
+        else:
+            return openid
 
     @staticmethod
     def updateCredits(member_info):
