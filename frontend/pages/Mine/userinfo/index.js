@@ -9,7 +9,7 @@ Page({
     hiddenMobileModal: true,
     nameInputfocus: false,
     hiddenContactModal: true,
-    contact_img: app.globalData.static_file_domain + "/static/upload/QRcode.jpg"
+    contact_img: app.globalData.static_file_domain + "/static/QRcode.jpg"
   },
   onLoad: function () {
     //会员基本信息
@@ -234,7 +234,6 @@ Page({
   },
   previewImage: function (e) {
     var image = e.currentTarget.dataset.src
-    console.log(e)
     wx.previewImage({
       current: image, // 当前显示图片的http链接
       urls: [image] // 需要预览的图片http链接列表
