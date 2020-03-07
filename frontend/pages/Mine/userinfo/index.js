@@ -7,7 +7,9 @@ Page({
     qrCode: "",
     hiddenNameModal: true,
     hiddenMobileModal: true,
-    nameInputfocus: false
+    nameInputfocus: false,
+    hiddenContactModal: true,
+    contact_img: app.globalData.static_file_domain + "/static/upload/QRcode.jpg"
   },
   onLoad: function () {
     //会员基本信息
@@ -30,7 +32,7 @@ Page({
     var session_key = app.getCache("loginInfo").session_key
     var encryptedData = e.detail.encryptedData
     var iv = e.detail.iv;
-    if(msg == "getPhoneNumber:fail:user deny"){
+    if (msg == "getPhoneNumber:fail:user deny") {
       this.setData({
         hiddenMobileModal: true
       })
@@ -54,7 +56,7 @@ Page({
                 data: { code: res.code },
                 success: function (res) {
                   var resp = res.data
-                  if(resp.code!==200){
+                  if (resp.code !== 200) {
                     app.alert({
                       'content': resp.msg
                     })
@@ -126,7 +128,7 @@ Page({
       })
       return
     }
-    if(this.data.name == this.data.editName){
+    if (this.data.name == this.data.editName) {
       app.alert({
         'content': '未修改'
       })
@@ -183,7 +185,7 @@ Page({
         header: app.getRequestHeader(),
         success: function (res) {
           var resp = res.data
-          if(resp.code!==200){
+          if (resp.code !== 200) {
             app.alert({
               'content': resp.msg
             })
@@ -200,7 +202,7 @@ Page({
         fail: function (res) {
           app.serverBusy()
         },
-        complete:res=>{
+        complete: res => {
           wx.hideLoading()
         }
       })
@@ -212,71 +214,30 @@ Page({
       show_qrcode: show_qrcode
     });
   },
-  //开始点击的时间
-  touchstart: function (e) {
-    this.setData({ touchstart: e.timeStamp })
-  },
-  //点击结束的时间
-  touchend: function (e) {
-    this.setData({ touchend: e.timeStamp })
-  },
-  //保存图片
-  saveImg: function (e) {
-    var that = this
-    var touched_time = that.data.touchend - that.data.touchstart
-    //0.3s
-    if (touched_time > 300) {
-      wx.showLoading({
-        title: '保存中，请稍等~',
-      })
-      wx.getSetting({
-        success: function (res) {
-          wx.authorize({
-            scope: 'scope.writePhotosAlbum',
-            success: function () {
-              var img_url = that.data.qrCode //图片地址
-              wx.downloadFile({ //下载文件资源到本地，客户端直接发起一个 HTTP GET 请求，返回文件的本地临时路径
-                url: img_url,
-                success: function (res) {
-                  // 下载成功后再保存到本地
-                  wx.saveImageToPhotosAlbum({
-                    filePath: res.tempFilePath,//返回的临时文件路径，下载后的文件会存储到一个临时文件
-                    success: function (res) {
-                      wx.showToast({
-                        title: '保存到本地相册',
-                        complete: res => {
-                          wx.hideLoading({
-                            complete: (res) => { },
-                          })
-                        }
-                      })
-                    },
-                    fail: function (res) {
-                      wx.hideLoading({
-                        complete: (res) => { },
-                      })
-                    }
-                  })
-                }
-              })
-            }
-          })
-        }
-      })
-    }
-  },
   onWithDrawTap: function () {
     var balance = this.data.balance
     if (balance < 10) {
       app.alert({
         'title': '温馨提示',
-        'content': '账户余额不足￥10不能提现'
+        'content': '余额满10元即可提现'
       })
       return
     }
-    app.alert({
-      'title': '温馨提示',
-      'content': '提现模块正在开发中，请联系客服提现'
+    this.setData({
+      hiddenContactModal: false
     })
-  }
+  },
+  cancelContact: function (e) {
+    this.setData({
+      hiddenContactModal: true
+    })
+  },
+  previewImage: function (e) {
+    var image = e.currentTarget.dataset.src
+    console.log(e)
+    wx.previewImage({
+      current: image, // 当前显示图片的http链接
+      urls: [image] // 需要预览的图片http链接列表
+    })
+  },
 })

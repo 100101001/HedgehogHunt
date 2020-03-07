@@ -135,6 +135,11 @@ page{
   margin-bottom: 15rpx;
 }
 
+.contact-info{
+  width: 550rpx;
+  text-align: center;
+}
+
 .next_img1 {
   width: 50rpx;
   height: 50rpx;
