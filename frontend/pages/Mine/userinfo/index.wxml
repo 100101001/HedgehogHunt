@@ -41,7 +41,7 @@
 </view>
 
 <modal class="edit-modal" hidden="{{hiddenNameModal}}" title="编辑姓名" confirm-text="确定" cancel-text="取消" bindcancel="cancelNameEdit" bindconfirm="confirmNameEdit" >
-  <view><input type='text' focus='{{nameInputfocus}}' cursor-spacing='100' placeholder="请输入姓名" auto-focus bindinput="listenerNameInput"/></view>
+  <view><input type='text' auto-focus="true" cursor-spacing='100' placeholder="请输入姓名" auto-focus bindinput="listenerNameInput"/></view>
 </modal>
 
 <modal class="edit-modal" hidden="{{hiddenMobileModal}}" title="编辑手机" no-cancel="true" confirm-text="取消" bindconfirm="cancelMobileEdit">

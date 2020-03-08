@@ -7,11 +7,30 @@ Page({
     qrCode: "",
     hiddenNameModal: true,
     hiddenMobileModal: true,
-    nameInputfocus: false,
     hiddenContactModal: true,
     contact_img: app.globalData.static_file_domain + "/static/QRcode.jpg"
   },
   onLoad: function () {
+    //如果登陆状态过期就重新登陆
+    wx.checkSession({
+      fail: (res) => {
+        wx.login({
+          success: res => {
+            wx.request({
+              method: 'POST',
+              url: app.buildUrl('/member/login/wx'),
+              header: {
+                'content-type': 'application/json',
+              },
+              data: { code: res.code },
+              success: res=>{
+                app.setCache("loginInfo", res.data.data)
+              }
+            })
+          }
+        })
+      }
+    })
     //会员基本信息
     var name = app.globalData.memberInfo.name
     var mobile = app.globalData.memberInfo.mobile
@@ -27,9 +46,10 @@ Page({
     });
   },
   getPhoneNumber(e) {
+    console.log(e)
     var msg = e.detail.errMsg
     var that = this
-    var session_key = app.getCache("loginInfo").session_key
+    var session_key = app.getCache('loginInfo').session_key
     var encryptedData = e.detail.encryptedData
     var iv = e.detail.iv;
     if (msg == "getPhoneNumber:fail:user deny") {
@@ -40,11 +60,10 @@ Page({
     }
     if (msg == 'getPhoneNumber:ok') {
       wx.checkSession({
-        success: function () {
+        success: (res) => {
           that.deciyption(session_key, encryptedData, iv);
         },
-        fail: function (res) {
-          console.log(res)
+        fail: (res) => {
           wx.login({
             success: res => {
               wx.request({
@@ -63,7 +82,7 @@ Page({
                     return
                   }
                   var loginInfo = resp.data;
-                  app.setCache('loginInfo', loginInfo);
+                  app.setCache('loginInfo', loginInfo)
                   that.deciyption(loginInfo.session_key, encryptedData, iv);
                 }
               })
@@ -74,6 +93,7 @@ Page({
     }
   },
   deciyption(session_key, encryptedData, iv) {
+    this.showToast('设置中', 'loading', 800)
     wx.request({
       method: 'POST',
       url: app.buildUrl('/member/set/phone'),
@@ -112,13 +132,19 @@ Page({
   onEditName: function () {
     this.setData({
       hiddenNameModal: false,
-      nameInputfocus: true
     })
   },
   cancelNameEdit: function () {
     this.setData({
       hiddenNameModal: true,
-      nameInputfocus: false
+    })
+  },
+  showToast: function (title = '', icon = 'none', duraton = 1000, mask = true) {
+    wx.showToast({
+      'title': title,
+      'icon': icon,
+      'duraton': duraton,
+      'mask': mask
     })
   },
   confirmNameEdit: function (e) {
@@ -129,12 +155,11 @@ Page({
       return
     }
     if (this.data.name == this.data.editName) {
-      app.alert({
-        'content': '未修改'
-      })
+      this.showToast('请填不同姓名!', 'none')
       return
     }
     var that = this
+    this.showToast('设置中', 'loading')
     wx.request({
       method: 'POST',
       url: app.buildUrl('/member/set/name'),
