@@ -1,16 +1,19 @@
 <view>
     <view wx:if="{{canIUse}}" >
-        <view class='header'>
+        <view class='logo-header' wx:if="{{getPhone}}">
+            <image src='/images/logo.jpg'></image>
+        </view>
+
+        <view class='header' wx:if="{{getUserInfo}}">
             <image src='/images/icons/wechat.png'></image>
         </view>
  
-        <view class='content'>
+        <view class='content' wx:if="{{getUserInfo}}">
             <view>申请获取以下权限</view>
-            <text wx:if="{{getUserInfo}}">获得你的公开信息(昵称，头像等)</text>
-            <text wx:if="{{getPhone}}">获得你的联络信息</text>
+            <text >获得你的公开信息(昵称，头像等)</text>
         </view>
  
-        <button class='bottom' type='primary' open-type="getUserInfo" bindgetuserinfo="login" 
+        <button class='bottom' type='primary' open-type="getUserInfo" bindgetuserinfo="getInfo" 
         wx:if="{{getUserInfo}}">
             授权用户信息
         </button>

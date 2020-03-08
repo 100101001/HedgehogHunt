@@ -18,6 +18,8 @@ App({
     // domain: "http://127.0.0.1:8999/api",
     //domain: "http://192.168.0.116:8999/api",
     domain: "https://ciwei.opencs.cn/api",
+    static_file_domain: "https://ciwei.opencs.cn",
+    //static_file_domain: "http://192.168.0.116:8999",
     //domain: "http://188.131.240.205:8999/api",
     //domain: "http://192.168.1.12:8999/api",
     member_id: null,
@@ -287,63 +289,40 @@ App({
           },
           success: function (res) {
             if (res.data.code !== 200) {
-              if(res.data.code == -2){
+              if (res.data.code == -2) {
                 that.setCache("loginInfo", res.data.data)
               }
               return;
             }
-            that.setCache("token", res.data.data.token);
-            that.setCache("loginInfo", res.data.data.login_info)       
-            that.globalData.is_adm = res.data.data.is_adm;
-            that.globalData.is_user = res.data.data.is_user;
-            that.globalData.has_qrcode = res.data.data.has_qrcode;
-            that.globalData.qr_code_list = res.data.data.qr_code_list;
-            that.globalData.location = res.data.data.location;
-            that.globalData.member_status = res.data.data.member_status;
-            that.globalData.id = res.data.data.id;
-            that.globalData.openid = res.data.data.token.split("#")[0]
-            that.globalData.regFlag = true;
-            that.globalData.memberInfo = res.data.data.member_info
+            that.onCheckLoginSuccess(res)
             if (callback != undefined) {
               callback(qrcode_openid)
             } else {
-              wx.showToast({
-                title: '登录成功',
-                icon: 'success',
-                duration: 1500,
-                success: function (res) {
-                  var pages = getCurrentPages()
-                  if (pages.length == 1) {
-                    return
-                  }
-                  setTimeout(function () {
-                    wx.navigateBack({})
-                  }, 1000);
-                }
-              })
+              that.onCheckLoginSuccessShowToast('登录成功')
             }
           },
           fail: function (res) {
             that.serverBusy();
             return;
           },
-          complete: function (res) { },
+          complete: function (res) {
+          },
         });
       }
     });
   },
-  login: function (e, callback = null) {
-    if(this.globalData.regFlag && this.getCache('token')!=''){
+  login: function (userInfo, callback = null) {
+    if (this.globalData.regFlag && this.getCache('token') != '') {
       wx.navigateBack()
     }
     var that = this;
-    if (!e.detail.userInfo) {
+    if (!userInfo) {
       that.alert({
         'content': '登录失败，请再次登录～～'
       });
       return;
     }
-    var data = e.detail.userInfo;
+    var data = userInfo
     wx.login({
       success: function (res) {
         if (!res.code) {
@@ -377,5 +356,36 @@ App({
         });
       }
     });
+  },
+  onCheckLoginSuccess: function (res) {
+    var that = this
+    that.setCache("token", res.data.data.token);
+    that.setCache("loginInfo", res.data.data.login_info)
+    that.globalData.is_adm = res.data.data.is_adm;
+    that.globalData.is_user = res.data.data.is_user;
+    that.globalData.has_qrcode = res.data.data.has_qrcode;
+    that.globalData.qr_code_list = res.data.data.qr_code_list;
+    that.globalData.location = res.data.data.location;
+    that.globalData.member_status = res.data.data.member_status;
+    that.globalData.id = res.data.data.id;
+    that.globalData.openid = res.data.data.token.split("#")[0]
+    that.globalData.regFlag = true;
+    that.globalData.memberInfo = res.data.data.member_info
+  },
+  onCheckLoginSuccessShowToast: function (content) {
+    wx.showToast({
+      title: content,
+      icon: 'success',
+      duration: 1500,
+      success: function (res) {
+        var pages = getCurrentPages()
+        if (pages.length == 1) {
+          return
+        }
+        setTimeout(function () {
+          wx.navigateBack({})
+        }, 1000);
+      }
+    })
   }
 })
