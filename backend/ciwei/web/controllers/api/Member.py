@@ -60,6 +60,20 @@ def login():
         db.session.add(model_member)
         db.session.commit()
         member_info = model_member
+    else:
+        if not nickname:
+            member_info.nickname = nickname
+            db.session.add(member_info)
+        if not sex:
+            member_info.sex = sex
+            db.session.add(member_info)
+        if not avatar:
+            member_info.avatar = avatar
+            db.session.add(member_info)
+        if not mobile:
+            member_info.mobile = mobile
+            db.session.add(member_info)
+        db.session.commit()
     token = "%s#%s" % (openid, member_info.id)
     # 登陆后，前端在 app.globalData 中存有全局变量
     resp['data'] = {'token': token, 'member_info': Helper.queryToDict(member_info)}
@@ -366,6 +380,7 @@ def decryptPhone():
     resp = {'code': 200, 'msg': '已获取手机号', 'data': {}}
     from common.libs.mall.WechatService import WXBizDataCrypt
     req = request.get_json()
+    app.logger.info(req)
     # 获取加密手机号
     encrypted_data = req['encrypted_data'] if 'encrypted_data' in req and req['encrypted_data'] else ''
     if not encrypted_data:
@@ -387,7 +402,13 @@ def decryptPhone():
     appId = app.config['OPENCS_APP']['appid']
     # 解密手机号
     pc = WXBizDataCrypt(appId, session_key)
-    mobile_obj = pc.decrypt(encrypted_data, iv)
+    try:
+        mobile_obj = pc.decrypt(encrypted_data, iv)
+    except Exception as e:
+        app.logger.warn(e)
+        resp['code'] = -1
+        resp['msg'] = "手机号获取失败"
+        return jsonify(resp)
     mobile = mobile_obj['phoneNumber']
     app.logger.info("手机号是：{}".format(mobile))
     resp['data'] = {
@@ -396,7 +417,7 @@ def decryptPhone():
     return jsonify(resp)
 
 
-@route_api.route('/member/login/wx', methods=['POST'])
+@route_api.route('/member/login/wx', methods=['GET', 'POST'])
 def getUserInfo():
     resp = {'code': 200, 'msg': '已获取手机号', 'data': {}}
     req = request.get_json()
@@ -417,7 +438,7 @@ def getUserInfo():
     return jsonify(resp)
 
 
-@route_api.route('/member/set/name', methods=['POST'])
+@route_api.route('/member/set/name', methods=['GET', 'POST'])
 def setName():
     resp = {'code': 200, 'msg': '修改成功', 'data': {}}
     req = request.values
@@ -436,7 +457,7 @@ def setName():
     return jsonify(resp)
 
 
-@route_api.route('/member/set/phone', methods=['POST'])
+@route_api.route('/member/set/phone', methods=['GET', 'POST'])
 def setPhone():
     resp = {'code': 200, 'msg': '修改手机号成功', 'data': {}}
 
@@ -445,25 +466,21 @@ def setPhone():
         resp['code'] = -1
         resp['msg'] = "请先登录"
         return jsonify(resp)
-
     from common.libs.mall.WechatService import WXBizDataCrypt
     req = request.get_json()
+    app.logger.info(req)
     # 获取加密手机号
     encrypted_data = req['encrypted_data'] if 'encrypted_data' in req and req['encrypted_data'] else ''
     if not encrypted_data:
         resp['code'] = -1
         resp['msg'] = "手机号获取失败"
         return jsonify(resp)
-    # 处理加密的手机号
-    encrypted_data += '=='
     # 获取加密向量
     iv = req['iv'] if 'iv' in req and req['iv'] else ''
     if not iv:
         resp['code'] = -1
         resp['msg'] = "手机号获取失败"
         return jsonify(resp)
-    # 处理加密向量
-    iv += '=='
     # 获取session_key
     session_key = req['session_key'] if 'session_key' in req and req['session_key'] else ''
     if not session_key:
@@ -473,7 +490,13 @@ def setPhone():
     appId = app.config['OPENCS_APP']['appid']
     # 解密手机号
     pc = WXBizDataCrypt(appId, session_key)
-    mobile_obj = pc.decrypt(encrypted_data, iv)
+    try:
+        mobile_obj = pc.decrypt(encrypted_data, iv)
+    except Exception as e:
+        app.logger.warn(e)
+        resp['code'] = -1
+        resp['msg'] = "手机号获取失败"
+        return jsonify(resp)
     mobile = mobile_obj['phoneNumber']
     app.logger.info("手机号是：{}".format(mobile))
     member_info.mobile = mobile
@@ -483,4 +506,19 @@ def setPhone():
     resp['data'] = {
         'mobile': mobile
     }
+    return jsonify(resp)
+
+
+@route_api.route('/member/exists', methods=['GET', 'POST'])
+def member_exists():
+    resp = {'code': 200, 'msg': '用户已注册', 'data': {'exists': True}}
+    req = request.values
+    openid = req['openid'] if 'openid' in req and req['openid'] else ''
+    if not openid:
+        resp['code'] = -1
+        resp['msg'] = "登陆信息缺失"
+        return jsonify(resp)
+    member_info = Member.query.filter_by(openid=openid).first()
+    if not member_info:
+        resp['data'] = {'exists': False}
     return jsonify(resp)

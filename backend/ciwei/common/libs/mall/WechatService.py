@@ -130,13 +130,13 @@ class WXBizDataCrypt:
 
         cipher = AES.new(sessionKey, AES.MODE_CBC, iv)
 
-        decrypted = json.loads(self._unpad(cipher.decrypt(encryptedData)).decode())
+        decrypted = json.loads(self._unpad(cipher.decrypt(encryptedData)))
 
         if decrypted['watermark']['appid'] != self.appId:
             raise Exception('Invalid Buffer')
-
+        app.logger.info(decrypted)
         return decrypted
 
     def _unpad(self, s):
-
+        # 最后一个字符的ASCII值为c,截掉最后c位字符
         return s[:-ord(s[len(s) - 1:])]
