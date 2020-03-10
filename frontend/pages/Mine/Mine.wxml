@@ -1,10 +1,4 @@
 <import src="../template/mine-item/mine-item-template.wxml" />
-<!-- <view class="user">
-  <image class="avatar" src="/images/images/avatar/1.png"></image>
-  <view class="nickname">爱丢东西的TAC</view>
-  <view class="wechatid">微信号：wcx5755</view>
-</view> 
--->
 <view class="userinfo">
   <view class="fundation_message">基本信息</view>
   <view class="userinfo_container" bindtap="goControls" wx:if="{{is_user}}">

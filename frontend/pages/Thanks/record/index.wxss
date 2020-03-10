@@ -93,13 +93,13 @@ page {
   align-items: center;
   margin-top: 140rpx;
 }
-/* 
+
 .container{
   display: flex;
   flex-direction: column;
   justify-content: center;
   margin-top: 70rpx;
-} */
+}
 
 .goods_container {
   box-shadow:12rpx 12rpx 12rpx gainsboro;

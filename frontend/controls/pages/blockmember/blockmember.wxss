@@ -1,0 +1,66 @@
+@import "../../../pages/template/info-auth-data/info-auth-template.wxss";
+@import "../feedback/index.wxss";
+.container{
+  margin-top: 120rpx;
+}
+
+.type-container{
+  display: flex;
+  flex-direction: row;
+  position: fixed;
+  top:0;
+  left: 0;
+  width: 750rpx;
+  background-color: #fff;
+}
+
+.type-navbar{
+  white-space: nowrap;
+  height: 88rpx;
+  width: 750rpx;
+  background-color: #fff;
+}
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  color: transparent;
+}
+
+.type-box {
+  width: 375rpx;
+  box-sizing: content-box;
+  font-size: 24rpx;
+  line-height: 84rpx;
+  text-align: center;
+  display: inline-block;
+  overflow: hidden;
+}
+
+.type-navbar-item {
+  border-bottom: 4rpx solid #fff;
+}
+
+.type-item-on {
+  border-bottom: 4rpx solid #f7931e;
+  color: #f7931e;
+}
+
+.summary{
+  font-size:28rpx;
+}
+
+.hrz{
+  border: 1rpx solid #eee;
+  width: 100%;
+  margin-bottom: 10rpx;
+  margin-top: 10rpx;
+}
+
+.tips-views{
+  display: flex;
+  font-size: 26rpx;
+  justify-content: center;
+  opacity: 0.7;
+  align-content: center;
+  margin-top:40rpx;
+}

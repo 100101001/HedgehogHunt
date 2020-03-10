@@ -76,7 +76,7 @@ Page({
       //红包加文字感谢
       var balance = this.data.balance
       //答谢金额保留两位小数
-      var pay = Math.round(price * 100.6) / 100
+      var pay = Math.round(price * 101) / 100
       //微信支付金额保留两位小数
       var wx_pay = Math.round((pay - balance)*100)/100
       var content = ''

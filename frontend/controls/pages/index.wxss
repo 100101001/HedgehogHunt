@@ -1,0 +1,2 @@
+/* pages/jmall/my/controls/index.wxss */
+@import "../../pages/template/items/item-template.wxss";
