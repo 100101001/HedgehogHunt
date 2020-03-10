@@ -11,7 +11,7 @@ bs4
 lxml
 flask-migrate
 pycrypto
-# uwsgi
+uwsgi
 
 # 以下是测试依赖
 mock

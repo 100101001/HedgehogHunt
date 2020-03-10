@@ -38,6 +38,19 @@
         "index",
         "info/info"
       ]
+    },
+    {
+      "root":"controls",
+      "pages":[
+        "pages/index",
+        "pages/static/index",
+        "pages/add_adm/index",
+        "pages/blockmember/blockmember",
+        "pages/feedback/index",
+        "pages/feedback_msg/index",
+        "pages/feedback_msg/info",
+        "pages/report/index"
+      ]
     }
   ],
   "window": {

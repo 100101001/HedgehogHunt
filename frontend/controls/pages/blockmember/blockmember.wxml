@@ -1,0 +1,32 @@
+<!--pages/jmall/my/controls/feedback_msg/index.wxml-->
+<loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
+<view class="type-container">
+  <scroll-view class="type-navbar">
+    <view class="type-box" wx:for-items="{{feedback_cat}}" wx:for-item="cat" wx:key="index">
+      <view id="{{cat.id}}" class="type-navbar-item {{statusId == cat.id ? 'type-item-on' : ''}}" bindtap="statusTypeClick">
+        {{cat.name}}
+      </view>
+    </view>
+  </scroll-view>
+</view>
+
+<view class="container">
+  <block wx:for="{{block_list}}" wx:key="block_member_index">
+    <view class="auth-data">
+      <view style="width:110rpx;float:left;" class="auth-item">
+        <image style="width: 100rpx; height: 100rpx;border-radius: 50%;" src="{{item.avatar}}"></image>
+      </view>
+      <view style="width:550rpx;float:left;margin-left:35rpx;" class="auth-item">
+        <view>{{item.auther_name}}</view>
+        <view class="updated-time">{{item.updated_time}}</view>
+      </view>
+      <view class="report" catchtap="toRestoreMember" data-id="{{ item.id }}">
+        <image src="/images/icons/edit-red.png" mode="aspectFit"></image>
+        <text>恢复</text>
+      </view>
+    </view>
+      <view class="hrz"></view>
+  </block>
+</view>
+<view class="tips-views" wx:if="{{!loadingMoreHidden}}">没有更多记录了~</view>
+<view class="tips-views" wx:if="{{loadingMoreHidden}}">上滑加载更多～</view>

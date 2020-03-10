@@ -1,15 +1,16 @@
 SERVER_PORT = 8999
 # IP = '127.0.0.1'
-IP = '192.168.0.115'
-IP = '192.168.0.116'
+# IP = '192.168.0.115'
+# IP = '192.168.0.116'
 # IP='100.68.70.139'
+IP='47.102.201.193'
 DEBUG = True
 SQLALCHEMY_ECHO = True
 
 PAGE_SIZE = 50
 PAGE_DISPLAY = 10
 
-SQLALCHEMY_DATABASE_URI = 'mysql://root:wcx9517530@188.131.240.205/ciwei_db1?charset=utf8mb4'
+SQLALCHEMY_DATABASE_URI = 'mysql://root:wcx9517530@127.0.0.1/ciwei_db?charset=utf8mb4'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_ENCODING = 'utf-8'
 
@@ -81,5 +82,5 @@ APP = {
     # 'domain':'http://0.0.0.0:8999'
     # 'domain':'http://192.168.31.66:8999'
     # 'domain': "http://100.68.70.139:8999",
-    'domain': "http://" + IP + ":8999",
+    'domain': "http://" + IP + ":8889",
 }

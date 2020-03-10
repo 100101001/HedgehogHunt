@@ -77,8 +77,12 @@ Page({
     })
   },
   goControls: function () {
+    console.log("dianle1")
     wx.navigateTo({
-      url: 'controls/index',
+      url: '/controls/pages/index',
+      complete(res){
+        console.log(res)
+      }
     })
   },
   goUserInfo: function () {
