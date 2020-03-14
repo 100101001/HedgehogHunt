@@ -97,7 +97,7 @@ Page({
   },
   goFeedback: function () {
     wx.navigateTo({
-      url: 'controls/feedback/index',
+      url: '/controls/pages/feedback/index',
     })
   },
   goRecord: function (event) {
