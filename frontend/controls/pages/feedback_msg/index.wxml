@@ -3,14 +3,14 @@
 <view class="type-container">
     <scroll-view class="type-navbar">
       <view class="type-box" wx:for-items="{{feedback_cat}}" wx:for-item="cat" wx:key="index">
-        <view id="{{cat.id}}" class="type-navbar-item {{statusId == cat.id ? 'type-item-on' : ''}}" bindtap="statusTypeClick">
+        <view data-id="{{cat.id}}" class="type-navbar-item {{statusId == cat.id ? 'type-item-on' : ''}}" bindtap="statusTypeClick">
           {{cat.name}}
         </view>
       </view>
     </scroll-view>
 </view>
 
-<block wx:for="{{feedback_list}}" wx:if="{{feedback_list.length}}">
+<block wx:for="{{feedback_list}}" wx:if="{{feedback_list.length}}" wx:key="id">
   <view class="container" bindtap='toFeedBackDetail' data-id="{{item.id}}">
     <image class="image" src="{{item.main_image}}" mode="aspectFill"></image>
     <view class="text_container">
