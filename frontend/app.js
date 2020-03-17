@@ -269,6 +269,9 @@ App({
   checkLogin: function (callback = undefined, qrcode_openid = undefined) {
     //已登录就不再重复登录
     if (this.globalData.regFlag && this.getCache("token") != "") {
+      if (callback != undefined) {
+        callback(qrcode_openid)
+      }
       return
     }
     var that = this;

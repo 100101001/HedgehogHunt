@@ -1,2 +1,2 @@
-<import src="../../../template/items/item-template.wxml" />
+<import src="../../../pages/template/items/item-template.wxml" />
 <template is="item-template" data="{{items}}"/>
