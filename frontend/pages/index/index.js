@@ -49,6 +49,8 @@ Page({
       this.setData({
         isScanQrcode: false
       })
+      app.globalData.isScanQrcode = false
+      app.globalData.qrcodeOpenid = null
       // 无二维码==>走韦朝旭代码
       app.checkLogin()
       app.getNewRecommend()
@@ -56,7 +58,13 @@ Page({
       //this.goToIndex()
     } else {
       //有二维码
-      app.checkLogin(this.qrCodeNavigate, openid)
+      this.setData({
+        isScanQrcode: true
+      })
+      app.globalData.isScanQrcode = true
+      app.globalData.qrcodeOpenid = openid
+      //有二维码
+      app.checkLogin(this)
       app.getNewRecommend()
     }
     /****************扫二维码结束******************/
@@ -69,31 +77,6 @@ Page({
         return decodeURIComponent(options.scene)
       }
       return null
-    }
-  },
-  qrCodeNavigate: function (openid) {
-    if (openid == app.globalData.openid) {
-      //自己扫码更换绑定手机号
-      wx.showActionSheet({
-        itemList: ['绑定手机号', '随便扫扫'],
-        success(res) {
-          if (res.tapIndex == 0) {
-            wx.redirectTo({
-              url: "/pages/Qrcode/Mobile/index?openid=" + openid
-            })
-          }
-        },
-        fail: res => {
-          this.setData({
-            isScanQrcode: false
-          })
-        }
-      })
-    } else {
-      //别人扫码发布帖子，通知失主
-      wx.redirectTo({
-        url: "/pages/Release/release/index?business_type=1&openid=" + openid
-      })
     }
   },
   onShow: function () {

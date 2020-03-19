@@ -26,6 +26,10 @@ App({
     member_status: 1,
     is_adm: true,
     op_status: 2,
+    isScanQrcode: true, //是否扫码进入
+    qrcodeOpenid: null, //二维码用户ID
+    unLoggedRelease: false,
+    unLoggedReleaseToken: null,
     subscribe: {
       recommend: 'zSCF_j0kTfRvPe8optyb5sx8F25S3Xc9yCvvObXFCh4',
       finished: 'Vx58nqU-cfi07bu4mslzCFhFyGTT52Xk4zlsrwC-MVA',
@@ -266,11 +270,11 @@ App({
       }
     });
   },
-  checkLogin: function (callback = undefined, qrcode_openid = undefined) {
+  checkLogin: function (page = undefined) {
     //已登录就不再重复登录
     if (this.globalData.regFlag && this.getCache("token") != "") {
-      if (callback != undefined) {
-        callback(qrcode_openid)
+      if(this.globalData.isScanQrcode){
+        this.qrCodeNavigate(page)
       }
       return
     }
@@ -292,14 +296,19 @@ App({
           },
           success: function (res) {
             if (res.data.code !== 200) {
+              //非注册用户
               if (res.data.code == -2) {
                 that.setCache("loginInfo", res.data.data)
               }
+              //如果在扫码
+              if(that.globalData.isScanQrcode){
+                that.qrCodeNavigate(page)
+              }
               return;
             }
-            that.onCheckLoginSuccess(res)
-            if (callback != undefined) {
-              callback(qrcode_openid)
+            that.onCheckLoginSuccessSetData(res)
+            if(that.globalData.isScanQrcode){
+              that.qrCodeNavigate(page)
             } else {
               that.onCheckLoginSuccessShowToast('登录成功')
             }
@@ -314,7 +323,7 @@ App({
       }
     });
   },
-  login: function (userInfo, callback = null) {
+  login: function (userInfo) {
     if (this.globalData.regFlag && this.getCache('token') != '') {
       wx.navigateBack()
     }
@@ -360,7 +369,7 @@ App({
       }
     });
   },
-  onCheckLoginSuccess: function (res) {
+  onCheckLoginSuccessSetData: function (res) {
     var that = this
     that.setCache("token", res.data.data.token);
     that.setCache("loginInfo", res.data.data.login_info)
@@ -390,5 +399,69 @@ App({
         }, 1000);
       }
     })
-  }
+  },
+  qrCodeNavigate: function (page) {
+    var openid = this.globalData.qrcodeOpenid
+    if (openid == this.globalData.openid) {
+      //自己扫码更换绑定手机号
+      wx.showActionSheet({
+        itemList: ['绑定手机号', '随便扫扫'],
+        success: res => {
+          if (res.tapIndex == 0) {
+            wx.redirectTo({
+              url: "/pages/Qrcode/Mobile/index?openid=" + openid
+            })
+            //已经去了绑定手机页面，说明用户已经是登陆状态，不再需要标记登陆处于扫码阶段
+            this.globalData.isScanQrcode = false
+            this.globalData.qrcodeOpenid = null
+          }else{
+            page.setData({
+              isScanQrcode: false
+            })
+          }
+        },
+        fail: res => {
+          //不再需要标记登陆处于扫码阶段
+          this.globalData.isScanQrcode = false
+          this.globalData.qrcodeOpenid = null
+          page.setData({
+            isScanQrcode: false
+          })
+        }
+      })
+    } else {
+      //别人扫码发布帖子，通知失主
+      if(!this.globalData.regFlag){
+        //扫码用户未注册
+        wx.showModal({
+          title: '是否注册?',
+          content: '注册用户可得失主的答谢金',
+          success: res => {
+            if (res.confirm) {
+              wx.navigateTo({
+                url: '/pages/login/index',
+              })
+              return
+            } else if (res.cancel) {
+              this.globalData.unLoggedReleaseToken =  {
+                'content-type': 'application/x-www-form-urlencoded',
+                'Authorization': 'opLxO5fubMUl7GdPFgZOUaDHUik8#100001' }
+              this.globalData.unLoggedRelease = true
+              wx.redirectTo({
+                url: "/pages/Release/release/index?business_type=1&openid=" + openid
+              })
+              //已经去了发布页面，说明用户已经是登陆状态，不再需要标记登陆处于扫码阶段
+              this.globalData.isScanQrcode = false
+              this.globalData.qrcodeOpenid = null
+            }
+          }
+        })
+      }else{
+        //扫码用户已注册
+        wx.redirectTo({
+          url: "/pages/Release/release/index?business_type=1&openid=" + openid
+        })
+      }
+    }
+  },
 })
