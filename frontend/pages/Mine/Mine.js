@@ -6,7 +6,6 @@ Page({
 
   },
   onLoad: function () {
-    var that = this
     var is_user = app.globalData.is_user;
     this.setData({
       is_user: is_user
@@ -77,7 +76,6 @@ Page({
     })
   },
   goControls: function () {
-    console.log("dianle1")
     wx.navigateTo({
       url: '/controls/pages/index',
       complete(res){
