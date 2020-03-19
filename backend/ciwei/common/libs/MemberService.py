@@ -169,13 +169,16 @@ class MemberService():
         re_list = recommend_id.split('#')
         re_dict = {}
         for i in re_list:
-            id = int(i.split(':')[0])
+            goods_id = int(i.split(':')[0])
             status = int(i.split(':')[1])
-            if only_new == True:
+            good = Good.query.filter_by(id=goods_id).first()
+            if good.status == 7:  # 已被删除
+                continue
+            if only_new:
                 if status == 0:
-                    re_dict[id] = status
+                    re_dict[goods_id] = status
             else:
-                re_dict[id] = status
+                re_dict[goods_id] = status
 
         return re_dict
 
