@@ -50,7 +50,7 @@ def recordSearch():
     op_status = int(req['op_status']) if 'op_status' in req else ''
     if op_status == 0:
         query = query.filter_by(member_id=member_info.id)
-    # 找出推荐列表里面的所有物品信息
+    # 找出认领列表
     elif op_status == 1:
         if member_info.mark_id:
             mark_id_list = member_info.mark_id.split('#')
@@ -61,6 +61,7 @@ def recordSearch():
             resp['data']['list'] = []
             resp['data']['has_more'] = 0
             return jsonify(resp)
+    # 找出推荐列表里面的所有物品信息
     elif op_status == 2:
         if member_info.recommend_id:
             # 获取推荐列表的字典，格式{id:0或者1}{1000：0}表示id为1000的数据未读
