@@ -172,7 +172,7 @@ class MemberService():
             goods_id = int(i.split(':')[0])
             status = int(i.split(':')[1])
             good = Good.query.filter_by(id=goods_id).first()
-            if good.status == 7:  # 已被删除
+            if good is None or good.status == 7 or good.status == 8:  # 已被删除或封锁
                 continue
             if only_new:
                 if status == 0:
