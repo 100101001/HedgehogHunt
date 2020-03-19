@@ -185,6 +185,8 @@ class MemberService():
     @staticmethod
     def joinRecommendDict(re_dict):
         keys = list(re_dict.keys())
+        if len(re_dict) == 0:
+            return ''
         recommend_id = str(keys[0]) + ':' + str(re_dict[keys[0]])
         for key in keys[1:]:
             recommend_id = recommend_id + '#' + str(key) + ':' + str(re_dict[key])
