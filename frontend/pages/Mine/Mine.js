@@ -6,7 +6,6 @@ Page({
 
   },
   onLoad: function () {
-    var that = this
     var is_user = app.globalData.is_user;
     this.setData({
       is_user: is_user
@@ -97,7 +96,7 @@ Page({
   },
   goFeedback: function () {
     wx.navigateTo({
-      url: 'controls/feedback/index',
+      url: '/controls/pages/feedback/index',
     })
   },
   goRecord: function (event) {

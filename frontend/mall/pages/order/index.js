@@ -9,7 +9,8 @@ Page({
         pay_price: "0.00",
         total_price: "0.00",
         params: null,
-        express_address_id: 0
+        express_address_id: 0,
+        createOrderDisabled: false
     },
     onLoad: function (e) {
         var that = this;
@@ -29,7 +30,12 @@ Page({
             })
             return
         }
-        wx.showLoading();
+        this.setData({
+            createOrderDisabled: true
+        })
+        wx.showLoading({
+            mask:true
+        });
         var that = this;
         var data = {
             type: this.data.params.type,
@@ -42,7 +48,6 @@ Page({
             method: 'POST',
             data: data,
             success: function (res) {
-                wx.hideLoading();
                 var resp = res.data;
                 if (resp.code != 200) {
                     app.alert({ "content": resp.msg });
@@ -53,8 +58,13 @@ Page({
                 });
             },
             fail: function (resp) {
-                wx.hideLoading()
                 app.serverBusy()
+                that.setData({
+                    createOrderDisabled: false
+                })
+            },
+            complete: function (res) {
+                wx.hideLoading()
             }
         });
 

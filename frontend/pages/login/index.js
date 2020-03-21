@@ -33,6 +33,8 @@ Page({
         console.log(res)
       }
     })
+
+    //已绑定的手机号
     var phone = options.phone
     if (phone != undefined) {
       this.setData({
@@ -53,6 +55,7 @@ Page({
     this.login(e.detail.userInfo, this.data.mobile)
   },
   login: function (userInfo, mobile) {
+    //向注册用户信息userInfo中加入手机号
     if (userInfo) {
       wx.showLoading({
         title: '登陆中',
@@ -148,7 +151,7 @@ Page({
                     var loginInfo = resp.data.login_info
                     app.setCache("loginInfo", loginInfo)
                     that.directLogin(function () {
-                      app.onCheckLoginSuccess(res)
+                      app.onCheckLoginSuccessSetData(res)
                       app.onCheckLoginSuccessShowToast('登陆成功')
                     })
                     return

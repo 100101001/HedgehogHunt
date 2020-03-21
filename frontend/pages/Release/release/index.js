@@ -164,12 +164,20 @@ Page({
       }
     }
   },
+  handleUnLoggedRelease: function(){
+    this.formDataPrepare()
+  },
   //表单提交
   formSubmit: function (e) {
     this.setData({
       submitDisable: true
     })
     console.log(e)
+    //无登录发布
+    if(app.globalData.unLoggedRelease){
+      this.handleUnLoggedRelease()
+      return
+    }
     wx.requestSubscribeMessage({
       tmplIds: [
         app.globalData.subscribe.recommend,
@@ -178,44 +186,47 @@ Page({
       ], //首次(被)匹配，已完成，(被)答谢
       complete: (res) => {
         console.log(res)
-        var items = this.data.items
-        var data = {
-          location: this.data.location[1],
-          goods_name: items[0].value,
-          mobile: items[2].value,
-          owner_name: items[1].value,
-          summary: this.data.summary_value
-        }
-        var tips_obj = this.data.tips_obj
-        var is_empty = app.judgeEmpty(data, tips_obj)
-        if (is_empty) {
-          this.setData({
-            submitDisable: false
-          })
-          return;
-        }
-        //上传发布数据
-        data['business_type'] = this.data.business_type
-        data['location'] = this.data.location
-        var img_list = this.data.imglist
-        if (img_list.length === 0) {
-          app.alert({
-            'content': "至少要提交一张图片"
-          });
-          this.setData({
-            submitDisable: false
-          })
-          return;
-        }
-        //通知失主
-        if (this.data.notify_id !== "") {
-          this.sendNotification(data)
-        }
-        data['img_list'] = img_list
-        var url = "/goods/create";
-        this.uploadData(data, url, img_list);
+        this.formDataPrepare()
       }
     })
+  },
+  formDataPrepare: function(){
+    var items = this.data.items
+    var data = {
+      location: this.data.location[1],
+      goods_name: items[0].value,
+      mobile: items[2].value,
+      owner_name: items[1].value,
+      summary: this.data.summary_value
+    }
+    var tips_obj = this.data.tips_obj
+    var is_empty = app.judgeEmpty(data, tips_obj)
+    if (is_empty) {
+      this.setData({
+        submitDisable: false
+      })
+      return;
+    }
+    //上传发布数据
+    data['business_type'] = this.data.business_type
+    data['location'] = this.data.location
+    var img_list = this.data.imglist
+    if (img_list.length === 0) {
+      app.alert({
+        'content': "至少要提交一张图片"
+      });
+      this.setData({
+        submitDisable: false
+      })
+      return;
+    }
+    //通知失主
+    if (this.data.notify_id !== "") {
+      this.sendNotification(data)
+    }
+    data['img_list'] = img_list
+    var url = "/goods/create";
+    this.uploadData(data, url, img_list);
   },
   //通知失主
   sendNotification: function (data) {
@@ -235,18 +246,26 @@ Page({
       }
     })
   },
-
+  //一旦退出页面就
+  onUnload: function(){
+    app.globalData.unLoggedRelease  = false
+    app.globalData.unLoggedReleaseToken = null
+  },
   //发帖子(除图片)
   uploadData: function (data, url, img_list) {
     var that = this;
+    var header = app.globalData.unLoggedRelease? app.globalData.unLoggedReleaseToken : app.getRequestHeader()
     wx.request({
       url: app.buildUrl(url),
       method: 'POST',
-      header: app.getRequestHeader(),
+      header: header,
       data: data,
       success: function (res) {
         var resp = res.data;
         if (resp.code !== 200) {
+          that.setData({
+            submitDisable: false
+          })
           app.alert({
             'content': resp.msg
           });
@@ -259,7 +278,7 @@ Page({
       },
       fail: function (res) {
         app.serverBusy();
-        this.setData({
+        that.setData({
           submitDisable: false
         })
         return;
@@ -272,6 +291,7 @@ Page({
   uploadImage: function (id, img_list, img_list_status) {
     var that = this;
     var n = img_list.length;
+    var header = app.globalData.unLoggedRelease?  app.globalData.unLoggedReleaseToken : app.getRequestHeader()
     for (var i = 1; i <= n; i++) {
       if (n === i) {
         var end_s = true;
@@ -285,27 +305,21 @@ Page({
         wx.request({
           url: app.buildUrl('/goods/update-pics'),
           method: 'POST',
-          header: app.getRequestHeader(),
+          header: header,
           data: {
             id: id,
             img_url: img_list[i - 1]
           },
           success: function (res) {
-            // var resp = res.data;
-            // if (resp.code != 200) {
-            //   app.alert({
-            //     'content': resp.msg
-            //   });
-            //   return;
-            // }
             if (end_s) {
               that.endCreate(id);
             }
           },
           fail: function (res) {
             app.serverBusy();
-            this.setData({
-              submitDisable: false
+            that.setData({
+              submitDisable: false,
+              loadingHidden: true
             })
             return;
           },
@@ -315,18 +329,13 @@ Page({
         //图片不存在存在，则重新上传
         wx.uploadFile({
           url: app.buildUrl('/goods/add-pics'), //接口地址
-          header: app.getRequestHeader(),
+          header: header,
           filePath: img_list[i - 1], //文件路径
           formData: {
             'id': id
           },
           name: 'file', //文件名，不要修改，Flask直接读取
           success: function (res) {
-            // var resp = res.data;
-            // if (resp.code !== 200) {
-            //     app.alert({'content': resp.msg});
-            //     return;
-            // }
             if (end_s) {
               that.endCreate(id);
             }
@@ -344,11 +353,12 @@ Page({
   endCreate: function (id) {
     var that = this;
     var auther_id = that.data.auther_id;
+    var header = app.globalData.unLoggedRelease?  app.globalData.unLoggedReleaseToken: app.getRequestHeader()
     if (auther_id) {
       var data = {
         id: id,
         auther_id: auther_id,
-        target_goods_id: app.globalData.info,
+        target_goods_id: app.globalData.info.id,
       };
     } else {
       var data = {
@@ -358,7 +368,7 @@ Page({
     wx.request({
       url: app.buildUrl("/goods/end-create"),
       method: 'POST',
-      header: app.getRequestHeader(),
+      header: header,
       data: data,
       success: function (res) {
         var resp = res.data;

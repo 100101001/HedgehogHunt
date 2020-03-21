@@ -190,7 +190,7 @@ def reportGoodsInfo():
     show_location = True
 
     report_info = Report.query.filter_by(record_id=id).first()
-    auther_info = Member.query.filter_by(id=report_info.report_member_id).first()
+    auther_info = Member.query.filter_by(id=goods_info.member_id).first()
     if not auther_info:
         resp['code'] = -1
         resp['msg'] = '没有找到相关发布者信息'

@@ -55,6 +55,6 @@
         <view class="left-price">
             <view class="total">合计：¥ {{total_price}}</view>
         </view>
-        <button class="to-pay-btn" bindtap="createOrder">提交订单</button>
+        <button class="to-pay-btn" bindtap="createOrder" disabled="{{createOrderDisabled}}">提交订单</button>
     </view>
 </view>

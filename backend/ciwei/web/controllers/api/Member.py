@@ -407,7 +407,7 @@ def decryptPhone():
     except Exception as e:
         app.logger.warn(e)
         resp['code'] = -1
-        resp['msg'] = "手机号获取失败"
+        resp['msg'] = "手机号获取失败，请确保从后台完全关闭小程序后重试"
         return jsonify(resp)
     mobile = mobile_obj['phoneNumber']
     app.logger.info("手机号是：{}".format(mobile))

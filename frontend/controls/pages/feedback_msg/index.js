@@ -33,7 +33,7 @@ Page({
   statusTypeClick: function (e) {
         //选择一次分类时返回选中值
         this.setData({
-            statusId: e.currentTarget.id,
+            statusId: e.currentTarget.dataset.id,
             p: 1,
             feedback_list: [],
             loadingMoreHidden: true

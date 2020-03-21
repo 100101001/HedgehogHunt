@@ -46,14 +46,16 @@ def send_thank_subscribe(thanks_info):
     :return:
     """
     from common.models.ciwei.Member import Member
-    member = Member.query.filter_by(id=thanks_info.target_member_id).first()
+    target_member = Member.query.filter_by(id=thanks_info.target_member_id).first()
+    member = Member.query.filter_by(id=thanks_info.member_id).first()
+    app.logger.warn("答谢者的名字是{},昵称是{}".format(member.name, member.nickname))
     data = {
-        "name1": member.name if member.name else member.nickname,
-        "thing2": thanks_info.goods_name,
-        "amount3": str(thanks_info.thank_price),
-        "date5": datetime2str(thanks_info.updated_time)
+        "name1": {"value": member.name if member.name else member.nickname},
+        "thing2": {"value": thanks_info.goods_name},
+        "amount3": {"value": str(thanks_info.thank_price)},
+        "date5": {"value": datetime2str(thanks_info.updated_time)}
     }
-    send_subscribe(member.openid, "thanks", data)
+    send_subscribe(target_member.openid, "thanks", data)
 
 
 def send_subscribe(openid, template, data):

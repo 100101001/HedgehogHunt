@@ -3,7 +3,7 @@
 from decimal import Decimal
 
 from flask import request, jsonify, g
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 
 from application import db
 from common.libs.Helper import getCurrentDate
@@ -166,8 +166,8 @@ def endCreate():
     if auther_id:
         auther_info = Member.query.filter_by(id=auther_id).with_for_update().first()
         MemberService.addRecommendGoods(auther_info, goods_info.id)
-    target_goods_id = req['target_goods_id'] if 'target_goods_id' in req else None
-    if target_goods_id:
+    target_goods_id = int(req['target_goods_id']) if 'target_goods_id' in req else None
+    if target_goods_id is not None:
         target_goods_info = Good.query.filter_by(id=target_goods_id).with_for_update().first()
         if target_goods_info:
             target_goods_info.status = 2
@@ -251,6 +251,15 @@ def goodsSearch():
             fil_str = fil_str + "%{0}%".format(i)
         rule = or_(Good.location.ilike(fil_str))
         query = query.filter(rule)
+
+    # 新增的大学筛选
+    # filter_campus = str(req['filter_campus']) if 'filter_campus' in req else ''
+    # if filter_campus:
+    #     fil_str = "%{0}%".format(filter_campus[0])
+    #     for i in filter_address[1:]:
+    #         fil_str = fil_str + "%{0}%".format(i)
+    #     rule = and_(Good.location.ilike(fil_str))
+    #     query = query.filter(rule)
 
     # 分页：获取第p页的所有物品
     # 排序：新发布的热门贴置于最前面 TODO：id=新旧？
