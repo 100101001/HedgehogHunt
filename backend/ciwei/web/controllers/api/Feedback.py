@@ -166,7 +166,7 @@ def feedbacksSearch():
         resp['msg'] = "用户信息异常"
         return jsonify(resp)
     status = int(req['status']) if 'status' in req else None
-    if not status:
+    if status is None:
         resp['msg'] = '参数为空'
         return jsonify(resp)
 
@@ -217,7 +217,7 @@ def feedbackInfo():
         resp['msg'] = "用户信息异常"
         return jsonify(resp)
     id = int(req['id']) if 'id' in req else None
-    if not id:
+    if id is None:
         resp['msg'] = "参数为空"
         return jsonify(resp)
     feedback_info = Feedback.query.filter_by(id=id).first()
@@ -269,7 +269,7 @@ def feedbackBlock():
         return jsonify(resp)
     select_member_id = int(req['select_member_id']) if 'select_member_id' in req else None
     feedback_id = int(req['feedback_id']) if 'feedback_id' in req else None
-    if not select_member_id or not feedback_id:
+    if select_member_id is None or feedback_id is None:
         resp['msg'] = "参数为空"
         return jsonify(resp)
     user_info = User.query.filter_by(member_id=member_info.id).first()

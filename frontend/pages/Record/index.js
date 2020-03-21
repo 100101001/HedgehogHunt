@@ -11,15 +11,14 @@ Page({
   onLoad: function(options) {
     var op_status = options.op_status;
     this.setData({
-      op_status: op_status
+      op_status: op_status, //参数,代表正在查看认领/匹配/发布/答谢
     })
     this.onLoadSetData(op_status);
     this.onPullDownRefresh();
   },
   onLoadSetData: function(op_status) {
-    var recommend = app.globalData.recommend;
+    var that = this
     if (op_status == 0) { //发布
-      var check_status_id = 1;
       var check_cat = [
         {
           id: 1,
@@ -35,7 +34,6 @@ Page({
         },
       ];
     } else if (op_status == 3) { //答谢
-      var check_status_id = 1;
       var check_cat = [{
           id: 1,
           name: '待处理'
@@ -58,7 +56,7 @@ Page({
         }
       ];
     } else { //认领与匹配推送
-      var check_status_id = 1;
+      var recommend = app.globalData.recommend
       var check_cat = [{
           id: 1,
           name: '待认领/找回',
@@ -75,26 +73,28 @@ Page({
           value: recommend.done,
         },
       ];
-    };
+    }
     this.setData({
       only_new: false,
-      check_status_id: check_status_id,
+      check_status_id: 1, //代表当前选中的选项卡
       infos: {
         list: {},
         only_new: false,
         saveHidden: true,
-        op_status: op_status,
-        check_status_id: check_status_id,
+        op_status: op_status,  //参数,代表正在查看认领/匹配/发布/答谢
+        check_status_id: 1, //代表当前选中的选项卡
         check_cat: check_cat
       }
     })
   },
   onShow: function() {
-    var regFlag = app.globalData.regFlag;
     this.setData({
-      regFlag: regFlag
+      regFlag: app.globalData.regFlag
     });
-    // this.getBanners();
+    //新的recommend数量与app全局数据同步化
+    if (this.data.op_status != 4) {
+      this.updateTips();
+    }
   },
   //下拉刷新
   onPullDownRefresh: function(event) {
@@ -160,6 +160,13 @@ Page({
       app.globalData.op_status = this.data.op_status;
       wx.navigateTo({
         url: '/pages/Find/info/info?goods_id=' + id,
+      })
+      //更新new标识
+      var infos = this.data.infos
+      var idx = (infos.list || []).findIndex((item) => item.id === id)
+      infos.list[idx].new = 1
+      this.setData({
+        infos: infos
       })
     }
   },

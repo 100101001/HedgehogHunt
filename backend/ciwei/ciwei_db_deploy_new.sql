@@ -201,6 +201,38 @@ CREATE TABLE `goods`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
+-- Table structure for recommend
+-- ----------------------------
+DROP TABLE IF EXISTS `recommend`;
+CREATE TABLE `recommend`(
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `goods_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '推荐的物品id',
+  `member_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '被推荐的用户id',
+  `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 0:未读 1:已读',
+  `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
+  `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `ix_recommend_member_id`(`member_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '推荐表' ROW_FORMAT = Dynamic;
+
+
+-- ----------------------------
+-- Table structure for mark
+-- ----------------------------
+DROP TABLE IF EXISTS `mark`;
+CREATE TABLE `mark`(
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `goods_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '认领的物品id',
+  `member_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '用户id',
+  `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 0:未取 1:已取',
+  `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
+  `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `ix_mark_member_id`(`member_id`) USING BTREE,
+  INDEX `ix_recommend_goods_id`(`goods_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '认领表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
 -- Table structure for images
 -- ----------------------------
 DROP TABLE IF EXISTS `images`;

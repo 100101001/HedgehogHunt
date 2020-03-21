@@ -169,19 +169,24 @@ class MemberService():
         re_list = recommend_id.split('#')
         re_dict = {}
         for i in re_list:
-            id = int(i.split(':')[0])
+            goods_id = int(i.split(':')[0])
             status = int(i.split(':')[1])
-            if only_new == True:
+            good = Good.query.filter_by(id=goods_id).first()
+            if good is None or good.status == 7 or good.status == 8:  # 已被删除或封锁
+                continue
+            if only_new:
                 if status == 0:
-                    re_dict[id] = status
+                    re_dict[goods_id] = status
             else:
-                re_dict[id] = status
+                re_dict[goods_id] = status
 
         return re_dict
 
     @staticmethod
     def joinRecommendDict(re_dict):
         keys = list(re_dict.keys())
+        if len(re_dict) == 0:
+            return ''
         recommend_id = str(keys[0]) + ':' + str(re_dict[keys[0]])
         for key in keys[1:]:
             recommend_id = recommend_id + '#' + str(key) + ':' + str(re_dict[key])

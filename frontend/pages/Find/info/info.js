@@ -138,6 +138,8 @@ Page({
           });
           return;
         }
+        //更新全局的新推荐数
+        app.getNewRecommend()
         that.setData({
           //认领过的则直接显示地址
           //op_status是操作的代码，商品详情就是0
