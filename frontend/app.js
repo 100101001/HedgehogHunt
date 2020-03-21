@@ -44,13 +44,21 @@ App({
     showHintQrcode: true //用户未关闭提示浮窗
   },
   onLaunch: function () {
-    // 展示本地存储能力
-    var logs = wx.getStorageSync('logs') || []
-    logs.unshift(Date.now())
-    wx.setStorageSync('logs', logs)
     // 登录
     // 获取用户信息
     var that = this
+
+    //获取后端二维码产品价格和产品ID
+    // wx.request({
+    //   'url': that.buildUrl('/qrcode/product/info')
+    //   'success': res => {
+    //     let resp = res.data
+    //     that.globalData.qrcodePrice = resp.data.price
+    //     that.globalData.qrcodeProductId = resp.data.id
+    //   }
+    // })
+    that.globalData.qrcodePrice = 2
+    that.globalData.qrcodeProductId = 15
     wx.getSetting({
       success: res => {
         if (res.authSetting['scope.userInfo']) {
@@ -69,6 +77,8 @@ App({
         }
       }
     })
+
+
   },
   loginTip: function () {
     //返回值：是否已登录过

@@ -80,18 +80,32 @@ Page({
         });
     },
     getOrderInfo: function () {
+        var that = this
         if (!app.globalData.has_qrcode) {
+            let qrcodePrice = app.globalData.qrcodePrice
             app.alert({
                 'title':'温馨提示',
-                'content':'请先去获取二维码',
+                'content':'您还没有个人码无法下单，是否加'+qrcodePrice+'元随单购买？',
                 'cb_confirm': function(){
-                    wx.navigateTo({
-                      url: '/pages/Mine/userinfo/index',
+                    //加入订单款项
+                    let params = that.data.params
+                    params['goods'].push({
+                        "id": app.globalData.qrcodeProductId,
+                        "price": qrcodePrice,
+                        "number": 1
+                    })
+                    that.setData({
+                        params : params
+                    })
+                },
+                'cb_cancel': function () {
+                    //回退
+                    wx.redirectTo({
+                        'url' : '/mall/pages/cart/index'
                     })
                 }
             })
         }
-        var that = this;
         var data = {
             type: this.data.params.type,
             goods: JSON.stringify(this.data.params.goods)
