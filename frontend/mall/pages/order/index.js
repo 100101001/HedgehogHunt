@@ -45,7 +45,8 @@ Page({
             createOrderDisabled: true
         })
         wx.showLoading({
-            mask:true
+            mask:true,
+            title: '正在下单'
         });
         var that = this;
         var data = {

@@ -14,8 +14,8 @@
 
 		<view catchtap='onNavigateTap' class="icon_container" data-id="2">
 			<image class="our_icon" style='width:77rpx; height:64rpx' src="{{isSelected2? '/images/icons/mine_select.png':'/images/icons/mine.png'}}"></image>
-			<view class="icon_text" wx:if="{{isSelected2}}" style="color:#f7931e">我的</view>
-			<view class="icon_text" wx:if="{{!isSelected2}}" style="color:#b3b3b3">我的</view>
+			<view class="icon_text" wx:if="{{isSelected2}}" style="color:#f7931e">我的购物</view>
+			<view class="icon_text" wx:if="{{!isSelected2}}" style="color:#b3b3b3">我的购物</view>
 			<view class="content_tip" wx:if="{{total_new && total_new!=0}}">{{total_new}}</view>
 		</view>
 	</view>

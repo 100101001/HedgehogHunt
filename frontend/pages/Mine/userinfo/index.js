@@ -208,8 +208,16 @@ Page({
         type: 'toBuy',
         goods: [{'id': app.globalData.qrcodeProductId, 'price': app.globalData.qrcodePrice, 'number': 1}]
       }
-      wx.navigateTo({
-        'url' : '/mall/pages/order/index?data='+ JSON.stringify(data)
+      wx.showToast({
+        title: '前往下单',
+        icon: 'loading',
+        success: res => {
+           setTimeout(function(){
+             wx.navigateTo({
+               'url' : '/mall/pages/order/index?data='+ JSON.stringify(data)
+             })
+           }, 200)
+        }
       })
     }
   },
