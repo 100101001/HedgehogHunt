@@ -9,7 +9,6 @@
       </view>
     </scroll-view>
 </view>
-
 <block wx:for="{{feedback_list}}" wx:if="{{feedback_list.length}}" wx:key="id">
   <view class="container" bindtap='toFeedBackDetail' data-id="{{item.id}}">
     <image class="image" src="{{item.main_image}}" mode="aspectFill"></image>
