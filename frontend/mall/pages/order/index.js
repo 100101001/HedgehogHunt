@@ -91,14 +91,15 @@ Page({
             url: "/mall/pages/my/addressList"
         });
     },
-    requireQrcode: function(){
+    requireQrcode: function () {
         if (!app.globalData.has_qrcode) {
             let qrcodePrice = app.globalData.qrcodePrice
             let that = this
             app.alert({
-                'title':'温馨提示',
-                'content':'您还没有闪寻码无法下单，是否加'+qrcodePrice+'元随单购买？',
-                'cb_confirm': function(){
+                title: '温馨提示',
+                content: '您还没有闪寻码无法下单，是否加' + qrcodePrice + '元随单购买？',
+                showCancel: true,
+                cb_confirm: function () {
                     //加入订单款项
                     let params = that.data.params
                     params['goods'].push({
@@ -107,14 +108,14 @@ Page({
                         "number": 1
                     })
                     that.setData({
-                        params : params
+                        params: params
                     })
                     that.getOrderInfo()
                 },
-                'cb_cancel': function () {
+                cb_cancel: function () {
                     //回退
                     wx.redirectTo({
-                        'url' : '/mall/pages/cart/index'
+                        'url': '/mall/pages/cart/index'
                     })
                 }
             })
