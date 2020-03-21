@@ -1,4 +1,39 @@
 var app = getApp();
+
+const getQrcodeFromWechat = function(that) {
+  wx.showLoading({
+    title: '正在获取..',
+  })
+  wx.request({
+    method: 'post',
+    url: app.buildUrl('/qrcode/wx'),
+    header: app.getRequestHeader(),
+    success: function (res) {
+      var resp = res.data
+      if (resp.code !== 200) {
+        app.alert({
+          'content': resp.msg
+        })
+        return
+      }
+      app.globalData.has_qrcode = true
+      app.globalData.qr_code_list = [resp.data.qr_code_url]
+      that.setData({
+        qrCode: resp.data.qr_code_url,
+        has_qrcode: true,
+        show_qrcode: true
+      })
+    },
+    fail: function (res) {
+      app.serverBusy()
+    },
+    complete: res => {
+      wx.hideLoading()
+    }
+  })
+}
+
+
 Page({
   data: {
     userInfo: {},
@@ -200,36 +235,13 @@ Page({
       return
     }
     if (!this.data.has_qrcode) {
-      wx.showLoading({
-        title: '正在获取..',
-      })
-      var that = this
-      wx.request({
-        method: 'post',
-        url: app.buildUrl('/qrcode/wx'),
-        header: app.getRequestHeader(),
-        success: function (res) {
-          var resp = res.data
-          if (resp.code !== 200) {
-            app.alert({
-              'content': resp.msg
-            })
-            return
-          }
-          app.globalData.has_qrcode = true
-          app.globalData.qr_code_list = [resp.data.qr_code_url]
-          that.setData({
-            qrCode: resp.data.qr_code_url,
-            has_qrcode: true,
-            show_qrcode: true
-          })
-        },
-        fail: function (res) {
-          app.serverBusy()
-        },
-        complete: res => {
-          wx.hideLoading()
-        }
+      //支付
+      let data = {
+        type: 'toBuy',
+        goods: [{'id': app.globalData.qrcodeProductId, 'price': app.globalData.qrcodePrice, 'number': 1}]
+      }
+      wx.navigateTo({
+        'url' : '/mall/pages/order/index?data='+ JSON.stringify(data)
       })
     }
   },
