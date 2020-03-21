@@ -19,8 +19,22 @@ Page({
         });
     },
     onShow: function () {
-        var that = this;
-        this.getOrderInfo();
+        if(app.globalData.has_qrcode){
+            this.getOrderInfo();
+        }else{
+            //判断商品列表中有无二维码
+            console.log(goods)
+            let goods = this.data.params['goods']
+            let index = goods.findIndex(item=>{
+                item.id == app.globalData.qrcodeProductId
+            })
+            console.log(index)
+            if(index === -1){
+                this.requireQrcode();
+            }else{
+                this.getOrderInfo();
+            }
+        }
     },
     createOrder: function (e) {
         if (this.data.default_address.id == undefined) {
@@ -79,10 +93,10 @@ Page({
             url: "/mall/pages/my/addressList"
         });
     },
-    getOrderInfo: function () {
-        var that = this
+    requireQrcode: function(){
         if (!app.globalData.has_qrcode) {
             let qrcodePrice = app.globalData.qrcodePrice
+            let that = this
             app.alert({
                 'title':'温馨提示',
                 'content':'您还没有个人码无法下单，是否加'+qrcodePrice+'元随单购买？',
@@ -97,6 +111,7 @@ Page({
                     that.setData({
                         params : params
                     })
+                    that.getOrderInfo()
                 },
                 'cb_cancel': function () {
                     //回退
@@ -106,6 +121,9 @@ Page({
                 }
             })
         }
+    },
+    getOrderInfo: function () {
+        var that = this
         var data = {
             type: this.data.params.type,
             goods: JSON.stringify(this.data.params.goods)
