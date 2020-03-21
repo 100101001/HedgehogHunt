@@ -29,7 +29,7 @@
     </view>
   </view>
   <view class="userinfo_container" data-id="3" bindtap="onCatchTap">
-    <view class="title">二维码</view>
+    <view class="title">闪寻码</view>
     <view class="next">
       <view class="recharge_btn" bindtap="getQrCode" wx:if="{{!has_qrcode}}">获取</view>
       <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode && !show_qrcode}}">查看</view>

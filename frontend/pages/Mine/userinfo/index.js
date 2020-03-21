@@ -1,39 +1,5 @@
 var app = getApp();
 
-const getQrcodeFromWechat = function(that) {
-  wx.showLoading({
-    title: '正在获取..',
-  })
-  wx.request({
-    method: 'post',
-    url: app.buildUrl('/qrcode/wx'),
-    header: app.getRequestHeader(),
-    success: function (res) {
-      var resp = res.data
-      if (resp.code !== 200) {
-        app.alert({
-          'content': resp.msg
-        })
-        return
-      }
-      app.globalData.has_qrcode = true
-      app.globalData.qr_code_list = [resp.data.qr_code_url]
-      that.setData({
-        qrCode: resp.data.qr_code_url,
-        has_qrcode: true,
-        show_qrcode: true
-      })
-    },
-    fail: function (res) {
-      app.serverBusy()
-    },
-    complete: res => {
-      wx.hideLoading()
-    }
-  })
-}
-
-
 Page({
   data: {
     userInfo: {},
@@ -46,7 +12,9 @@ Page({
     contact_img: app.globalData.static_file_domain + "/static/QRcode.jpg"
   },
   onLoad: function () {
-    //如果登陆状态过期就重新登陆
+
+  },
+  onShow() {
     wx.checkSession({
       fail: (res) => {
         wx.login({
@@ -57,8 +25,8 @@ Page({
               header: {
                 'content-type': 'application/json',
               },
-              data: { code: res.code },
-              success: res=>{
+              data: {code: res.code},
+              success: res => {
                 app.setCache("loginInfo", res.data.data)
               }
             })

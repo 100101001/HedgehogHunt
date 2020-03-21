@@ -10,7 +10,8 @@ Page({
         total_price: "0.00",
         params: null,
         express_address_id: 0,
-        createOrderDisabled: false
+        createOrderDisabled: false,
+        dataReady: false
     },
     onLoad: function (e) {
         var that = this;
@@ -19,19 +20,15 @@ Page({
         });
     },
     onShow: function () {
-        if(app.globalData.has_qrcode){
+        if (app.globalData.has_qrcode) {
             this.getOrderInfo();
-        }else{
+        } else {
             //判断商品列表中有无二维码
-            console.log(goods)
             let goods = this.data.params['goods']
-            let index = goods.findIndex(item=>{
-                item.id == app.globalData.qrcodeProductId
-            })
-            console.log(index)
-            if(index === -1){
+            let index = goods.findIndex(item => item.id === app.globalData.qrcodeProductId)
+            if (index === -1) {
                 this.requireQrcode();
-            }else{
+            } else {
                 this.getOrderInfo();
             }
         }
@@ -99,7 +96,7 @@ Page({
             let that = this
             app.alert({
                 'title':'温馨提示',
-                'content':'您还没有个人码无法下单，是否加'+qrcodePrice+'元随单购买？',
+                'content':'您还没有闪寻码无法下单，是否加'+qrcodePrice+'元随单购买？',
                 'cb_confirm': function(){
                     //加入订单款项
                     let params = that.data.params
@@ -146,6 +143,7 @@ Page({
                     yun_price: resp.data.yun_price,
                     pay_price: resp.data.pay_price,
                     total_price: resp.data.total_price,
+                    dataReady: true
                 });
 
                 if (that.data.default_address) {

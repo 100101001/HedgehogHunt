@@ -57,7 +57,7 @@ App({
     //     that.globalData.qrcodeProductId = resp.data.id
     //   }
     // })
-    that.globalData.qrcodePrice = 2
+    that.globalData.qrcodePrice = 0.01
     that.globalData.qrcodeProductId = 15
     wx.getSetting({
       success: res => {

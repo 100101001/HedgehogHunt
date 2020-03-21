@@ -7,11 +7,11 @@
     "pages/Thanks/index",
     "pages/Find/info/info",
     "pages/Mine/Mine",
+    "pages/Mine/connect/index",
+    "pages/Mine/userinfo/index",
     "pages/Find/Find",
     "pages/Release/release/index",
     "pages/login/index",
-    "pages/Mine/connect/index",
-    "pages/Mine/userinfo/index",
     "pages/Find/edit/edit",
     "pages/Qrcode/Mobile/index"
   ],

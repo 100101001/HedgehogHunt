@@ -1,4 +1,4 @@
-<view class="container">
+<view class="container" wx:if="{{dataReady}}">
      <view class="address-box">
         <view class="add-address" hidden="{{default_address}}">
             <view class="title" bindtap="addressSet">新增收货地址</view>

@@ -1,4 +1,34 @@
 var app = getApp();
+
+
+
+const getQrcodeFromWechat = function() {
+    wx.showLoading({
+        title: '正在获取闪寻码..',
+    })
+    wx.request({
+        method: 'post',
+        url: app.buildUrl('/qrcode/wx'),
+        header: app.getRequestHeader(),
+        success: function (res) {
+            var resp = res.data
+            app.globalData.has_qrcode = true
+            app.globalData.qr_code_list = [resp.data.qr_code_url]
+            wx.showToast({
+                'title': '获取成功',
+                'icon': 'success',
+                'duration': 1000
+            })
+        },
+        fail: function (res) {
+            app.serverBusy()
+        },
+        complete: res => {
+            wx.hideLoading()
+        }
+    })
+}
+
 Page({
     data: {
         order_list: [],
@@ -77,7 +107,10 @@ Page({
                     'signType': 'MD5',
                     'paySign': pay_info.paySign,
                     'success': function (res) {
-                        
+                        //支付成功
+                        if (res.errMsg == "requestPayment:ok" && !app.globalData.has_qrcode) {
+                            getQrcodeFromWechat()
+                        }
                     },
                     'fail': function (res) {
                     }
