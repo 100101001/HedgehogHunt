@@ -16,7 +16,7 @@ App({
     regFlag: false,
     shopName: "闪寻-失物招领",
     // domain: "http://127.0.0.1:8999/api",
-    //domain: "http://192.168.0.116:8999/api",
+    domain: "http://192.168.0.116:8999/api",
     domain: "https://ciwei.opencs.cn/api",
     static_file_domain: "https://ciwei.opencs.cn",
     //static_file_domain: "http://192.168.0.116:8999",
@@ -44,13 +44,16 @@ App({
     showHintQrcode: true //用户未关闭提示浮窗
   },
   onLaunch: function () {
-    // 展示本地存储能力
-    var logs = wx.getStorageSync('logs') || []
-    logs.unshift(Date.now())
-    wx.setStorageSync('logs', logs)
+    // 获取屏幕的宽高
+    var that = this
+    wx.getSystemInfo({
+      success: function(res) {
+        console.log(res)
+        that.globalData.windowWidth = res.windowWidth
+      }
+    })
     // 登录
     // 获取用户信息
-    var that = this
     wx.getSetting({
       success: res => {
         if (res.authSetting['scope.userInfo']) {

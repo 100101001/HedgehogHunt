@@ -1,6 +1,16 @@
 <import src="../template/goods-item/goods-item-template.wxml" />
 <import src="../template/navigate-bar/navigate-bar-template.wxml" />
-<view class="all_container">
+<view class="school_select_area {{open ? 'on' : ''}}">
+  <view class="school_select_content">
+    <block wx:for="{{campus_list}}" wx:key="index">
+      <view  class="campus" bindtap="selectCampus" data-name="{{item}}" wx:if="{{open}}">
+        <text >{{item}}</text>
+      </view>
+    </block>
+  </view>
+</view>
+<view bindtouchmove="tapDrag" bindtouchend="tapEnd" bindtouchstart="tapStart" class="all_container {{open ? 'fold' : ''}}">
+<!--<view class="all_container">-->
   <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
   <form bindsubmit="formSubmit">
     <view class="search_container">
@@ -22,11 +32,6 @@
         </swiper-item>
       </block>
     </swiper>
-    <!-- <view class="dots">
-      <block wx:for="{{banners}}" wx:key="unique" wx:key="index">
-        <view class="dot{{index == swiperCurrent ? ' active' : ''}}"></view>
-      </block>
-    </view> -->
   </view>
   <!--分类展示-->
   <view class="type-container">
@@ -46,12 +51,13 @@
       </view>
     </block>
   </view>
-</view>
 
-<view wx:if="{{!loadingMoreHidden}}" class="no-more-goods">没有更多物品了~可以去发布</view>
-<!-- <view wx:if="{{!business_type && !loadingMoreHidden}}" class="no-more-goods">没有更多待寻物品了~可以去发布待领</view> -->
-<view wx:if="{{loadingMoreHidden}}" class="no-more-goods">上滑加载更多～</view>
+  <view wx:if="{{!loadingMoreHidden}}" class="no-more-goods">没有更多物品了~可以去发布</view>
+  <view wx:if="{{loadingMoreHidden}}" class="no-more-goods">上滑加载更多～</view>
+
+</view>
 
 <view>
   <template is="navigate-bar-template" data="{{...isSelecteds}}" />
 </view>
+

@@ -73,7 +73,9 @@ Page({
       categories: categories,
       goods_name: '',
       owner_name: '',
-      filter_address: '',
+      campus_list: ['全部', '同济大学(嘉定校区)', '同济大学(四平路校区)', '上海财大()', '复旦大学', '北京大学', '清华大学', '四川大学', '西安交大', '国防科大', '浙江大学', 'c5', 'c6', 'c7'],
+      filter_campus: '同济大学',
+      open: false,
       loadingMoreHidden: true
     });
   },
@@ -116,6 +118,36 @@ Page({
     wx.navigateTo({
       url: 'info/info?goods_id=' + id,
     })
+  },
+  tapDrag: function(e){
+    console.log("在拖")
+    this.data.newmark = e.touches[0].pageX;
+  },
+  tapEnd: function(){
+    if(this.data.mark + app.globalData.windowWidth * 0.4 < this.data.newmark){
+      this.setData({
+        open : true
+      });
+    }else{
+      this.setData({
+        open : false
+      });
+    }
+    this.data.mark = 0;
+    this.data.newmark = 0;
+  },
+  tapStart:function(e){
+    console.log(e)
+    this.data.mark = this.data.newmark = e.touches[0].pageX;
+  },
+  //选中了大学后自动初始化列表
+  selectCampus: function (e) {
+    var name = e.currentTarget.dataset.name
+    this.setData({
+      open: false,
+      filter_campus: name === "全部" ? '': name
+    })
+    this.onPullDownRefresh()
   },
   //刷新
   onPullDownRefresh: function (event) {
@@ -303,6 +335,7 @@ Page({
     })
   },
   onReachBottom: function (e) {
+    console.log("获取更多物品")
     var that = this;
     //延时500ms处理函数
     setTimeout(function () {
@@ -354,7 +387,8 @@ Page({
         owner_name: that.data.owner_name,
         p: that.data.p,
         business_type: that.data.business_type,
-        filter_address: that.data.filter_address
+        filter_address: that.data.filter_address,
+        filter_campus: that.data.filter_campus
       },
       success: function (res) {
         var resp = res.data;
@@ -393,9 +427,10 @@ Page({
   },
   //点击预览图片
   previewImage: function (e) {
+    var id = e.currentTarget.dataset.index
     wx.previewImage({
-      current: this.data.info.main_image, // 当前显示图片的http链接
-      urls: [this.data.info.main_image] // 需要预览的图片http链接列表
+      current: this.data.banners[id], // 当前显示图片的http链接
+      urls: [this.data.banners[id]] // 需要预览的图片http链接列表
     })
   },
 })
