@@ -30,6 +30,8 @@ App({
     qrcodeOpenid: null, //二维码用户ID
     unLoggedRelease: false,
     unLoggedReleaseToken: null,
+    qrcodePrice: 2,
+    qrcodeProductId: 15,
     subscribe: {
       recommend: 'zSCF_j0kTfRvPe8optyb5sx8F25S3Xc9yCvvObXFCh4',
       finished: 'Vx58nqU-cfi07bu4mslzCFhFyGTT52Xk4zlsrwC-MVA',
@@ -47,18 +49,15 @@ App({
     // 登录
     // 获取用户信息
     var that = this
-
     //获取后端二维码产品价格和产品ID
-    // wx.request({
-    //   'url': that.buildUrl('/qrcode/product/info')
-    //   'success': res => {
-    //     let resp = res.data
-    //     that.globalData.qrcodePrice = resp.data.price
-    //     that.globalData.qrcodeProductId = resp.data.id
-    //   }
-    // })
-    that.globalData.qrcodePrice = 0.01
-    that.globalData.qrcodeProductId = 15
+    wx.request({
+      'url': that.buildUrl('/product/qrcode/info'),
+      'success': res => {
+        let resp = res.data
+        that.globalData.qrcodePrice = resp.data.price
+        that.globalData.qrcodeProductId = resp.data.id
+      }
+    })
     wx.getSetting({
       success: res => {
         if (res.authSetting['scope.userInfo']) {
