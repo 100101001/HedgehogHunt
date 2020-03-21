@@ -114,9 +114,7 @@ Page({
                 },
                 cb_cancel: function () {
                     //回退
-                    wx.redirectTo({
-                        'url': '/mall/pages/cart/index'
-                    })
+                    wx.navigateBack()
                 }
             })
         }
