@@ -1,72 +1,53 @@
 //app.js
 App({
   globalData: {
-    debug: true,
+    debug: true, //用于微信二维码获取无限个的接口/有限个的接口
     adv_info: {},
     info: {},
     is_adm: false,
-    is_user: false,
-    has_qrcode: false,
-    qr_code_list: [],
-    location: '',
-    has_info: false,
-    userInfo: null,
-    memberInfo: null,
+    is_user: false, //唯一用于判断是否是管理员的标记
+    has_qrcode: false, //唯一用于判定用户有无闪寻码的数据，只在登陆成功/新获取了闪寻码后被更新
+    qr_code_list: [], //唯一用于获取用户闪寻码图像
+    memberInfo: null, //只用于绑定用户头像，昵称，手机号，姓名等基本信息
     version: "1.0",
-    regFlag: false,
+    id: null, //用户的id(首页goToIndex会用到)
+    regFlag: false, //用于判断用户登陆
     shopName: "闪寻-失物招领",
     // domain: "http://127.0.0.1:8999/api",
-    //domain: "http://192.168.0.116:8999/api",
+    // domain: "http://192.168.0.116:8999/api",
     domain: "https://ciwei.opencs.cn/api",
     static_file_domain: "https://ciwei.opencs.cn",
     //static_file_domain: "http://192.168.0.116:8999",
-    //domain: "http://188.131.240.205:8999/api",
-    //domain: "http://192.168.1.12:8999/api",
-    member_id: null,
-    member_status: 1,
-    is_adm: true,
+    member_status: 1, //用户状态
     op_status: 2,
     isScanQrcode: true, //是否扫码进入
     qrcodeOpenid: null, //二维码用户ID
-    unLoggedRelease: false,
-    unLoggedReleaseToken: null,
-    subscribe: {
+    unLoggedRelease: false, //扫码用户未注册仍继续发布
+    unLoggedReleaseToken: null, //扫码用户未注册仍继续发布使用的用户token
+    qrcodePrice: 2, //闪寻码的价格
+    qrcodeProductId: 15, //闪寻码产品ID
+    subscribe: {  //订阅消息的模板ID
       recommend: 'zSCF_j0kTfRvPe8optyb5sx8F25S3Xc9yCvvObXFCh4',
       finished: 'Vx58nqU-cfi07bu4mslzCFhFyGTT52Xk4zlsrwC-MVA',
       thanks: 'gBSM-RF5b3L_PoT3f1u8ibxZMz-qzAsNSZy2LSBPsG8'
     },
-    business_type: {
-      found: 1,
-      lost: 0
+    business_type: { //失物招领与寻物启事的标记
+      found: 1, //失物招领
+      lost: 0 //寻物启事
     },
     campus_id: -1, //学校id
     campus_name: "", //学校名
     showHintQrcode: true //用户未关闭提示浮窗
   },
   onLaunch: function () {
-    // 展示本地存储能力
-    var logs = wx.getStorageSync('logs') || []
-    logs.unshift(Date.now())
-    wx.setStorageSync('logs', logs)
-    // 登录
-    // 获取用户信息
+    //获取后端二维码产品价格和产品ID
     var that = this
-    wx.getSetting({
-      success: res => {
-        if (res.authSetting['scope.userInfo']) {
-          // 已经授权，可以直接调用 getUserInfo 获取头像昵称，不会弹框
-          wx.getUserInfo({
-            success: res => {
-              // 可以将 res 发送给后台解码出 unionId
-              that.globalData.userInfo = res.userInfo
-              // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
-              // 所以此处加入 callback 以防止这种情况
-              if (that.userInfoReadyCallback) {
-                that.userInfoReadyCallback(res)
-              }
-            }
-          })
-        }
+    wx.request({
+      'url': that.buildUrl('/product/qrcode/info'),
+      'success': res => {
+        let resp = res.data
+        that.globalData.qrcodePrice = resp.data.price
+        that.globalData.qrcodeProductId = resp.data.id
       }
     })
   },
@@ -377,7 +358,6 @@ App({
     that.globalData.is_user = res.data.data.is_user;
     that.globalData.has_qrcode = res.data.data.has_qrcode;
     that.globalData.qr_code_list = res.data.data.qr_code_list;
-    that.globalData.location = res.data.data.location;
     that.globalData.member_status = res.data.data.member_status;
     that.globalData.id = res.data.data.id;
     that.globalData.openid = res.data.data.token.split("#")[0]

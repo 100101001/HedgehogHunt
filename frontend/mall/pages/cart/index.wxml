@@ -1,11 +1,11 @@
 <!--mall\pages\cart\index.wxml-->
 <import src="../template/navigate-bar1/navigate-bar1-template.wxml" />
-<view class="container" wx:if="{{dataReady}}">
-  <!--无购物车记录-->
-	<view class="title-box" wx:if="{{ !list.length }}">
+<view class="container">
+  	<!--无购物车记录-->
+	<view class="title-box" wx:if="{{ !list.length && dataReady}}">
 		购物车空空如也～
 	</view>
-	<view class="to-index-btn" bindtap="toIndexPage" wx:if="{{ !list.length }}">
+	<view class="to-index-btn" bindtap="toIndexPage" wx:if="{{ !list.length && dataReady }}">
 		去逛逛
 	</view>
 
@@ -36,8 +36,8 @@
 			</view>
 		</view>
 	</view>
-	<view wx:if="{{!loadingMoreHidden}}" class="no-more-goods">没有更多商品了~可以继续添加</view>
-  <view wx:if="{{loadingMoreHidden}}" class="no-more-goods">上滑加载更多～</view>
+	<view wx:if="{{!loadingMoreHidden && dataReady}}" class="no-more-goods">没有更多商品了~可以继续添加</view>
+  	<view wx:if="{{loadingMoreHidden && dataReady}}" class="no-more-goods">上滑加载更多～</view>
 	
 	<!---下单-->
 	<view class="jiesuan-box" wx:if="{{ list.length }}">

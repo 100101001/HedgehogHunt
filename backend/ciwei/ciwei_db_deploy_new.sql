@@ -392,7 +392,7 @@ CREATE TABLE `product`  (
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_product_cat_id`(`cat_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 13 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '周边表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '周边表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of product
@@ -411,6 +411,7 @@ INSERT INTO `product` VALUES (11, 6, 0, '水印', 1, '印章', 50.00, '20200303/
 INSERT INTO `product` VALUES (12, 6, 1, '钢印', 1, '印章', 90.00, '20200303/stamper2.jpg', '20200303/stamper2.jpg', '', '可以敲在书本上，你的闪寻名片', 1, 0, 99999, 0, 0, '2020-03-03 04:33:34', '2020-03-02 20:24:31');
 INSERT INTO `product` VALUES (13, 7, 0, '加鸡腿', 2, '打赏', 0.01, '20200307/chicken1.jpg', '20200307/chicken1.jpg', '', '一分钱也是爱', 1, 0, 99999, 0, 0, '2020-03-07 04:33:34', '2020-03-07 20:24:31');
 INSERT INTO `product` VALUES (14, 7, 1, '加整鸡', 2, '打赏', 0.02, '20200307/chicken2.jpg', '20200307/chicken2.jpg', '', '两分钱也是爱', 1, 0, 99999, 0, 0, '2020-03-07 04:33:34', '2020-03-07 20:24:31');
+INSERT INTO `product` VALUES (15, 8, 0, '直接获码', 1, '闪寻码', 2.00, '20200321/sx-code.jpg', '20200321/sx-code.jpg', '', '有了它，失物闪寻！', 0, 0, 100000000, 0, 0, '2020-03-21 15:21:04', '2020-03-21 15:21:04');
 
 -- ----------------------------
 -- Table structure for product_cat

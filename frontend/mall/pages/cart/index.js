@@ -154,7 +154,7 @@ Page({
             });
         }
 
-        wx.redirectTo({
+        wx.navigateTo({
             url: "/mall/pages/order/index?data=" + JSON.stringify(data)
         });
     },

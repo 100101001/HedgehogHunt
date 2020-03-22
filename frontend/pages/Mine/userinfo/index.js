@@ -1,4 +1,5 @@
 var app = getApp();
+
 Page({
   data: {
     userInfo: {},
@@ -11,7 +12,18 @@ Page({
     contact_img: app.globalData.static_file_domain + "/static/QRcode.jpg"
   },
   onLoad: function () {
-    //如果登陆状态过期就重新登陆
+    //会员基本信息
+    var name = app.globalData.memberInfo.name
+    var mobile = app.globalData.memberInfo.mobile
+    this.setData({
+      avatar: app.globalData.memberInfo.avatar,
+      nickname: app.globalData.memberInfo.nickname,
+      mobile: mobile == "" ? "-" : mobile,
+      name: name == "" ? "-" : name,
+      balance: app.globalData.memberInfo.balance
+    });
+  },
+  onShow() {
     wx.checkSession({
       fail: (res) => {
         wx.login({
@@ -22,8 +34,8 @@ Page({
               header: {
                 'content-type': 'application/json',
               },
-              data: { code: res.code },
-              success: res=>{
+              data: {code: res.code},
+              success: res => {
                 app.setCache("loginInfo", res.data.data)
               }
             })
@@ -31,19 +43,11 @@ Page({
         })
       }
     })
-    //会员基本信息
-    var name = app.globalData.memberInfo.name
-    var mobile = app.globalData.memberInfo.mobile
-    var balance = app.globalData.memberInfo.balance
+    // 会员的闪寻码信息
     this.setData({
-      avatar: app.globalData.memberInfo.avatar,
-      nickname: app.globalData.memberInfo.nickname,
-      mobile: mobile == "" ? "-" : mobile,
-      name: name == "" ? "-" : name,
       has_qrcode: app.globalData.has_qrcode,
       qrCode: app.globalData.has_qrcode ? app.globalData.qr_code_list[0] : "",
-      balance: balance
-    });
+    })
   },
   getPhoneNumber(e) {
     console.log(e)
@@ -188,7 +192,10 @@ Page({
       editName: e.detail.value
     })
   },
-  getQrCode: function () {
+  /***
+   * toGetQrCode 判断没有姓名或手机号提示用户补上，否则继续下单获取二维码
+   */
+  toGetQrCode: function(){
     var name = this.data.name
     var mobile = this.data.mobile
     if (name == "-") {
@@ -199,39 +206,28 @@ Page({
       app.alert({ 'content': '手机不能为空' })
       return
     }
-    if (!this.data.has_qrcode) {
-      wx.showLoading({
-        title: '正在获取..',
-      })
-      var that = this
-      wx.request({
-        method: 'post',
-        url: app.buildUrl('/qrcode/wx'),
-        header: app.getRequestHeader(),
-        success: function (res) {
-          var resp = res.data
-          if (resp.code !== 200) {
-            app.alert({
-              'content': resp.msg
-            })
-            return
-          }
-          app.globalData.has_qrcode = true
-          app.globalData.qr_code_list = [resp.data.qr_code_url]
-          that.setData({
-            qrCode: resp.data.qr_code_url,
-            has_qrcode: true,
-            show_qrcode: true
-          })
-        },
-        fail: function (res) {
-          app.serverBusy()
-        },
-        complete: res => {
-          wx.hideLoading()
-        }
-      })
+    this.getQrCode()
+  },
+  /***
+   * getQrCode 去下单获取二维码
+   */
+  getQrCode: function () {
+    //下单
+    let data = {
+      type: 'toBuy',
+      goods: [{'id': app.globalData.qrcodeProductId, 'price': app.globalData.qrcodePrice, 'number': 1}]
     }
+    wx.showToast({
+      title: '前往下单',
+      icon: 'loading',
+      success: res => {
+         setTimeout(function(){
+           wx.navigateTo({
+             'url' : '/mall/pages/order/index?data='+ JSON.stringify(data)
+           })
+         }, 200)
+      }
+    })
   },
   checkQrCode: function () {
     var show_qrcode = !this.data.show_qrcode;
@@ -244,7 +240,7 @@ Page({
     if (balance < 10) {
       app.alert({
         'title': '温馨提示',
-        'content': '余额满10元即可提现'
+        'content': '额度满10元即可提现'
       })
       return
     }

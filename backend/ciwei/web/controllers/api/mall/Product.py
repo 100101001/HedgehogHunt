@@ -248,3 +248,15 @@ def productComments():
     resp['data']['list'] = data_list
     resp['data']['count'] = query.count()
     return jsonify(resp)
+
+
+@route_api.route('/product/qrcode/info', methods=['GET', 'POST'])
+def productQrcodeInfo():
+    return jsonify({
+        'code': 200,
+        'msg': '',
+        'data': {
+            'id': 15,
+            'price': 0.01
+        }
+    })

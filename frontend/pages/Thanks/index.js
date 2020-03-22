@@ -86,7 +86,7 @@ Page({
       } else {
         //余额加现金支付
         content = (pay == price ? '' : '由于微信手续费，') + 
-                  (balance==0? '':'从您账户扣除余额后，')+'您需支付' + wx_pay + '元'
+                  (balance==0? '':'从您账户扣除额度后，')+'您需支付' + wx_pay + '元'
       }
       var that = this
       app.alert({
@@ -146,7 +146,7 @@ Page({
                     //用户取消了支付，询问余额是退还还是只用余额答谢
                     app.alert({
                       'title': '是否终止答谢',
-                      'content': "取消将仅用账户余额答谢",
+                      'content': "取消将仅用账户额度答谢",
                       'showCancel': true,
                       'cb_confirm': function () {
                         //支付是因为余额全扣了也不够

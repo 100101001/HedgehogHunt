@@ -76,7 +76,6 @@ Page({
     })
   },
   goControls: function () {
-    console.log("dianle1")
     wx.navigateTo({
       url: '/controls/pages/index',
       complete(res){

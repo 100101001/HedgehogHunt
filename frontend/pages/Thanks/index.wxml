@@ -23,7 +23,7 @@
      <text>元</text>
     </view>
     <view class="account_money">
-      您的账户余额为： {{balance}} 元 
+      您的答谢额度为： {{balance}} 元
     </view>
     <button class='bottom' form-type="submit" type='primary' bindtap="sendThank" disabled="{{canSendThank}}">发出感谢</button>
   </view>
