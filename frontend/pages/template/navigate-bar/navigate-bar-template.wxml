@@ -4,13 +4,13 @@
 		<view class="hint-qrcode-container" wx:if="{{showHintQrcode}}">
 			<view class="hint-qrcode-text-container">
 				<!--未登录-->
-				<view class="hint-qrcode-text" wx:if="{{regFlag && !hasQrcode}}">获取专属二维码，失物闪寻~</view>
+				<view class="hint-qrcode-text" wx:if="{{regFlag && !hasQrcode}}">获取专属闪寻码，失物闪寻~</view>
 				<navigator class="hint-navigator" url="/pages/Mine/userinfo/index" hover-class="hint-navigator-hover" wx:if="{{regFlag && !hasQrcode}}">[去获取]</navigator>
 				<!--登录无二维码-->
-				<view class="hint-qrcode-text" wx:if="{{!regFlag}}">登录后可获取专属二维码~</view>
+				<view class="hint-qrcode-text" wx:if="{{!regFlag}}">登录后可获取专属闪寻码~</view>
 				<navigator class="hint-navigator" url="/pages/login/index" hover-class="hint-navigator-hover" wx:if="{{!regFlag}}">[去登录]</navigator>
 				<!--登录且有二维码-->
-				<view class="hint-qrcode-text" wx:if="{{regFlag && hasQrcode}}">前往看查看我的专属二维码~</view>
+				<view class="hint-qrcode-text" wx:if="{{regFlag && hasQrcode}}">前往看查看我的专属闪寻码~</view>
 				<navigator class="hint-navigator" url="/pages/Mine/userinfo/index" hover-class="hint-navigator-hover" wx:if="{{regFlag && hasQrcode}}">[去查看]</navigator>
 				<view class="close-hint" bindtap="closeQrcodeHint">x</view>
 			</view>

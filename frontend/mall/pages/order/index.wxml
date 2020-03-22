@@ -1,4 +1,4 @@
-<view class="container">
+<view class="container" wx:if="{{dataReady}}">
      <view class="address-box">
         <view class="add-address" hidden="{{default_address}}">
             <view class="title" bindtap="addressSet">新增收货地址</view>
@@ -55,6 +55,6 @@
         <view class="left-price">
             <view class="total">合计：¥ {{total_price}}</view>
         </view>
-        <button class="to-pay-btn" bindtap="createOrder" disabled="{{createOrderDisabled}}">提交订单</button>
+        <button class="to-pay-btn" bindtap="toCreateOrder" disabled="{{createOrderDisabled}}">提交订单</button>
     </view>
 </view>

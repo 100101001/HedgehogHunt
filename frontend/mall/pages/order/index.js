@@ -10,31 +10,63 @@ Page({
         total_price: "0.00",
         params: null,
         express_address_id: 0,
-        createOrderDisabled: false
+        createOrderDisabled: false,
+        dataReady: false
     },
+    /***
+     * onLoad 加载订单详情页
+     * @param e 下单产品列表和下单来源
+     */
     onLoad: function (e) {
         var that = this;
         that.setData({
             params: JSON.parse(e.data)
         });
     },
+    /***
+     * onShow 订单详情页显示
+     * 如果用户没有二维码且订单项中没有二维码则需随单加购二维码（不同意则终止核对下单流程）
+     * 否则正常加载订单详细信息，用户进行核对下单
+     */
     onShow: function () {
-        var that = this;
-        this.getOrderInfo();
+        if (app.globalData.has_qrcode) {
+            this.getOrderInfo();
+        } else {
+            //判断商品列表中有无二维码
+            let goods = this.data.params['goods']
+            let index = goods.findIndex(item => item.id === app.globalData.qrcodeProductId)
+            if (index === -1) {
+                this.requireOrderQrcode();
+            } else {
+                this.getOrderInfo();
+            }
+        }
     },
-    createOrder: function (e) {
-        if (this.data.default_address.id == undefined) {
+    /***
+     * toCreateOrder 确认下单的入口
+     * 判断收货地址如果没有的话，提示用户操作增加
+     * 否则，继续进行订单创建
+     */
+    toCreateOrder: function(e){
+        if (!this.data.default_address) {
             app.alert({
                 'title': '温馨提示',
                 'content': '请增加收货地址！'
             })
             return
         }
+        this.createOrder(e)
+    },
+    /***
+     * createOrder 根据订单列表创建订单
+     */
+    createOrder: function () {
         this.setData({
             createOrderDisabled: true
         })
         wx.showLoading({
-            mask:true
+            mask:true,
+            title: '正在下单'
         });
         var that = this;
         var data = {
@@ -67,7 +99,6 @@ Page({
                 wx.hideLoading()
             }
         });
-
     },
     addressSet: function () {
         wx.navigateTo({
@@ -79,19 +110,40 @@ Page({
             url: "/mall/pages/my/addressList"
         });
     },
+    /***
+     * requireOrderQrcode 征得用户同意后随单加购二维码，否则不能下单
+     */
+    requireOrderQrcode: function () {
+        let qrcodePrice = app.globalData.qrcodePrice
+        let that = this
+        app.alert({
+            title: '温馨提示',
+            content: '您还没有闪寻码无法下单，是否加' + qrcodePrice + '元随单购买？',
+            showCancel: true,
+            cb_confirm: function () {
+                //加入订单款项
+                let params = that.data.params
+                params['goods'].push({
+                    "id": app.globalData.qrcodeProductId,
+                    "price": qrcodePrice,
+                    "number": 1
+                })
+                that.setData({
+                    params: params
+                })
+                that.getOrderInfo()
+            },
+            cb_cancel: function () {
+                //回退
+                wx.navigateBack()
+            }
+        })
+    },
+    /***
+     * getOrderInfo 根据订单列表的产品ID，获取详细的产品信息，并计算出支付价格
+     */
     getOrderInfo: function () {
-        if (!app.globalData.has_qrcode) {
-            app.alert({
-                'title':'温馨提示',
-                'content':'请先去获取二维码',
-                'cb_confirm': function(){
-                    wx.navigateTo({
-                      url: '/pages/Mine/userinfo/index',
-                    })
-                }
-            })
-        }
-        var that = this;
+        var that = this
         var data = {
             type: this.data.params.type,
             goods: JSON.stringify(this.data.params.goods)
@@ -114,6 +166,7 @@ Page({
                     yun_price: resp.data.yun_price,
                     pay_price: resp.data.pay_price,
                     total_price: resp.data.total_price,
+                    dataReady: true
                 });
 
                 if (that.data.default_address) {
@@ -124,5 +177,4 @@ Page({
             }
         });
     }
-
 });

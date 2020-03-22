@@ -130,11 +130,10 @@ Page({
         if (selDistrictIndex == -1 && this.data.selDistrict != "请选择") {
             var district_id = this.data.district_id
         } else {
-            var district_id
             if (this.data.selDistrict == "请选择" || !this.data.selDistrict) {
-                district_id = '';
+                var district_id = '';
             } else {
-                district_id = commonCityData.cityData[this.data.selProvinceIndex].cityList[this.data.selCityIndex].districtList[this.data.selDistrictIndex].id;
+                var district_id = commonCityData.cityData[this.data.selProvinceIndex].cityList[this.data.selCityIndex].districtList[this.data.selDistrictIndex].id;
             }
         }
 

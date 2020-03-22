@@ -1,11 +1,31 @@
 var app = getApp();
+
+
+
+const getQrcodeFromWechat = function() {
+    wx.request({
+        method: 'post',
+        url: app.buildUrl('/qrcode/wx'),
+        header: app.getRequestHeader(),
+        success: function (res) {
+            var resp = res.data
+            app.globalData.has_qrcode = true
+            app.globalData.qr_code_list = [resp.data.qr_code_url]
+        },
+        fail: function (res) {
+            app.serverBusy()
+        }
+    })
+}
+
 Page({
     data: {
         order_list: [],
         statusType: ["待付款", "待发货", "待确认", "待评价", "已完成", "已关闭"],
         status: ["-8", "-7", "-6", "-5", "1", "0"],
         currentType: 0,
-        tabClass: ["", "", "", "", "", ""]
+        tabClass: ["", "", "", "", "", ""],
+        isGettingQrcode: false
     },
     statusTap: function (e) {
         var curType = e.currentTarget.dataset.index;
@@ -23,10 +43,42 @@ Page({
         // 生命周期函数--监听页面加载
     },
     onShow: function () {
-        this.getPayOrder();
+        if(this.data.isGettingQrcode){
+            this.getPayOrderAndshowGettingQrcode()
+        }else{
+            this.getPayOrder();
+        }
     },
     orderCancel: function (e) {
         this.orderOps(e.currentTarget.dataset.id, "cancel", "确定取消订单？");
+    },
+    getPayOrderAndshowGettingQrcode: function(){
+        this.getPayOrder()
+        wx.showLoading({
+            title: '获取闪寻码中',
+            mask: true
+        })
+        var that = this
+        setTimeout(function(){
+            wx.hideLoading()
+            wx.showToast({
+                title: '获取成功',
+                icon: 'success',
+                mask: true,
+                duration: 800,
+                success: function () {
+                    setTimeout(function () {
+                        app.alert({
+                            'title': '温馨提示',
+                            'content': '可返回入口界面，在【我的】->【个人信息】查看您的专属闪寻码'
+                        })
+                    }, 700)
+                }
+            })
+            that.setData({
+                isGettingQrcode: false
+            })
+        }, 500)
     },
     getPayOrder: function () {
         var that = this;
@@ -77,7 +129,13 @@ Page({
                     'signType': 'MD5',
                     'paySign': pay_info.paySign,
                     'success': function (res) {
-                        
+                        //支付成功
+                        if (res.errMsg == "requestPayment:ok" && !app.globalData.has_qrcode) {
+                            that.setData({
+                                isGettingQrcode: true
+                            })
+                            getQrcodeFromWechat()
+                        }
                     },
                     'fail': function (res) {
                     }
