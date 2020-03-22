@@ -22,7 +22,7 @@
     </view>
   <!-- 提现余额，满十元可提现 -->
   <view class="userinfo_container" data-id="4">
-    <view class="title">账户余额</view>
+    <view class="title">答谢额度</view>
     <view class="next">
       <view class="content2">¥ {{balance}}</view>
       <view class="recharge_btn" bindtap="onWithDrawTap">提现</view>

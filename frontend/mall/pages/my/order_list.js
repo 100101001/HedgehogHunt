@@ -102,11 +102,6 @@ Page({
         });
     },
     toPay: function (e) {
-        // app.alert({
-        //     'title': '温馨提示',
-        //     'content': '模块正在开发中,敬请期待!'
-        // })
-        // return
         var that = this;
         wx.request({
             url: app.buildUrl("/order/pay"),

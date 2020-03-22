@@ -240,7 +240,7 @@ Page({
     if (balance < 10) {
       app.alert({
         'title': '温馨提示',
-        'content': '余额满10元即可提现'
+        'content': '额度满10元即可提现'
       })
       return
     }
