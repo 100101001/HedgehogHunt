@@ -3,6 +3,7 @@ backend/ciwei/web/static/upload/
 backend/ciwei/web/static/qr_code/
 backend/ciwei/Lib/
 backend/ciwei/Scripts/
+backend/ciwei/config/
 __pycache__/
 backend/ciwei/venv/
 backend/ciwei/.idea/
