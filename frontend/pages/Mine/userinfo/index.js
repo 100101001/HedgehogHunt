@@ -191,7 +191,10 @@ Page({
       editName: e.detail.value
     })
   },
-  getQrCode: function () {
+  /***
+   * toGetQrCode 判断没有姓名或手机号提示用户补上，否则继续下单获取二维码
+   */
+  toGetQrCode: function(){
     var name = this.data.name
     var mobile = this.data.mobile
     if (name == "-") {
@@ -202,24 +205,28 @@ Page({
       app.alert({ 'content': '手机不能为空' })
       return
     }
-    if (!this.data.has_qrcode) {
-      //支付
-      let data = {
-        type: 'toBuy',
-        goods: [{'id': app.globalData.qrcodeProductId, 'price': app.globalData.qrcodePrice, 'number': 1}]
-      }
-      wx.showToast({
-        title: '前往下单',
-        icon: 'loading',
-        success: res => {
-           setTimeout(function(){
-             wx.navigateTo({
-               'url' : '/mall/pages/order/index?data='+ JSON.stringify(data)
-             })
-           }, 200)
-        }
-      })
+    this.getQrCode()
+  },
+  /***
+   * getQrCode 去下单获取二维码
+   */
+  getQrCode: function () {
+    //下单
+    let data = {
+      type: 'toBuy',
+      goods: [{'id': app.globalData.qrcodeProductId, 'price': app.globalData.qrcodePrice, 'number': 1}]
     }
+    wx.showToast({
+      title: '前往下单',
+      icon: 'loading',
+      success: res => {
+         setTimeout(function(){
+           wx.navigateTo({
+             'url' : '/mall/pages/order/index?data='+ JSON.stringify(data)
+           })
+         }, 200)
+      }
+    })
   },
   checkQrCode: function () {
     var show_qrcode = !this.data.show_qrcode;
