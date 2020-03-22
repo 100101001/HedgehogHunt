@@ -7,6 +7,12 @@ Page({
     dataReady: false,
     submitDisable: false
   },
+  /**
+   * 1、扫码发布(失物招领)
+   * 2、归还发布(失物招领)
+   * 3、常规发布(需选择)
+   * @param options
+   */
   onLoad: function (options) {
     var openid = options.openid == undefined ? "" : options.openid
     var auther_id = options.auther_id == undefined ? "" : options.auther_id
@@ -14,7 +20,7 @@ Page({
       this.setData({
         notify_id: openid,
         business_type: 1,
-        location: "",
+        location: [],
         dataReady: true
       });
       this.setInitData();
@@ -22,9 +28,8 @@ Page({
       if (auther_id != "") { //归还
         this.setData({
           auther_id: auther_id,
-          notify_id: openid,
           business_type: 1,
-          location: "",
+          location: [],
           dataReady: true
         })
         this.setInitData();
@@ -34,14 +39,13 @@ Page({
           itemList: ['寻物启事', '失物招领'],
           success: res => {
             this.setData({
-              notify_id: openid,
               business_type: res.tapIndex,
-              location: "",
+              location: [],
               dataReady: true
             });
             this.setInitData();
           },
-          fail(res) {
+          fail: (res) => {
             wx.redirectTo({
               url: '../../Find/Find',
             })
@@ -76,27 +80,22 @@ Page({
     })
   },
   chooseLocation: function () {
-    var that = this
     wx.chooseLocation({
-      success: function (res) {
-        var location = [
-          res.address,
-          res.name,
-          res.latitude,
-          res.longitude,
-        ]
-        that.setData({
-          location: location
+      success:  (res) => {
+        this.setData({
+          location: [
+            res.address,
+            res.name,
+            res.latitude,
+            res.longitude,
+          ]
         })
-      },
-      complete: function (res) {
-
       }
     })
   },
   //获取位置
-  lisentLocationInput: function (e) {
-    var location = this.data.location;
+  listenLocationInput: function (e) {
+    let location = this.data.location;
     location[1] = e.detail.value;
     this.setData({
       location: location
@@ -104,39 +103,36 @@ Page({
   },
   //预览图片
   previewImage: function (e) {
-    var index = e.currentTarget.dataset.index;
     this.setData({
       flush: false,
     });
     wx.previewImage({
-      current: this.data.imglist[index], // 当前显示图片的http链接
+      current: this.data.imglist[e.currentTarget.dataset.index], // 当前显示图片的http链接
       urls: this.data.imglist // 需要预览的图片http链接列表
     })
   },
   //选择图片方法
   chooseLoadPics: function (e) {
-    var that = this; //获取上下文
-    var imglist = that.data.imglist;
     //选择图片
     wx.chooseImage({
-      count: 8 - imglist.length,
+      count: 8 - this.data.imglist.length,
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
-      success: function (res) {
+      success:  (res) => {
         var tempFiles_ori = res.tempFiles;
-        var imglist = that.data.imglist;
+        var imglist = this.data.imglist;
         imglist = app.addImages(tempFiles_ori, imglist);
         //显示
-        that.setData({
+        this.setData({
           imglist: imglist,
           flush: false
         });
         if (imglist.length >= 9) {
-          that.setData({
+          this.setData({
             pic_status: false,
           });
         } else {
-          that.setData({
+          this.setData({
             pic_status: true,
           });
         }
@@ -164,73 +160,96 @@ Page({
       }
     }
   },
-  handleUnLoggedRelease: function(){
-    this.formDataPrepare()
-  },
-  //表单提交
-  formSubmit: function (e) {
+  /***
+   * toRelease
+   * 如果必填项为空，提示补上
+   * 否则继续进行提交处理
+   */
+  toRelease: function () {
     this.setData({
       submitDisable: true
     })
-    console.log(e)
-    //无登录发布
-    if(app.globalData.unLoggedRelease){
-      this.handleUnLoggedRelease()
-      return
-    }
-    wx.requestSubscribeMessage({
-      tmplIds: [
-        app.globalData.subscribe.recommend,
-        app.globalData.subscribe.finished,
-        app.globalData.subscribe.thanks
-      ], //首次(被)匹配，已完成，(被)答谢
-      complete: (res) => {
-        console.log(res)
-        this.formDataPrepare()
-      }
-    })
-  },
-  formDataPrepare: function(){
-    var items = this.data.items
-    var data = {
-      location: this.data.location[1],
+    // 必填项判空
+    let items = this.data.items
+    let data = {
+      location: this.data.location.length? this.data.location[1] : "",
       goods_name: items[0].value,
       mobile: items[2].value,
       owner_name: items[1].value,
       summary: this.data.summary_value
     }
-    var tips_obj = this.data.tips_obj
-    var is_empty = app.judgeEmpty(data, tips_obj)
-    if (is_empty) {
+    if (app.judgeEmpty(data, this.data.tips_obj)) {
       this.setData({
         submitDisable: false
       })
-      return;
+      return
     }
-    //上传发布数据
-    data['business_type'] = this.data.business_type
-    data['location'] = this.data.location
-    var img_list = this.data.imglist
-    if (img_list.length === 0) {
+    // 图片列表判空
+    if (this.data.imglist.length === 0) {
       app.alert({
         'content': "至少要提交一张图片"
       });
       this.setData({
         submitDisable: false
       })
-      return;
+      return
     }
+    //准备发布数据
+    data['business_type'] = this.data.business_type
+    data['location'] = this.data.location
+    data['img_list'] = this.data.imglist
+    this.handleRelease(data)
+  },
+  /**
+   * handleRelease
+   * 如果是无登陆发布，就不询问订阅消息，直接准备发布数据
+   * 否则先让用户选择订阅消息，然后再发布数据
+   * @param data 包含发布所需数据
+   */
+  handleRelease: function (data) {
+    //无登录发布
+    if (app.globalData.unLoggedRelease) {
+      this.notifyAndRelease(data)
+    } else {
+      this.subscribeMsgAndNotifyRelease(data)
+    }
+  },
+  /**
+   * subscribeMsgAndNotifyRelease
+   * 先让用户订阅消息后，再继续通知失主和发布物品贴
+   * @param data
+   */
+  subscribeMsgAndNotifyRelease: function (data) {
+    wx.requestSubscribeMessage({
+      tmplIds: [
+        app.globalData.subscribe.recommend,  //首次(被)匹配
+        app.globalData.subscribe.finished,  //已完成
+        app.globalData.subscribe.thanks  //被答谢
+      ],
+      complete: (res) => {
+        this.notifyAndRelease(data)
+      }
+    })
+  },
+  /**
+   * notifyAndRelease
+   * 如果有通知用户的openid，就先通知
+   * 然后继续发布物品
+   * @param data 发布数据
+   */
+  notifyAndRelease: function(data){
     //通知失主
     if (this.data.notify_id !== "") {
       this.sendNotification(data)
     }
-    data['img_list'] = img_list
-    var url = "/goods/create";
-    this.uploadData(data, url, img_list);
+    //上传数据
+    this.uploadData(data)
   },
-  //通知失主
+  /**
+   * sendNotification 通知失主
+   * @param data 失物数据
+   */
   sendNotification: function (data) {
-    var that = this
     wx.request({
       url: app.buildUrl('/qrcode/notify'),
       header: app.getRequestHeader(1),
@@ -239,171 +258,203 @@ Page({
         'goods': data,
         'openid': that.data.notify_id
       },
-      success: function (res) {
-        that.setData({
+      success: res => {
+        this.setData({
           notify_id: ""
         })
       }
     })
   },
   //一旦退出页面就
-  onUnload: function(){
-    app.globalData.unLoggedRelease  = false
+  onUnload: function () {
+    app.globalData.unLoggedRelease = false
     app.globalData.unLoggedReleaseToken = null
   },
-  //发帖子(除图片)
-  uploadData: function (data, url, img_list) {
-    var that = this;
-    var header = app.globalData.unLoggedRelease? app.globalData.unLoggedReleaseToken : app.getRequestHeader()
+  /**
+   * uploadData 创建帖子(填充除图片外的数据)
+   * @param data 发帖数据(包含图片列表和地址)
+   */
+  uploadData: function (data) {
     wx.request({
-      url: app.buildUrl(url),
+      url: app.buildUrl("/goods/create"),
       method: 'POST',
-      header: header,
+      header: app.globalData.unLoggedRelease ? app.globalData.unLoggedReleaseToken : app.getRequestHeader(),
       data: data,
-      success: function (res) {
-        var resp = res.data;
-        if (resp.code !== 200) {
-          that.setData({
+      success: (res) => {
+        let resp = res.data;
+        if (resp['code'] !== 200) {
+          app.alert({
+            'content': resp['msg']
+          })
+          this.setData({
             submitDisable: false
           })
-          app.alert({
-            'content': resp.msg
-          });
           return
         }
         //获取商品的id,之后用于提交图片
-        var id = resp.id;
-        var img_list_status = resp.img_list_status;
-        that.uploadImage(id, img_list, img_list_status);
+        this.uploadImage(resp['id'], data['img_list'], resp['img_list_status']);
       },
-      fail: function (res) {
+      fail: (res) => {
         app.serverBusy();
-        that.setData({
+        this.setData({
           submitDisable: false
         })
-        return;
-      },
-      complete: function (res) {
-
-      },
-    });
-  },
-  uploadImage: function (id, img_list, img_list_status) {
-    var that = this;
-    var n = img_list.length;
-    var header = app.globalData.unLoggedRelease?  app.globalData.unLoggedReleaseToken : app.getRequestHeader()
-    for (var i = 1; i <= n; i++) {
-      if (n === i) {
-        var end_s = true;
       }
+    })
+  },
+  /**
+   * uploadImage
+   * 为物品贴上传图片,分为{覆盖编辑和新建两种场景}
+   * 1.更新(原有图片，只需上传原图片在服务器上的文件名即可)，
+   * 2.新增图片(需上传图片文件到服务器)
+   * @param id 物品贴ID
+   * @param img_list 图片列表
+   * @param img_list_status 图片是否存于服务器
+   */
+  uploadImage: function (id, img_list, img_list_status) {
+    this.setData({
+      loadingHidden: false
+    })
+    for (let i = 1; i <= img_list.length; i++) {
       this.setData({
-        i: i,
-        loadingHidden: false,
-      });
+        i: i
+      })
       if (img_list_status[i - 1]) {
         //图片存在，则更新
-        wx.request({
-          url: app.buildUrl('/goods/update-pics'),
-          method: 'POST',
-          header: header,
-          data: {
-            id: id,
-            img_url: img_list[i - 1]
-          },
-          success: function (res) {
-            if (end_s) {
-              that.endCreate(id);
-            }
-          },
-          fail: function (res) {
-            app.serverBusy();
-            that.setData({
-              submitDisable: false,
-              loadingHidden: true
-            })
-            return;
-          },
-          complete: function (res) { },
-        })
+        this.updateImage(id, img_list, i)
       } else {
         //图片不存在存在，则重新上传
-        wx.uploadFile({
-          url: app.buildUrl('/goods/add-pics'), //接口地址
-          header: header,
-          filePath: img_list[i - 1], //文件路径
-          formData: {
-            'id': id
-          },
-          name: 'file', //文件名，不要修改，Flask直接读取
-          success: function (res) {
-            if (end_s) {
-              that.endCreate(id);
-            }
-          },
-          fail: function (res) {
-            app.serverBusy();
-            return;
-          },
-          complete: function (res) { },
-        })
+        this.addImage(id, img_list, i)
       }
     }
-
   },
-  endCreate: function (id) {
-    var that = this;
-    var auther_id = that.data.auther_id;
-    var header = app.globalData.unLoggedRelease?  app.globalData.unLoggedReleaseToken: app.getRequestHeader()
+  /***
+   * updateImage 物品贴更新图片
+   * @param id 物品贴ID
+   * @param img_list 图片列表
+   * @param i 第几张图
+   */
+  updateImage: function (id, img_list, i) {
+    wx.request({
+      url: app.buildUrl('/goods/update-pics'),
+      method: 'POST',
+      header: app.globalData.unLoggedRelease ? app.globalData.unLoggedReleaseToken : app.getRequestHeader(),
+      data: {
+        id: id,
+        img_url: img_list[i - 1]
+      },
+      success: res => {
+        if (img_list.length === i) {
+          this.toEndCreate(id)
+        }
+      },
+      fail: res => {
+        app.serverBusy()
+        this.setData({
+          loadingHidden: true,
+          submitDisable: false
+        })
+      }
+    })
+  },
+  /***
+   * addImage 物品贴新增图片
+   * @param id 物品贴ID
+   * @param img_list 图片列表
+   * @param i 第几张图
+   */
+  addImage: function (id, img_list, i) {
+    wx.uploadFile({
+      url: app.buildUrl('/goods/add-pics'), //接口地址
+      header: app.globalData.unLoggedRelease ? app.globalData.unLoggedReleaseToken : app.getRequestHeader(),
+      filePath: img_list[i - 1], //文件路径
+      formData: {
+        'id': id
+      },
+      name: 'file', //文件名，不要修改，Flask直接读取
+      success: (res) => {
+        if (img_list.length == i) {
+          this.toEndCreate(id)
+        }
+      },
+      fail: (res) => {
+        app.serverBusy()
+        this.setData({
+          loadingHidden: true,
+          submitDisable: false
+        })
+      }
+    })
+  },
+  /**
+   * toEndCreate
+   * 如果是归还发布的失物招领贴需要附带原寻物启事的信息
+   * 否则只需传回失物招领贴ID，继续结束创建
+   * @param id 结束创建的物品帖子ID
+   */
+  toEndCreate: function (id) {
+    let auther_id = this.data.auther_id;
+    let data = {}
     if (auther_id) {
-      var data = {
+      data = {
         id: id,
         auther_id: auther_id,
         target_goods_id: app.globalData.info.id,
-      };
+      }
     } else {
-      var data = {
+      data = {
         id: id,
-      };
+      }
     }
+    this.endCreate(data)
+  },
+  /**
+   * endCreate 结束创建物品
+   * @param data 结束创建参数
+   */
+  endCreate: function (data) {
     wx.request({
       url: app.buildUrl("/goods/end-create"),
       method: 'POST',
-      header: header,
+      header: app.globalData.unLoggedRelease ? app.globalData.unLoggedReleaseToken : app.getRequestHeader(),
       data: data,
-      success: function (res) {
-        var resp = res.data;
-        if (resp.code !== 200) {
-          app.alert({
-            'content': resp.msg
-          });
+      success: (res) => {
+        let resp = res.data;
+        if (resp['code'] !== 200) {
+          app.alert({'content': resp['msg']})
+          this.setData({
+            submitDisable: false
+          })
           return
         }
-        that.setInitData();
         app.getNewRecommend()
+        this.setInitData();
+        app.globalData.info = {}
         wx.showToast({
           title: '提交成功',
           icon: 'success',
-          duration: 2000
-        });
-        //提交完之后清空全局变量
-        app.globalData.info = {};
-        var business_type = that.data.business_type;
-        //帖子详情中的去发布
-        wx.reLaunch({
-          url: '../../Find/Find?business_type=' + business_type,
+          duration: 2000,
+          success: res => {
+            setTimeout(() => {
+              wx.reLaunch({
+                url: '../../Find/Find?business_type=' + this.data.business_type,
+              });
+            }, 2000)
+          }
         });
       },
-      fail: function (res) {
-        app.serverBusy();
-        return;
-      },
-      complete: function (res) {
-        that.setData({
-          loadingHidden: true,
+      fail:  (res) => {
+        app.serverBusy()
+        this.setData({
           submitDisable: false
-        });
+        })
       },
-    });
+      complete: res => {
+        this.setData({
+          loadingHidden: true
+        })
+      }
+    })
   },
   //设置页面参数
   setInitData: function () {
@@ -447,7 +498,7 @@ Page({
       var tips_obj = {
         "goods_name": "物品",
         "owner_name": "失主姓名",
-        "owener_location": "居住地址",
+        "location": "居住地址",
         "summary": "描述",
         "mobile": "联系电话",
       };
@@ -492,8 +543,8 @@ Page({
     });
   },
   listenerInput: function (e) {
-    var idx = e.currentTarget.dataset.id
-    var items = this.data.items
+    let idx = e.currentTarget.dataset.id
+    let items = this.data.items
     items[idx].value = e.detail.value
     this.setData({
       items: items
@@ -502,6 +553,12 @@ Page({
   listenSummaryInput: function (e) {
     this.setData({
       summary_value: e.detail.value
+    })
+  },
+  setTop: function () {
+    let isSetTop = this.data.isSetTop
+    this.setData({
+      isSetTop: !isSetTop
     })
   }
 });

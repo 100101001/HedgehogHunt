@@ -41,13 +41,12 @@ App({
   },
   onLaunch: function () {
     //获取后端二维码产品价格和产品ID
-    var that = this
     wx.request({
-      'url': that.buildUrl('/product/qrcode/info'),
+      'url': this.buildUrl('/product/qrcode/info'),
       'success': res => {
         let resp = res.data
-        that.globalData.qrcodePrice = resp.data.price
-        that.globalData.qrcodeProductId = resp.data.id
+        this.globalData.qrcodePrice = resp['data'].price
+        this.globalData.qrcodeProductId = resp['data'].id
       }
     })
   },

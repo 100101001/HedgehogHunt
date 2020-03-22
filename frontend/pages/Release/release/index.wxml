@@ -22,7 +22,7 @@
       </view>
       <view class="tips-views" wx:if="{{auther_id}}">建议将物品归还到 <text style="font-size:26rpx;font-weight:600;opacity:1;">{{info_owner_name}}</text> 所在的以下位置，若是放置到自己方便的位置请获取位置提交</view>
       <view class="location-name">
-        <input name="location" bindinput="lisentLocationInput" value="{{location[1]}}" placeholder="若获取的地址不够精确可手动输入完善"></input>
+        <input name="location" bindinput="listenLocationInput" value="{{location[1]}}" placeholder="若获取的地址不够精确可手动输入完善"></input>
       </view>
       <view class="hrz"></view>
     </view>
@@ -45,7 +45,8 @@
       <view class="tips-views">物品描述</view>
       <textarea class="summary" maxlength="{{false}}" name="summary" placeholder="{{summary_placeholder}}" value="{{summary_value}}" bindinput="listenSummaryInput"></textarea>
     </view>
-    <button class="submit-btn" bindtap="formSubmit" disabled="{{submitDisable}}">提交发布</button>
+    <button bindtap="setTop">置顶</button>
+    <button class="submit-btn" bindtap="toRelease" disabled="{{submitDisable}}">提交发布</button>
     <view class="tips-btn" wx:if="{{auther_id}}">信息将会直接提交给<text style="font-weight:600;">{{info_owner_name}}</text></view>
   </form>
 </view>
