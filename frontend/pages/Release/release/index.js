@@ -1,4 +1,71 @@
 var app = getApp();
+
+/***
+ * topCharge
+ * 置顶下单并支付
+ * @param data 发布数据
+ * @param that 页面指针
+ */
+const topCharge = function (data, that) {
+  wx.request({
+    url: app.buildUrl('/goods/top/order'),
+    header: app.getRequestHeader(),
+    data: {
+      price: that.data.top_price
+    },
+    method: 'POST',
+    success: res => {
+      let resp = res.data
+
+      //下单失败提示后返回
+      if (resp['code'] !== 200) {
+        app.alert({
+          content: resp['msg']
+        })
+        that.setData({
+          submitDisable: false
+        })
+        return
+      }
+
+      //下单成功调起支付
+      let pay_data = resp['data']
+      wx.requestPayment({
+        timeStamp: pay_data['timeStamp'],
+        nonceStr: pay_data['nonceStr'],
+        package: pay_data['package'],
+        signType: pay_data['signType'],
+        paySign: pay_data['paySign'],
+        success: res => {
+          //支付成功，继续发布
+          if (res.errMsg == "requestPayment:ok") {
+            that.subscribeMsgAndNotifyRelease(data)
+          }
+          //支付失败，停止发布
+          if (res.errMsg == "requestPayment:fail cancel") {
+            that.setData({
+              submitDisable: false
+            })
+          }
+        },
+        fail: res => {
+          app.alert({'content': '微信支付失败，请稍后重试'})
+          that.setData({
+            submitDisable: false
+          })
+        }
+      })
+    },
+    fail: res => {
+      app.serverBusy()
+      that.setData({
+        submitDisable: false
+      })
+    }
+  })
+}
+
+
 Page({
   data: {
     loadingHidden: true, //上传图片时的loading图标是否隐藏
@@ -6,7 +73,7 @@ Page({
     notify_id: "", //需要通知的失主的openid
     dataReady: false, //页面数据是否已加载
     submitDisable: false, //是否禁按提交发布按钮
-    isSetTop: false //是否置顶
+    isTop: false //是否置顶
   },
   /**
    * 1、扫码发布(失物招领)
@@ -199,21 +266,53 @@ Page({
     data['business_type'] = this.data.business_type
     data['location'] = this.data.location
     data['img_list'] = this.data.imglist
+    data['is_top'] = this.data.isTop ? 1 : 0
+    data['days'] = this.data.isTop ? this.data.top_days : 0
     this.handleRelease(data)
   },
   /**
    * handleRelease
    * 如果是无登陆发布，就不询问订阅消息，直接准备发布数据
-   * 否则先让用户选择订阅消息，然后再发布数据
+   * 否则
+   *   如果用户选择置顶先让用户确认置顶并付款，再继续发布
+   *   否则先让用户选择订阅消息，然后再发布数据
    * @param data 包含发布所需数据
    */
   handleRelease: function (data) {
-    //无登录发布
     if (app.globalData.unLoggedRelease) {
+      //无登录发布
       this.notifyAndRelease(data)
     } else {
-      this.subscribeMsgAndNotifyRelease(data)
+      //根据是否勾选置顶继续订阅和发布
+      if (data['is_top'] === 1) {
+        //询问置顶，置顶收费并继续，取消置顶则不收费继续
+        this.confirmTopAndSubNoteRelease(data)
+      } else {
+        //未置顶
+        this.subscribeMsgAndNotifyRelease(data)
+      }
     }
+  },
+  /**
+   * confirmTopAndSubNoteRelease
+   * 询问置顶
+   */
+  confirmTopAndSubNoteRelease: function(data){
+    app.alert({
+      title : '温馨提示',
+      content: '置顶收费' + this.data.top_price + '元，确认置顶？',
+      showCancel: true,
+      cb_confirm:  () => {
+        topCharge(data, this)
+      },
+      cb_cancel:  () => {
+        this.setData({
+          isTop: false
+        })
+        data['is_top'] = 0
+        this.subscribeMsgAndNotifyRelease(data)
+      }
+    })
   },
   /**
    * subscribeMsgAndNotifyRelease
@@ -257,9 +356,9 @@ Page({
       method: 'post',
       data: {
         'goods': data,
-        'openid': that.data.notify_id
+        'openid': this.data.notify_id
       },
-      success: res => {
+      complete: res => {
         this.setData({
           notify_id: ""
         })
@@ -544,7 +643,14 @@ Page({
       tips_obj: tips_obj, //表单项填写提示
       info_owner_name: info.owner_name === undefined ? "" : info.owner_name,
       location: location === undefined ? "" : location //地址
-    });
+    })
+    //寻物启事需要的置顶信息
+    if (!business_type) {
+      this.setData({
+        top_price: app.globalData.goodsTopPrice,
+        top_days: app.globalData.goodsTopDays
+      })
+    }
   },
   listenerInput: function (e) {
     let idx = e.currentTarget.dataset.id
@@ -563,9 +669,9 @@ Page({
    *
    */
   changSetTop: function () {
-    let isSetTop = this.data.isSetTop
+    let isTop = this.data.isTop
     this.setData({
-      isSetTop: !isSetTop
+      isTop: !isTop
     })
   }
 
