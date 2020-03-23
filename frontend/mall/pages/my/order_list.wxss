@@ -61,6 +61,7 @@
     width: 100%;
     background-color: #fff;
     margin-top: 20rpx;
+    overflow: scroll;
 }
 .order-list .a-order .order-date{
     padding: 0 30rpx;
@@ -155,4 +156,12 @@
     background-color: #f8751b;
     border:1px solid #f3971e;
     color: #fff;
+}
+
+.no-more-goods {
+    text-align: center;
+    font-size: 24rpx;
+    padding-bottom: 228rpx;
+    margin-top: 30rpx;
+    color: #999;
 }

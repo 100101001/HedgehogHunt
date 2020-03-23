@@ -1,7 +1,5 @@
 var app = getApp();
 
-
-
 const getQrcodeFromWechat = function() {
     wx.request({
         method: 'post',
@@ -25,14 +23,20 @@ Page({
         status: ["-8", "-7", "-6", "-5", "1", "0"],
         currentType: 0,
         tabClass: ["", "", "", "", "", ""],
-        isGettingQrcode: false
+        isGettingQrcode: false,
+        loadingMore: true
     },
+    /**
+     * statusTap 切换状态时，重新加载对应的订单列表
+     * @param e
+     */
     statusTap: function (e) {
         var curType = e.currentTarget.dataset.index;
         this.setData({
             currentType: curType
         });
-        this.getPayOrder();
+        this.setSearchInitData()
+        this.getPayOrder()
     },
     orderDetail: function (e) {
         wx.navigateTo({
@@ -42,12 +46,29 @@ Page({
     onLoad: function (options) {
         // 生命周期函数--监听页面加载
     },
+    /**
+     * onShow 初始化页面搜索参数，并加载订单列表
+     */
     onShow: function () {
+        this.setSearchInitData()
         if(this.data.isGettingQrcode){
             this.getPayOrderAndshowGettingQrcode()
         }else{
             this.getPayOrder();
         }
+    },
+    /**
+     * setSearchInitData
+     * 以下三个加载订单列表的参数初始化
+     * 页数，订单列表，是否还有更多
+     * @param e
+     */
+    setSearchInitData: function(e){
+        this.setData({
+            p: 1,
+            order_list: [],
+            loadingMore: true
+        })
     },
     orderCancel: function (e) {
         this.orderOps(e.currentTarget.dataset.id, "cancel", "确定取消订单？");
@@ -80,23 +101,29 @@ Page({
             })
         }, 500)
     },
+    /**
+     * getPayOrder 获取一页订单列(更多标记)
+     */
     getPayOrder: function () {
         var that = this;
         wx.request({
             url: app.buildUrl("/my/order"),
             header: app.getRequestHeader(),
             data: {
-                status: that.data.status[that.data.currentType]
+                status: that.data.status[that.data.currentType],
+                p: this.data.p
             },
             success: function (res) {
                 var resp = res.data;
                 if (resp.code != 200) {
-                    app.alert({ "content": resp.msg });
+                    app.alert({"content": resp.msg});
                     return;
                 }
-
+                //页数加一，是否有更多
                 that.setData({
-                    order_list: resp.data.pay_order_list
+                    order_list: that.data.order_list.concat(resp.data.pay_order_list),
+                    p: that.data.p + 1,
+                    loadingMore: resp['data']['has_more']
                 });
             }
         });
@@ -170,5 +197,13 @@ Page({
             }
         };
         app.tip(params);
+    },
+    /**
+     * onReachBottom 如果还有未加载的订单就获取下一页
+     */
+    onReachBottom() {
+        if (this.data.loadingMore) {
+            this.getPayOrder()
+        }
     }
 });

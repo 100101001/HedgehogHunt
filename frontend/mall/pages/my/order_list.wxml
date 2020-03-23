@@ -46,5 +46,7 @@
                 <view class="btn topay-btn" bindtap="orderComment" data-id="{{item.order_sn}}" wx:if="{{item.status==-5}}">走，去评价</view>
             </view>
         </view>
+        <view wx:if="{{!loadingMore}}" class="no-more-goods">我也是有底线的</view>
+        <view wx:if="{{loadingMore}}" class="no-more-goods">上滑加载更多～</view>
     </view>
 </view>
