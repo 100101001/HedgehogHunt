@@ -1,22 +1,123 @@
 #!/usr/bin/python3.6.8
 import datetime
+import decimal
+import time
 from decimal import Decimal
 
 from flask import request, jsonify, g
-from sqlalchemy import or_, and_
+from sqlalchemy import or_
 
-from application import db
+from application import db, app
 from common.libs.Helper import getCurrentDate
 from common.libs.Helper import selectFilterObj, getDictFilterField
 from common.libs.MemberService import MemberService
 from common.libs.UploadService import UploadService
 from common.libs.UrlManager import UrlManager
+from common.libs.mall.PayService import PayService
+from common.libs.mall.WechatService import WeChatService
 from common.models.ciwei.Goods import Good
 # -*- coding:utf-8 -*-
+from common.models.ciwei.GoodsTopOrder import GoodsTopOrder
 from common.models.ciwei.Member import Member
 from common.models.ciwei.Report import Report
 from common.models.ciwei.Thanks import Thank
 from web.controllers.api import route_api
+
+
+@route_api.route('/goods/top/info', methods=['GET'])
+def topPrice():
+    return jsonify({'code': 200, 'data': {'price': 0.01, 'days': 7}})
+
+
+@route_api.route("/goods/top/order", methods=['POST', 'GET'])
+def topOrder():
+    resp = {'code': 200, 'msg': 'success', 'data': {}}
+    req = request.values
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "请先登录"
+        return jsonify(resp)
+
+    # 数据库下单
+    wechat_service = WeChatService(merchant_key=app.config['OPENCS_APP']['mch_key'])
+    pay_service = PayService()
+    model_order = GoodsTopOrder()
+    model_order.order_sn = pay_service.geneGoodsTopOrderSn()
+    model_order.openid = member_info.openid
+    model_order.member_id = member_info.id
+    model_order.price = decimal.Decimal(req['price']).quantize(decimal.Decimal('0.00'))\
+        if 'price' in req else decimal.Decimal('20.00')
+
+    # 微信下单
+    pay_data = {
+        'appid': app.config['OPENCS_APP']['appid'],
+        'mch_id': app.config['OPENCS_APP']['mch_id'],
+        'nonce_str': wechat_service.get_nonce_str(),
+        'body': '闪寻-置顶',
+        'out_trade_no': model_order.order_sn,
+        'total_fee': int(model_order.price * 100),
+        'notify_url': app.config['APP']['domain'] + "/api/goods/top/order/notify",
+        'time_expire': (datetime.datetime.now() + datetime.timedelta(minutes=5)).strftime("%Y%m%d%H%M%S"),
+        'trade_type': 'JSAPI',
+        'openid': member_info.openid
+    }
+    pay_sign_data = wechat_service.get_pay_info(pay_data=pay_data)
+    if not pay_sign_data:
+        resp['code'] = -1
+        resp['msg'] = "微信服务器繁忙，请稍后重试"
+        return jsonify(resp)
+    model_order.status = 0
+    db.session.add(model_order)
+    db.session.commit()
+    resp['data'] = pay_sign_data
+    return jsonify(resp)
+
+
+@route_api.route('/goods/top/order/notify', methods=['GET', 'POST'])
+def topOrderCallback():
+    result_data = {
+        'return_code': 'SUCCESS',
+        'return_msg': 'OK'
+    }
+    header = {'Content-Type': 'application/xml'}
+    app_config = app.config['OPENCS_APP']
+    target_wechat = WeChatService(merchant_key=app_config['mch_key'])
+    callback_data = target_wechat.xml_to_dict(request.data)
+    app.logger.info(callback_data)
+
+    # 检查签名和订单金额
+    sign = callback_data['sign']
+    callback_data.pop('sign')
+    gene_sign = target_wechat.create_sign(callback_data)
+    app.logger.info(gene_sign)
+    if sign != gene_sign:
+        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+        return target_wechat.dict_to_xml(result_data), header
+    if callback_data['result_code'] != 'SUCCESS':
+        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+        return target_wechat.dict_to_xml(result_data), header
+
+    order_sn = callback_data['out_trade_no']
+    pay_order_info = GoodsTopOrder.query.filter_by(order_sn=order_sn).first()
+    if not pay_order_info:
+        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+        return target_wechat.dict_to_xml(result_data), header
+
+    if int(pay_order_info.total_price * 100) != int(callback_data['total_fee']):
+        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+        return target_wechat.dict_to_xml(result_data), header
+
+    # 更新订单的支付/物流状态, 记录日志
+    # 订单状态已回调更新过直接返回
+    if pay_order_info.status == 1:
+        return target_wechat.dict_to_xml(result_data), header
+    # 订单状态未回调更新过
+    target_pay = PayService()
+    target_pay.goodsTopOrderSuccess(pay_order_id=pay_order_info.id, params={"pay_sn": callback_data['transaction_id'],
+                                                                            "paid_time": callback_data['time_end']})
+    target_pay.addGoodsTopPayCallbackData(pay_order_id=pay_order_info.id, data=request.data)
+    return target_wechat.dict_to_xml(result_data), header
 
 
 @route_api.route("/goods/create", methods=['GET', 'POST'])
@@ -63,7 +164,7 @@ def createGoods():
     model_goods.status = 7  # 创建未完成
     model_goods.mobile = req['mobile']
     model_goods.top_expire_time = getCurrentDate() if not int(req['is_top']) \
-        else (datetime.datetime.now() + datetime.timedelta(days=7)).strftime("%Y-%m-%d %H:%M:%S")
+        else (datetime.datetime.now() + datetime.timedelta(days=int(req['days']))).strftime("%Y-%m-%d %H:%M:%S")
     model_goods.updated_time = model_goods.created_time = getCurrentDate()
     db.session.add(model_goods)
     goods_info = model_goods
