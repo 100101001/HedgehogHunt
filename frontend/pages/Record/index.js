@@ -1,4 +1,3 @@
-var util = require("../../utils/util.js");
 var app = getApp();
 //从Mine/Mine跳转至此
 Page({
@@ -7,7 +6,11 @@ Page({
     goods_name: "",
     business_type: "",
   },
-
+  /**
+   * 设置页面顶部选项卡和搜索框(编辑框)的初始化数据
+   * 加载后端记录数据，如果是匹配记录则还需更新匹配new计数
+   * @param options 跳转传入参数
+   */
   onLoad: function(options) {
     var op_status = options.op_status;
     this.setData({
@@ -16,8 +19,11 @@ Page({
     this.onLoadSetData(op_status);
     this.onPullDownRefresh();
   },
-  onLoadSetData: function(op_status) {
-    var that = this
+  /**
+   * 设置顶部状态选项卡数据，及其它页面初始化数据
+   * @param op_status 发布记录 or 认领找回 or 匹配推荐
+   */
+  onLoadSetData: function (op_status) {
     if (op_status == 0) { //发布
       var check_cat = [
         {
@@ -32,12 +38,44 @@ Page({
           id: 3,
           name: '已答谢',
         },
-      ];
-    } else if (op_status == 3) { //答谢
+      ]
+    } else if (op_status == 1) { //认领和找回记录
       var check_cat = [{
-          id: 1,
-          name: '待处理'
+        id: 1,
+        name: '待认领/找回',
+      },
+        {
+          id: 2,
+          name: '预认领/找回',
         },
+        {
+          id: 3,
+          name: '已认领/找回',
+        },
+      ];
+    } else if (op_status == 2) { //匹配推送
+      var recommend = app.globalData.recommend
+      var check_cat = [{
+        id: 1,
+        name: '待认领',
+        value: recommend.wait,
+      },
+        {
+          id: 2,
+          name: '预认领',
+          value: recommend.doing,
+        },
+        {
+          id: 3,
+          name: '已认领',
+          value: recommend.done,
+        },
+      ]
+    } else if (op_status == 3) { //管理后台
+      var check_cat = [{
+        id: 1,
+        name: '待处理'
+      },
         {
           id: 2,
           name: '发布者'
@@ -54,25 +92,7 @@ Page({
           id: 5,
           name: '已下架'
         }
-      ];
-    } else { //认领与匹配推送
-      var recommend = app.globalData.recommend
-      var check_cat = [{
-          id: 1,
-          name: '待认领/找回',
-          value: recommend.wait,
-        },
-        {
-          id: 2,
-          name: '预认领/找回',
-          value: recommend.doing,
-        },
-        {
-          id: 3,
-          name: '已认领/找回',
-          value: recommend.done,
-        },
-      ];
+      ]
     }
     this.setData({
       only_new: false,
@@ -87,68 +107,78 @@ Page({
       }
     })
   },
+  /**
+   * onShow 如果是匹配推荐页面则，刷新new计数
+   */
   onShow: function() {
     this.setData({
       regFlag: app.globalData.regFlag
     });
     //新的recommend数量与app全局数据同步化
-    if (this.data.op_status != 4) {
+    if (this.data.op_status == 2) {
       this.updateTips();
     }
   },
-  //下拉刷新
-  onPullDownRefresh: function(event) {
-    var infos = this.data.infos;
+  /**
+   * onPullDownRefresh 刷新页面
+   * 重新从第一页开始获取记录，如果是匹配推荐则还需更新new计数
+   */
+  onPullDownRefresh: function () {
+    let infos = this.data.infos;
     infos.list = [];
     this.setData({
       p: 1,
       infos: infos,
       loadingMoreHidden: true
     });
-    var op_status = this.data.op_status;
+    let op_status = this.data.op_status;
     if (op_status == 4) {
       this.getReportList();
     } else {
-      this.updateTips();
+      if (op_status == 2) {
+        //匹配更新new计数
+        this.updateTips();
+      }
       this.getGoodsList();
     }
   },
+  /**
+   * updateTips 同步推荐计数
+   */
   updateTips: function() {
     if (this.data.op_status == 2) {
-      var recommend = app.globalData.recommend;
-      var infos = this.data.infos;
-      infos.check_cat = [{
-          id: 1,
-          name: '待认领/找回',
-          value: recommend.wait,
-        },
-        {
-          id: 2,
-          name: '预认领/找回',
-          value: recommend.doing,
-        },
-        {
-          id: 3,
-          name: '已认领/找回',
-          value: recommend.done,
-        },
-      ];
+      let recommend = app.globalData.recommend;
+      let infos = this.data.infos;
+      infos.check_cat[0].value = recommend.wait //推荐记录状态是待认领
+      infos.check_cat[1].value = recommend.doing //推荐记录状态是预认领
+      infos.check_cat[2].value = recommend.done //推荐记录状态是已认领
       this.setData({
         infos: infos
       })
     }
   },
+  /**
+   * listenerNameInput 搜索框监听物主名输入
+   * @param e
+   */
   listenerNameInput: function(e) {
     this.setData({
       owner_name: e.detail.value
     });
   },
+  /**
+   * listenerNameInput 搜索框监听物品名输入
+   * @param e
+   */
   listenerGoodsNameInput: function(e) {
     this.setData({
       goods_name: e.detail.value
     });
   },
-  //点击信息卡查看详情
+  /**
+   * onDetailTap 点击信息卡查看详情
+   * @param event
+   */
   onDetailTap: function(event) {
     var id = event.currentTarget.dataset.id;
     var saveHidden = this.data.infos.saveHidden;
@@ -171,21 +201,20 @@ Page({
     }
   },
   //下滑加载
-  onReachBottom: function(e) {
-    var that = this;
+  onReachBottom: function (e) {
+    var that = this
     //延时500ms处理函数
-    setTimeout(function() {
+    setTimeout(function () {
       that.setData({
         loadingHidden: true
       });
-      var op_status = that.data.op_status;
+      var op_status = that.data.op_status
       if (op_status == 4) {
-        that.getReportList();
+        that.getReportList()
       } else {
-        that.updateTips();
-        that.getGoodsList();
+        that.getGoodsList()
       }
-    }, 500);
+    }, 500)
   },
   formSubmit: function(e) {
     this.onPullDownRefresh();
