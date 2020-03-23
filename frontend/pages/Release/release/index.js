@@ -1,11 +1,12 @@
 var app = getApp();
 Page({
   data: {
-    loadingHidden: true,
-    imglist: [],
-    notify_id: "",
-    dataReady: false,
-    submitDisable: false
+    loadingHidden: true, //上传图片时的loading图标是否隐藏
+    imglist: [], //发布图片列表
+    notify_id: "", //需要通知的失主的openid
+    dataReady: false, //页面数据是否已加载
+    submitDisable: false, //是否禁按提交发布按钮
+    isSetTop: false //是否置顶
   },
   /**
    * 1、扫码发布(失物招领)
@@ -427,9 +428,12 @@ Page({
           })
           return
         }
+        //获取新的推荐匹配列表
         app.getNewRecommend()
+        //初始化本地数据和全局数据
         this.setInitData();
         app.globalData.info = {}
+        //用户提示
         wx.showToast({
           title: '提交成功',
           icon: 'success',
@@ -439,7 +443,7 @@ Page({
               wx.reLaunch({
                 url: '../../Find/Find?business_type=' + this.data.business_type,
               });
-            }, 2000)
+            }, 1500)
           }
         });
       },
@@ -529,17 +533,17 @@ Page({
     }
     var summary_value = "";
     this.setData({
-      imglist: imglist,
-      count: imglist.length,
+      imglist: imglist, //图片列表
+      count: imglist.length, //图片列表数量
       pic_status: true,
-      loadingHidden: true,
-      business_type: business_type,
-      items: items,
-      summary_placeholder: summary_placeholder,
-      summary_value: summary_value,
-      tips_obj: tips_obj,
+      loadingHidden: true, //上传图片时的loading图标是否隐藏
+      business_type: business_type, //失物招领or寻物启事标识
+      items: items, //表单项
+      summary_placeholder: summary_placeholder, //描述填写提示
+      summary_value: summary_value, //描述内容
+      tips_obj: tips_obj, //表单项填写提示
       info_owner_name: info.owner_name === undefined ? "" : info.owner_name,
-      location: location === undefined ? "" : location
+      location: location === undefined ? "" : location //地址
     });
   },
   listenerInput: function (e) {
@@ -555,10 +559,15 @@ Page({
       summary_value: e.detail.value
     })
   },
-  setTop: function () {
+  /**
+   *
+   */
+  changSetTop: function () {
     let isSetTop = this.data.isSetTop
     this.setData({
       isSetTop: !isSetTop
     })
   }
+
+
 });

@@ -45,7 +45,7 @@
       <view class="tips-views">物品描述</view>
       <textarea class="summary" maxlength="{{false}}" name="summary" placeholder="{{summary_placeholder}}" value="{{summary_value}}" bindinput="listenSummaryInput"></textarea>
     </view>
-    <button bindtap="setTop">置顶</button>
+    <button bindtap="changSetTop">置顶</button>
     <button class="submit-btn" bindtap="toRelease" disabled="{{submitDisable}}">提交发布</button>
     <view class="tips-btn" wx:if="{{auther_id}}">信息将会直接提交给<text style="font-weight:600;">{{info_owner_name}}</text></view>
   </form>
