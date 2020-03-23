@@ -104,7 +104,7 @@ def topOrderCallback():
         result_data['return_code'] = result_data['return_msg'] = 'FAIL'
         return target_wechat.dict_to_xml(result_data), header
 
-    if int(pay_order_info.total_price * 100) != int(callback_data['total_fee']):
+    if int(pay_order_info.price * 100) != int(callback_data['total_fee']):
         result_data['return_code'] = result_data['return_msg'] = 'FAIL'
         return target_wechat.dict_to_xml(result_data), header
 
@@ -194,21 +194,21 @@ def addGoodsPics():
     req = request.values
     member_info = g.member_info
     if not member_info:
-        resp['msg'] = '用户信息异常'
+        resp['msg'] = '请先登录'
         return jsonify(resp)
     goods_id = req['id'] if 'id' in req else None
     if not goods_id:
-        resp['msg'] = "参数为空"
+        resp['msg'] = "没有物品信息"
         resp['req'] = req
         return jsonify(resp)
     images_target = request.files
     image = images_target['file'] if 'file' in images_target else None
     if not image:
-        resp['msg'] = "参数为空"
+        resp['msg'] = "图片上传失败"
         return jsonify(resp)
     goods_info = Good.query.filter_by(id=goods_id).with_for_update().first()
     if not goods_info:
-        resp['msg'] = '参数错误'
+        resp['msg'] = '没有物品信息'
         return jsonify(resp)
 
     # 保存文件到 /web/static/upload/日期 目录下
@@ -374,7 +374,7 @@ def goodsSearch():
         # 所有发布者 id -> Member
         member_ids = selectFilterObj(goods_list, "member_id")
         member_map = getDictFilterField(Member, Member.id, "id", member_ids)
-
+        now = datetime.datetime.now()
         for item in goods_list:
             tmp_member_info = member_map[item.member_id]
             tmp_data = {
@@ -389,6 +389,7 @@ def goodsSearch():
                 "avatar": tmp_member_info.avatar,
                 "selected": False,
                 "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
+                "top": item.top_expire_time > now
             }
             data_goods_list.append(tmp_data)
 
