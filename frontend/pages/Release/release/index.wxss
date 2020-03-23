@@ -166,3 +166,39 @@
   margin: 20rpx 0 20rpx 30rpx;
   border-radius: 10rpx;
 }
+
+.top-switch{
+  margin-top: 20rpx;
+  margin-left: 30rpx;
+  font-size: medium;
+  display: flex;
+  flex-direction: row;
+}
+
+
+/***置顶丝带***/
+.ribbon {
+  background-color: #a00;
+  overflow: hidden;
+  white-space: nowrap;
+  /* top left corner */
+/*  margin-left: 500rpx;*/
+/*  margin-top: 140rpx;*/
+/* for creating shadow */
+-webkit-box-shadow: 0 0 10px #888;
+     -moz-box-shadow: 0 0 10px #888;
+          box-shadow: 0 0 10px #888;
+}
+
+.ribbon text {
+  border: 1rpx solid #faa;
+  color: #fff;
+  display: block;
+  font: bold 100% 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  margin: 1rpx 0;
+  padding: 10rpx 50rpx;
+  text-align: center;
+  text-decoration: none;
+  /* for creating shadow */
+  text-shadow: 0 0 5px #444;
+}
