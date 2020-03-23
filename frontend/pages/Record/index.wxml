@@ -3,7 +3,7 @@
 <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
 <!--index.wxml-->
 <view class="container">
-  <template is="search-bar-template" data="{{...infos}}" />
+  <template is="search-bar-template" data="{{...infos, op_status}}" />
   <view class="message_container">
     <block wx:for="{{infos.list}}" wx:key="index">
       <view class="item_message">
