@@ -152,3 +152,31 @@ radio .wx-radio-input.wx-radio-input-checked::before {
   padding-bottom: 128rpx;
   color: #999;
 }
+
+/***置顶丝带***/
+.ribbon {
+  background-color: #a00;
+  overflow: hidden;
+  white-space: nowrap;
+  /* top left corner */
+  position: absolute;
+  margin-left: 230rpx;
+  margin-top: 135rpx;
+  /* for creating shadow */
+  -webkit-box-shadow: 0 0 10px #888;
+     -moz-box-shadow: 0 0 10px #888;
+          box-shadow: 0 0 10px #888;
+}
+
+.ribbon text {
+  border: 1rpx solid #faa;
+  color: #fff;
+  display: block;
+  font: bold 100% 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  margin: 1rpx 0;
+  padding: 10rpx 50rpx;
+  text-align: center;
+  text-decoration: none;
+  /* for creating shadow */
+  text-shadow: 0 0 5px #444;
+}
