@@ -202,3 +202,10 @@
   /* for creating shadow */
   text-shadow: 0 0 5px #444;
 }
+
+
+.hrz1 {
+  border: 1px solid #ededed;
+  margin-top: 30rpx;
+  margin-bottom: 30rpx;
+}
