@@ -615,7 +615,8 @@ def goodsInfo():
         "auther_id": author_info.id,
         "auther_name": author_info.nickname,
         "avatar": author_info.avatar,
-        "is_auth": is_auth
+        "is_auth": is_auth,
+        "top": goods_info.top_expire_time > datetime.datetime.now()
     }
     resp['data']['show_location'] = show_location
     return jsonify(resp)
@@ -683,7 +684,6 @@ def goodsReport():
     return jsonify(resp)
 
 
-# TODO:清空操作不太对
 # TODO:此处推荐需要移除或添加
 @route_api.route("/goods/edit", methods=['GET', 'POST'])
 def editGoods():
@@ -721,7 +721,6 @@ def editGoods():
         return jsonify(resp)
 
     # 更新物品字段
-    ## TODO:清空物品图片列表，为后续的插入图片做准备（虽然是清空，但是不是使用列表，而是使用空字符串）???
     goods_info.pics = ""
     goods_info.main_image = ""
     goods_info.target_price = Decimal(req['target_price']).quantize(Decimal('0.00')) if 'target_price' in req else 0.00
@@ -732,6 +731,10 @@ def editGoods():
     goods_info.location = "###".join(location)
     goods_info.business_type = business_type
     goods_info.mobile = req['mobile']
+    # 修改成置顶贴子
+    if int(req['is_top']):
+        goods_info.top_expire_time = (datetime.datetime.now() + datetime.timedelta(days=int(req['days']))) \
+            .strftime("%Y-%m-%d %H:%M:%S")
     goods_info.updated_time = getCurrentDate()
     db.session.add(goods_info)
 
