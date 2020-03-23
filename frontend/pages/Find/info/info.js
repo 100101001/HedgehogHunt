@@ -50,19 +50,18 @@ Page({
     var goods_id = options.goods_id;
     var op_status = app.globalData.op_status;
     this.setData({
-      op_status: op_status
-    });
-    if (op_status == 4) {
-      this.getReportInfo(goods_id)
-    } else {
-      this.getGoodsInfo(goods_id)
-    }
+      op_status: op_status,
+      goods_id: goods_id
+    })
   },
   onShow: function () {
     var regFlag = app.globalData.regFlag;
-    this.setData({
-      regFlag: regFlag
-    });
+    this.setData({regFlag: regFlag})
+    if (this.data.op_status == 4) {
+      this.getReportInfo(this.data.goods_id)
+    } else {
+      this.getGoodsInfo(this.data.goods_id)
+    }
   },
   //打开位置导航
   toNavigate: function () {

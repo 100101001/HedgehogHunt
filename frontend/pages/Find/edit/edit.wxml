@@ -33,7 +33,7 @@
         <image src="{{item}}" mode="aspectFill" bindtap="previewImage" data-index="{{index}}"></image>
         <view class='del' bindtap="deleteImg" style='display:{{isDel}}' data-index="{{index}}">×</view>
       </view>
-      <view class="add-view" wx:if="{{pic_status}}" bindtap='chooseLoadPics'>
+      <view class="add-view" wx:if="{{imglist.length<9}}" bindtap='chooseLoadPics'>
         <image class="add-pic-icon" src="/images/icons/add-pics.png"></image>
       </view>
     </view>
@@ -44,6 +44,17 @@
       <view class="tips-views">物品描述</view>
       <textarea class="summary" maxlength="{{false}}" name="summary" placeholder="{{summary_placeholder}}" value="{{summary_value}}"></textarea>
     </view>
-    <button class="submit-btn" form-type="submit">提交发布</button>
+    <!--原来置顶已过期或者没有置顶过且是寻物启事才显示-->
+    <view id="top" wx:if="{{business_type==0 && !top}}">
+      <view class="hrz1"></view>
+      <view class="tips-views">付费置顶，失物在最醒目位置，大大提高找回的概率~</view>
+      <switch class="top-switch" type="switch" color="#f7931e" disabled="{{submitDisable}}" bindchange="changSetTop">
+        <view class="ribbon">
+          <text>置顶 ￥{{top_price}} / {{top_days}}天</text>
+        </view>
+      </switch>
+      <view class="hrz1"></view>
+    </view>
+    <button class="submit-btn" form-type="submit" disabled="{{submitDisable}}">提交发布</button>
   </form>
 </view>
