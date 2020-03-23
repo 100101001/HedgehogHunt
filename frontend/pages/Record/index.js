@@ -461,13 +461,10 @@ Page({
         });
       },
     })
-    // //获取到有改动的记录的id
-    // console.log(id_list);
-    // this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), list);
   },
   checkReportClick: function(e) {
     //选择一次分类时返回选中值
-    var infos = this.data.infos;
+    let infos = this.data.infos;
     infos.check_status_id = e.currentTarget.id;
     this.setData({
       infos: infos,
@@ -475,9 +472,12 @@ Page({
     });
     this.onPullDownRefresh();
   },
+  /**
+   * radioChange 查看推荐推送时，修改了仅新增选项后进行筛选
+   */
   radioChange: function() {
     //选择一次分类时返回选中值
-    var infos = this.data.infos;
+    let infos = this.data.infos;
     infos.only_new = !this.data.only_new;
     this.setData({
       infos: infos,

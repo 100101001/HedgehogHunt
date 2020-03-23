@@ -36,6 +36,15 @@
   height: 50rpx;
 }
 
+.box-wider1{
+    width: 250rpx;
+}
+
+.box-wider2{
+    margin-left: 30rpx;
+    width: 230rpx;
+}
+
 .search_text_box {
   margin-left: 20rpx;
   height: 35rpx;
