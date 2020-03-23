@@ -42,8 +42,15 @@ def myOrderList():
     else:
         query = query.filter(Order.status == 0)
 
-    # 获取每个订单的产品列表信息
-    order_list = query.order_by(Order.id.desc()).all()
+    # 按时间先后获取每个订单的产品列表信息
+    p = int(req['p']) if ('p' in req and req['p']) else 1
+    if p < 1:
+        p = 1
+    page_size = 5
+    offset = (p - 1) * page_size
+    query = query.order_by(Order.id.desc()).offset(offset)
+    order_list = query.limit(page_size).all()
+
     data_order_list = []
     if order_list:
         order_ids = selectFilterObj(order_list, "id")
@@ -80,6 +87,7 @@ def myOrderList():
 
             data_order_list.append(tmp_data)
     resp['data']['pay_order_list'] = data_order_list
+    resp['data']['has_more'] = len(query.all()) > page_size
     return jsonify(resp)
 
 
