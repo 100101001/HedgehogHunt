@@ -367,7 +367,7 @@ Page({
           infos: infos
         })
         app.alert({
-          'content': "认领成功，可到【我的】————【认寻记录】 中查看"
+          'content': "认领成功，可到 【我的】——【认寻记录】 中查看"
         })
       },
       fail:  (res) => {
