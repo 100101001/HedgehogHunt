@@ -51,7 +51,7 @@ Page({
           return
         }
         that.setData({
-          loadingMoreHidden: resp.data.has_more,
+          loadingMore: resp.data.has_more,
           unis: that.data.unis.concat(resp.data.unis),
           p: that.data.p + 1
         })
@@ -64,7 +64,9 @@ Page({
     })
   },
   onReachBottom: function(e){
-    this.getUniversityList()
+    if(this.data.loadingMore){
+      this.getUniversityList()
+    }
   },
   listenerSchoolInput: function(e){
     this.setData({
