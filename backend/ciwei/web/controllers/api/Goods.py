@@ -1,22 +1,123 @@
 #!/usr/bin/python3.6.8
-
+import datetime
+import decimal
+import time
 from decimal import Decimal
 
 from flask import request, jsonify, g
-from sqlalchemy import or_, and_
+from sqlalchemy import or_
 
-from application import db
+from application import db, app
 from common.libs.Helper import getCurrentDate
 from common.libs.Helper import selectFilterObj, getDictFilterField
 from common.libs.MemberService import MemberService
 from common.libs.UploadService import UploadService
 from common.libs.UrlManager import UrlManager
+from common.libs.mall.PayService import PayService
+from common.libs.mall.WechatService import WeChatService
 from common.models.ciwei.Goods import Good
 # -*- coding:utf-8 -*-
+from common.models.ciwei.GoodsTopOrder import GoodsTopOrder
 from common.models.ciwei.Member import Member
 from common.models.ciwei.Report import Report
 from common.models.ciwei.Thanks import Thank
 from web.controllers.api import route_api
+
+
+@route_api.route('/goods/top/info', methods=['GET'])
+def topPrice():
+    return jsonify({'code': 200, 'data': {'price': 0.01, 'days': 7}})
+
+
+@route_api.route("/goods/top/order", methods=['POST', 'GET'])
+def topOrder():
+    resp = {'code': 200, 'msg': 'success', 'data': {}}
+    req = request.values
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "请先登录"
+        return jsonify(resp)
+
+    # 数据库下单
+    wechat_service = WeChatService(merchant_key=app.config['OPENCS_APP']['mch_key'])
+    pay_service = PayService()
+    model_order = GoodsTopOrder()
+    model_order.order_sn = pay_service.geneGoodsTopOrderSn()
+    model_order.openid = member_info.openid
+    model_order.member_id = member_info.id
+    model_order.price = decimal.Decimal(req['price']).quantize(decimal.Decimal('0.00'))\
+        if 'price' in req else decimal.Decimal('20.00')
+
+    # 微信下单
+    pay_data = {
+        'appid': app.config['OPENCS_APP']['appid'],
+        'mch_id': app.config['OPENCS_APP']['mch_id'],
+        'nonce_str': wechat_service.get_nonce_str(),
+        'body': '闪寻-置顶',
+        'out_trade_no': model_order.order_sn,
+        'total_fee': int(model_order.price * 100),
+        'notify_url': app.config['APP']['domain'] + "/api/goods/top/order/notify",
+        'time_expire': (datetime.datetime.now() + datetime.timedelta(minutes=5)).strftime("%Y%m%d%H%M%S"),
+        'trade_type': 'JSAPI',
+        'openid': member_info.openid
+    }
+    pay_sign_data = wechat_service.get_pay_info(pay_data=pay_data)
+    if not pay_sign_data:
+        resp['code'] = -1
+        resp['msg'] = "微信服务器繁忙，请稍后重试"
+        return jsonify(resp)
+    model_order.status = 0
+    db.session.add(model_order)
+    db.session.commit()
+    resp['data'] = pay_sign_data
+    return jsonify(resp)
+
+
+@route_api.route('/goods/top/order/notify', methods=['GET', 'POST'])
+def topOrderCallback():
+    result_data = {
+        'return_code': 'SUCCESS',
+        'return_msg': 'OK'
+    }
+    header = {'Content-Type': 'application/xml'}
+    app_config = app.config['OPENCS_APP']
+    target_wechat = WeChatService(merchant_key=app_config['mch_key'])
+    callback_data = target_wechat.xml_to_dict(request.data)
+    app.logger.info(callback_data)
+
+    # 检查签名和订单金额
+    sign = callback_data['sign']
+    callback_data.pop('sign')
+    gene_sign = target_wechat.create_sign(callback_data)
+    app.logger.info(gene_sign)
+    if sign != gene_sign:
+        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+        return target_wechat.dict_to_xml(result_data), header
+    if callback_data['result_code'] != 'SUCCESS':
+        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+        return target_wechat.dict_to_xml(result_data), header
+
+    order_sn = callback_data['out_trade_no']
+    pay_order_info = GoodsTopOrder.query.filter_by(order_sn=order_sn).first()
+    if not pay_order_info:
+        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+        return target_wechat.dict_to_xml(result_data), header
+
+    if int(pay_order_info.price * 100) != int(callback_data['total_fee']):
+        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+        return target_wechat.dict_to_xml(result_data), header
+
+    # 更新订单的支付/物流状态, 记录日志
+    # 订单状态已回调更新过直接返回
+    if pay_order_info.status == 1:
+        return target_wechat.dict_to_xml(result_data), header
+    # 订单状态未回调更新过
+    target_pay = PayService()
+    target_pay.goodsTopOrderSuccess(pay_order_id=pay_order_info.id, params={"pay_sn": callback_data['transaction_id'],
+                                                                            "paid_time": callback_data['time_end']})
+    target_pay.addGoodsTopPayCallbackData(pay_order_id=pay_order_info.id, data=request.data)
+    return target_wechat.dict_to_xml(result_data), header
 
 
 @route_api.route("/goods/create", methods=['GET', 'POST'])
@@ -36,12 +137,16 @@ def createGoods():
         return jsonify(resp)
     name = req["goods_name"] if 'goods_name' in req else ''
     if not name:
-        resp['msg'] = "参数为空"
+        resp['msg'] = "物品名为空"
         return jsonify(resp)
     business_type = int(req['business_type']) if 'business_type' in req else None
     if business_type != 0 and business_type != 1:
         resp['msg'] = "参数错误"
         resp['data'] = req
+        return jsonify(resp)
+    location = req["location"] if 'location' in req else []
+    if not location:
+        resp['msg'] = "地址为空"
         return jsonify(resp)
 
     # 新增物品：状态7表示图片待上传
@@ -58,6 +163,8 @@ def createGoods():
     model_goods.business_type = business_type
     model_goods.status = 7  # 创建未完成
     model_goods.mobile = req['mobile']
+    model_goods.top_expire_time = getCurrentDate() if not int(req['is_top']) \
+        else (datetime.datetime.now() + datetime.timedelta(days=int(req['days']))).strftime("%Y-%m-%d %H:%M:%S")
     model_goods.updated_time = model_goods.created_time = getCurrentDate()
     db.session.add(model_goods)
     goods_info = model_goods
@@ -87,21 +194,21 @@ def addGoodsPics():
     req = request.values
     member_info = g.member_info
     if not member_info:
-        resp['msg'] = '用户信息异常'
+        resp['msg'] = '请先登录'
         return jsonify(resp)
     goods_id = req['id'] if 'id' in req else None
     if not goods_id:
-        resp['msg'] = "参数为空"
+        resp['msg'] = "没有物品信息"
         resp['req'] = req
         return jsonify(resp)
     images_target = request.files
     image = images_target['file'] if 'file' in images_target else None
     if not image:
-        resp['msg'] = "参数为空"
+        resp['msg'] = "图片上传失败"
         return jsonify(resp)
     goods_info = Good.query.filter_by(id=goods_id).with_for_update().first()
     if not goods_info:
-        resp['msg'] = '参数错误'
+        resp['msg'] = '没有物品信息'
         return jsonify(resp)
 
     # 保存文件到 /web/static/upload/日期 目录下
@@ -252,23 +359,14 @@ def goodsSearch():
         rule = or_(Good.location.ilike(fil_str))
         query = query.filter(rule)
 
-    # 新增的大学筛选
-    # filter_campus = str(req['filter_campus']) if 'filter_campus' in req else ''
-    # if filter_campus:
-    #     fil_str = "%{0}%".format(filter_campus[0])
-    #     for i in filter_address[1:]:
-    #         fil_str = fil_str + "%{0}%".format(i)
-    #     rule = and_(Good.location.ilike(fil_str))
-    #     query = query.filter(rule)
-
     # 分页：获取第p页的所有物品
-    # 排序：新发布的热门贴置于最前面 TODO：id=新旧？
+    # 排序：置顶贴和新发布的热门贴置于最前面
     p = int(req['p']) if ('p' in req and req['p']) else 1
     if p < 1:
         p = 1
     page_size = 10
     offset = (p - 1) * page_size
-    goods_list = query.order_by(Good.id.desc(), Good.view_count.desc()).offset(offset).limit(page_size).all()
+    goods_list = query.order_by(Good.top_expire_time.desc(), Good.view_count.desc()).offset(offset).limit(page_size).all()
 
     # 组装返回的对象列表（需要作者名,头像）
     data_goods_list = []
@@ -276,7 +374,7 @@ def goodsSearch():
         # 所有发布者 id -> Member
         member_ids = selectFilterObj(goods_list, "member_id")
         member_map = getDictFilterField(Member, Member.id, "id", member_ids)
-
+        now = datetime.datetime.now()
         for item in goods_list:
             tmp_member_info = member_map[item.member_id]
             tmp_data = {
@@ -291,6 +389,7 @@ def goodsSearch():
                 "avatar": tmp_member_info.avatar,
                 "selected": False,
                 "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
+                "top": item.top_expire_time > now
             }
             data_goods_list.append(tmp_data)
 
@@ -352,9 +451,7 @@ def goodsApplicate():
         member_info.mark_id = str(goods_info.id)
     member_info.updated_time = getCurrentDate()
     db.session.add(member_info)
-    
     db.session.commit()
-    # TODO：认领后可见地址？？
     # 通知前端物品状态更新
     resp['code'] = 200
     resp['data']['show_location'] = True
@@ -440,7 +537,7 @@ def goodsGotback():
 def goodsInfo():
     """
     查看详情,读者分为以下类别,对应不同操作
-    1.进来认领/TODO：归还？？
+    1.进来认领
     2.进来编辑
     3.推荐来看
     :return:物品详情,是否显示地址
@@ -518,7 +615,8 @@ def goodsInfo():
         "auther_id": author_info.id,
         "auther_name": author_info.nickname,
         "avatar": author_info.avatar,
-        "is_auth": is_auth
+        "is_auth": is_auth,
+        "top": goods_info.top_expire_time > datetime.datetime.now()
     }
     resp['data']['show_location'] = show_location
     return jsonify(resp)
@@ -586,7 +684,6 @@ def goodsReport():
     return jsonify(resp)
 
 
-# TODO:清空操作不太对
 # TODO:此处推荐需要移除或添加
 @route_api.route("/goods/edit", methods=['GET', 'POST'])
 def editGoods():
@@ -624,7 +721,6 @@ def editGoods():
         return jsonify(resp)
 
     # 更新物品字段
-    ## TODO:清空物品图片列表，为后续的插入图片做准备（虽然是清空，但是不是使用列表，而是使用空字符串）???
     goods_info.pics = ""
     goods_info.main_image = ""
     goods_info.target_price = Decimal(req['target_price']).quantize(Decimal('0.00')) if 'target_price' in req else 0.00
@@ -635,6 +731,10 @@ def editGoods():
     goods_info.location = "###".join(location)
     goods_info.business_type = business_type
     goods_info.mobile = req['mobile']
+    # 修改成置顶贴子
+    if int(req['is_top']):
+        goods_info.top_expire_time = (datetime.datetime.now() + datetime.timedelta(days=int(req['days']))) \
+            .strftime("%Y-%m-%d %H:%M:%S")
     goods_info.updated_time = getCurrentDate()
     db.session.add(goods_info)
 

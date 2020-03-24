@@ -43,6 +43,9 @@
     <block wx:for="{{goods_list}}" wx:key="index">
       <view class="goods_message">
         <template is="goodsItem" data="{{...item}}" />
+        <view class="ribbon" wx:if="{{item.top}}">
+          <text>置 顶</text>
+        </view>
       </view>
     </block>
   </view>

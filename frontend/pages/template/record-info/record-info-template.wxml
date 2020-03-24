@@ -29,6 +29,9 @@
       </view>
       <view class="goods-status">
         <view class="goods-price" style="color:#999;font-size:24rpx;">浏览{{info.view_count}}次</view>
+        <view class="ribbon" wx:if="{{info.top}}">
+          <text>置 顶 中</text>
+        </view>
         <view class="status-container">{{info.status_desc}}</view>
       </view>
     </view>

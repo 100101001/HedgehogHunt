@@ -13,8 +13,8 @@ App({
     id: null, //用户的id(首页goToIndex会用到)
     regFlag: false, //用于判断用户登陆
     shopName: "闪寻-失物招领",
-    // domain: "http://127.0.0.1:8999/api",
-    // domain: "http://192.168.0.116:8999/api",
+    //domain: "http://127.0.0.1:8999/api",
+    //domain: "http://192.168.0.116:8999/api",
     domain: "https://ciwei.opencs.cn/api",
     static_file_domain: "https://ciwei.opencs.cn",
     //static_file_domain: "http://192.168.0.116:8999",
@@ -26,6 +26,8 @@ App({
     unLoggedReleaseToken: null, //扫码用户未注册仍继续发布使用的用户token
     qrcodePrice: 2, //闪寻码的价格
     qrcodeProductId: 15, //闪寻码产品ID
+    goodsTopPrice: 100, // 置顶发布价格
+    goodsTopDays: 1, //置顶天数
     subscribe: {  //订阅消息的模板ID
       recommend: 'zSCF_j0kTfRvPe8optyb5sx8F25S3Xc9yCvvObXFCh4',
       finished: 'Vx58nqU-cfi07bu4mslzCFhFyGTT52Xk4zlsrwC-MVA',
@@ -41,13 +43,19 @@ App({
   },
   onLaunch: function () {
     //获取后端二维码产品价格和产品ID
-    var that = this
     wx.request({
-      'url': that.buildUrl('/product/qrcode/info'),
+      'url': this.buildUrl('/product/qrcode/info'),
       'success': res => {
         let resp = res.data
-        that.globalData.qrcodePrice = resp.data.price
-        that.globalData.qrcodeProductId = resp.data.id
+        this.globalData.qrcodePrice = resp['data'].price
+        this.globalData.qrcodeProductId = resp['data'].id
+      }
+    })
+    wx.request({
+      url: this.buildUrl('/goods/top/info'),
+      success: res =>{
+        this.globalData.goodsTopPrice = res.data['data']['price']
+        this.globalData.goodsTopDays = res.data['data']['days']
       }
     })
   },

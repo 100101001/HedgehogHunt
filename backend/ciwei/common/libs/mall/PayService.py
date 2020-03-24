@@ -9,6 +9,8 @@ from application import db
 from common.libs.Helper import getCurrentDate, seconds2str
 from common.libs.mall.ProductService import ProductService
 from common.libs.mall.QueueService import QueueService
+from common.models.ciwei.GoodsTopOrder import GoodsTopOrder
+from common.models.ciwei.GoodsTopOrderCallbackData import GoodsTopOrderCallbackData
 from common.models.ciwei.mall.Order import Order
 from common.models.ciwei.mall.OrderCallBackData import OrderCallbackData
 from common.models.ciwei.mall.OrderProduct import OrderProduct
@@ -196,6 +198,27 @@ class PayService:
 
         return True
 
+    def goodsTopOrderSuccess(self, pay_order_id=0, params=None):
+        """
+        支付成功后,更新订单状态,记录销售日志
+        消息提醒队列
+        :param pay_order_id:
+        :param params:
+        :return: 数据库操作成功
+        """
+
+        # 更新TopOrder支付状态
+        order_info = GoodsTopOrder.query.filter_by(id=pay_order_id).first()
+        if not order_info or order_info.status not in [0]:
+            return True
+        order_info.transaction_id = params['pay_sn'] if params and 'pay_sn' in params else ''
+        order_info.status = 1
+        order_info.updated_time = getCurrentDate()
+        order_info.paid_time = params['paid_time'] if params and 'paid_time' in params else getCurrentDate()
+        db.session.add(order_info)
+        db.session.commit()
+        return True
+
     def addPayCallbackData(self, pay_order_id=0, type='pay', data=''):
         """
         微信支付回调记录
@@ -207,6 +230,29 @@ class PayService:
         # 新增
         model_callback = OrderCallbackData()
         model_callback.order_id = pay_order_id
+        if type == "pay":
+            model_callback.pay_data = data
+            model_callback.refund_data = ''
+        else:
+            model_callback.refund_data = data
+            model_callback.pay_data = ''
+
+        model_callback.created_time = model_callback.updated_time = getCurrentDate()
+        db.session.add(model_callback)
+        db.session.commit()
+        return True
+
+    def addGoodsTopPayCallbackData(self, pay_order_id=0, type='pay', data=''):
+        """
+        微信支付回调记录
+        :param pay_order_id:
+        :param type:
+        :param data:
+        :return:
+        """
+        # 新增
+        model_callback = GoodsTopOrderCallbackData()
+        model_callback.top_order_id = pay_order_id
         if type == "pay":
             model_callback.pay_data = data
             model_callback.refund_data = ''
@@ -231,6 +277,21 @@ class PayService:
             m.update(sn_str.encode("utf-8"))
             sn = m.hexdigest()
             if not Order.query.filter_by(order_sn=sn).first():
+                break
+        return sn
+
+    def geneGoodsTopOrderSn(self):
+        """
+        :return:不重复的流水号
+        """
+        m = hashlib.md5()
+        sn = None
+        while True:
+            # 毫秒级时间戳-千万随机数
+            sn_str = "%s-%s" % (int(round(time.time() * 1000)), random.randint(0, 9999999))
+            m.update(sn_str.encode("utf-8"))
+            sn = m.hexdigest()
+            if not GoodsTopOrder.query.filter_by(order_sn=sn).first():
                 break
         return sn
 

@@ -1,7 +1,0 @@
-<!--pages/Release/remind/remind.wxml-->
-<view class="container">
-  <icon type='success' class="success_icon" size="90"></icon>
-  <text>信息提交成功，感谢您的热心帮助</text>
-  <button type="primary" bindtap='onBackHomeTap'>返回首页</button>
-  <text>以下是根据您的发布匹配的平台信息</text>
-</view>

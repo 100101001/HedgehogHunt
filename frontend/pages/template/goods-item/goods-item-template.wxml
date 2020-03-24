@@ -29,18 +29,6 @@
           <!--推荐记录中用于识别是否是未读记录的-->
           <view class="new_item" wx:if="{{new==0}}">NEW</view>
         </view>
-        <!--
-        <view class="operate">
-          <view catchtap='onConnectTap' class="operate_view">
-            <image class="connect_icon" src="/images/icons/connect.png"></image>
-            <view class="operate_text">联系TA</view>
-          </view>
-          <view catchtap='onShareTap' class="operate_view">
-            <image class="share_icon" src="/images/icons/share.png"></image>
-            <view class="operate_text">分享</view>
-          </view>
-        </view>
-        -->
       </view>
     </view>
   </view>

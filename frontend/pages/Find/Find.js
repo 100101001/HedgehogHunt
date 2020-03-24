@@ -394,8 +394,8 @@ Page({
   //点击预览图片
   previewImage: function (e) {
     wx.previewImage({
-      current: this.data.info.main_image, // 当前显示图片的http链接
-      urls: [this.data.info.main_image] // 需要预览的图片http链接列表
+      current: this.data.infos.info.pics[e.currentTarget.dataset.index], // 当前显示图片的http链接
+      urls: this.data.info.info.pics // 需要预览的图片http链接列表
     })
   },
 })

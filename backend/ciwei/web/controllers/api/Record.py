@@ -1,4 +1,5 @@
 #!/usr/bin/python3.6.8
+import datetime
 
 from flask import request, jsonify, g
 from sqlalchemy import or_
@@ -106,6 +107,7 @@ def recordSearch():
     if goods_list:
         member_ids = Helper.selectFilterObj(goods_list, "member_id")
         member_map = Helper.getDictFilterField(Member, Member.id, "id", member_ids)
+        now = datetime.datetime.now()
         for item in goods_list:
             tmp_member_info = member_map[item.member_id]
             tmp_data = {
@@ -121,6 +123,7 @@ def recordSearch():
                 "avatar": tmp_member_info.avatar,
                 "selected": False,
                 "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
+                "top": item.top_expire_time > now
             }
             data_goods_list.append(tmp_data)
 

@@ -1,11 +1,7 @@
 # coding: utf-8
 import decimal
-from datetime import datetime
-
-from sqlalchemy import Column, DateTime, Integer, Numeric, String
 from sqlalchemy.dialects.mssql import TINYINT
 from sqlalchemy.dialects.mysql import INTEGER
-from flask_sqlalchemy import SQLAlchemy
 from application import db
 from datetime import datetime
 
@@ -36,10 +32,12 @@ class Good(db.Model):
     recommended_times = db.Column(INTEGER(11, unsigned=True), nullable=False, default=0, comment="总匹配过失/拾物次数")
     report_status = db.Column(TINYINT(), nullable=False, default=1, comment="被举报后的状态，用于存储举报的状态值")
     business_type = db.Column(TINYINT(), nullable=False, default=1, comment="状态 1：失物招领 0：寻物启事")
-    view_count = db.Column(INTEGER(11, unsigned=True), nullable=False, default=0, comment="总浏览次数")
+    view_count = db.Column(INTEGER(11, unsigned=True), nullable=False, index=True,  default=0, comment="总浏览次数")
     tap_count = db.Column(INTEGER(11, unsigned=True), nullable=False, default=0, comment="查看地址次数")
     mark_id = db.Column(db.String(400), nullable=False, default='', comment="点击获取或者提交的用户id,列表")
-    updated_time = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now, comment="最后更新时间")
+    top_expire_time = db.Column(db.DateTime, nullable=False, index=True, default=datetime.now,
+                                comment='置顶过期时间')
+    updated_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment="最后更新时间")
     created_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment="插入时间")
 
     @property

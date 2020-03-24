@@ -193,11 +193,14 @@ CREATE TABLE `goods`  (
   `view_count` int(11) NOT NULL DEFAULT 0 COMMENT '总浏览次数',
   `tap_count` int(11) NOT NULL DEFAULT 0 COMMENT '查看地址次数',
   `mark_id` varchar(400) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '点击获取或者提交的用户id,列表',
+  `top_expire_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '置顶过期时间',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_goods_member_id`(`member_id`) USING BTREE,
-  INDEX `ix_goods_status`(`status`) USING BTREE
+  INDEX `ix_goods_status`(`status`) USING BTREE,
+  INDEX `ix_goods_top_expire_time`(`top_expire_time`) USING BTREE,
+  INDEX `ix_goods_view_count`(`view_count`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -607,5 +610,38 @@ CREATE TABLE `user`  (
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`uid`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '管理员表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for goods_top_order
+-- ----------------------------
+DROP TABLE IF EXISTS `goods_top_order`;
+CREATE TABLE `goods_top_order`  (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `order_sn` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '随机订单号',
+  `member_id` int(11) UNSIGNED NOT NULL COMMENT '会员id',
+  `openid` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '第三方id',
+  `transaction_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '微信支付交易号',
+  `price` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '支付金额',
+  `status` tinyint(1) NOT NULL DEFAULT -1 COMMENT '状态 -1=刚创建, 0=微信预下单-未支付,  1=微信支付成功, 2=微信已关单, 3=微信支付错误',
+  `paid_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '支付完成时间',
+  `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
+  `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品置顶支付的订单' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for goods_top_order_callback_data
+-- ----------------------------
+DROP TABLE IF EXISTS `goods_top_order_callback_data`;
+CREATE TABLE `goods_top_order_callback_data`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `top_order_id` int(11) NOT NULL DEFAULT 0 COMMENT '支付订单id',
+  `pay_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '支付回调信息',
+  `refund_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '退款回调信息',
+  `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
+  `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `ix_order_callback_data_order_id`(`top_order_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品置顶微信支付回调数据表' ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;
