@@ -6,10 +6,13 @@
         <text class="auther_name">{{auther_name}}</text>
         <text class="release_date">{{updated_time}}</text>
       </view>
-      <view class="status-container">{{status_desc}}</view>
-      <view class="report" catchtap="toReport" data-id="{{id}}">
+      <view class="status-container {{top? 'status-lefter': ''}}">{{status_desc}}</view>
+      <view class="report {{top? 'report-lefter': ''}}" catchtap="toReport" data-id="{{id}}">
         <image src="/images/icons/report.png"></image>
         <text>举报</text>
+      </view>
+      <view class="ribbon" wx:if="{{top}}">
+        <text>置顶</text>
       </view>
     </view>
     <view class="content_container">
