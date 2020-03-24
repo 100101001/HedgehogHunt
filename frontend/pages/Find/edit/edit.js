@@ -83,7 +83,7 @@ Page({
   },
   //监听输入框
   lisentLocationInput: function (e) {
-    var location = this.data.location;
+    let location = this.data.location;
     location[1] = e.detail.value;
     this.setData({
       location: location
@@ -173,12 +173,11 @@ Page({
   },
   //预览图片
   previewImage: function(e) {
-    var index = e.currentTarget.dataset.index;
     this.setData({
       flush: false,
     });
     wx.previewImage({
-      current: this.data.imglist[index], // 当前显示图片的http链接
+      current: this.data.imglist[e.currentTarget.dataset.index], // 当前显示图片的http链接
       urls: this.data.imglist // 需要预览的图片http链接列表
     })
   },
@@ -202,37 +201,35 @@ Page({
   },
   // 删除图片
   deleteImg: function(e) {
-    var index = e.currentTarget.dataset.index;
     var imglist = this.data.imglist;
     if (imglist.length === 1) {
       app.alert({
         'content': "删除失败，至少要提交一张图片"
       });
     } else {
-      imglist.splice(index, 1);
+      imglist.splice(e.currentTarget.dataset.index, 1);
       this.setData({
         imglist: imglist
       })
     }
   },
   //表单提交
-  formSubmit: function(e) {
+  formSubmit: function (e) {
     this.setData({submitDisable: true})
     var data = e.detail.value
     if (app.judgeEmpty(data, this.data.tips_obj)) {
       this.setData({submitDisable: false})
       return
     }
-    var business_type = this.data.business_type
-    data['business_type'] = business_type
-    var img_list = this.data.imglist
+    let img_list = this.data.imglist
     if (img_list.length === 0) {
       app.alert({'content': "至少要提交一张图片"})
       this.setData({submitDisable: false})
       return
     }
+    data['business_type'] = this.data.business_type
     data['img_list'] = img_list
-    data['location']=this.data.location
+    data['location'] = this.data.location
     data['id'] = this.data.goods_id
     // 原来非置顶/置顶过期，编辑后置顶，才算置顶操作
     data['is_top'] = this.data.isTop && !this.data.top ? 1 : 0
@@ -263,10 +260,9 @@ Page({
         topCharge(data, this)
       },
       cb_cancel:  () => {
-        this.setData({
-          isTop: false
-        })
+        this.setData({isTop: false})
         data['is_top'] = 0
+        data['days'] = 0
         this.uploadData(data)
       }
     })
@@ -292,7 +288,7 @@ Page({
         app.serverBusy()
         this.setData({submitDisable: false})
       }
-    });
+    })
   },
   uploadImage: function(id, img_list, img_list_status) {
     this.setData({
