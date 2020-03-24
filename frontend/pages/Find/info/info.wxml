@@ -1,3 +1,3 @@
 <import src="../../template/record-info/record-info-template.wxml" />
 <template is="record-info-template" data="{{...infos}}"></template>
-<loading hidden="{{appLoadingHidden}}" wx:if="">申领中，请稍候..</loading>
+<loading hidden="{{appLoadingHidden}}">申领中，请稍候..</loading>
