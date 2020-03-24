@@ -245,53 +245,49 @@ Page({
               });
             },
             fail: function (res) {
-              wx.hideLoading();
+              wx.hideLoading()
               wx.showToast({
                 title: '系统繁忙，反馈失败！',
                 duration: 2000
               });
               app.serverBusy();
-              return;
             }
           });
-          wx.navigateBack();
+          wx.navigateBack()
         }
       }
     });
   },
   goHome: function (e) {
     wx.reLaunch({
-      url: "../../Find/Find?business_type=1",
+      url: "../../Find/Find?business_type=1"
     })
   },
   goRelease: function (e) {
     if (!app.loginTip()) {
-      return;
+      return
     }
     wx.navigateTo({
-      url: "../../Release/release/index",
+      url: "../../Release/release/index"
     })
   },
   //归还按钮
   goReturn: function (e) {
-    var auther_id = this.data.infos.info.auther_id;
-    var info = this.data.infos.info;
-    app.globalData.info = info;
+    app.globalData.info = this.data.infos.info;
     wx.navigateTo({
-      url: "../../Release/release/index?auther_id=" + auther_id,
+      url: "../../Release/release/index?auther_id=" + this.data.infos.info.auther_id,
     })
   },
   //归还按钮
   goThanks: function (e) {
-    var is_auth = this.data.infos.info.is_auth;
-    if (is_auth) {
+    if (this.data.infos.info.is_auth) {
       app.alert({
         'content': "发布者不可操作自己的记录"
       })
-      return;
+      return
     }
-    var info = this.data.infos.info;
-    var data = {
+    let info = this.data.infos.info;
+    let data = {
       "auther_id": info.auther_id,
       "goods_id": info.id,
       "business_type": info.business_type,
@@ -300,29 +296,23 @@ Page({
       "updated_time": info.updated_time,
       "avatar": info.avatar
     }
-    data = JSON.stringify(data);
-    // data=JSON.parse(data) 将字符串转换成json格式
     wx.navigateTo({
-      url: "../../Thanks/index?data=" + data,
+      url: "../../Thanks/index?data=" + JSON.stringify(data)
     })
   },
   //申领的按钮
   toApplicate: function () {
-    var that = this;
     if (!app.loginTip()) {
-      return;
+      return
     }
-    //TODO:发布者看不到认领按钮（或者禁止按键）
-    var is_auth = that.data.infos.info.is_auth;
-    if (is_auth) {
+    if (this.data.infos.info.is_auth) {
       app.alert({
         'content': "发布者不可认领自己捡到的物品"
       })
-      return;
+      return
     }
-    //防止重复申领
-    var show_location = that.data.infos.show_location;
-    if (show_location) {
+    //防止重复申领（申领过可见地址，所以可见地址代表已申领过了）
+    if (this.data.infos.show_location) {
       if (this.data.infos.info.business_type == 1) {
         var content = "您已认领过物品,请到对应地址取回物品";
       } else {
@@ -331,7 +321,7 @@ Page({
       app.alert({
         'content': content
       })
-      return;
+      return
     }
     // 认领确认
     wx.showModal({
@@ -382,8 +372,7 @@ Page({
   },
   //已经取回的按钮
   gotBack: function () {
-    if (!app.globalData.regFlag) {
-      app.loginTip()
+    if (!app.loginTip()) {
       return
     }
     if (this.data.infos.info.is_auth) {
@@ -397,47 +386,48 @@ Page({
       content: '恭喜取回物品，是否确认取回？',
       success: (res) => {
         if (res.confirm) {
-          wx.request({
-            url: app.buildUrl("/goods/gotback"),
-            header: app.getRequestHeader(),
-            data: {
-              id: this.data.infos.info.id,
-            },
-            success:  (res) => {
-              let resp = res.data;
-              if (resp.code !== 200) {
-                return
-              }
-
-              let infos = this.data.infos;
-              infos['show_location'] = resp.data.show_location;
-              infos.info.status_desc = resp.data.status_desc;
-              infos.info.status = resp.data.status;
-              this.setData({
-                infos: infos
-              })
-              app.alert({
-                'content': "记得答谢发布者哦~"
-              })
-            },
-            fail:  (res) => {
-              app.serverBusy()
-            }
-          })
+          this.doGotBack()
         }
       },
     })
   },
+  doGotBack: function () {
+    wx.request({
+      url: app.buildUrl("/goods/gotback"),
+      header: app.getRequestHeader(),
+      data: {
+        id: this.data.infos.info.id,
+      },
+      success: (res) => {
+        let resp = res.data;
+        if (resp.code !== 200) {
+          return
+        }
+
+        let infos = this.data.infos;
+        infos['show_location'] = resp.data.show_location;
+        infos.info.status_desc = resp.data.status_desc;
+        infos.info.status = resp.data.status;
+        this.setData({
+          infos: infos
+        })
+        app.alert({
+          'content': "记得答谢发布者哦~"
+        })
+      },
+      fail: (res) => {
+        app.serverBusy()
+      }
+    })
+  },
   previewItemImage: function (e) {
-    var index = e.currentTarget.dataset.index;
     wx.previewImage({
-      current: this.data.infos.info.pics[index], // 当前显示图片的http链接
+      current: this.data.infos.info.pics[e.currentTarget.dataset.index], // 当前显示图片的http链接
       urls: this.data.infos.info.pics // 需要预览的图片http链接列表
     })
   },
   toEdit: function (event) {
-    var info = this.data.infos.info;
-    app.globalData.info = info;
+    app.globalData.info = this.data.infos.info
     wx.navigateTo({
       url: '../edit/edit',
     })
