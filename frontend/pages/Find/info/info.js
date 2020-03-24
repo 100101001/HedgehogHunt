@@ -359,7 +359,7 @@ Page({
         if (resp.code !== 200) {
           return
         }
-        let infos = that.data.infos;
+        let infos = this.data.infos;
         infos['show_location'] = resp.data.show_location;
         infos.info.status_desc = resp.data.status_desc;
         infos.info.status = resp.data.status;
@@ -382,56 +382,52 @@ Page({
   },
   //已经取回的按钮
   gotBack: function () {
-    var that = this;
-    var regFlag = app.globalData.regFlag;
-    if (!regFlag) {
-      app.loginTip();
-      return;
+    if (!app.globalData.regFlag) {
+      app.loginTip()
+      return
     }
-    var is_auth = that.data.infos.info.is_auth;
-    if (is_auth) {
+    if (this.data.infos.info.is_auth) {
       app.alert({
         'content': "发布者不可操作自己的记录"
       })
-      return;
+      return
     }
     wx.showModal({
       title: '提示',
       content: '恭喜取回物品，是否确定取回了物品？',
-      success(res) {
+      success: (res) => {
         if (res.confirm) {
-          that.setData({
+          this.setData({
             loadingHidden: false
-          });
+          })
           wx.request({
             url: app.buildUrl("/goods/gotback"),
             header: app.getRequestHeader(),
             data: {
-              id: that.data.infos.info.id,
+              id: this.data.infos.info.id,
             },
-            success: function (res) {
-              var resp = res.data;
+            success:  (res) => {
+              let resp = res.data;
               if (resp.code !== 200) {
-                return;
+                return
               }
 
-              var infos = that.data.infos;
+              let infos = this.data.infos;
               infos['show_location'] = resp.data.show_location;
               infos.info.status_desc = resp.data.status_desc;
               infos.info.status = resp.data.status;
-              that.setData({
+              this.setData({
                 infos: infos
               })
               app.alert({
                 'content': "记得答谢发布者哦~"
-              });
+              })
             },
-            fail: function (res) {
-              app.serverBusy();
-              return;
+            fail:  (res) => {
+              app.serverBusy()
             },
-            complete: function (res) {
-              that.setData({
+            complete:  (res) => {
+              this.setData({
                 loadingHidden: true
               });
             },
