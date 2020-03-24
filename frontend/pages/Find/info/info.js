@@ -397,9 +397,6 @@ Page({
       content: '恭喜取回物品，是否确认取回？',
       success: (res) => {
         if (res.confirm) {
-          this.setData({
-            loadingHidden: false
-          })
           wx.request({
             url: app.buildUrl("/goods/gotback"),
             header: app.getRequestHeader(),
@@ -425,12 +422,7 @@ Page({
             },
             fail:  (res) => {
               app.serverBusy()
-            },
-            complete:  (res) => {
-              this.setData({
-                loadingHidden: true
-              });
-            },
+            }
           })
         }
       },
