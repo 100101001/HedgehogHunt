@@ -155,7 +155,7 @@ radio .wx-radio-input.wx-radio-input-checked::before {
 
 /***置顶丝带***/
 .ribbon {
-  background-color: #a00;
+  background-color: #6495ED;
   overflow: hidden;
   white-space: nowrap;
   /* top left corner */
@@ -172,9 +172,9 @@ radio .wx-radio-input.wx-radio-input-checked::before {
   border: 1rpx solid #faa;
   color: #fff;
   display: block;
-  font: bold 100% 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font: bold 23rpx 'Helvetica Neue', Helvetica, Arial, sans-serif;
   margin: 1rpx 0;
-  padding: 10rpx 50rpx;
+  padding: 10rpx 30rpx;
   text-align: center;
   text-decoration: none;
   /* for creating shadow */

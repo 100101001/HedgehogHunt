@@ -44,7 +44,7 @@
       <view class="goods_message">
         <template is="goodsItem" data="{{...item}}" />
         <view class="ribbon" wx:if="{{item.top}}">
-          <text>置顶</text>
+          <text>置 顶</text>
         </view>
       </view>
     </block>

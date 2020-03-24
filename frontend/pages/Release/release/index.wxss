@@ -178,12 +178,9 @@
 
 /***置顶丝带***/
 .ribbon {
-  background-color: #a00;
+  background-color: #6495ED;
   overflow: hidden;
   white-space: nowrap;
-  /* top left corner */
-/*  margin-left: 500rpx;*/
-/*  margin-top: 140rpx;*/
 /* for creating shadow */
 -webkit-box-shadow: 0 0 10px #888;
      -moz-box-shadow: 0 0 10px #888;
