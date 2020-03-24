@@ -1,4 +1,3 @@
-<!--import src="../template/upload-pics/upload-pics-template.wxml" /-->
 <view class="container" wx:if="{{dataReady}}">
   <loading hidden="{{loadingHidden}}" wx:if="{{ !upload_qrcode }}">上传第{{i}}张图片..</loading>
   <form class="goods-box" bindsubmit="formSubmit">
@@ -47,7 +46,7 @@
     </view>
     <view id="top" wx:if="{{business_type==0}}">
       <view class="hrz1"></view>
-      <view class="tips-views">付费置顶，失物在最醒目位置，大大提高找回的概率~</view>
+      <view class="tips-views">付费置顶，失物在最醒目位置，大大提高寻回的概率~</view>
       <switch class="top-switch" type="switch" color="#f7931e" disabled="{{submitDisable}}" bindchange="changSetTop">
         <view class="ribbon">
           <text>置顶 ￥{{top_price}}  / {{top_days}}天</text>

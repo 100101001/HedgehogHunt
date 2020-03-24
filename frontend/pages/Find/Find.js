@@ -33,15 +33,15 @@ Page({
       },
       {
         id: 1,
-        name: '待领取'
+        name: '待认领'
       },
       {
         id: 2,
-        name: '预领取'
+        name: '预认领'
       },
       {
         id: 3,
-        name: '已领取'
+        name: '已认领'
       },
       ]
     } else {
@@ -55,15 +55,15 @@ Page({
       },
       {
         id: 1,
-        name: '待找回'
+        name: '待寻回'
       },
       {
         id: 2,
-        name: '预找回'
+        name: '预寻回'
       },
       {
         id: 3,
-        name: '已找回'
+        name: '已寻回'
       },
       ]
     };

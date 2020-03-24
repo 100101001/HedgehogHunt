@@ -50,7 +50,7 @@ Page({
         op_status: "0"
       },
       {
-        label: "认领记录",
+        label: "认寻记录",
         icons: "/images/icons/next.png",
         act: "goRecord",
         op_status: "1"
