@@ -152,7 +152,7 @@
   text-align: center;
   color: #fff;
   width: 580rpx;
-  margin: 20rpx 0 20rpx 30rpx;
+  margin: 20rpx auto;
   border-radius: 10rpx;
 }
 
