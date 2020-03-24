@@ -60,17 +60,17 @@ Page({
       infos.check_cat = [
         {
           id: 1,
-          name: '待认领/找回',
+          name: '待认领/寻回',
           value: recommend.wait,
         },
         {
           id: 2,
-          name: '预认领/找回',
+          name: '预认领/寻回',
           value: recommend.doing,
         },
         {
           id: 3,
-          name: '已认领/找回',
+          name: '已认领/寻回',
           value: recommend.done,
         },
       ];
