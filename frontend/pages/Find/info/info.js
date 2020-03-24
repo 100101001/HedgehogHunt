@@ -394,7 +394,7 @@ Page({
     }
     wx.showModal({
       title: '提示',
-      content: '恭喜取回物品，是否确定取回了物品？',
+      content: '恭喜取回物品，是否确认取回？',
       success: (res) => {
         if (res.confirm) {
           this.setData({
