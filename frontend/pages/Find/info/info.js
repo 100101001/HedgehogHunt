@@ -5,6 +5,7 @@ Page({
   data: {
     loadingHidden: true,
     show_location: false,
+    appLoadingHidden: true
   },
   onShareAppMessage: function (Options) {
     var business_type = this.data.info.business_type;
@@ -50,6 +51,7 @@ Page({
     var goods_id = options.goods_id;
     var op_status = app.globalData.op_status;
     this.setData({
+      appLoadingHidden: true,
       op_status: op_status,
       goods_id: goods_id
     })
@@ -331,48 +333,50 @@ Page({
       })
       return;
     }
-    //
+    // 认领确认
     wx.showModal({
       title: '提示',
       content: '申领后会在平台留下个人信息备查，是否确定申领？',
-      success(res) {
+      success: (res) => {
         if (res.confirm) {
-          that.setData({
-            loadingHidden: false
-          });
-          wx.request({
-            url: app.buildUrl("/goods/applicate"),
-            header: app.getRequestHeader(),
-            data: {
-              id: that.data.infos.info.id,
-            },
-            success: function (res) {
-              var resp = res.data;
-              if (resp.code !== 200) {
-                return;
-              }
-              var infos = that.data.infos;
-              infos['show_location'] = resp.data.show_location;
-              infos.info.status_desc = resp.data.status_desc;
-              infos.info.status = resp.data.status;
-              that.setData({
-                infos: infos
-              })
-              app.alert({
-                'content': "认领成功，可到  '我的——认领记录'   中查看"
-              });
-            },
-            fail: function (res) {
-              app.serverBusy();
-              return;
-            },
-            complete: function (res) {
-              that.setData({
-                loadingHidden: true
-              });
-            },
+          this.setData({
+            appLoadingHidden: false
           })
+          this.applyGoods()
         }
+      },
+    })
+  },
+  applyGoods: function(){
+    wx.request({
+      url: app.buildUrl("/goods/applicate"),
+      header: app.getRequestHeader(),
+      data: {
+        id: this.data.infos.info.id,
+      },
+      success:  (res) => {
+        let resp = res.data;
+        if (resp.code !== 200) {
+          return
+        }
+        let infos = that.data.infos;
+        infos['show_location'] = resp.data.show_location;
+        infos.info.status_desc = resp.data.status_desc;
+        infos.info.status = resp.data.status;
+        this.setData({
+          infos: infos
+        })
+        app.alert({
+          'content': "认领成功，可到【我的】————【认寻记录】 中查看"
+        })
+      },
+      fail:  (res) => {
+        app.serverBusy();
+      },
+      complete:  (res) => {
+        this.setData({
+          appLoadingHidden: true
+        })
       },
     })
   },
