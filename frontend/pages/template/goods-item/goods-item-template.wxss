@@ -212,7 +212,6 @@
 /****置顶****/
 .ribbon {
   background-color: #f7931e;
-  overflow: hidden;
   margin-left: 61rpx;
   margin-bottom: 40rpx;
   border-radius: 0rpx 25rpx 0 25rpx;
