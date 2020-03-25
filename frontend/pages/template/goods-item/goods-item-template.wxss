@@ -209,15 +209,12 @@
   margin-left:35rpx;
 }
 
-
-
 /****置顶****/
 .ribbon {
   background-color: #f7931e;
   overflow: hidden;
-  position: absolute;
-  margin-left: 590rpx;
-  margin-top: -19rpx;
+  margin-left: 61rpx;
+  margin-bottom: 40rpx;
   border-radius: 0rpx 25rpx 0 25rpx;
   width: 60rpx;
   height: 60rpx;
