@@ -9,9 +9,6 @@
       <view class="item_message">
         <radio class="radio" hidden="{{infos.saveHidden}}" data-index="{{index}}" bindtap="selectTap" checked="{{item.selected}}" />
         <template is="goodsItem" data="{{...item}}" />
-        <view class="ribbon" wx:if="{{item.top}}">
-          <text>置 顶</text>
-        </view>
       </view>
     </block>
   </view>

@@ -5,6 +5,7 @@ page {
   /*背景图片*/
   background-image: url("https://console.changshunlive.com/static/img/20190308185846.png");
   background-attachment: fixed;
+  background-position: 0rpx -30rpx
 }
 
 .all_container {
@@ -154,32 +155,4 @@ swiper-item image {
   font-size: 24rpx;
   padding-bottom: 228rpx;
   color: #999;
-}
-
-/***置顶丝带***/
-.ribbon {
-  background-color: #6495ED;
-  overflow: hidden;
-  white-space: nowrap;
-  /* top left corner */
-  position: absolute;
-  margin-left: 500rpx;
-  margin-top: 140rpx;
-  /* for creating shadow */
-  -webkit-box-shadow: 0 0 10px #888;
-     -moz-box-shadow: 0 0 10px #888;
-          box-shadow: 0 0 10px #888;
-}
-
-.ribbon text {
-  border: 1rpx solid #faa;
-  color: #fff;
-  display: block;
-  font: bold 23rpx 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  margin: 1rpx 0;
-  padding: 10rpx 30rpx;
-  text-align: center;
-  text-decoration: none;
-  /* for creating shadow */
-  text-shadow: 0 0 5px #444;
 }

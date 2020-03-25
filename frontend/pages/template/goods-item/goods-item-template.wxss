@@ -201,3 +201,32 @@
   text-align: center;
 }
 
+.status-lefter{
+  margin-left: 0;
+}
+
+.report-lefter{
+  margin-left:35rpx;
+}
+
+/****置顶****/
+.ribbon {
+  background-color: #f7931e;
+  margin-left: 61rpx;
+  margin-bottom: 40rpx;
+  border-radius: 0rpx 25rpx 0 25rpx;
+  width: 60rpx;
+  height: 60rpx;
+}
+
+.ribbon text {
+  color: #fff;
+  position: absolute;
+  font-size: 19rpx;
+  padding: 0 10rpx;
+  transform:rotate(45deg);
+  -ms-transform:rotate(45deg);
+    -moz-transform:rotate(45deg);
+    -webkit-transform:rotate(45deg);
+    -o-transform:rotate(45deg);
+}

@@ -167,37 +167,31 @@
   border-radius: 10rpx;
 }
 
+
+/***置顶开关***/
+
+.top-switch-container{
+  display: flex;
+  flex-direction: row;
+  margin-left: 10rpx;
+}
+
 .top-switch{
   margin-top: 20rpx;
   margin-left: 30rpx;
   font-size: medium;
   display: flex;
   flex-direction: row;
+  zoom:0.6;
 }
 
 
-/***置顶丝带***/
-.ribbon {
-  background-color: #6495ED;
-  overflow: hidden;
-  white-space: nowrap;
-/* for creating shadow */
--webkit-box-shadow: 0 0 10px #888;
-     -moz-box-shadow: 0 0 10px #888;
-          box-shadow: 0 0 10px #888;
-}
-
-.ribbon text {
-  border: 1rpx solid #faa;
-  color: #fff;
-  display: block;
-  font: bold 100% 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  margin: 1rpx 0;
-  padding: 10rpx 50rpx;
+.top-switch-container text {
+  color: #f7931e;
+  font: bold 35rpx 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  margin: 15rpx  50rpx 6rpx 30rpx;
   text-align: center;
   text-decoration: none;
-  /* for creating shadow */
-  text-shadow: 0 0 5px #444;
 }
 
 
