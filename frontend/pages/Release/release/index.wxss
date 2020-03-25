@@ -173,6 +173,7 @@
 .top-switch-container{
   display: flex;
   flex-direction: row;
+  margin-left: 10rpx;
 }
 
 .top-switch{
@@ -181,7 +182,7 @@
   font-size: medium;
   display: flex;
   flex-direction: row;
-  zoom:0.7;
+  zoom:0.6;
 }
 
 
