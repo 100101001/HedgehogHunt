@@ -40,10 +40,7 @@ Page({
         },
       ]
     } else if (op_status == 1) { //认领和找回记录
-      var check_cat = [{
-        id: 1,
-        name: '待认领/找回',
-      },
+      var check_cat = [
         {
           id: 2,
           name: '预认领/找回',
@@ -96,7 +93,7 @@ Page({
     }
     this.setData({
       only_new: false,
-      check_status_id: 1, //代表当前选中的选项卡
+      check_status_id: op_status == 1 ? 2 : 1, //代表当前选中的选项卡，认寻记录的默认状态是预，其它都是待
       infos: {
         list: {},
         only_new: false,
@@ -221,14 +218,13 @@ Page({
   },
   //获取信息列表
   getGoodsList: function(e) {
-    var that = this;
-    if (!that.data.loadingMoreHidden) {
-      return;
+    if (!this.data.loadingMoreHidden) {
+      return
     }
-    if (that.data.processing) {
-      return;
+    if (this.data.processing) {
+      return
     }
-    that.setData({
+    this.setData({
       processing: true,
       loadingHidden: false
     });
@@ -236,45 +232,44 @@ Page({
       url: app.buildUrl("/record/search"),
       header: app.getRequestHeader(),
       data: {
-        status: that.data.check_status_id,
-        mix_kw: that.data.goods_name,
-        owner_name: that.data.owner_name,
-        p: that.data.p,
-        op_status: that.data.op_status,
+        status: this.data.check_status_id,
+        mix_kw: this.data.goods_name,
+        owner_name: this.data.owner_name,
+        p: this.data.p,
+        op_status: this.data.op_status,
         //仅获取还未处理过的列表
-        only_new: that.data.only_new
+        only_new: this.data.only_new
       },
-      success: function(res) {
-        var resp = res.data;
-        if (resp.code !== 200) {
+      success: (res) => {
+        let resp = res.data
+        if (resp['code'] !== 200) {
           app.alert({
-            'content': resp.msg
-          });
+            content: resp['msg']
+          })
           return
         }
-        var goods_list = resp.data.list;
+        let goods_list = resp['data']['list']
         goods_list = app.cutStr(goods_list);
-        goods_list = that.data.infos.list.concat(goods_list),
-          //修改save的状态
-          that.setData({
-            p: that.data.p + 1,
-          });
-        if (resp.data.has_more === 0) {
-          that.setData({
+        goods_list = this.data.infos.list.concat(goods_list)
+        //修改save的状态
+        this.setData({
+          p: this.data.p + 1,
+        })
+        if (resp['data']['has_more'] === 0) {
+          this.setData({
             loadingMoreHidden: false,
           })
         }
-        that.setPageData(that.getSaveHide(), that.allSelect(), that.noSelect(), goods_list);
+        this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), goods_list);
       },
-      fail: function(res) {
-        app.serverBusy();
-        return;
+      fail: (res) => {
+        app.serverBusy()
       },
-      complete: function(res) {
-        that.setData({
+      complete: (res) => {
+        this.setData({
           processing: false,
           loadingHidden: true
-        });
+        })
       },
     })
   },
