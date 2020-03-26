@@ -6,9 +6,7 @@ const getQrcodeFromWechat = function() {
         url: app.buildUrl('/qrcode/wx'),
         header: app.getRequestHeader(),
         success: function (res) {
-            var resp = res.data
             app.globalData.has_qrcode = true
-            app.globalData.qr_code_list = [resp.data.qr_code_url]
         },
         fail: function (res) {
             app.serverBusy()
@@ -51,9 +49,12 @@ Page({
      */
     onShow: function () {
         this.setSearchInitData()
-        if(this.data.isGettingQrcode){
+        if (this.data.isGettingQrcode) {
+            this.setData({
+                isGettingQrcode: false
+            })
             this.getPayOrderAndshowGettingQrcode()
-        }else{
+        } else {
             this.getPayOrder();
         }
     },
@@ -79,8 +80,7 @@ Page({
             title: '获取闪寻码中',
             mask: true
         })
-        var that = this
-        setTimeout(function(){
+        setTimeout(()=>{
             wx.hideLoading()
             wx.showToast({
                 title: '获取成功',
@@ -90,14 +90,17 @@ Page({
                 success: function () {
                     setTimeout(function () {
                         app.alert({
-                            'title': '温馨提示',
-                            'content': '可返回入口界面，在【我的】->【个人信息】查看您的专属闪寻码'
+                            title: '赠品提示',
+                            content: '已返还5毛到您的账户，用于5次免费的失物通知！',
+                            cb_confirm: () => {
+                                app.alert({
+                                    title: '查看提示',
+                                    content: '在入口页【我的】—【个人信息】查看您的专属闪寻码',
+                                })
+                            }
                         })
                     }, 700)
                 }
-            })
-            that.setData({
-                isGettingQrcode: false
             })
         }, 500)
     },
