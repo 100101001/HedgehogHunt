@@ -16,6 +16,7 @@ from common.libs.Helper import getCurrentDate
 from common.libs.Helper import selectFilterObj, getDictFilterField
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Member import Member
+from common.models.ciwei.MemberBalanceChangeLog import MemberBalanceChangeLog
 
 
 class MemberService():
@@ -191,3 +192,21 @@ class MemberService():
         for key in keys[1:]:
             recommend_id = recommend_id + '#' + str(key) + ':' + str(re_dict[key])
         return recommend_id
+
+    @staticmethod
+    def setMemberBalanceChange(member_info=None, unit=0, note="答谢"):
+        """
+        记录会员账户余额变化
+        :param member_info:
+        :param unit:
+        :param note:
+        :return:
+        """
+        balance_change_model = MemberBalanceChangeLog()
+        balance_change_model.member_id = member_info.id
+        balance_change_model.openid = member_info.openid
+        balance_change_model.unit = unit
+        balance_change_model.total_balance = member_info.balance
+        balance_change_model.note = note
+        balance_change_model.created_time = getCurrentDate()
+        db.session.add(balance_change_model)

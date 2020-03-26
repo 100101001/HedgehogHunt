@@ -19,7 +19,6 @@ from web.controllers.api import route_api
 
 @route_api.route("/thanks/create", methods=['GET', 'POST'])
 def thanksCreate():
-
     try:
         resp = {'code': 200, 'msg': 'create thanks record successfully(search)', 'data': {}}
         req = request.values
@@ -42,7 +41,7 @@ def thanksCreate():
             thanks_model.business_desc = "丢失"
         goods_id = int(req['goods_id']) if 'goods_id' in req else 0
         goods_name = req['goods_name'] if 'goods_name' in req else ''
-        owner_name = req['owner_name'] if 'owner_name' in req else ''
+        owner_name = member_info.name if member_info.name else ''
         thanks_model.goods_name = goods_name
         thanks_model.owner_name = owner_name
         target_price = Decimal(req['target_price']).quantize(Decimal('0.00')) if 'target_price' in req else 0.00
@@ -86,7 +85,7 @@ def thanksCreate():
         resp['data']['id'] = thanks_model.id
         res = jsonify(resp)
     except Exception as e:
-        app.logger.error(request.path+': '+e)
+        app.logger.error(request.path + ': ' + e)
         db.session.rollback()
         resp = {'code': -1, 'msg': '服务器内部异常', 'data': {}}
         return jsonify(resp)
@@ -94,7 +93,7 @@ def thanksCreate():
         from common.libs import SubscribeService
         SubscribeService.send_thank_subscribe(thanks_model)
     except Exception as e:
-        app.logger.error(request.path+': '+e)
+        app.logger.error(request.path + ': ' + e)
     return res
 
 
@@ -173,15 +172,36 @@ def thanksSearch():
                 "selected": False,
             }
             data_goods_list.append(tmp_data)
-            if item.status == 0 and member_info.id == item.target_member_id:
-                item.status = 1
-                item.updated_time = getCurrentDate()
-                db.session.add(item)
-                db.session.commit()
 
     resp['data']['list'] = data_goods_list
     resp['data']['has_more'] = 0 if len(data_goods_list) < page_size else 1
     return jsonify(resp)
+
+
+@route_api.route("/thanks/update-status", methods=['GET', 'POST'])
+def updateStatus():
+    req = request.values
+    member_info = g.member_info
+    if not member_info:
+        return False
+    query = Thank.query.filter(Thank.status != 7)
+    query = query.filter(Thank.status != 6)
+    query = query.filter(Thank.status != 5)
+    query = query.filter(Thank.status != 4)
+    all = req['all'] if 'all' in req else ''
+    if all == "true":
+        _rule = or_(Thank.target_member_id == member_info.id, Thank.member_id == member_info.id)
+        goods_list = query.filter(_rule).all()
+    else:
+        goods_list = query.filter_by(target_member_id=member_info.id).all()
+    if goods_list:
+        for item in goods_list:
+            if item.status == 0:
+                item.status = 1
+                item.updated_time = getCurrentDate()
+                db.session.add(item)
+                db.session.commit()
+    return True
 
 
 # 查询所有记录

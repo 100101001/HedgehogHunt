@@ -17,7 +17,6 @@ class Member(db.Model):
 
     id = db.Column(INTEGER(11, unsigned=True), primary_key=True, autoincrement=True)
     user_id = db.Column(INTEGER(11, unsigned=True), nullable=False, default=0, comment="拉黑会员的管理员id")
-    qr_code_id = db.Column(INTEGER(11, unsigned=True), nullable=False, default=0, comment="小程序二维码id")
     nickname = db.Column(db.String(100), nullable=False, default='', comment="会员名")
     salt = db.Column(db.String(255), nullable=False, default='', comment="加密生成的字符串")
     credits = db.Column(INTEGER(11), nullable=False, default=0, comment="会员积分")

@@ -1,4 +1,7 @@
 #!/usr/bin/python3.6.8
+import decimal
+from decimal import Decimal
+
 from flask import request, jsonify, g
 
 from application import db, app
@@ -12,6 +15,33 @@ from common.models.ciwei.Thanks import Thank
 from common.models.ciwei.User import User
 # -*- coding:utf-8 -*-
 from web.controllers.api import route_api
+
+
+@route_api.route("/member/account/recharge", methods=['GET', 'POST'])
+def accountRecharge():
+    """
+    充值余额
+    :return:
+    """
+    resp = {'code': 200, 'msg': 'successful', 'data': {}}
+    req = request.values
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "请先登录"
+        return jsonify(resp)
+
+    amount = Decimal(req['amount']).quantize(Decimal('0.00')) if 'amount' in req else Decimal('0.00')
+    if amount > Decimal('0.00'):
+        member_info.balance += amount
+        db.session.add(member_info)
+        MemberService.setMemberBalanceChange(member_info=member_info, unit=amount, note="余额充值")
+
+    resp['data'] = {
+        'balance': member_info.balance
+    }
+    db.session.commit()
+    return jsonify(resp)
 
 
 # TODO：如果可以锁号，那么登陆需要判断用户的status
@@ -162,7 +192,7 @@ def memberInfo():
     用户信息
     :return: id,昵称,头像,积分,二维码
     """
-    resp = {'code': 200, 'msg': 'get_member_info successfully(share)', 'data': {}}
+    resp = {'code': 200, 'msg': '', 'data': {}}
 
     member_info = g.member_info
     if not member_info:
@@ -173,20 +203,41 @@ def memberInfo():
     has_qrcode = False
     if member_info.qr_code:
         qr_code_url = UrlManager.buildImageUrl(member_info.qr_code)
-        qr_code_list = [qr_code_url]
         has_qrcode = True
     else:
-        qr_code_list = []
+        qr_code_url = ""
     resp['data']['info'] = {
         'nickname': member_info.nickname,
-        'avatar_url': member_info.avatar,
-        'qr_code_list': qr_code_list,
+        'avatar': member_info.avatar,
+        'qr_code': qr_code_url,
         'member_id': member_info.id,
         "credits": member_info.credits,
-        "has_qrcode": has_qrcode
+        "balance": str(member_info.balance),
+        "has_qrcode": has_qrcode,
+        "name": member_info.name,
+        "mobile": member_info.mobile
     }
     return jsonify(resp)
 
+
+@route_api.route("/member/balance")
+def memberBalance():
+    """
+    用户信息
+    :return: id,昵称,头像,积分,二维码
+    """
+    resp = {'code': 200, 'msg': '', 'data': {}}
+
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "没有相关用户信息"
+        return jsonify(resp)
+
+    resp['data'] = {
+        "balance": str(member_info.balance)
+    }
+    return jsonify(resp)
 
 # TODO：不需要分页么？
 @route_api.route("/member/get-new-recommend")
@@ -195,7 +246,7 @@ def getNewRecommend():
     未读答谢和所有的匹配推荐
     :return: 总数, 3类推荐的物品列表
     """
-    resp = {'code': 200, 'msg': 'get_member_info successfully(share)', 'data': {}}
+    resp = {'code': 200, 'msg': '', 'data': {}}
     # 检查登陆
     member_info = g.member_info
     if not member_info:
@@ -234,42 +285,6 @@ def getNewRecommend():
             'done': recommend_status_3 if recommend_status_3 <= 99 else 99,
         }
     }
-    return jsonify(resp)
-
-
-@route_api.route("/member/add-qrcode", methods=['GET', 'POST'])
-def addQrcode():
-    resp = {'code': 200, 'state': 'add qrcode success', 'data': {}}
-    #
-    # member_info = g.member_info
-    # if not member_info:
-    #     resp['code'] = -1
-    #     resp['msg'] = "用户信息异常"
-    #     return jsonify(resp)
-    #
-    # # 是否修改了二维码
-    # images_target = request.files
-    # image = images_target['file'] if 'file' in images_target else None
-    #
-    # if image is None:
-    #     resp['code'] = -1
-    #     resp['msg'] = "图片上传失败"
-    #     resp['state'] = '上传失败'
-    #     return jsonify(resp)
-    #
-    # ret = UploadService.uploadByFile(image)
-    # if ret['code'] != 200:
-    #     resp['code'] = -1
-    #     resp['msg'] = "图片上传失败"
-    #     resp['state'] = "上传失败" + ret['msg']
-    #     return jsonify(resp)
-    #
-    # # 将返回的本地链接加到列表，并且保存为字符串
-    # pic_url = ret['data']['file_key']
-    # member_info.qr_code = pic_url
-    # member_info.updated_time = getCurrentDate()
-    # db.session.commit()
-    # resp['msg'] = "change qr_code successfully"
     return jsonify(resp)
 
 
@@ -454,58 +469,6 @@ def setName():
     db.session.add(member_info)
     db.session.commit()
     resp['data'] = {'name': member_info.name}
-    return jsonify(resp)
-
-
-@route_api.route('/member/set/phone', methods=['GET', 'POST'])
-def setPhone():
-    resp = {'code': 200, 'msg': '修改手机号成功', 'data': {}}
-
-    member_info = g.member_info
-    if not member_info:
-        resp['code'] = -1
-        resp['msg'] = "请先登录"
-        return jsonify(resp)
-    from common.libs.mall.WechatService import WXBizDataCrypt
-    req = request.get_json()
-    app.logger.info(req)
-    # 获取加密手机号
-    encrypted_data = req['encrypted_data'] if 'encrypted_data' in req and req['encrypted_data'] else ''
-    if not encrypted_data:
-        resp['code'] = -1
-        resp['msg'] = "手机号获取失败"
-        return jsonify(resp)
-    # 获取加密向量
-    iv = req['iv'] if 'iv' in req and req['iv'] else ''
-    if not iv:
-        resp['code'] = -1
-        resp['msg'] = "手机号获取失败"
-        return jsonify(resp)
-    # 获取session_key
-    session_key = req['session_key'] if 'session_key' in req and req['session_key'] else ''
-    if not session_key:
-        resp['code'] = -1
-        resp['msg'] = "手机号获取失败"
-        return jsonify(resp)
-    appId = app.config['OPENCS_APP']['appid']
-    # 解密手机号
-    pc = WXBizDataCrypt(appId, session_key)
-    try:
-        mobile_obj = pc.decrypt(encrypted_data, iv)
-    except Exception as e:
-        app.logger.warn(e)
-        resp['code'] = -1
-        resp['msg'] = "手机号获取失败"
-        return jsonify(resp)
-    mobile = mobile_obj['phoneNumber']
-    app.logger.info("手机号是：{}".format(mobile))
-    member_info.mobile = mobile
-    member_info.updated_time = getCurrentDate()
-    db.session.add(member_info)
-    db.session.commit()
-    resp['data'] = {
-        'mobile': mobile
-    }
     return jsonify(resp)
 
 

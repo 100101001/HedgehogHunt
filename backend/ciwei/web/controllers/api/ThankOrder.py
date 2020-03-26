@@ -4,6 +4,7 @@ from flask import g, request
 
 from application import db, app
 from common.libs import ThankOrderService
+from common.libs.MemberService import MemberService
 from web.controllers.api import route_api, jsonify, getCurrentDate
 
 
@@ -30,7 +31,7 @@ def balanceRollback():
 
         member_info.balance += amount
         member_info.updated_time = getCurrentDate()
-        ThankOrderService.setMemberBalanceChange(member_info=member_info, unit=amount, note="中止答谢退回")
+        MemberService.setMemberBalanceChange(member_info=member_info, unit=amount, note="中止答谢退回")
         db.session.add(member_info)
         resp['code'] = 200
         resp['data']['balance'] = str(member_info.balance)
@@ -77,7 +78,7 @@ def place_payment_order():
         if account_price != 0:
             member_info.balance -= account_price
             member_info.updated_time = getCurrentDate()
-            ThankOrderService.setMemberBalanceChange(member_info=member_info, unit=-account_price, note="答谢支出")
+            MemberService.setMemberBalanceChange(member_info=member_info, unit=-account_price, note="答谢支出")
             db.session.add(member_info)
 
         if pay_type == "pure_balance":
