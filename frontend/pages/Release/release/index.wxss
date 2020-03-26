@@ -1,3 +1,5 @@
+@import "../../template/use-balance/use-balance.wxss";
+
 .container {
   margin-left: 20rpx;
   margin-right: 20rpx;

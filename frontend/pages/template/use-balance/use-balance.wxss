@@ -1,0 +1,26 @@
+/* pages/template/use-balance/use-balance.wxss */
+
+.account_money{
+	color: #f7931e;
+	font-size: smaller;
+	margin-top: 10rpx;
+	text-align: center;
+	font-weight: 600;
+	display: flex;
+	flex-direction: row;
+}
+
+.select-account-container{
+	display: flex;
+	flex-direction: row;
+}
+
+.account-check-box{
+	zoom: 0.6;
+}
+
+.use-balance-check{
+	display: block;
+	margin-top: 20rpx;
+	margin-bottom: 20rpx;
+}

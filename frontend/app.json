@@ -33,15 +33,15 @@
       ]
     },
     {
-      "root":"pages/Report",
-      "pages":[
+      "root": "pages/Report",
+      "pages": [
         "index",
         "info/info"
       ]
     },
     {
-      "root":"controls",
-      "pages":[
+      "root": "controls",
+      "pages": [
         "pages/index",
         "pages/static/index",
         "pages/add_adm/index",
@@ -64,4 +64,3 @@
     }
   }
 }
-

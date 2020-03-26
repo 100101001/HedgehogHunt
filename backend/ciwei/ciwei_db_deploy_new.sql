@@ -300,6 +300,8 @@ CREATE TABLE `order`  (
   `total_price` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '订单应付金额',
   `yun_price` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '运费金额',
   `pay_price` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '订单实付金额',
+  `discount_price` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '折扣金额',
+  `discount_type` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '折扣类型',
   `pay_sn` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '第三方流水号',
   `prepay_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '第三方预付id',
   `note` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '备注信息',

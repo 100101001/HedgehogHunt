@@ -60,6 +60,10 @@
             <view class="right-text">+ ¥ {{info.yun_price}}</view>
         </view>
         <view class="row-box">
+            <view class="row-label">折扣</view>
+            <view class="right-text">- ¥ {{info.discount_price}}</view>
+        </view>
+        <view class="row-box">
             <view class="row-label">应付总额</view>
             <view class="right-text">¥ {{info.total_price}}</view>
         </view>

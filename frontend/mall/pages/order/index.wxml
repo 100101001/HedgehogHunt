@@ -1,18 +1,19 @@
+<import src="../../../pages/template/use-balance/use-balance.wxml"></import>
 <view class="container" wx:if="{{dataReady}}">
-     <view class="address-box">
+    <view class="address-box">
         <view class="add-address" hidden="{{default_address}}">
             <view class="title" bindtap="addressSet">新增收货地址</view>
         </view>
         <view class="show-address" hidden="{{!default_address}}" bindtap="selectAddress">
-            <view class="name-tel">{{default_address.name}}  {{default_address.mobile}}</view>
+            <view class="name-tel">{{default_address.name}} {{default_address.mobile}}</view>
             <view class="addr-text">{{default_address.address}}</view>
         </view>
-     </view>
-     <view class="goods-list">
+    </view>
+    <view class="goods-list">
         <view class="list-title">商品列表</view>
         <view class="a-goods" wx:for-items="{{goods_list}}" wx:key="{{index}}">
             <view class="img-box">
-                <image src="{{item.pic_url}}" class="img" />
+                <image src="{{item.pic_url}}" class="img"/>
             </view>
             <view class="text-box">
                 <view class="arow arow01">
@@ -25,8 +26,8 @@
                 </view>
             </view>
         </view>
-     </view>
-     <view class="peisong-way">
+    </view>
+    <view class="peisong-way">
         <view class="row-box">
             <view class="row-label">配送方式</view>
             <view class="right-text" wx:if="{{yun_price > 0}}">快递</view>
@@ -35,12 +36,14 @@
         <view class="row-box">
             <view class="row-label">备注</view>
             <view class="right-text">
-                <input name="remark" type="text" class="liuyan" placeholder="如需备注请输入" />
+                <input name="remark" type="text" class="liuyan" placeholder="如需备注请输入"/>
             </view>
         </view>
-     </view>
+    </view>
 
-     <view class="goods-info">
+    <view class="goods-info">
+        <!--选择使用余额垫付-->
+        <template is="use-balance-checker" data="{{balance_got, balance_use_disabled, balance_low, total_balance, use_balance, balance}}"></template>
         <view class="row-box">
             <view class="row-label">商品金额</view>
             <view class="right-text">¥ {{pay_price}}</view>
@@ -49,9 +52,9 @@
             <view class="row-label">运费</view>
             <view class="right-text">+ ¥ {{yun_price}}</view>
         </view>
-     </view>
+    </view>
 
-     <view class="jiesuan-box">
+    <view class="jiesuan-box">
         <view class="left-price">
             <view class="total">合计：¥ {{total_price}}</view>
         </view>

@@ -1,17 +1,19 @@
+const useBalance = require("../../template/use-balance/use-balance")
 var app = getApp();
 
-/***
+/**
  * topCharge
  * 置顶下单并支付
- * @param data 发布数据
+ * @param pay_price 支付金额
+ * @param cb_success 回调函数
  * @param that 页面指针
  */
-const topCharge = function (data, that) {
+const topCharge = function (pay_price=app.globalData.goodsTopPrice, cb_success=()=>{}, that) {
   wx.request({
-    url: app.buildUrl('/goods/top/order'),
+    url: app.buildUrl('/thank/order'),
     header: app.getRequestHeader(),
     data: {
-      price: that.data.top_price
+      price: pay_price
     },
     method: 'POST',
     success: res => {
@@ -38,18 +40,9 @@ const topCharge = function (data, that) {
         paySign: pay_data['paySign'],
         success: res => {
           //支付成功，继续发布
-          if (res.errMsg == "requestPayment:ok") {
-            that.subscribeMsgAndNotifyRelease(data)
-          }
-          //支付失败，停止发布
-          if (res.errMsg == "requestPayment:fail cancel") {
-            that.setData({
-              submitDisable: false
-            })
-          }
+          cb_success()
         },
         fail: res => {
-          app.alert({'content': '微信支付失败，请稍后重试'})
           that.setData({
             submitDisable: false
           })
@@ -65,6 +58,32 @@ const topCharge = function (data, that) {
   })
 }
 
+/**
+ * changeUserBalance
+ * 扣除(改变)用户余额
+ * @param unit 改变量
+ * @param cb_success 回调函数
+ */
+const changeUserBalance = function (unit = 0, cb_success = () => {}) {
+  wx.showLoading({
+    title: "扣除余额中"
+  })
+  wx.request({
+    url: app.buildUrl("/member/balance/change"),
+    header: app.getRequestHeader(),
+    data: {
+      unit: unit,
+      note: "寻物置顶"
+    },
+    success: res => {
+      cb_success()
+    },
+    complete: res => {
+      wx.hideLoading()
+    }
+  })
+}
+
 
 Page({
   data: {
@@ -73,7 +92,12 @@ Page({
     notify_id: "", //需要通知的失主的openid
     dataReady: false, //页面数据是否已加载
     submitDisable: false, //是否禁按提交发布按钮
-    isTop: false //是否置顶
+    isTop: false, //是否置顶
+    use_balance: false, //使用余额
+    balance_got: false, //数据正确加载，向用户显示勾选框
+    balance_use_disabled: true, //禁用勾选框
+    balance: 0.00, //用户可垫付余额
+    total_balance: 0.00  //用户余额
   },
   /**
    * 1、扫码发布(失物招领)
@@ -115,15 +139,12 @@ Page({
           },
           fail: (res) => {
             wx.redirectTo({
-              url: '../../Find/Find',
+              url: '../../Find/Find?business_type=1',
             })
           }
         })
       }
     }
-  },
-  onShow: function () {
-
   },
   //获取位置的方法
   getLocation: function (e) {
@@ -296,6 +317,8 @@ Page({
   /**
    * confirmTopAndSubNoteRelease
    * 询问置顶
+   * 如果取消重置置顶开关和余额勾选框状态以及解禁提交按钮
+   * 否则就根据勾选框情况进行收费
    */
   confirmTopAndSubNoteRelease: function(data){
     app.alert({
@@ -303,16 +326,47 @@ Page({
       content: '置顶收费' + this.data.top_price + '元，确认置顶？',
       showCancel: true,
       cb_confirm:  () => {
-        topCharge(data, this)
+        this.toTopCharge(data)
       },
       cb_cancel:  () => {
+        //重置置顶开关和勾选框
+        //解禁提交按钮
         this.setData({
-          isTop: false
+          isTop: false,
+          use_balance: false,
+          balance_use_disabled: true,
+          submitDisable: false
         })
-        data['is_top'] = 0
-        this.subscribeMsgAndNotifyRelease(data)
       }
     })
+  },
+  /**
+   *
+   * @param data
+   */
+  toTopCharge: function (data = {}) {
+    let pay_price = this.data.top_price
+    if (this.data.use_balance) {
+      if (this.data.balance >= pay_price) {
+        //扣除余额后发布
+        changeUserBalance(-pay_price, ()=>{
+          this.subscribeMsgAndNotifyRelease(data)
+        })
+      } else {
+        //支付并扣除余额再发布
+        pay_price -= this.data.balance
+        topCharge(pay_price, ()=>{
+          changeUserBalance(-this.data.balance, ()=>{
+            this.subscribeMsgAndNotifyRelease(data)
+          })
+        }, this)
+      }
+    } else {
+      //支付后发布
+      topCharge(pay_price, ()=>{
+        this.subscribeMsgAndNotifyRelease(data)
+      }, this)
+    }
   },
   /**
    * subscribeMsgAndNotifyRelease
@@ -646,9 +700,17 @@ Page({
     })
     //寻物启事需要的置顶信息
     if (!business_type) {
+      //置顶开关
       this.setData({
         top_price: app.globalData.goodsTopPrice,
-        top_days: app.globalData.goodsTopDays
+        top_days: app.globalData.goodsTopDays,
+        isTop: false
+      })
+      //余额勾选框
+      useBalance.initData(this, ()=>{
+        this.setData({
+          balance_use_disabled: true //默认关闭
+        })
       })
     }
   },
@@ -666,12 +728,22 @@ Page({
     })
   },
   /**
-   *
+   * changSetTop
+   * 置顶开关，如果关闭禁用使用余额的选项盒子
    */
   changSetTop: function () {
     let isTop = this.data.isTop
     this.setData({
-      isTop: !isTop
+      isTop: !isTop,
+      balance_use_disabled: isTop,
+      use_balance: isTop? false: this.data.use_balance //原来开着，说明关闭置顶，就必定false；反之开着选项则按原来的用户勾选
+    })
+  },
+  changeUseBalance: function (e) {
+    useBalance.changeUseBalance(e, () => {
+      this.setData({
+        use_balance: e.detail.value.length == 1
+      })
     })
   }
 

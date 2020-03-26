@@ -69,9 +69,13 @@ function regexConfig() {
   return reg;
 }
 
+function toFixed(num=0, fix_num=2){
+  return parseFloat(num.toFixed(fix_num))
+}
+
 module.exports = {
   formatTime: formatTime,
-  showMessage: showMessage,
   onNavigateTap: onNavigateTap,
-  regexConfig: regexConfig
+  regexConfig: regexConfig,
+  toFixed: toFixed
 }
