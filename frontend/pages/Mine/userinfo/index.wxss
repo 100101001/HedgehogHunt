@@ -123,6 +123,10 @@ page{
   border-radius: 30rpx;
 }
 
+.intro{
+  margin-right: 15rpx;
+}
+
 /*最后一个不划线*/
 .userinfo_container1 {
   justify-content: center;
@@ -170,3 +174,7 @@ page{
   border-radius: 50rpx;
 }
 
+.bind-phone-btn{
+  background: #f7931e;
+  color: #fff;
+}

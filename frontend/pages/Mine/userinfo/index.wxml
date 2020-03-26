@@ -22,7 +22,7 @@
     </view>
   <!-- 提现余额，满十元可提现 -->
   <view class="userinfo_container" data-id="4">
-    <view class="title">答谢额度</view>
+    <view class="title">账户余额</view>
     <view class="next">
       <view class="content2">¥ {{balance}}</view>
       <view class="recharge_btn" bindtap="onWithDrawTap">提现</view>
@@ -31,9 +31,11 @@
   <view class="userinfo_container" data-id="3" bindtap="onCatchTap">
     <view class="title">闪寻码</view>
     <view class="next">
-      <view class="recharge_btn" bindtap="toGetQrCode" wx:if="{{!has_qrcode}}">获取</view>
-      <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode && !show_qrcode}}">查看</view>
-      <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode && show_qrcode}}">隐藏</view>
+<!--      <view class="recharge_btn" bindtap="toGetQrCode" wx:if="{{!has_qrcode}}">获取</view>-->
+<!--      <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode && !show_qrcode}}">查看</view>-->
+<!--      <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode && show_qrcode}}">隐藏</view>-->
+      <view class="recharge_btn intro" bindtap="toIntroduce">简介</view>
+      <view class="recharge_btn" bindtap="toGetQrCode">获取</view>
     </view>
   </view>
   <image class="qr_code" data-src="{{qrCode}}" src="{{qrCode}}" bindtap='previewImage' data-id="0" wx:if="{{show_qrcode}}"></image>
@@ -45,7 +47,7 @@
 </modal>
 
 <modal class="edit-modal" hidden="{{hiddenMobileModal}}" title="编辑手机" no-cancel="true" confirm-text="取消" bindconfirm="cancelMobileEdit">
-  <view> <button class='bottom' type='primary' open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber">一键绑定</button></view>
+  <view> <button class='bind-phone-btn' bindtap="toEditPhone">一键绑定</button></view>
 </modal>
 
 <modal hidden="{{hiddenContactModal}}" title="扫码联系客服提现" no-cancel="true" confirm-text="取消" bindconfirm="cancelContact">

@@ -1,125 +1,51 @@
-var app = getApp();
+const app = getApp();
 
 Page({
   data: {
     userInfo: {},
     has_qrcode: false,
     show_qrcode: false,
-    qrCode: "",
+    qr_code: "",
     hiddenNameModal: true,
     hiddenMobileModal: true,
     hiddenContactModal: true,
     contact_img: app.globalData.static_file_domain + "/static/QRcode.jpg"
   },
   onLoad: function () {
-    //会员基本信息
-    var name = app.globalData.memberInfo.name
-    var mobile = app.globalData.memberInfo.mobile
-    this.setData({
-      avatar: app.globalData.memberInfo.avatar,
-      nickname: app.globalData.memberInfo.nickname,
-      mobile: mobile == "" ? "-" : mobile,
-      name: name == "" ? "-" : name,
-      balance: app.globalData.memberInfo.balance
-    });
   },
   onShow() {
-    wx.checkSession({
-      fail: (res) => {
-        wx.login({
-          success: res => {
-            wx.request({
-              method: 'POST',
-              url: app.buildUrl('/member/login/wx'),
-              header: {
-                'content-type': 'application/json',
-              },
-              data: {code: res.code},
-              success: res => {
-                app.setCache("loginInfo", res.data.data)
-              }
-            })
-          }
-        })
-      }
-    })
     // 会员的闪寻码信息
-    this.setData({
-      has_qrcode: app.globalData.has_qrcode,
-      qrCode: app.globalData.has_qrcode ? app.globalData.qr_code_list[0] : "",
-    })
+    this.getMemberInfo()
   },
-  getPhoneNumber(e) {
-    console.log(e)
-    var msg = e.detail.errMsg
-    var that = this
-    var session_key = app.getCache('loginInfo').session_key
-    var encryptedData = e.detail.encryptedData
-    var iv = e.detail.iv;
-    if (msg == "getPhoneNumber:fail:user deny") {
-      this.setData({
-        hiddenMobileModal: true
-      })
-      return
-    }
-    if (msg == 'getPhoneNumber:ok') {
-      wx.checkSession({
-        success: (res) => {
-          that.deciyption(session_key, encryptedData, iv);
-        },
-        fail: (res) => {
-          wx.login({
-            success: res => {
-              wx.request({
-                method: 'POST',
-                url: app.buildUrl('/member/login/wx'),
-                header: {
-                  'content-type': 'application/json',
-                },
-                data: { code: res.code },
-                success: function (res) {
-                  var resp = res.data
-                  if (resp.code !== 200) {
-                    app.alert({
-                      'content': resp.msg
-                    })
-                    return
-                  }
-                  var loginInfo = resp.data;
-                  app.setCache('loginInfo', loginInfo)
-                  that.deciyption(loginInfo.session_key, encryptedData, iv);
-                }
-              })
-            }
-          })
-        }
-      })
-    }
-  },
-  deciyption(session_key, encryptedData, iv) {
-    this.showToast('设置中', 'loading', 800)
+  getMemberInfo: function(){
     wx.request({
-      method: 'POST',
-      url: app.buildUrl('/member/set/phone'),
-      header: app.getRequestHeader(1),
-      data: {
-        session_key: session_key,
-        encrypted_data: encryptedData,
-        iv: iv
-      },
-      success: res => {
-        var resp = res.data
-        if (resp.code !== 200) {
+      url: app.buildUrl("/member/info"),
+      header: app.getRequestHeader(),
+      success: (res) => {
+        let resp = res.data
+        if (resp['code'] !== 200) {
           app.alert({
-            'content': resp.msg
+            content: resp['msg'],
+            cb_confirm: () => {
+              wx.navigateBack()
+            }
           })
           return
         }
-        app.globalData.memberInfo.mobile = resp.data.mobile
+        let info = resp['data']['info']
         this.setData({
-          hiddenMobileModal: true,
-          mobile: resp.data.mobile
+          avatar: info['avatar'],
+          nickname: info['nickname'],
+          name: info['name'],
+          mobile: info['mobile'],
+          balance: info['balance'],
+          has_qrcode: info['has_qrcode'],
+          qr_code: info['qr_code']
         })
+      },
+      fail: (res) => {
+        app.serverBusy()
+        wx.navigateBack()
       }
     })
   },
@@ -162,28 +88,27 @@ Page({
       this.showToast('请填不同姓名!', 'none')
       return
     }
-    var that = this
+    this.doSetName()
+  },
+  doSetName: function () {
     this.showToast('设置中', 'loading')
     wx.request({
       method: 'POST',
       url: app.buildUrl('/member/set/name'),
       header: app.getRequestHeader(),
-      data: { name: that.data.editName },
+      data: {name: this.data.editName},
       success: res => {
-        console.log(res)
-        var resp = res.data
-        if (resp.code !== 200) {
-          app.alert({
-            'content': resp.msg
-          })
+        let resp = res.data
+        if (resp['code'] !== 200) {
+          app.alert({content: resp['msg']})
           return
         }
-        app.globalData.memberInfo.name = resp.data.name
         this.setData({
           name: resp.data.name,
-          hiddenNameModal: true,
-          nameInputfocus: false
+          hiddenNameModal: true
         })
+      }, complete: res => {
+        wx.hideToast()
       }
     })
   },
@@ -206,12 +131,12 @@ Page({
       app.alert({ 'content': '手机不能为空' })
       return
     }
-    this.getQrCode()
+    this.doGetQrCode()
   },
   /***
-   * getQrCode 去下单获取二维码
+   * doGetQrCode 去下单获取二维码
    */
-  getQrCode: function () {
+  doGetQrCode: function () {
     //下单
     let data = {
       type: 'toBuy',
@@ -230,17 +155,15 @@ Page({
     })
   },
   checkQrCode: function () {
-    var show_qrcode = !this.data.show_qrcode;
     this.setData({
-      show_qrcode: show_qrcode
-    });
+      show_qrcode: !this.data.show_qrcode
+    })
   },
   onWithDrawTap: function () {
-    var balance = this.data.balance
-    if (balance < 10) {
+    if (this.data.balance < 10) {
       app.alert({
-        'title': '温馨提示',
-        'content': '额度满10元即可提现'
+        title: '提现提示',
+        content: '额度满10元即可提现'
       })
       return
     }
@@ -254,10 +177,20 @@ Page({
     })
   },
   previewImage: function (e) {
-    var image = e.currentTarget.dataset.src
+    let image = e.currentTarget.dataset.src
     wx.previewImage({
       current: image, // 当前显示图片的http链接
       urls: [image] // 需要预览的图片http链接列表
     })
   },
+  toIntroduce: function () {
+
+
+  },
+  toEditPhone: function () {
+    wx.navigateTo({
+      url: '/pages/Qrcode/Mobile/index'
+    })
+    this.cancelMobileEdit()
+  }
 })
