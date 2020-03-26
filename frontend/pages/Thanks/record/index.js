@@ -5,20 +5,15 @@ Page({
   data: {
     owner_name: "",
     goods_name: "",
-    business_type: "",
-    only_new: false
+    business_type: ""
   },
-
   onLoad: function(options) {
-    var op_status = options.op_status;
-    var thanks_new = app.globalData.thanks_new;
-    // var op_status = app.globalData.op_status;
-    // var op_status=4;
+    let op_status = options.op_status
     if (op_status == 4) {
       var infos = {
         list: {},
         saveHidden: true,
-        only_new: false,
+        only_new: true,
         check_status_id: 1,
         op_status: op_status,
         check_cat: [{
@@ -42,59 +37,52 @@ Page({
             name: '已隐藏'
           }
         ]
-      };
-      var check_status_id = 1;
+      }
     } else {
       var infos = {
         list: [],
         saveHidden: true,
-        only_new: false,
-        op_status: op_status,
+        only_new: true,
         check_status_id: 0,
         check_cat: [{
             id: 0,
             name: '收到',
-            value: thanks_new,
+            value: app.globalData.thanks_new,
           },
           {
             id: 1,
             name: "发出"
           }
         ]
-      };
-      var check_status_id = 0;
+      }
     }
     this.setData({
-      infos:infos,
-      check_status_id:check_status_id,
-      only_new: false,
-      op_status:op_status
-    });
-    this.onPullDownRefresh();
-    //更新最新提示
-    // this.updateTips();
+      infos: infos,
+      check_status_id: infos['check_status_id'],
+      only_new: infos['only_new'],
+      op_status: op_status,
+      all_thanks_checked: false //用于更新查看状态（只看了收到，还是发出也都看了）
+    })
+    this.onPullDownRefresh()
   },
   //下拉刷新
-  onPullDownRefresh: function(event) {
-    var infos = this.data.infos;
+  onPullDownRefresh: function (event) {
+    let infos = this.data.infos;
     infos.list = [];
     this.setData({
       p: 1,
       infos: infos,
       loadingMoreHidden: true
     });
-    app.getNewRecommend();
-    var op_status=this.data.op_status;
-    if (op_status==4){
-      console.log("op_status+"+op_status);
+    if (this.data.op_status == 4) {
       this.getReportList();
-    }else{
+    } else {
       this.getGoodsList();
     }
   },
   //上滑加载
   onReachBottom: function(e) {
-    var that = this;
+    let that = this;
     //延时500ms处理函数
     setTimeout(function() {
       that.setData({
@@ -145,7 +133,7 @@ Page({
           });
           return
         }
-        var goods_list = resp.data.list;
+        let goods_list = resp.data.list;
         goods_list = app.cutStr(goods_list);
         goods_list = that.data.infos.list.concat(goods_list),
           //修改save的状态
@@ -395,9 +383,6 @@ Page({
         });
       },
     })
-    // //获取到有改动的记录的id
-    // console.log(id_list);
-    // this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), list);
   },
   //举报答谢信息
   //举报按钮
@@ -501,13 +486,29 @@ Page({
     this.onPullDownRefresh();
   },
   checkReportClick: function (e) {
+    let infos = this.data.infos
+    //从答谢收到切换到了发出时，更新tips
+    if (this.data.check_status_id == 0 && e.currentTarget.id == 1) {
+      this.data.all_thanks_checked = true
+    }
     //选择一次分类时返回选中值
-    var infos = this.data.infos;
-    infos.check_status_id = e.currentTarget.id;
+    infos.check_status_id = e.currentTarget.id
     this.setData({
       infos: infos,
       check_status_id: e.currentTarget.id,
     });
-    this.onPullDownRefresh();
+    this.onPullDownRefresh()
   },
+  onUnload: function () {
+    wx.request({
+      url: app.buildUrl("/thanks/update-status"),
+      header: app.getRequestHeader(),
+      data: {
+        all: this.data.all_thanks_checked
+      },
+      success: res => {
+        app.getNewRecommend()
+      }
+    })
+  }
 })

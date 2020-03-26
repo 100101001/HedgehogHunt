@@ -2,15 +2,15 @@
 <!--搜索框-->
   <form bindsubmit="formSubmit">
     <view class="search_container">
-      <view class="search_box1 {{op_status==2? '' : 'box-wider1'}}">
+      <view class="search_box1 {{op_status == 2 || op_status==3? '' : 'box-wider1'}}">
         <icon type="search" class='search_icon' size='15' color="#f7931e"></icon>
         <input value='{{name}}' bindblur="onPullDownRefresh" bindfocus='onBindFocus' bindinput="listenerNameInput" class='search_text_box' type="text" placeholder='姓名' placeholder-style='color:#f7931e;'></input>
       </view>
-      <view class="search_box2 {{op_status==2? '' : 'box-wider2'}}">
+      <view class="search_box2 {{op_status == 2 || op_status==3? '' : 'box-wider2'}}">
         <input value="{{type}}" bindfocus='onBindFocus' bindblur="onPullDownRefresh" bindinput="listenerGoodsNameInput" class='search_text_box' type="text" placeholder='物品' placeholder-style='color:#f7931e;'></input>
       </view>
       <!--筛选新的推荐记录-->
-      <radio wx:if="{{op_status == 2}}" class="radio" value="buying"  bindtap="radioChange" checked="{{only_new}}">仅新增</radio>
+      <radio wx:if="{{op_status == 2 || op_status==3}}" class="radio" value="buying"  bindtap="radioChange" checked="{{only_new}}">仅新增</radio>
       <button class="search_button" hidden="{{!saveHidden}}" bindtap="editTap">编辑</button>
       <button class="search_button" hidden="{{saveHidden}}" bindtap="editTap">完成</button>
     </view>
@@ -30,7 +30,7 @@
   <!--选项卡-->
   <view class="type-container" wx:if="{{check_cat.length!=5}}">
     <scroll-view class="type-navbar-check-report">
-      <view class="type-box" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="index">
+      <view class="type-box {{op_status==1? 'type-box-wider': ''}}" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="index">
         <view id="{{cat.id}}" class="type-navbar-item {{check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="checkReportClick">
           {{cat.name}}<view class="content_tip" wx:if="{{cat.value && cat.value!=0}}">{{cat.value}}</view>
         </view>
