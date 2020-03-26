@@ -17,6 +17,26 @@ from common.models.ciwei.User import User
 from web.controllers.api import route_api
 
 
+@route_api.route("/member/balance/change", methods=['GET', 'POST'])
+def balanceChange():
+    resp = {'code': 200, 'msg': '', 'data': {}}
+    req = request.values
+    unit = req['unit'] if 'unit' in req else 0
+    unit = Decimal(unit).quantize(Decimal("0.00"))
+
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "请先登录"
+        return jsonify(resp)
+
+    member_info.balance += unit
+    MemberService.setMemberBalanceChange(member_info=member_info, unit=unit, note=req['note'] if 'note' in req else '')
+    db.session.add(member_info)
+    db.session.commit()
+    return jsonify(resp)
+
+
 @route_api.route("/member/account/recharge", methods=['GET', 'POST'])
 def accountRecharge():
     """
@@ -238,6 +258,27 @@ def memberBalance():
         "balance": str(member_info.balance)
     }
     return jsonify(resp)
+
+
+@route_api.route("/member/has-qrcode")
+def memberHasQrcode():
+    """
+    用户信息
+    :return: id,昵称,头像,积分,二维码
+    """
+    resp = {'code': 200, 'msg': '', 'data': {}}
+
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "没有相关用户信息"
+        return jsonify(resp)
+
+    resp['data'] = {
+        "has_qr_code": member_info.has_qr_code
+    }
+    return jsonify(resp)
+
 
 # TODO：不需要分页么？
 @route_api.route("/member/get-new-recommend")

@@ -117,6 +117,7 @@ def myOrderInfo():
         "status_desc": pay_order_info.status_desc,
         "pay_price": str(pay_order_info.pay_price),
         "yun_price": str(pay_order_info.yun_price),
+        "discount_price": str(pay_order_info.discount_price),
         "total_price": str(pay_order_info.total_price),
         "address": express_info,
         "goods": [],
@@ -201,6 +202,5 @@ def myCommentAdd():
     order_info.comment_status = 1
     order_info.updated_time = getCurrentDate()
     db.session.add(order_info)
-
     db.session.commit()
     return jsonify(resp)

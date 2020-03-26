@@ -22,6 +22,8 @@ class Order(db.Model):
     total_price = db.Column(db.Numeric(10, 2), nullable=False, default=decimal.Decimal(0.00), comment="订单应付金额")
     yun_price = db.Column(db.Numeric(10, 2), nullable=False, default=decimal.Decimal(0.00), comment="运费金额")
     pay_price = db.Column(db.Numeric(10, 2), nullable=False, default=decimal.Decimal(0.00), comment="订单实付金额")
+    discount_price = db.Column(db.Numeric(10, 2), nullable=False, default=decimal.Decimal(0.00), comment="订单折扣金额")
+    discount_type = db.Column(db.String(40), nullable=False, default='', comment="折扣类型")
     pay_sn = db.Column(db.String(128), nullable=False, default='', comment="第三方流水号")
     prepay_id = db.Column(db.String(128), nullable=False, default='', comment="第三方预付id")
     note = db.Column(db.Text, nullable=False, comment="备注信息")

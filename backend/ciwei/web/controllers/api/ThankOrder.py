@@ -1,152 +1,111 @@
+import datetime
 from decimal import Decimal
 
 from flask import g, request
 
 from application import db, app
 from common.libs import ThankOrderService
-from common.libs.MemberService import MemberService
-from web.controllers.api import route_api, jsonify, getCurrentDate
+from common.libs.mall.PayService import PayService
+from common.libs.mall.WechatService import WeChatService
+from common.models.ciwei.ThankOrder import ThankOrder
+from web.controllers.api import route_api, jsonify
 
 
-@route_api.route('/thank/balance/rollback', methods=['POST', 'GET'])
-def balanceRollback():
-    """
-    取消支付后，可选择中止答谢，或只用余额答谢
-    type,amount,author_id
-    :return:
-    """
+@route_api.route("/thank/order", methods=['POST', 'GET'])
+def createThankOrder():
+    resp = {'code': 200, 'msg': 'success', 'data': {}}
     req = request.values
-    resp = {"data": {}, "msg": "", "code": -1}
-
-    amount = Decimal(req['amount']).quantize(Decimal('0.00')) if 'amount' in req and req['amount'] else -1
-    if amount < 0:
-        resp['msg'] = "金额错误"
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "请先登录"
+        return jsonify(resp)
+    price = req['price'] if 'price' in req else 0
+    if not price:
+        resp['code'] = -1
+        resp['msg'] = "支付失败"
         return jsonify(resp)
 
-    try:
-        member_info = g.member_info
-        if not member_info:
-            resp["msg"] = "未登录"
-            return jsonify(resp)
+    # 数据库下单
+    wechat_service = WeChatService(merchant_key=app.config['OPENCS_APP']['mch_key'])
+    pay_service = PayService()
+    model_order = ThankOrder()
+    model_order.order_sn = pay_service.geneThankOrderSn()
+    model_order.openid = member_info.openid
+    model_order.member_id = member_info.id
+    model_order.price = Decimal(price).quantize(Decimal('0.00'))
 
-        member_info.balance += amount
-        member_info.updated_time = getCurrentDate()
-        MemberService.setMemberBalanceChange(member_info=member_info, unit=amount, note="中止答谢退回")
-        db.session.add(member_info)
-        resp['code'] = 200
-        resp['data']['balance'] = str(member_info.balance)
-        res = jsonify(resp)
-        db.session.commit()
-        return res
-    except Exception as e:
-        app.logger.error(request.path + ': ' + e)
-        db.session.rollback()
-        resp = {"data": {}, "msg": "服务器内部异常", "code": -1}
+    # 微信下单
+    pay_data = {
+        'appid': app.config['OPENCS_APP']['appid'],
+        'mch_id': app.config['OPENCS_APP']['mch_id'],
+        'nonce_str': wechat_service.get_nonce_str(),
+        'body': '闪寻-答谢',
+        'out_trade_no': model_order.order_sn,
+        'total_fee': int(model_order.price * 100),
+        'notify_url': app.config['APP']['domain'] + "/api/thank/order/notify",
+        'time_expire': (datetime.datetime.now() + datetime.timedelta(minutes=5)).strftime("%Y%m%d%H%M%S"),
+        'trade_type': 'JSAPI',
+        'openid': member_info.openid
+    }
+    pay_sign_data = wechat_service.get_pay_info(pay_data=pay_data)
+    if not pay_sign_data:
+        resp['code'] = -1
+        resp['msg'] = "微信服务器繁忙，请稍后重试"
         return jsonify(resp)
-
-
-# TODO：下订单和支付是一体的
-@route_api.route("/thank/order/place", methods=['GET', 'POST'])
-def place_payment_order():
-    """
-    新增支付订单
-    调用微信支付统一下单API获取
-    :see:https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_1&index=1
-    :return: 小程序调支付API的五个参数
-    """
-    try:
-        req = request.values
-        resp = {"data": {}, "msg": "", "code": -1}
-        pay_type = req['pay_type'] if 'pay_type' in req and req['pay_type'] else ''
-        if pay_type != 'pure_balance' and pay_type != 'mixed':
-            resp['msg'] = "付款类型错误"
-            return jsonify(resp)
-
-        # 检查登陆
-        # 检查参数: 支付金额price
-        member_info = g.member_info
-        if not member_info:
-            resp["msg"] = "未登录"
-            return jsonify(resp)
-
-        account_price = Decimal(req['account_price']).quantize(Decimal('0.00')) if 'account_price' in req and req[
-            'account_price'] else -1
-        if account_price == -1:
-            resp['msg'] = '答谢金额错误'
-            return jsonify(resp)
-
-        if account_price != 0:
-            member_info.balance -= account_price
-            member_info.updated_time = getCurrentDate()
-            MemberService.setMemberBalanceChange(member_info=member_info, unit=-account_price, note="答谢支出")
-            db.session.add(member_info)
-
-        if pay_type == "pure_balance":
-            resp['code'] = 200
-            resp['data']['pay_type'] = 'pure_balance'
-            resp['data']['balance'] = str(member_info.balance)
-            db.session.commit()
-            return jsonify(resp)
-
-        wx_price = Decimal(req['wx_price']).quantize(Decimal('0.00')) if 'wx_price' in req and req['wx_price'] else -1
-        if wx_price == -1:
-            resp['msg'] = "无微信支付金额"
-            return jsonify(resp)
-
-        openid = member_info.openid
-        # 新增订单
-        order = ThankOrderService.place_db_order(member_info, wx_price)
-
-        # 调用微信支付的统一下单接口, 获取prepay_id, 签名返回前端
-        ThankOrderService.place_wx_prepay_order(openid, order, resp)
-
-        resp['code'] = 200
-        resp['data']["order_sn"] = order.order_sn
-        resp['data']['pay_type'] = 'mixed'
-        resp['data']['balance'] = str(member_info.balance)
-        res = jsonify(resp)
-        db.session.commit()
-        return res
-    except Exception as e:
-        app.logger.error(request.path + ': ' + e)
-        db.session.rollback()
-        resp = {"data": {}, "msg": "", "code": -1}
-        resp['msg'] = "服务器内部异常"
-        return jsonify(resp)
-
-
-# TODO:获取微信推送支付结果, 更新订单状态
-# TODO:return_code 是否指小程序支付API请求发送成功/失败
-@route_api.route("/thank/order/notify", methods=['GET', 'POST'])
-def notify_payment_result():
-    """
-    获取微信推送支付结果, 更新订单状态
-    更新条件
-    1.签名正确
-    2.订单支付结果,及必要更新信息:订单号,交易号,交易完成时间,交易用户完整给出
-    3.订单状态未支付
-    :see:https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_7
-    :return: 通知微信接收到正确的通知了
-    """
-    req = ThankOrderService.trans_xml_to_dict(request.data)
-    from application import app
-    app.logger.info(req)
-
-    resp = {"return_code": "FAIL", "return_msg": "OK"}
-    # 验证签名
-    if not ThankOrderService.verify_sign(req, "HMAC-SHA256"):
-        resp['return_msg'] = "签名失败"
-    else:
-        # 接受了通知且签名校验成功(不管通知的return_code)
-        resp['return_code'] = "SUCCESS"
-        # 小程序API调用成功
-        if req['return_code'] == "SUCCESS" and req['result_code'] == "SUCCESS":
-            # 检查订单金额一致
-            if ThankOrderService.verify_total_fee(req['out_trade_no'], req['total_fee']):
-                # 更新订单状态为已支付
-                ThankOrderService.paid(req)
-            ThankOrderService.addPayCallbackData(thank_order_sn=req['out_trade_no'], data=request.data)
+    model_order.status = 0
+    db.session.add(model_order)
+    db.session.commit()
+    resp['data'] = pay_sign_data
+    resp['data']['thank_order_sn'] = model_order.order_sn
     return jsonify(resp)
+
+
+@route_api.route('/thank/order/notify', methods=['GET', 'POST'])
+def thankOrderCallback():
+    result_data = {
+        'return_code': 'SUCCESS',
+        'return_msg': 'OK'
+    }
+    header = {'Content-Type': 'application/xml'}
+    app_config = app.config['OPENCS_APP']
+    target_wechat = WeChatService(merchant_key=app_config['mch_key'])
+    callback_data = target_wechat.xml_to_dict(request.data)
+    app.logger.info(callback_data)
+
+    # 检查签名和订单金额
+    sign = callback_data['sign']
+    callback_data.pop('sign')
+    gene_sign = target_wechat.create_sign(callback_data)
+    app.logger.info(gene_sign)
+    if sign != gene_sign:
+        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+        return target_wechat.dict_to_xml(result_data), header
+    if callback_data['result_code'] != 'SUCCESS':
+        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+        return target_wechat.dict_to_xml(result_data), header
+
+    order_sn = callback_data['out_trade_no']
+    pay_order_info = ThankOrder.query.filter_by(order_sn=order_sn).first()
+    if not pay_order_info:
+        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+        return target_wechat.dict_to_xml(result_data), header
+
+    if int(pay_order_info.price * 100) != int(callback_data['total_fee']):
+        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+        return target_wechat.dict_to_xml(result_data), header
+
+    # 更新订单的支付状态, 记录日志
+
+    # 订单状态已回调更新过直接返回
+    if pay_order_info.status == 1:
+        return target_wechat.dict_to_xml(result_data), header
+    # 订单状态未回调更新过
+    target_pay = PayService()
+    target_pay.thankOrderSuccess(pay_order_id=pay_order_info.id, params={"pay_sn": callback_data['transaction_id'],
+                                                                         "paid_time": callback_data['time_end']})
+    target_pay.addThankPayCallbackData(pay_order_id=pay_order_info.id, data=request.data)
+    return target_wechat.dict_to_xml(result_data), header
 
 
 @route_api.route("/thank/order/query", methods=['GET', 'POST'])
@@ -189,17 +148,3 @@ def query_payment_result():
             resp['msg'] = "微信服务器繁忙"
     return jsonify(resp)
 
-# # 测试数据库更新
-# @route_api.route("/testdb", methods=['GET', 'POST'])
-# def testdb():
-#     from common.models.ciwei.Member import Member
-#     from common.models.ciwei.Goods import Good
-#     member = Member.query.filter_by().with_for_update().first()
-#     member.updated_time = Helper.getCurrentDate()
-#     goods = Good.query.filter_by().with_for_update().first()
-#     goods.updated_time = Helper.getCurrentDate()
-#     member2 = Member()
-#     member2.openid = 1
-#     db.session.add(member2)
-#     db.session.commit()
-#     return jsonify({})

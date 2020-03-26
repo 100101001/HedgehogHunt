@@ -5,6 +5,7 @@ from flask import request, jsonify, g
 
 from application import db, app
 from common.libs.Helper import getCurrentDate
+from common.libs.MemberService import MemberService
 from common.libs.mall.WechatService import WeChatService
 from common.libs.mall.CartService import CartService
 from common.libs.UrlManager import UrlManager
@@ -74,6 +75,8 @@ def orderCreate():
     express_address_id = int(req['express_address_id']) if 'express_address_id' in req and req[
         'express_address_id'] else 0
     params_goods = req['goods'] if 'goods' in req else None
+    discount_price = req['discount_price'] if 'discount_price' in req else 0
+    discount_type = req['discount_type'] if 'discount_type' in req else "帐户余额"
 
     items = []
     if params_goods:
@@ -100,13 +103,14 @@ def orderCreate():
             'nickname': address_info.nickname,
             "address": "%s%s%s%s" % (
                 address_info.province_str, address_info.city_str, address_info.area_str, address_info.address)
-        }
+        },
+        "discount_price": discount_price,
+        "discount_type": discount_type
     }
     resp = target.createOrder(member_info.id, items, params)
     # 如果是来源购物车的，下单成功将下单的商品去掉
     if resp['code'] == 200 and src_type == "cart":
         CartService.deleteItem(member_info.id, items)
-
     return jsonify(resp)
 
 
