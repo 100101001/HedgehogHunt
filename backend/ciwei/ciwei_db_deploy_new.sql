@@ -253,7 +253,6 @@ DROP TABLE IF EXISTS `member`;
 CREATE TABLE `member`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拉黑会员的管理员id',
-  `qr_code_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '小程序二维码id',
   `nickname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员名',
   `salt` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '加密生成的字符串',
   `balance` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '用户账户余额',
@@ -414,7 +413,7 @@ INSERT INTO `product` VALUES (11, 6, 0, '水印', 1, '印章', 50.00, '20200303/
 INSERT INTO `product` VALUES (12, 6, 1, '钢印', 1, '印章', 90.00, '20200303/stamper2.jpg', '20200303/stamper2.jpg', '', '可以敲在书本上，你的闪寻名片', 1, 0, 99999, 0, 0, '2020-03-03 04:33:34', '2020-03-02 20:24:31');
 INSERT INTO `product` VALUES (13, 7, 0, '加鸡腿', 2, '打赏', 0.01, '20200307/chicken1.jpg', '20200307/chicken1.jpg', '', '一分钱也是爱', 1, 0, 99999, 0, 0, '2020-03-07 04:33:34', '2020-03-07 20:24:31');
 INSERT INTO `product` VALUES (14, 7, 1, '加整鸡', 2, '打赏', 0.02, '20200307/chicken2.jpg', '20200307/chicken2.jpg', '', '两分钱也是爱', 1, 0, 99999, 0, 0, '2020-03-07 04:33:34', '2020-03-07 20:24:31');
-INSERT INTO `product` VALUES (15, 8, 0, '直接获码', 1, '闪寻码', 2.00, '20200321/sx-code.jpg', '20200321/sx-code.jpg', '', '有了它，失物闪寻！', 0, 0, 100000000, 0, 0, '2020-03-21 15:21:04', '2020-03-21 15:21:04');
+INSERT INTO `product` VALUES (15, 8, 0, '直接获码', 1, '失物贴码，拾者扫码归还。通知短信1次1毛，购买即赠5次免费通知！', 2.50, '20200321/sx-code.jpg', '20200321/sx-code.jpg', '', '有了它，失物闪寻！', 0, 0, 100000000, 0, 0, '2020-03-21 15:21:04', '2020-03-21 15:21:04');
 
 -- ----------------------------
 -- Table structure for product_cat
@@ -634,7 +633,7 @@ CREATE TABLE `goods_top_order`  (
 -- ----------------------------
 DROP TABLE IF EXISTS `goods_top_order_callback_data`;
 CREATE TABLE `goods_top_order_callback_data`  (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `top_order_id` int(11) NOT NULL DEFAULT 0 COMMENT '支付订单id',
   `pay_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '支付回调信息',
   `refund_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '退款回调信息',
@@ -643,5 +642,29 @@ CREATE TABLE `goods_top_order_callback_data`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `ix_order_callback_data_order_id`(`top_order_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品置顶微信支付回调数据表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for acs_sms_send_log
+-- ----------------------------
+DROP TABLE IF EXISTS `acs_sms_send_log`;
+CREATE TABLE `ciwei_db`.`Untitled`  (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `biz_uuid` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '本地业务ID',
+  `phone_number` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '手机号',
+  `sign_name` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0' COMMENT '阿里云签名名称',
+  `template_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0' COMMENT '阿里云模板id',
+  `params` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '模板消息参数',
+  `acs_product_name` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '阿里云产品名',
+  `acs_resp_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '调用相应数据体',
+  `acs_request_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '调用请求ID',
+  `acs_biz_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '调用业务ID',
+  `acs_code` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '调用结果代码',
+  `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
+  `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `ix_acs_sms_send_log_uuid`(`biz_uuid`) USING BTREE,
+  INDEX `ix_acs_sms_send_log_tmp_id`(`template_id`) USING BTREE COMMENT '模板ID，区分是否是验证码短信',
+  INDEX `ix_acs_sms_send_log_phone_number`(`phone_numer`) USING BTREE COMMENT '手机号'
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '阿里云服务短信发送调用日志' ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;
