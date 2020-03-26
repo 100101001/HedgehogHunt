@@ -6,7 +6,7 @@ const onNavigateTap = function (event, object) {
   if ((id == 4 || id == 2) && !app.loginTip()) {
     return;
   }
-  app.getNewRecommend();
+  app.getNewRecommend()
   var [isSelecteds, urls] = util.onNavigateTap(id);
   object.setData({
     isSelecteds: isSelecteds
@@ -26,9 +26,9 @@ const onNavigateTap = function (event, object) {
 
 const closeQrcodeHint = function (that) {
   app.alert({
-    'title': '温馨提示',
-    'content': '关闭后，请点击【我的->个人信息】可' + (app.globalData.has_qrcode ? '查看' : '获取') + '您的专属二维码~',
-    'cb_confirm': function (that) {
+    title: '关闭提示',
+    content: '在【我的】-【个人信息】可' + (app.globalData.has_qrcode ? '查看' : '获取') + '您的专属闪寻码~',
+    cb_confirm: function () {
       app.globalData.showHintQrcode = false
       var isSelecteds = that.data.isSelecteds
       isSelecteds['showHintQrcode'] = false
@@ -36,8 +36,7 @@ const closeQrcodeHint = function (that) {
         isSelecteds: isSelecteds
       })
     },
-    'cb_confirm_param': that,
-    'showCancel': true
+    showCancel: true
   })
 }
 
