@@ -1,5 +1,6 @@
 #!/usr/bin/python3.6.8
-import decimal
+# -*- coding:utf-8 -*-
+import datetime
 from decimal import Decimal
 
 from flask import request, jsonify, g
@@ -9,12 +10,165 @@ from common.libs import Helper
 from common.libs.Helper import getCurrentDate
 from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
+from common.libs.mall.PayService import PayService
+from common.libs.mall.WechatService import WeChatService
+from common.models.ciwei.BalanceOder import BalanceOrder
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Member import Member
+from common.models.ciwei.MemberSmsPkg import MemberSmsPkg
 from common.models.ciwei.Thanks import Thank
 from common.models.ciwei.User import User
-# -*- coding:utf-8 -*-
+
 from web.controllers.api import route_api
+
+
+@route_api.route("/balance/order", methods=['POST', 'GET'])
+def createBalanceOrder():
+    """
+    🥌余额充值下单
+    :return:
+    """
+    resp = {'code': 200, 'msg': 'success', 'data': {}}
+    req = request.values
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "请先登录"
+        return jsonify(resp)
+    price = req['price'] if 'price' in req else 0
+    if not price:
+        resp['code'] = -1
+        resp['msg'] = "支付失败"
+        return jsonify(resp)
+
+    # 数据库下单
+    wechat_service = WeChatService(merchant_key=app.config['OPENCS_APP']['mch_key'])
+    pay_service = PayService()
+    model_order = BalanceOrder()
+    model_order.order_sn = pay_service.geneBalanceOrderSn()
+    model_order.openid = member_info.openid
+    model_order.member_id = member_info.id
+    model_order.price = Decimal(price).quantize(Decimal('0.00'))
+
+    # 微信下单
+    pay_data = {
+        'appid': app.config['OPENCS_APP']['appid'],
+        'mch_id': app.config['OPENCS_APP']['mch_id'],
+        'nonce_str': wechat_service.get_nonce_str(),
+        'body': '闪寻-充值',
+        'out_trade_no': model_order.order_sn,
+        'total_fee': int(model_order.price * 100),
+        'notify_url': app.config['APP']['domain'] + "/api/balance/order/notify",
+        'time_expire': (datetime.datetime.now() + datetime.timedelta(minutes=5)).strftime("%Y%m%d%H%M%S"),
+        'trade_type': 'JSAPI',
+        'openid': member_info.openid
+    }
+    pay_sign_data = wechat_service.get_pay_info(pay_data=pay_data)
+    if not pay_sign_data:
+        resp['code'] = -1
+        resp['msg'] = "微信服务器繁忙，请稍后重试"
+        return jsonify(resp)
+    model_order.status = 0
+    db.session.add(model_order)
+    db.session.commit()
+    resp['data'] = pay_sign_data
+    return jsonify(resp)
+
+
+@route_api.route('/balance/order/notify', methods=['GET', 'POST'])
+def balanceOrderCallback():
+    """
+    余额单子支付回调
+    :return:
+    """
+    result_data = {
+        'return_code': 'SUCCESS',
+        'return_msg': 'OK'
+    }
+    header = {'Content-Type': 'application/xml'}
+    app_config = app.config['OPENCS_APP']
+    target_wechat = WeChatService(merchant_key=app_config['mch_key'])
+    callback_data = target_wechat.xml_to_dict(request.data)
+    app.logger.info(callback_data)
+
+    # 检查签名和订单金额
+    sign = callback_data['sign']
+    callback_data.pop('sign')
+    gene_sign = target_wechat.create_sign(callback_data)
+    app.logger.info(gene_sign)
+    if sign != gene_sign:
+        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+        return target_wechat.dict_to_xml(result_data), header
+    if callback_data['result_code'] != 'SUCCESS':
+        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+        return target_wechat.dict_to_xml(result_data), header
+
+    order_sn = callback_data['out_trade_no']
+    pay_order_info = BalanceOrder.query.filter_by(order_sn=order_sn).first()
+    if not pay_order_info:
+        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+        return target_wechat.dict_to_xml(result_data), header
+
+    if int(pay_order_info.price * 100) != int(callback_data['total_fee']):
+        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+        return target_wechat.dict_to_xml(result_data), header
+
+    # 更新订单的支付状态, 记录日志
+
+    # 订单状态已回调更新过直接返回
+    if pay_order_info.status == 1:
+        return target_wechat.dict_to_xml(result_data), header
+    # 订单状态未回调更新过
+    target_pay = PayService()
+    target_pay.balanceOrderSuccess(pay_order_id=pay_order_info.id, params={"pay_sn": callback_data['transaction_id'],
+                                                                           "paid_time": callback_data['time_end']})
+    target_pay.addBalancePayCallbackData(pay_order_id=pay_order_info.id, data=request.data)
+
+    return target_wechat.dict_to_xml(result_data), header
+
+
+@route_api.route('/member/sms/pkg/add', methods=['GET', 'POST'])
+def addSmsPkg():
+    """
+
+    :return:
+    """
+    resp = {'code': 200, 'msg': '', 'data': {}}
+    req = request.values
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "请先登录"
+        return jsonify(resp)
+
+    pkg = MemberSmsPkg()
+    pkg.open_id = member_info.openid
+    pkg.left_notify_times = 50
+    pkg.expired_time = datetime.datetime.now() + datetime.timedelta(years=3)
+    db.session.add(pkg)
+    db.session.commit()
+    return jsonify(resp)
+
+
+@route_api.route('/member/sms/change', methods=['GET', 'POST'])
+def changeSmsTimes():
+    """
+    用户通知次数
+    :return:
+    """
+    resp = {'code': 200, 'msg': '', 'data': {}}
+    req = request.values
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "请先登录"
+        return jsonify(resp)
+
+    times = req['times'] if 'times' in req else 0
+    member_info.left_notify_times += times
+    db.session.add(member_info)
+    db.session.commit()
+    return jsonify(resp)
 
 
 @route_api.route("/member/balance/change", methods=['GET', 'POST'])
@@ -226,6 +380,10 @@ def memberInfo():
         has_qrcode = True
     else:
         qr_code_url = ""
+
+    pkg = MemberSmsPkg.query.filter(MemberSmsPkg.open_id == member_info.openid,
+                                    MemberSmsPkg.expired_time < datetime.datetime.now()) \
+        .order_by(MemberSmsPkg.id.desc()).first()
     resp['data']['info'] = {
         'nickname': member_info.nickname,
         'avatar': member_info.avatar,
@@ -235,7 +393,10 @@ def memberInfo():
         "balance": str(member_info.balance),
         "has_qrcode": has_qrcode,
         "name": member_info.name,
-        "mobile": member_info.mobile
+        "mobile": member_info.mobile,
+        "m_times": member_info.left_notify_times,
+        "p_times": pkg.left_notify_times if pkg else 0,
+        "p_expire": pkg.expired_time if pkg else ''
     }
     return jsonify(resp)
 

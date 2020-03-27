@@ -58,10 +58,13 @@ def myOrderList():
         product_ids = selectFilterObj(order_item_list, "product_id")
         product_map = getDictFilterField(Product, Product.id, "id", product_ids)
         order_item_map = {}
+        order_sp_cnt_map = {}
         if order_item_list:
             for item in order_item_list:
                 if item.order_id not in order_item_map:
                     order_item_map[item.order_id] = []
+                if item.order_id not in order_sp_cnt_map:
+                    order_sp_cnt_map[item.order_id] = {}
 
                 tmp_product_info = product_map[item.product_id]
                 order_item_map[item.order_id].append({
@@ -72,8 +75,16 @@ def myOrderList():
                     'pic_url': UrlManager.buildImageUrl(tmp_product_info.main_image, image_type='PRODUCT'),
                     'name': tmp_product_info.name
                 })
+                if item.product_id == 15:
+                    order_sp_cnt_map[item.order_id]['qr_code'] = 1
+                if item.product_id == 17:
+                    order_sp_cnt_map[item.order_id]['sms'] = item.product_num
+                if item.product_id == 16:
+                    order_sp_cnt_map[item.order_id]['sms_package'] = 1
 
         for item in order_list:
+            discount_price = item.discount_price
+            tmp_map = order_sp_cnt_map[item.id]
             tmp_data = {
                 'status': item.pay_status,
                 'status_desc': item.status_desc,
@@ -82,7 +93,12 @@ def myOrderList():
                 'order_sn': item.order_sn,
                 'note': item.note,
                 'total_price': str(item.total_price),
-                'goods_list': order_item_map[item.id]
+                'goods_list': order_item_map[item.id],
+                'balance_discount': str(discount_price) if item.discount_type == "账户余额"
+                                                           and discount_price > 0 else "0.00",
+                'qr_code_num': tmp_map['qr_code'] if 'qr_code' in tmp_map else 0,
+                'sms_num': tmp_map['sms'] if 'sms' in tmp_map else 0,
+                'sms_package_num': tmp_map['sms_package'] if 'sms_package' in tmp_map else 0,
             }
 
             data_order_list.append(tmp_data)

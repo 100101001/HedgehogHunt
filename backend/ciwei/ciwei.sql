@@ -1,32 +1,8 @@
+# flask-sqlacodegen "mysql://root:wcx9517530@47.102.201.193/ciwei_db?charset=utf8" --tables member_sms_pkg  --outfile "common/models/ciwei/MemberSmsPkg.py"  --flask
+
 DROP DATABASE IF EXISTS `ciwei_db`;
 CREATE DATABASE `ciwei_db` DEFAULT CHARACTER SET = `utf8mb4` collate `utf8mb4_general_ci`;
 USE `ciwei_db`;
-#flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables member  --outfile "common/models/jmall/Member.py"  --flask
-#flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables report  --outfile "common/models/ciwei/Report.py" --flask
-#flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables order  --outfile "common/models/ciwei/Order.py" --flask
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables qr_code  --outfile "common/models/ciwei/QrCode.py" --flask
-
-# 新增匹配数字段
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables goods  --outfile "common/models/ciwei/Goods.py" --flask
-# 购物页新增表
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables campus  --outfile "common/models/ciwei/mall/Campus.py" --flask
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product  --outfile "common/models/ciwei/mall/Product.py" --flask
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product_cat  --outfile "common/models/ciwei/mall/ProductCat.py" --flask
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables campus_product  --outfile "common/models/ciwei/mall/CampusProduct.py" --flask
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product_comments  --outfile "common/models/ciwei/mall/ProductComments.py" --flask
-# 购物车新增表
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables cart  --outfile "common/models/ciwei/mall/Cart.py" --flask
-# 订单页新增表
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables order_product  --outfile "common/models/ciwei/mall/OrderProduct.py" --flask
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables address  --outfile "common/models/ciwei/mall/Address.py" --flask
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables order  --outfile "common/models/ciwei/mall/Order.py" --flask
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product_stock_change_log  --outfile "common/models/ciwei/mall/ProductStockChangeLog.py" --flask
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables product_sale_change_log  --outfile "common/models/ciwei/mall/ProductSaleChangeLog.py" --flask
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables queue_list  --outfile "common/models/ciwei/mall/QueueList.py" --flask
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables order_callback_data  --outfile "common/models/ciwei/mall/OrderCallBackData.py" --flask
-# 感谢酬金修改表名
-# flask-sqlacodegen "mysql://root:wcx9517530@127.0.0.1/ciwei_db" --tables thank_order  --outfile "common/models/ciwei/ThankOrder.py" --flask
-
 
 DROP TABLE IF EXISTS `user`;
 

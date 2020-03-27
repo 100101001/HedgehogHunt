@@ -13,6 +13,32 @@ from common.models.ciwei.Member import Member
 from web.controllers.api import route_api
 
 
+@route_api.route("/special/info", methods=['GET', 'POST'])
+def specialProductInfo():
+    data = {
+        'qrcode': {
+            'id': 15,
+            'price': 2.5
+        },
+        'sms_pkg': {
+            'id': 16,
+            'price': 4.5
+        },
+        'sms': {
+            'id': 17,
+            'price': 0.1
+        },
+        'top': {
+            'price': 0.01,
+            'days': 7
+        },
+        'free_sms': {
+            'times': 5
+        }
+    }
+    return jsonify(data)
+
+
 @route_api.route("/qrcode/wx", methods=['GET', 'POST'])
 def get_wx_qr_code():
     """

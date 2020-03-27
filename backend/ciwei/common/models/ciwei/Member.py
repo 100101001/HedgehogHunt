@@ -27,6 +27,7 @@ class Member(db.Model):
     sex = db.Column(TINYINT(), nullable=False, default=0, comment="性别 1：男 2：女")
     avatar = db.Column(db.String(200), nullable=False, default='', comment="会员头像")
     qr_code = db.Column(db.String(200), nullable=False, default='', comment="会员的小程序二维码")
+    left_notify_times = db.Column(INTEGER(11, unsigned=True), nullable=False, default=0, comment="剩余通知次数")
     openid = db.Column(db.String(80), nullable=False, default='', comment="第三方id")
     status = db.Column(TINYINT(), nullable=False, default=1, comment="状态 1：有效 0：无效")
     updated_time = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now,
