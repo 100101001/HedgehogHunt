@@ -22,6 +22,31 @@ from common.models.ciwei.User import User
 from web.controllers.api import route_api
 
 
+@route_api.route("/balance/use/warn", methods=['GET', 'POST'])
+def warnUseBalance():
+    """
+    对使用余额，有二维码，但没有任何短信次数的会员进行余额预警
+    :return:
+    """
+    resp = {'code': 200, 'msg': 'success', 'data': False}
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "请先登录"
+        return jsonify(resp)
+
+    if member_info.has_qr_code:
+        if member_info.left_notify_times <= 0:
+            pkg = MemberSmsPkg.query.filter(MemberSmsPkg.open_id == member_info.openid,
+                                            MemberSmsPkg.expired_time < datetime.datetime.now() + datetime.timedelta(
+                                                weeks=1),
+                                            MemberSmsPkg.left_notify_times > 0) \
+                .order_by(MemberSmsPkg.id.desc()).first()
+            if not pkg:
+                resp['data'] = True
+    return jsonify(resp)
+
+
 @route_api.route("/balance/order", methods=['POST', 'GET'])
 def createBalanceOrder():
     """

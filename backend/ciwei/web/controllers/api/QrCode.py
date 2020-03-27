@@ -10,6 +10,7 @@ from common.libs.UrlManager import UrlManager
 from common.libs.sms import SMSService
 from common.models.ciwei.AcsSmsSendLog import AcsSmsSendLog
 from common.models.ciwei.Member import Member
+from common.models.ciwei.MemberSmsPkg import MemberSmsPkg
 from web.controllers.api import route_api
 
 
@@ -91,9 +92,21 @@ def scan_qr_code():
     openid = params['openid'] if 'openid' in params else ''
     if not openid:
         return True
-    member_info = Member.query.filter(Member.openid == openid, Member.status == 1).first()
-    if not member_info or member_info.balance < decimal.Decimal('0.10'):
-        return True
+    # 判断扣除短信包还按量计费的条数，还是用户余额
+    op_status = 0
+    pkg = MemberSmsPkg.query.filter(MemberSmsPkg.open_id == openid,
+                                    MemberSmsPkg.expired_time <= datetime.datetime.now(),
+                                    MemberSmsPkg.left_notify_times > 0).first()
+
+    if not pkg:
+        member_info = Member.query.filter(Member.openid == openid, Member.status == 1).first()
+        if member_info.left_notify_times > 0:
+            op_status = 1
+        elif member_info.balance >= decimal.Decimal('0.10'):
+            op_status = 2
+        else:
+            return True
+
     data = params['goods'] if 'goods' in params else ''
     if not data:
         return True
@@ -102,8 +115,15 @@ def scan_qr_code():
         send_ok = SMSService.send_lost_notify(phone=target_member_info.mobile, goods_name=data['goods_name'],
                                               location=data['location'][1] if len(data['location']) > 1 else '')
         if send_ok:
-            member_info.balance -= Decimal("0.10")
-            db.session.add(member_info)
+            if op_status == 0:
+                pkg.left_notify_times -= 1
+                db.session.add(pkg)
+            elif op_status == 1:
+                member_info.left_notify_times -= 1
+                db.session.add(member_info)
+            elif op_status == 2:
+                member_info.balance -= Decimal("0.10")
+                db.session.add(member_info)
 
     db.session.commit()
     return True
