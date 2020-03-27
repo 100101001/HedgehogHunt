@@ -189,7 +189,7 @@ def changeSmsTimes():
         resp['msg'] = "请先登录"
         return jsonify(resp)
 
-    times = req['times'] if 'times' in req else 0
+    times = int(req['times']) if 'times' in req else 0
     member_info.left_notify_times += times
     db.session.add(member_info)
     db.session.commit()

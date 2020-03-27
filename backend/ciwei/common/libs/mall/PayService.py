@@ -59,6 +59,7 @@ class PayService:
 
         yun_price = params['yun_price'] if params and 'yun_price' in params else 0
         discount_price = params['discount_price'] if params and 'discount_price' in params else 0
+        discount_type = params['discount_type'] if params and 'discount_type' in params else ''
         note = params['note'] if params and 'note' in params else ''
         express_address_id = params['express_address_id'] if params and 'express_address_id' in params else 0
         express_info = params['express_info'] if params and 'express_info' in params else {}
@@ -84,6 +85,7 @@ class PayService:
             model_order.yun_price = yun_price
             model_order.pay_price = pay_price
             model_order.discount_price = discount_price
+            model_order.discount_type = discount_type
             model_order.note = note
             model_order.status = -8
             model_order.express_status = -8
