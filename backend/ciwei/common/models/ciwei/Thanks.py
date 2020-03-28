@@ -16,10 +16,10 @@ class Thank(db.Model):
 
     id = db.Column(INTEGER(11, unsigned=True), primary_key=True, autoincrement=True)
     user_id = db.Column(INTEGER(11, unsigned=True), nullable=False, default=0, comment="拉黑会员的管理员id")
-    member_id = db.Column(INTEGER(11, unsigned=True), nullable=False, comment="发布感谢的会员id")
+    member_id = db.Column(INTEGER(11, unsigned=True), nullable=False, index=True, comment="发布感谢的会员id")
     order_id = db.Column(INTEGER(11, unsigned=True), nullable=False, comment="微信支付的订单id")
     thank_price = db.Column(db.Numeric(10, 2), nullable=False, default=decimal.Decimal(0.00), comment="答谢总金额")
-    target_member_id = db.Column(INTEGER(11, unsigned=True), nullable=False, comment="接受消息的会员id")
+    target_member_id = db.Column(INTEGER(11, unsigned=True), nullable=False, index=True, comment="接受消息的会员id")
     goods_id = db.Column(INTEGER(11, unsigned=True), nullable=False, comment="物品id")
     summary = db.Column(db.String(200), nullable=False, default='', comment="描述")
     goods_name = db.Column(db.String(30), nullable=False, default='', comment="物品名称")
