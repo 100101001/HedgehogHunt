@@ -1,10 +1,10 @@
 import datetime
 import decimal
+import json
 from decimal import Decimal
 
-import requests
 from flask import request, jsonify, g
-import json
+
 from application import app, db
 from common.libs import QrCodeService
 from common.libs.UrlManager import UrlManager
@@ -93,12 +93,14 @@ def notifyQrcodeOwner():
     openid = params['openid'] if 'openid' in params else ''
     if not openid:
         return ""
+
     # 判断扣除短信包还按量计费的条数，还是用户余额
     op_status = 0
     pkg = MemberSmsPkg.query.filter(MemberSmsPkg.open_id == openid,
                                     MemberSmsPkg.expired_time <= datetime.datetime.now(),
                                     MemberSmsPkg.left_notify_times > 0).first()
 
+    member_info = None
     if not pkg:
         member_info = Member.query.filter(Member.openid == openid, Member.status == 1).first()
         if member_info.left_notify_times > 0:

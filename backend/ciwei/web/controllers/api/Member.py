@@ -6,7 +6,6 @@ from decimal import Decimal
 from flask import request, jsonify, g
 
 from application import db, app
-from common.libs import Helper
 from common.libs.Helper import getCurrentDate
 from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
@@ -40,8 +39,7 @@ def warnUseBalance():
             pkg = MemberSmsPkg.query.filter(MemberSmsPkg.open_id == member_info.openid,
                                             MemberSmsPkg.expired_time < datetime.datetime.now() + datetime.timedelta(
                                                 weeks=1),
-                                            MemberSmsPkg.left_notify_times > 0) \
-                .order_by(MemberSmsPkg.id.desc()).first()
+                                            MemberSmsPkg.left_notify_times > 0).first()
             if not pkg:
                 resp['data'] = True
     return jsonify(resp)
@@ -169,7 +167,7 @@ def addSmsPkg():
     pkg = MemberSmsPkg()
     pkg.open_id = member_info.openid
     pkg.left_notify_times = 50
-    pkg.expired_time = datetime.datetime.now() + datetime.timedelta(years=3)
+    pkg.expired_time = datetime.datetime.now() + datetime.timedelta(weeks=156)
     db.session.add(pkg)
     db.session.commit()
     return jsonify(resp)
@@ -212,33 +210,6 @@ def balanceChange():
     member_info.balance += unit
     MemberService.setMemberBalanceChange(member_info=member_info, unit=unit, note=req['note'] if 'note' in req else '')
     db.session.add(member_info)
-    db.session.commit()
-    return jsonify(resp)
-
-
-@route_api.route("/member/account/recharge", methods=['GET', 'POST'])
-def accountRecharge():
-    """
-    充值余额
-    :return:
-    """
-    resp = {'code': 200, 'msg': 'successful', 'data': {}}
-    req = request.values
-    member_info = g.member_info
-    if not member_info:
-        resp['code'] = -1
-        resp['msg'] = "请先登录"
-        return jsonify(resp)
-
-    amount = Decimal(req['amount']).quantize(Decimal('0.00')) if 'amount' in req else Decimal('0.00')
-    if amount > Decimal('0.00'):
-        member_info.balance += amount
-        db.session.add(member_info)
-        MemberService.setMemberBalanceChange(member_info=member_info, unit=amount, note="余额充值")
-
-    resp['data'] = {
-        'balance': member_info.balance
-    }
     db.session.commit()
     return jsonify(resp)
 

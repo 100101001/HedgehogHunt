@@ -43,8 +43,6 @@ def save_wx_qr_code(member_info, wx_resp):
     # db新增二维码, 会员绑定二维码
     qr_code_relative_path = today + "/" + qr_code_file + ".jpg"
     member_info.qr_code = qr_code_relative_path
-    # 账户返还5毛
-    member_info.balance += Decimal("0.50")
     db.session.add(member_info)
     db.session.commit()
     return qr_code_relative_path
