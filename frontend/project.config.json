@@ -24,7 +24,7 @@
 		}
 	},
 	"compileType": "miniprogram",
-	"libVersion": "2.10.1",
+	"libVersion": "2.10.3",
 	"appid": "wx3a7bac4ab0184c76",
 	"projectname": "LostAndFind",
 	"debugOptions": {
@@ -49,9 +49,28 @@
 		"game": {
 			"list": []
 		},
-		"miniprogram": {
+		"gamePlugin": {
 			"current": -1,
 			"list": []
+		},
+		"miniprogram": {
+			"current": -1,
+			"list": [
+				{
+					"id": -1,
+					"name": "扫别人的码",
+					"pathName": "pages/index/index",
+					"query": "scene=opLxO5fmwgdzntX4gfdKEk5NqLQA",
+					"scene": 1011
+				},
+				{
+					"id": -1,
+					"name": "扫自己的码",
+					"pathName": "pages/index/index",
+					"query": "scene=opLxO5Q3CloBEmwcarKrF_kSA574",
+					"scene": 1011
+				}
+			]
 		}
 	}
 }
