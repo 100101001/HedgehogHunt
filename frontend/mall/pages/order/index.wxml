@@ -11,7 +11,7 @@
     </view>
     <view class="goods-list">
         <view class="list-title">商品列表</view>
-        <view class="a-goods" wx:for-items="{{goods_list}}" wx:key="{{index}}">
+        <view class="a-goods" wx:for-items="{{goods_list}}" wx:key="index">
             <view class="img-box">
                 <image src="{{item.pic_url}}" class="img"/>
             </view>
@@ -49,6 +49,10 @@
             <view class="right-text">¥ {{pay_price}}</view>
         </view>
         <view class="row-box">
+            <view class="row-label">折扣</view>
+            <view class="right-text">- ¥ {{discount_price}}</view>
+        </view>
+        <view class="row-box">
             <view class="row-label">运费</view>
             <view class="right-text">+ ¥ {{yun_price}}</view>
         </view>
@@ -56,7 +60,11 @@
 
     <view class="jiesuan-box">
         <view class="left-price">
-            <view class="total">合计：¥ {{total_price}}</view>
+            <view class="total">
+                <text>合计：</text>
+                <text class="{{use_balance? 'delete': ''}}" >￥{{total_price}}</text>
+                <text wx:if="{{use_balance}}">￥{{low_total_price}}</text>
+            </view>
         </view>
         <button class="to-pay-btn" bindtap="toCreateOrder" disabled="{{createOrderDisabled}}">提交订单</button>
     </view>

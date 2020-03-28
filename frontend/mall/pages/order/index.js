@@ -1,6 +1,27 @@
 //获取应用实例
+const util = require('../../../utils/util')
 const useBalance = require("../../../pages/template/use-balance/use-balance.js")
-const app = getApp();
+const app = getApp()
+
+/**
+ * hasQrcode 设置用户是否有二维码
+ * @param cb_success
+ */
+const hasQrcode = function (cb_success=(has_qr_code)=>{}) {
+  wx.request({
+    url: app.buildUrl("/member/has-qrcode"),
+    header: app.getRequestHeader(),
+    success: res => {
+      let resp = res.data
+      if (resp['code'] !== 200) {
+        app.alert({content: '服务器开小差了，请稍后重试', cb_confirm: ()=>{wx.navigateBack()}})
+        return
+      }
+      cb_success(resp['data']['has_qr_code'])
+    }
+  })
+}
+
 
 Page({
   data: {
@@ -22,35 +43,36 @@ Page({
   /***
    * onLoad 加载订单详情页
    * @param e 下单产品列表和下单来源
+   *
+   * 需要balance和用户has_qrcode所以
+     * 如果用户没有二维码且订单项中没有二维码则需随单加购二维码（不同意则终止核对下单流程）
+     * 否则正常加载订单详细信息，用户进行核对下单
    */
   onLoad: function (e) {
-    var that = this;
-    that.setData({
+    this.setData({
       params: JSON.parse(e.data)
-    });
+    })
+    hasQrcode((has_qr_code) => {
+      if (has_qr_code) {
+        this.getOrderInfo();
+      } else {
+        //判断商品列表中有无二维码
+        let goods = this.data.params['goods']
+        let index = goods.findIndex(item => item.id === app.globalData.qrcodeProductId)
+        if (index === -1) {
+          //没有二维码要求加购
+          this.requireOrderQrcode();
+        } else {
+          //有二维码正常获取订单信息
+          this.getOrderInfo();
+        }
+      }
+    })
   },
   /***
    * onShow 订单详情页显示
-   * 如果用户没有二维码且订单项中没有二维码则需随单加购二维码（不同意则终止核对下单流程）
-   * 否则正常加载订单详细信息，用户进行核对下单
    */
   onShow: function () {
-    this.doGetUserBalance()
-    if (app.globalData.has_qrcode) {
-      this.getOrderInfo();
-    } else {
-      //判断商品列表中有无二维码
-      let goods = this.data.params['goods']
-      let index = goods.findIndex(item => item.id === app.globalData.qrcodeProductId)
-      if (index === -1) {
-        this.requireOrderQrcode();
-      } else {
-        this.getOrderInfo();
-      }
-    }
-  },
-  doGetUserBalance: function () {
-    useBalance.initData(this)
   },
   /***
    * toCreateOrder 确认下单的入口
@@ -77,28 +99,27 @@ Page({
     wx.showLoading({
       mask: true,
       title: '正在下单'
-    });
-    var that = this;
-    var data = {
-      type: this.data.params.type,
-      goods: JSON.stringify(this.data.params.goods),
-      express_address_id: this.data.default_address.id,
-      discount_price: this.data.discount_price,
-    };
+    })
     wx.request({
       url: app.buildUrl("/order/create"),
       header: app.getRequestHeader(),
       method: 'POST',
-      data: data,
+      data: {
+        type: this.data.params.type,
+        goods: JSON.stringify(this.data.params.goods),
+        express_address_id: this.data.default_address.id,
+        discount_price: this.data.discount_price //余额折扣
+      },
       success: (res) => {
-        var resp = res.data;
-        if (resp.code != 200) {
-          app.alert({"content": resp.msg});
-          return;
+        let resp = res.data;
+        if (resp['code'] != 200) {
+          app.alert({content: resp['msg']})
+          return
         }
+        //下单成功前去订单列表，进行支付
         wx.redirectTo({
           url: "/mall/pages/my/order_list"
-        });
+        })
       },
       fail: (res) => {
         app.serverBusy()
@@ -109,40 +130,45 @@ Page({
       complete: function (res) {
         wx.hideLoading()
       }
-    });
+    })
   },
+  /**
+   * addressSet 无地址前往增加地址
+   */
   addressSet: function () {
     wx.navigateTo({
       url: "/mall/pages/my/addressSet?id=0"
-    });
+    })
   },
+  /**
+   * selectAddress 有地址，前往选择其他地址
+   */
   selectAddress: function () {
     wx.navigateTo({
       url: "/mall/pages/my/addressList"
-    });
+    })
   },
   /***
    * requireOrderQrcode 征得用户同意后随单加购二维码，否则不能下单
    */
   requireOrderQrcode: function () {
     let qrcodePrice = app.globalData.qrcodePrice
-    let that = this
     app.alert({
       title: '温馨提示',
       content: '您还没有闪寻码无法下单，是否加' + qrcodePrice + '元随单购买？',
       showCancel: true,
-      cb_confirm: function () {
-        //加入订单款项
-        let params = that.data.params
+      cb_confirm:  () => {
+        //将二维码加入订单产品列表
+        let params = this.data.params
         params['goods'].push({
           "id": app.globalData.qrcodeProductId,
           "price": qrcodePrice,
           "number": 1
         })
-        that.setData({
+        this.setData({
           params: params
         })
-        that.getOrderInfo()
+        this.getOrderInfo()
       },
       cb_cancel: function () {
         //回退
@@ -154,40 +180,65 @@ Page({
    * getOrderInfo 根据订单列表的产品ID，获取详细的产品信息，并计算出支付价格
    */
   getOrderInfo: function () {
-    var that = this
-    var data = {
-      type: this.data.params.type,
-      goods: JSON.stringify(this.data.params.goods)
-    };
     wx.request({
       url: app.buildUrl("/order/info"),
       header: app.getRequestHeader(),
       method: 'POST',
-      data: data,
-      success: function (res) {
-        var resp = res.data;
-        if (resp.code != 200) {
-          app.alert({"content": resp.msg});
-          return;
+      data: {
+        type: this.data.params.type,
+        goods: JSON.stringify(this.data.params.goods)
+      },
+      success:  (res) => {
+        let resp = res.data
+        if (resp['code'] != 200) {
+          app.alert({"content": resp['msg']});
+          return
         }
-
-        that.setData({
-          goods_list: resp.data.goods_list,
-          default_address: resp.data.default_address,
-          yun_price: parseFloat(resp.data.yun_price),
-          pay_price: parseFloat(resp.data.pay_price),
-          total_price: parseFloat(resp.data.total_price),
+        let data = resp['data']
+        this.setData({
+          goods_list: data.goods_list,
+          default_address: data.default_address,
+          yun_price: parseFloat(data.yun_price),
+          pay_price: parseFloat(data.pay_price),
+          origin_pay_price: parseFloat(data.pay_price),
+          total_price: parseFloat(data.total_price),
+          origin_total_price: parseFloat(data.total_price),
           dataReady: true
-        });
+        })
 
-        if (that.data.default_address) {
-          that.setData({
-            express_address_id: that.data.default_address.id
-          });
+        useBalance.initData(this, (total_balance)=>{
+          if(total_balance >= this.data.pay_price){ //运费不进行抵扣
+            //余额够花，至少要支付0.01元
+            this.setData({
+              balance: util.toFixed(this.data.pay_price - 0.01, 2), //可用于折扣的余额
+              low_total_price: util.toFixed(this.data.yun_price + 0.01, 2)
+            })
+          }else{
+            //余额不够花
+            this.setData({
+              balance: util.toFixed(total_balance, 2), //可用于折扣的余额
+              low_total_price: util.toFixed(this.data.total_price - total_balance, 2)
+            })
+          }
+          //如果可用金额为0元，那么就禁用勾选框(余额不一定为0)
+          this.setData({
+            balance_use_disabled: this.data.balance <= 0
+          })
+        })
+
+        if (this.data.default_address) {
+          this.setData({
+            express_address_id: this.data.default_address.id
+          })
         }
       }
-    });
+    })
   },
+  /**
+   * changeUseBalance 用户操作了使用余额的勾选框
+   * 动态更新视图中合计价格，折扣价格
+   * @param e
+   */
   changeUseBalance: function (e) {
     useBalance.changeUseBalance(e, () => {
         this.setData({
@@ -195,26 +246,17 @@ Page({
         })
         //用户显示（最终创建订单的价格仅根据订单列表）
         if (this.data.use_balance) {
-          console.log("减价")
-          let new_price = (this.data.pay_price - this.data.balance).toFixed(2)
           this.setData({
-            discount_price: parseFloat(new_price <= 0 ? this.data.pay_price - 0.01 : this.data.balance),
-            pay_price: parseFloat(new_price <= 0 ? 0.01 : new_price)
-          })
-          this.setData({
-            total_price: this.data.pay_price + this.data.yun_price
+            discount_price: this.data.balance,
+            total_price: this.data.low_pay_price
           })
         } else {
-          console.log("加价")
           this.setData({
-            pay_price: parseFloat((this.data.pay_price + this.data.discount_price).toFixed(2)),
-            discount_price: 0.00
-          })
-          this.setData({
-            total_price: this.data.pay_price + this.data.yun_price
+            discount_price: 0,
+            total_price: this.data.origin_total_price
           })
         }
       }
     )
   }
-});
+})

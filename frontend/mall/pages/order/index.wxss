@@ -188,3 +188,12 @@ form{
     color: #f7931e;
     text-align: right;
 }
+
+.use-balance-specific{
+    padding-top: 20rpx;
+    margin-bottom: 20rpx;
+    margin-left: 35rpx;
+}
+.delete{
+  text-decoration:line-through;
+}
