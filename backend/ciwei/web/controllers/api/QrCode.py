@@ -2,6 +2,7 @@ import datetime
 import decimal
 from decimal import Decimal
 
+import requests
 from flask import request, jsonify, g
 import json
 from application import app, db
@@ -41,7 +42,7 @@ def specialProductInfo():
 
 
 @route_api.route("/qrcode/wx", methods=['GET', 'POST'])
-def get_wx_qr_code():
+def getQrcode():
     """
     为会员生成微信二维码
     :return:二维码图片URL
@@ -83,7 +84,7 @@ def get_wx_qr_code():
 
 
 @route_api.route("/qrcode/notify", methods=['GET', 'POST'])
-def scan_qr_code():
+def notifyQrcodeOwner():
     """
     通知失主
     :return:
@@ -130,7 +131,7 @@ def scan_qr_code():
 
 
 @route_api.route("/qrcode/sms", methods=['GET', 'POST'])
-def get_sms_code():
+def sendVerifyCode():
     """
     向手机号发验证短信
     example request body
@@ -173,7 +174,7 @@ def get_sms_code():
 
 
 @route_api.route("/qrcode/check/sms", methods=['GET', 'POST'])
-def check_sms_code():
+def checkVerifyCode():
     """
     检查输入验证码=有效发送验证码
     :return:
@@ -223,3 +224,20 @@ def check_sms_code():
             resp['code'] = -1
             resp['msg'] = "验证失败"
             return jsonify(resp)
+
+
+# @route_api.route("/qrcode", methods=['GET', 'POST'])
+# def testUnlimitedQrcode():
+#     # 调API获取二维码
+#     resp = {}
+#     from common.libs.mall.WechatService import WeChatService
+#     member_info = Member.query.filter_by(id=100002).first()
+#     token = WeChatService.get_wx_token()
+#     wx_resp = requests.post(
+#             "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}".format(token),
+#             json={"scene": str(member_info.openid), "width": 280, "page": "pages/index/index"})
+#
+#     path = QrCodeService.save_wx_qr_code(member_info, wx_resp)
+#     resp['code'] = 200
+#     resp['data'] = {'qr_code_url': UrlManager.buildImageUrl(path, image_type='QR_CODE')}
+#     return jsonify(resp)

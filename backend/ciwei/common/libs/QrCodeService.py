@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from application import db, app
 
+
 def get_wx_qr_code(token, member):
     """
     :param member:
@@ -13,15 +14,15 @@ def get_wx_qr_code(token, member):
 
     # 无限API上线可用(体验版)
     # [2019-12-10 16:06:50,066] ERROR in QrCode: failed to get qr code. Errcode: 41030, Errmsg:invalid page hint: [6qqTta0210c393]
-    # return requests.post(
-    #     "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}".format(token),
-    #     json={"scene": str(openid), "width": 280, "page": "pages/index/index"})
+    return requests.post(
+        "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}".format(token),
+        json={"scene": str(openid), "width": 280, "page": "pages/index/index"})
 
     # 测试：10万上限
-    return requests.post(
-        "https://api.weixin.qq.com/wxa/getwxacode?access_token={}".format(
-            token),
-        json={"width": 280, "path": "pages/index/index?openid=" + openid})
+    # return requests.post(
+    #     "https://api.weixin.qq.com/wxa/getwxacode?access_token={}".format(
+    #         token),
+    #     json={"width": 280, "path": "pages/index/index?openid=" + openid})
 
 
 def save_wx_qr_code(member_info, wx_resp):
@@ -47,4 +48,3 @@ def save_wx_qr_code(member_info, wx_resp):
     db.session.add(member_info)
     db.session.commit()
     return qr_code_relative_path
-

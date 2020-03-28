@@ -183,7 +183,7 @@ def updateStatus():
     req = request.values
     member_info = g.member_info
     if not member_info:
-        return False
+        return ""
     query = Thank.query.filter(Thank.status != 7)
     query = query.filter(Thank.status != 6)
     query = query.filter(Thank.status != 5)
@@ -201,7 +201,7 @@ def updateStatus():
                 item.updated_time = getCurrentDate()
                 db.session.add(item)
                 db.session.commit()
-    return True
+    return ""
 
 
 # 查询所有记录

@@ -267,7 +267,7 @@ def login():
     openid = MemberService.getWeChatOpenId(code)
     if openid is None:
         resp['code'] = -1
-        resp['msg'] = "call wechat error "
+        resp['msg'] = "call wechat error"
         return jsonify(resp)
 
     nickname = req['nickName'] if 'nickName' in req else ''
@@ -303,14 +303,40 @@ def login():
             member_info.mobile = mobile
             db.session.add(member_info)
         db.session.commit()
-    token = "%s#%s" % (openid, member_info.id)
+
     # 登陆后，前端在 app.globalData 中存有全局变量
-    resp['data'] = {'token': token, 'member_info': Helper.queryToDict(member_info)}
-    resp['req'] = req
+    is_adm = False
+    is_user = False
+    has_qrcode = False
+    user_info = User.query.filter_by(member_id=member_info.id).first()
+    if user_info:
+        if user_info.level == 1:
+            is_adm = True
+            is_user = True
+        elif user_info.level > 1:
+            is_user = True
+
+    # 济人济市的openid if openid=="opLxO5fmwgdzntX4gfdKEk5NqLQA":
+    # uni-济旦财的openid if openid=="o1w1e5egBOLj5SjvPkNIsA3jpZFI":
+    if openid == "opLxO5fmwgdzntX4gfdKEk5NqLQA":
+        is_adm = True
+        is_user = True
+
+    if member_info.qr_code:
+        has_qrcode = True
+
+    token = "%s#%s" % (openid, member_info.id)
+    resp['data'] = {
+        'token': token,
+        'is_adm': is_adm,
+        'is_user': is_user,
+        'has_qrcode': has_qrcode,
+        'member_status': member_info.status,
+        'id': member_info.id
+    }
     return jsonify(resp)
 
 
-# TODO：为什么还要再登陆一遍,直接g中查询不行么
 @route_api.route("/member/check-reg", methods=['GET', 'POST'])
 def checkReg():
     """
@@ -321,17 +347,17 @@ def checkReg():
     req = request.values
 
     # 检查参数：code
+
     code = req['code'] if 'code' in req else ''
-    if not code or len(code) < 1:
+    if not code:
         resp['code'] = -1
-        resp['msg'] = "need code(check-reg)"
+        resp['msg'] = "微信繁忙"
         return jsonify(resp)
 
-    # 查询是否是管理员
     openid, session_key = MemberService.getWeChatOpenId(code, get_session_key=True)
-    if openid is None:
+    if not openid:
         resp['code'] = -1
-        resp['msg'] = "call wechat error"
+        resp['msg'] = "微信繁忙"
         return jsonify(resp)
     member_info = Member.query.filter_by(openid=openid).first()
     if not member_info:
@@ -341,7 +367,7 @@ def checkReg():
             'openid': openid,
             'session_key': session_key
         }
-        resp['msg'] = "binding information not queried"
+        resp['msg'] = "用户未注册"
         return jsonify(resp)
     is_adm = False
     is_user = False
@@ -361,11 +387,7 @@ def checkReg():
         is_user = True
 
     if member_info.qr_code:
-        qr_code_url = UrlManager.buildImageUrl(member_info.qr_code, image_type='QR_CODE')
-        qr_code_list = [qr_code_url]
         has_qrcode = True
-    else:
-        qr_code_list = []
 
     token = "%s#%s" % (openid, member_info.id)
     resp['data'] = {
@@ -373,15 +395,22 @@ def checkReg():
         'is_adm': is_adm,
         'is_user': is_user,
         'has_qrcode': has_qrcode,
-        'qr_code_list': qr_code_list,
         'member_status': member_info.status,
-        'id': member_info.id,
-        'member_info': Helper.queryToDict(member_info),
-        'login_info': {
-            'openid': openid,
-            'session_key': session_key
-        }
+        'id': member_info.id
     }
+    return jsonify(resp)
+
+
+@route_api.route("/member/is-reg", methods=['GET', 'POST'])
+def isReg():
+    resp = {'code': 200, 'msg': '', 'data': {}}
+    req = request.values
+    openid = req['openid'] if 'openid' in req else ''
+    member_info = Member.query.filter_by(openid=openid).first()
+    if not member_info:
+        resp['data']['is_reg'] = False
+    else:
+        resp['data']['is_reg'] = True
     return jsonify(resp)
 
 
