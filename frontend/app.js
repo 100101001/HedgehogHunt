@@ -12,10 +12,10 @@ App({
     regFlag: false, //用于判断用户已注册(和缓存中的token一起代表用户已经登录)
     shopName: "闪寻-失物招领",
     //domain: "http://127.0.0.1:8999/api",
-    domain: "http://192.168.0.116:8999/api",
-    //domain: "https://ciwei.opencs.cn/api",
+    //domain: "http://192.168.0.116:8999/api",
+    domain: "https://ciwei.opencs.cn/api",
     static_file_domain: "https://ciwei.opencs.cn",
-    static_file_domain: "http://192.168.0.116:8999",
+    //static_file_domain: "http://192.168.0.116:8999",
     member_status: 1, //用户状态
     op_status: 2,
     indexPage: null, //首页
