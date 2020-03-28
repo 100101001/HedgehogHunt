@@ -50,7 +50,12 @@
       <view class="tips-views">付费置顶，失物在最醒目位置，大大提高寻回的概率~</view>
       <view class="top-switch-container">
         <switch class="top-switch" type="switch" color="#f7931e" disabled="{{submitDisable}}" checked="{{isTop}}" bindchange="changSetTop"></switch>
-        <text>置顶 ￥{{top_price}}  / {{top_days}}天</text>
+        <view class="top-text">
+          <text>置顶</text>
+          <text class="top-price {{use_balance? 'delete': ''}}" >￥{{top_price}}</text>
+          <text wx:if="{{use_balance}}"> ￥{{discount_price}}</text>
+          <text> / {{top_days}}天</text>
+        </view>
       </view>
       <template is="use-balance-checker" data="{{balance_got, balance_use_disabled, balance_low, total_balance, use_balance, balance}}"></template>
       <view class="hrz1"></view>

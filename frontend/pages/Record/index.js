@@ -21,7 +21,7 @@ Page({
   },
   /**
    * 设置顶部状态选项卡数据，及其它页面初始化数据
-   * @param op_status 发布记录 or 认领找回 or 匹配推荐
+   * @param op_status 发布记录 or 认领找回 or 匹配推荐 or 发布举报(管理员可见的管理后台)
    */
   onLoadSetData: function (op_status) {
     if (op_status == 0) { //发布
@@ -68,7 +68,7 @@ Page({
           value: recommend.done,
         },
       ]
-    } else if (op_status == 3) { //管理后台
+    } else if (op_status == 4) { //管理后台
       var check_cat = [{
         id: 1,
         name: '待处理'
@@ -479,5 +479,19 @@ Page({
       only_new: infos.only_new,
     });
     this.onPullDownRefresh();
-  }
+  },
+  /**
+   * op_status为4的时候
+   * @param e
+   */
+  recordTypeClick: function(e) {
+    //选择一次分类时返回选中值
+    let infos = this.data.infos
+    infos.check_status_id = e.currentTarget.id
+    this.setData({
+      infos: infos,
+      check_status_id: e.currentTarget.id
+    })
+    this.onPullDownRefresh();
+  },
 })

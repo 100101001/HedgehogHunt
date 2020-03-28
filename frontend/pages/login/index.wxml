@@ -1,4 +1,4 @@
-<view>
+<view wx:if="{{dataReady}}">
     <view wx:if="{{canIUse}}" >
         <view class='logo-header' wx:if="{{getPhone}}">
             <image src='/images/logo.jpg'></image>

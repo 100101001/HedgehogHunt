@@ -14,9 +14,6 @@ Page({
     phoneNum: ''
   },
   onLoad: function (options) {
-    setTimeout(() => {
-      wx.navigateBack()
-    }, 1000)
   },
   onReady: function () {
     // 页面渲染完成
@@ -144,7 +141,16 @@ Page({
             duration: 800,
             success: (res) => {
               setTimeout(() => {
-                wx.navigateBack()
+                if(app.globalData.isScanQrcode){
+                  //清除扫码标记
+                  this.globalData.isScanQrcode = false
+                  this.globalData.qrcodeOpenid = ""
+                  wx.redirectTo({
+                    url: '/pages/Find/Find?business_type=1'
+                  })
+                } else {
+                  wx.navigateBack()
+                }
               }, 700)
             }
           })

@@ -1,5 +1,6 @@
 const useBalance = require("../../template/use-balance/use-balance")
-var app = getApp();
+const util = require("../../../utils/util")
+const app = getApp();
 
 /**
  * topCharge
@@ -89,7 +90,6 @@ Page({
   data: {
     loadingHidden: true, //上传图片时的loading图标是否隐藏
     imglist: [], //发布图片列表
-    notify_id: "", //需要通知的失主的openid
     dataReady: false, //页面数据是否已加载
     submitDisable: false, //是否禁按提交发布按钮
     isTop: false, //是否置顶
@@ -106,16 +106,14 @@ Page({
    * @param options
    */
   onLoad: function (options) {
-    var openid = options.openid == undefined ? "" : options.openid
-    var auther_id = options.auther_id == undefined ? "" : options.auther_id
-    if (openid != "") { //扫码发布
+    let auther_id = options.auther_id == undefined ? "" : options.auther_id
+    if (app.globalData.isScanQrcode) { //扫码发布
       this.setData({
-        notify_id: openid,
         business_type: 1,
         location: [],
         dataReady: true
-      });
-      this.setInitData();
+      })
+      this.setInitData()
     } else {
       if (auther_id != "") { //归还
         this.setData({
@@ -124,7 +122,7 @@ Page({
           location: [],
           dataReady: true
         })
-        this.setInitData();
+        this.setInitData()
       }
       else { //常规发布
         wx.showActionSheet({
@@ -134,8 +132,8 @@ Page({
               business_type: res.tapIndex,
               location: [],
               dataReady: true
-            });
-            this.setInitData();
+            })
+            this.setInitData()
           },
           fail: (res) => {
             wx.redirectTo({
@@ -200,7 +198,10 @@ Page({
       urls: this.data.imglist // 需要预览的图片http链接列表
     })
   },
-  //选择图片方法
+  /**
+   * 选择图片方法
+   * @param e
+   */
   chooseLoadPics: function (e) {
     //选择图片
     wx.chooseImage({
@@ -341,8 +342,8 @@ Page({
     })
   },
   /**
-   *
-   * @param data
+   * toTopCharge
+   * @param data 发布数据
    */
   toTopCharge: function (data = {}) {
     let pay_price = this.data.top_price
@@ -393,7 +394,7 @@ Page({
    */
   notifyAndRelease: function(data){
     //通知失主
-    if (this.data.notify_id !== "") {
+    if (app.globalData.isScanQrcode) {
       this.sendNotification(data)
     }
     //上传数据
@@ -410,17 +411,20 @@ Page({
       method: 'post',
       data: {
         'goods': data,
-        'openid': this.data.notify_id
+        'openid': app.globalData.qrcodeOpenid
       },
       complete: res => {
-        this.setData({
-          notify_id: ""
-        })
+        app.globalData.isScanQrcode = false
+        app.globalData.qrcodeOpenid = ""
       }
     })
   },
-  //一旦退出页面就
+  /**
+   * onUnload 一旦退出页面就将扫码相关全局标记重置
+   */
   onUnload: function () {
+    app.globalData.isScanQrcode = false
+    app.globalData.qrcodeOpenid = ""
     app.globalData.unLoggedRelease = false
     app.globalData.unLoggedReleaseToken = null
   },
@@ -707,9 +711,24 @@ Page({
         isTop: false
       })
       //余额勾选框
-      useBalance.initData(this, ()=>{
+      useBalance.initData(this, (total_balance)=>{
+        //计算可用余额和折后价格
+        if (total_balance > this.data.top_price){
+          //余额足够
+          this.setData({
+            discount_price: 0, //使用余额，支付0元
+            balance: this.data.top_price
+          })
+        } else {
+          //余额不足
+          this.setData({
+            discount_price: util.toFixed(this.data.top_price - total_balance, 2), //使用余额支付的价格
+            balance: total_balance
+          })
+        }
+        //默认
         this.setData({
-          balance_use_disabled: true //默认关闭
+          balance_use_disabled: true //默认置顶开关关闭，所以禁用勾选框
         })
       })
     }
@@ -746,6 +765,4 @@ Page({
       })
     })
   }
-
-
 });
