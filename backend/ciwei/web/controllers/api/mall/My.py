@@ -94,8 +94,7 @@ def myOrderList():
                 'note': item.note,
                 'total_price': str(item.total_price),
                 'goods_list': order_item_map[item.id],
-                'balance_discount': str(discount_price) if item.discount_type == "账户余额"
-                                                           and discount_price > 0 else "0.00",
+                'balance_discount': str(discount_price) if discount_price > 0 else "0.00",
                 'qr_code_num': tmp_map['qr_code'] if 'qr_code' in tmp_map else 0,
                 'sms_num': tmp_map['sms'] if 'sms' in tmp_map else 0,
                 'sms_package_num': tmp_map['sms_package'] if 'sms_package' in tmp_map else 0,

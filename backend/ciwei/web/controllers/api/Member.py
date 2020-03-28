@@ -407,7 +407,7 @@ def memberInfo():
         qr_code_url = ""
 
     pkg = MemberSmsPkg.query.filter(MemberSmsPkg.open_id == member_info.openid,
-                                    MemberSmsPkg.expired_time < datetime.datetime.now()) \
+                                    MemberSmsPkg.expired_time >= datetime.datetime.now()) \
         .order_by(MemberSmsPkg.id.desc()).first()
     resp['data']['info'] = {
         'nickname': member_info.nickname,

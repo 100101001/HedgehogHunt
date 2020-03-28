@@ -184,13 +184,6 @@ class PayService:
             order_info.pay_sn = params['pay_sn'] if params and 'pay_sn' in params else ''
             order_info.status = 1
             order_info.express_status = -7
-            discount_price = order_info.discount_price
-            if discount_price != 0 and order_info.discount_type == "帐户余额":
-                member_info = g.member_info
-                member_info.balance -= discount_price
-                MemberService.setMemberBalanceChange(member_info=member_info, unit=-discount_price, note="在线购物")
-                db.session.add(member_info)
-
             order_info.updated_time = getCurrentDate()
             db.session.add(order_info)
 

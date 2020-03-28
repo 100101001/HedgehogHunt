@@ -16,6 +16,32 @@ from common.models.ciwei.mall.Product import Product
 from web.controllers.api import route_api
 
 
+@route_api.route("/order/status/set", methods=['POST', 'GET'])
+def setOrderStatus():
+    resp = {'code': 200, 'msg': '', 'data': {}}
+    req = request.values
+    status = req['status'] if 'status' in req else None
+    if status is None:
+        resp['code'] = -1
+        resp['msg'] = "操作失败，请重试"
+        return jsonify(resp)
+    order_sn = req['order_sn'] if 'order_sn' in req else ''
+    if not order_sn:
+        resp['code'] = -1
+        resp['msg'] = "操作失败，请重试"
+        return jsonify(resp)
+
+    order = Order.query.filter_by(order_sn=order_sn).first()
+    if not order:
+        resp['code'] = -1
+        resp['msg'] = "操作失败，请重试"
+        return jsonify(resp)
+    order.status = status
+    db.session.add(order)
+    db.session.commit()
+    return jsonify(resp)
+
+
 @route_api.route("/order/info", methods=["POST"])
 def orderInfo():
     resp = {'code': 200, 'msg': '操作成功~', 'data': {}}
@@ -165,7 +191,7 @@ def orderPay():
         return jsonify(resp)
 
     app_config = app.config['OPENCS_APP']
-    notify_url = app.config['APP']['domain'] + app_config['callback_url']
+    notify_url = app.config['APP']['domain'] + '/api/order/callback'
 
     target_wechat = WeChatService(merchant_key=app_config['mch_key'])
 
@@ -180,7 +206,7 @@ def orderPay():
         'trade_type': "JSAPI",
         'openid': member_info.openid
     }
-
+    app.logger.info(data)
     pay_info = target_wechat.get_pay_info(pay_data=data)
 
     # 保存prepay_id为了后面发模板消息
