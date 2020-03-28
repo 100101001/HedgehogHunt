@@ -263,6 +263,7 @@ CREATE TABLE `member`  (
   `sex` tinyint(1) NOT NULL DEFAULT 0 COMMENT '性别 1：男 2：女',
   `avatar` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员头像',
   `qr_code` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员的小程序二维码',
+  `left_notify_times` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '剩余通知次数',
   `openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '第三方id',
   `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 1：有效 0：无效',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
@@ -270,9 +271,10 @@ CREATE TABLE `member`  (
   `mark_id` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户认领的物品id,字符串',
   `gotback_id` varchar(2000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户最终取回的物品id,字符串',
   `recommend_id` varchar(3000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '系统推荐的物品id,字符串',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `ix_member_openid`(`openid`) USING BTREE,
+  INDEX `ix_member_status`(`status`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 100000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员表' ROW_FORMAT = Dynamic;
-
 -- ----------------------------
 -- Table structure for member_balance_change_log
 -- ----------------------------
@@ -396,7 +398,7 @@ CREATE TABLE `product`  (
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_product_cat_id`(`cat_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '周边表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '周边表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of product
@@ -413,9 +415,11 @@ INSERT INTO `product` VALUES (9, 5, 2, '纯二维码', 2, '徽章', 20.00, '2020
 INSERT INTO `product` VALUES (10, 5, 3, '组合', 2, '徽章', 50.00, '20200303/badge4.jpg', '20200303/badge4.jpg', '', '包含所有徽章，组合价更优惠~', 1, 0, 99999, 0, 0, '2020-03-02 16:56:34', '2020-03-02 16:56:34');
 INSERT INTO `product` VALUES (11, 6, 0, '水印', 1, '印章', 50.00, '20200303/stamper1.jpg', '20200303/stamper1.jpg', '', '可以敲在书本上，你的闪寻名片', 1, 0, 99999, 0, 0, '2020-03-03 04:33:34', '2020-03-02 20:24:22');
 INSERT INTO `product` VALUES (12, 6, 1, '钢印', 1, '印章', 90.00, '20200303/stamper2.jpg', '20200303/stamper2.jpg', '', '可以敲在书本上，你的闪寻名片', 1, 0, 99999, 0, 0, '2020-03-03 04:33:34', '2020-03-02 20:24:31');
-INSERT INTO `product` VALUES (13, 7, 0, '加鸡腿', 2, '打赏', 0.01, '20200307/chicken1.jpg', '20200307/chicken1.jpg', '', '一分钱也是爱', 1, 0, 99999, 0, 0, '2020-03-07 04:33:34', '2020-03-07 20:24:31');
-INSERT INTO `product` VALUES (14, 7, 1, '加整鸡', 2, '打赏', 0.02, '20200307/chicken2.jpg', '20200307/chicken2.jpg', '', '两分钱也是爱', 1, 0, 99999, 0, 0, '2020-03-07 04:33:34', '2020-03-07 20:24:31');
+INSERT INTO `product` VALUES (13, 7, 0, '加鸡腿', 2, '打赏', 0.01, '20200307/chicken1.jpg', '20200307/chicken1.jpg', '', '一分钱也是爱', 1, 0, 99997, 1, 0, '2020-03-27 11:02:54', '2020-03-07 20:24:31');
+INSERT INTO `product` VALUES (14, 7, 1, '加整鸡', 2, '打赏', 0.02, '20200307/chicken2.jpg', '20200307/chicken2.jpg', '', '两分钱也是爱', 1, 0, 99999, 0, 0, '2020-03-27 11:00:52', '2020-03-07 20:24:31');
 INSERT INTO `product` VALUES (15, 8, 0, '直接获码', 1, '失物贴码，拾者扫码归还。通知短信1次1毛，购买即赠5次免费通知！', 2.50, '20200321/sx-code.jpg', '20200321/sx-code.jpg', '', '有了它，失物闪寻！', 0, 0, 100000000, 0, 0, '2020-03-21 15:21:04', '2020-03-21 15:21:04');
+INSERT INTO `product` VALUES (16, 9, 0, '2年50次通知包', 1, '50次3年有效期', 4.50, '20200327/sms1.jpg', '20200327/sms1.jpg', '', '有了它，懒人专用通知包', 0, 0, 100000000, 0, 0, '2020-03-27 12:44:12', '2020-03-27 12:44:12');
+INSERT INTO `product` VALUES (17, 9, 1, '按量计费通知', 1, '1次失物通知，购买通知套餐包价格更优惠哦', 0.10, '20200327/sms2.jpg', '20200327/sms2.jpg', '', '有了它，失物通知即刻到', 0, 0, 1000000000, 0, 0, '2020-03-27 12:45:20', '2020-03-27 12:45:20');
 
 -- ----------------------------
 -- Table structure for product_cat
@@ -502,23 +506,20 @@ CREATE TABLE `product_stock_change_log`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据库存变更表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Table structure for qr_code
+-- Table structure for member_sms_pkg
 -- ----------------------------
-DROP TABLE IF EXISTS `qr_code`;
-CREATE TABLE `qr_code`  (
+DROP TABLE IF EXISTS `member_sms_pkg`;
+CREATE TABLE `member_sms_pkg`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `member_id` int(11) UNSIGNED NOT NULL COMMENT '会员id',
-  `openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '第三方id',
-  `mobile` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员手机号码',
-  `order_id` int(11) UNSIGNED NULL DEFAULT NULL COMMENT '微信支付的订单id',
-  `name` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员姓名',
-  `location` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员收货地址',
-  `qr_code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '二维码图片',
+  `open_id` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员的openID，二维码标识',
+  `left_notify_times` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '套餐剩余通知次数',
+  `expired_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '消息包过期时间',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `ix_qr_code_openid`(`openid`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '二维码表' ROW_FORMAT = Dynamic;
+  INDEX `ix_member_sms_pkg_open_id`(`open_id`) USING BTREE,
+  INDEX `ix_member_sms_pkg_expired_time`(`expired_time`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '短信套餐包表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for queue_list
@@ -567,7 +568,8 @@ CREATE TABLE `thank_order`  (
   `paid_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '支付完成时间',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `ix_thank_order_order_sn`(`order_sn`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '答谢支付的订单' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -590,7 +592,9 @@ CREATE TABLE `thanks`  (
   `report_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '被举报后的状态，用于存储举报的状态值',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `ix_thanks_member_id`(`member_id`) USING BTREE,
+  INDEX `ix_thanks_target_member_id`(`target_member_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '答谢表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -627,7 +631,8 @@ CREATE TABLE `goods_top_order`  (
   `paid_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '支付完成时间',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `ix_goods_top_order_sn`(`order_sn`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品置顶支付的订单' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -642,14 +647,14 @@ CREATE TABLE `goods_top_order_callback_data`  (
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `ix_order_callback_data_order_id`(`top_order_id`) USING BTREE
+  UNIQUE INDEX `ix_goods_top_order_callback_data_order_id`(`top_order_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品置顶微信支付回调数据表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for acs_sms_send_log
 -- ----------------------------
 DROP TABLE IF EXISTS `acs_sms_send_log`;
-CREATE TABLE `ciwei_db`.`Untitled`  (
+CREATE TABLE `acs_sms_send_log`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `biz_uuid` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '本地业务ID',
   `phone_number` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '手机号',
@@ -668,5 +673,41 @@ CREATE TABLE `ciwei_db`.`Untitled`  (
   INDEX `ix_acs_sms_send_log_tmp_id`(`template_id`) USING BTREE COMMENT '模板ID，区分是否是验证码短信',
   INDEX `ix_acs_sms_send_log_phone_number`(`phone_numer`) USING BTREE COMMENT '手机号'
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '阿里云服务短信发送调用日志' ROW_FORMAT = Dynamic;
+
+
+-- ----------------------------
+-- Table structure for balance_order
+-- ----------------------------
+DROP TABLE IF EXISTS `balance_order`;
+CREATE TABLE `balance_order`  (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `order_sn` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '随机订单号',
+  `member_id` int(11) UNSIGNED NOT NULL COMMENT '会员id',
+  `openid` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '第三方id',
+  `transaction_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '微信支付交易号',
+  `price` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '支付金额',
+  `status` tinyint(1) NOT NULL DEFAULT -1 COMMENT '状态 -1=刚创建, 0=微信预下单-未支付,  1=微信支付成功, 2=微信已关单, 3=微信支付错误',
+  `paid_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '支付完成时间',
+  `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
+  `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `ix_balance_order_sn`(`order_sn`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '余额充值的订单' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for balance_order_callback_data
+-- ----------------------------
+DROP TABLE IF EXISTS `balance_order_callback_data`;
+CREATE TABLE `balance_order_callback_data`  (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `balance_order_id` int(11) NOT NULL DEFAULT 0 COMMENT '支付订单id',
+  `pay_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '支付回调信息',
+  `refund_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '退款回调信息',
+  `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
+  `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `ix_obalance_order_callback_data_order_id`(`balance_order_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '余额充值微信支付回调数据表' ROW_FORMAT = Dynamic;
+
 
 SET FOREIGN_KEY_CHECKS = 1;
