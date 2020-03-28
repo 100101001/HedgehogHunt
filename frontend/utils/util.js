@@ -70,12 +70,29 @@ function regexConfig() {
 }
 
 function toFixed(num=0, fix_num=2){
-  return parseFloat(num.toFixed(fix_num))
+  if (typeof num === 'number'){
+    return parseFloat(num.toFixed(fix_num))
+  }
+  if(typeof num === 'string'){
+    return parseFloat(parseFloat(num).toFixed(fix_num))
+  }
+  return 0.00
+}
+
+function toFixedStr(num=0, fix_num=2){
+  if (typeof num === 'number'){
+    return num.toFixed(fix_num)
+  }
+  if(typeof num === 'string'){
+    return parseFloat(num).toFixed(fix_num)
+  }
+  return "0.00"
 }
 
 module.exports = {
   formatTime: formatTime,
   onNavigateTap: onNavigateTap,
   regexConfig: regexConfig,
-  toFixed: toFixed
+  toFixed: toFixed,
+  toFixedStr: toFixedStr
 }

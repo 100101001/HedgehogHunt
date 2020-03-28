@@ -500,15 +500,17 @@ Page({
     this.onPullDownRefresh()
   },
   onUnload: function () {
-    wx.request({
-      url: app.buildUrl("/thanks/update-status"),
-      header: app.getRequestHeader(),
-      data: {
-        all: this.data.all_thanks_checked
-      },
-      success: res => {
-        app.getNewRecommend()
-      }
-    })
+    if (this.data.op_status != 4) {
+      wx.request({
+        url: app.buildUrl("/thanks/update-status"),
+        header: app.getRequestHeader(),
+        data: {
+          all: this.data.all_thanks_checked
+        },
+        success: res => {
+          app.getNewRecommend()
+        }
+      })
+    }
   }
 })
