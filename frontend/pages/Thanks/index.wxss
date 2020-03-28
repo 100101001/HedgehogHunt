@@ -137,3 +137,8 @@
 .amount_box text{
   margin-bottom: 40rpx;
 }
+
+.use-balance-specific{
+  margin: 0 auto;
+  margin-top: 50rpx;
+}

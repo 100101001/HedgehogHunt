@@ -2,14 +2,17 @@ const app = getApp()
 
 
 /**
- * 如果有二维码则保证账户余额留有1元用于付通讯费
+ * 勾选框状态变化
+ * 如果状态变为勾选：
+ * 1、如果有二维码且账户没有通讯费，则提示让用户慎用余额
+ * 2、否则就直接勾选
  * @param cb_confirm
  */
-const changeUseBalance = function (e={}, cb_confirm = ()=>{}) {
+const changeUseBalance = function (e = {}, cb_confirm = () => {}) {
   //如果勾选使余额，对有二维码的用户进行余额使用预警
   if (e.detail.value.length == 1) {
     wx.request({
-      url: app.buildUrl("/member/has-qrcode"),
+      url: app.buildUrl("/balance/use/warn"),
       header: app.getRequestHeader(),
       success: res => {
         let resp = res.data
@@ -17,16 +20,19 @@ const changeUseBalance = function (e={}, cb_confirm = ()=>{}) {
           cb_confirm()
           return
         }
-        if (resp['data']['has_qr_code']) {
+        if (resp['data']) {
+          //谨慎操作提示
           app.alert({
             title: "谨慎操作",
             content: "务必确保账户余额充足以便接收短信通知！！",
             cb_confirm: cb_confirm
           })
+        } else {
+          cb_confirm()
         }
       }
     })
-  } else{
+  } else {
     cb_confirm()
   }
 }
@@ -50,12 +56,12 @@ const initData = function (that, cb_success=()=>{}){
       let balance = parseFloat(resp['data']['balance'])
       that.setData({
         balance_got: balance > 0, //没有余额不可见
-        balance_use_disabled: balance < 0.6, //余额低于0.6不可用
-        balance_low: balance < 0.6, //余额低于0.6不可用
+        balance_use_disabled: balance <= 0, //禁用选项框
+        balance_low: balance <= 0, //余额低于0不可用
         total_balance: balance, //余额总量
-        balance: balance - 0.5 // 可用余额
+        balance: 0 // 可用余额
       })
-      cb_success()
+      cb_success(balance)
     }, fail: res => {
       app.serverBusy()
     }

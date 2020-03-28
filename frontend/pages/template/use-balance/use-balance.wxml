@@ -1,6 +1,6 @@
 <!--pages/template/use-balance/use-balance.wxml-->
 <template name="use-balance-checker">
-    <view class="use-balance-check">
+    <view class="use-balance-check use-balance-specific">
         <checkbox-group class="select-account-container" bindchange="changeUseBalance" wx:if="{{balance_got}}">
             <checkbox disabled="{{balance_use_disabled}}" checked="{{use_balance}}" color="#f7931e" class="account-check-box"></checkbox>
             <view class="account_money">

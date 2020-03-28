@@ -3,7 +3,7 @@
 .account_money{
 	color: #f7931e;
 	font-size: smaller;
-	margin-top: 10rpx;
+	margin-top: -0.1rpx;
 	text-align: center;
 	font-weight: 600;
 	display: flex;
@@ -21,6 +21,4 @@
 
 .use-balance-check{
 	display: block;
-	margin-top: 20rpx;
-	margin-bottom: 20rpx;
 }

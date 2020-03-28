@@ -111,7 +111,7 @@ Page({
     })
   },
   onShow: function () {
-    useBalance.initData(this, ()=>{
+    useBalance.initData(this, (total_balance)=>{
       this.setData({
         balance_use_disabled: true
       })
@@ -123,7 +123,22 @@ Page({
     })
   },
   listenerMoneyInput: function (e) {
-    this.setData({price: e.detail.value})
+    this.setData({
+      price: e.detail.value
+    })
+    //计算可用余额
+    let pay_money = util.toFixed(parseFloat(e.detail.value)*1.01, 2)
+    if(pay_money<=this.data.total_balance){
+      //余额足够
+      this.setData({
+        balance: pay_money //可用余额
+      })
+    } else {
+      //余额不够
+      this.setData({
+        balance: this.data.total_balance //全用
+      })
+    }
   },
   /**
    * 自定义了0元时，禁用选项
@@ -154,6 +169,24 @@ Page({
       balance_use_disabled: checkedRadio == 0,
       use_balance: checkedRadio == 0 ? false : this.data.use_balance
     })
+    //计算可用余额
+    if(checkedRadio != 3 && checkedRadio!=0){
+      //没有选择0元和自定义
+      let pay_price = util.toFixed(items[checkedRadio].price*1.01, 2)
+      if(pay_price<=this.data.total_balance) {
+        this.setData({
+          balance: pay_price
+        })
+      } else {
+        this.setData({
+          balance: this.data.total_balance
+        })
+      }
+    }else{
+      this.setData({
+        balance: 0
+      })
+    }
   },
   toSendThanks: function (e) {
     this.setData({canSendThank: false})
@@ -178,7 +211,7 @@ Page({
       this.setData({canSendThank: true})
       return
     }
-    this.data.thank_price = parseFloat(parseFloat(price).toFixed(2))
+    this.data.thank_price = util.toFixed(price, 2)
     this.doSendThanks()
   },
   doSendThanks: function () {
@@ -209,15 +242,22 @@ Page({
       }
     })
   },
+  /**
+   * doThankPayWithoutBalance
+   * 纯支付
+   */
   doThankPayWithoutBalance: function(){
-    let total_pay = this.data.total_pay
-    thankPay(total_pay, (order_sn) => {
-      this.createThanks(total_pay, order_sn)
+    thankPay(this.data.total_pay, (order_sn) => {
+      this.createThanks(this.data.thank_price, order_sn)
     }, this)
   },
+  /**
+   * toThankPayWithBalance 借用余额支付酬金，支付前进行支付金额核对
+   * 分为纯从账户扣和另需要支付
+   */
   toThankPayWithBalance: function() {
     let thank_price = this.data.thank_price
-    let total_pay = this.data.total_pay = parseFloat((thank_price * 1.01).toFixed(2))
+    let total_pay = this.data.total_pay = util.toFixed((thank_price * 1.01), 2)
     let fee_hint_content = ""
     let balance = this.data.balance
     if (total_pay <= balance) {
@@ -236,16 +276,23 @@ Page({
       cb_confirm: () => {
         //后端下支付单
         this.doThankPayWithBalance()
+      },
+      cb_cancel: ()=>{
+        this.setData({canSendThank: true})
       }
     })
   },
+  /**
+   * doThankPayWithBalance 勾选余额垫付的答谢支付实际处理函数
+   */
   doThankPayWithBalance: function () {
     let total_pay = this.data.total_pay
     let balance = this.data.balance
+    let thank_price = this.data.thank_price
     if (total_pay <= balance) {
       //纯余额支付
       changeUserBalance(-total_pay, () => {
-        this.createThanks(total_pay)
+        this.createThanks(thank_price)
       })
     } else {
       //先支付后再扣除余额
@@ -254,12 +301,16 @@ Page({
         console.log(order_sn)
         changeUserBalance(-balance, () => {
           console.log(order_sn)
-          this.createThanks(total_pay, order_sn)
+          this.createThanks(thank_price, order_sn)
         })
       }, this)
     }
   },
-  //支付单id默认为空
+  /**
+   * 创建答谢记录
+   * @param price 答谢金
+   * @param order_sn 答谢订单
+   */
   createThanks: function (price, order_sn = 'no') {
     let data = this.data.data
     data['target_price'] = price
