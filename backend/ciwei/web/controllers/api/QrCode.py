@@ -92,7 +92,7 @@ def notifyQrcodeOwner():
     params = request.get_json()
     openid = params['openid'] if 'openid' in params else ''
     if not openid:
-        return True
+        return ""
     # 判断扣除短信包还按量计费的条数，还是用户余额
     op_status = 0
     pkg = MemberSmsPkg.query.filter(MemberSmsPkg.open_id == openid,
@@ -106,11 +106,11 @@ def notifyQrcodeOwner():
         elif member_info.balance >= decimal.Decimal('0.10'):
             op_status = 2
         else:
-            return True
+            return ""
 
     data = params['goods'] if 'goods' in params else ''
     if not data:
-        return True
+        return ""
     target_member_info = Member.query.filter_by(openid=openid).first()
     if target_member_info:
         send_ok = SMSService.send_lost_notify(phone=target_member_info.mobile, goods_name=data['goods_name'],
@@ -127,7 +127,7 @@ def notifyQrcodeOwner():
                 db.session.add(member_info)
 
     db.session.commit()
-    return True
+    return ""
 
 
 @route_api.route("/qrcode/sms", methods=['GET', 'POST'])

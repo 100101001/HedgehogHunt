@@ -376,6 +376,8 @@ def goodsSearch():
         member_map = getDictFilterField(Member, Member.id, "id", member_ids)
         now = datetime.datetime.now()
         for item in goods_list:
+            if item.member_id not in member_map:
+                continue
             tmp_member_info = member_map[item.member_id]
             tmp_data = {
                 "id": item.id,
