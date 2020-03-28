@@ -450,7 +450,7 @@ def memberInfo():
         "mobile": member_info.mobile,
         "m_times": member_info.left_notify_times,
         "p_times": pkg.left_notify_times if pkg else 0,
-        "p_expire": pkg.expired_time if pkg else ''
+        "p_expire": pkg.expired_time.strftime(format="%Y-%m-%d") if pkg else ''
     }
     return jsonify(resp)
 
