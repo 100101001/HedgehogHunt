@@ -112,6 +112,7 @@ Page({
   },
   onShow: function () {
     useBalance.initData(this, (total_balance)=>{
+      //答谢页面的可用折扣是动态变化的，所以初始不用设置
       this.setData({
         balance_use_disabled: true
       })
@@ -170,7 +171,7 @@ Page({
       use_balance: checkedRadio == 0 ? false : this.data.use_balance
     })
     //计算可用余额
-    if(checkedRadio != 3 && checkedRadio!=0){
+    if(checkedRadio != 3){
       //没有选择0元和自定义
       let pay_price = util.toFixed(items[checkedRadio].price*1.01, 2)
       if(pay_price<=this.data.total_balance) {
@@ -183,8 +184,9 @@ Page({
         })
       }
     }else{
+      //选择了0元和自定义
       this.setData({
-        balance: 0
+        balance: this.data.total_balance
       })
     }
   },
@@ -229,6 +231,11 @@ Page({
       }
     }
   },
+  /**
+   * toThankPayWithoutBalance 纯支付
+   * 答谢金额核对，确认后继续答谢
+   * @param thanks_price
+   */
   toThankPayWithoutBalance: function (thanks_price = 0) {
     let thank_price = this.data.thank_price
     let total_pay = this.data.total_pay = util.toFixed(this.data.thank_price*1.01, 2)
@@ -239,12 +246,15 @@ Page({
       cb_confirm: () => {
         //后端下支付单
         this.doThankPayWithoutBalance()
+      },
+      cb_cancel: () =>{
+        this.setData({canSendThank: true})
       }
     })
   },
   /**
-   * doThankPayWithoutBalance
-   * 纯支付
+   * doThankPayWithoutBalance 纯支付
+   * 先支付，然后创建答谢记录
    */
   doThankPayWithoutBalance: function(){
     thankPay(this.data.total_pay, (order_sn) => {
@@ -256,15 +266,15 @@ Page({
    * 分为纯从账户扣和另需要支付
    */
   toThankPayWithBalance: function() {
-    let thank_price = this.data.thank_price
-    let total_pay = this.data.total_pay = util.toFixed((thank_price * 1.01), 2)
+    let thank_price = this.data.thank_price //用户输入的答谢金额
+    let total_pay = this.data.total_pay = util.toFixed((thank_price * 1.01), 2)  //根据手续费计算得出的用户需要支付的金额
     let fee_hint_content = ""
-    let balance = this.data.balance
-    if (total_pay <= balance) {
+    if (total_pay <= this.data.total_balance) {
       //纯余额支付
       fee_hint_content = (total_pay == thank_price ? '' : '由于微信手续费，') + '将从您的余额扣除' + total_pay + '元。'
     } else {
       //支付+余额
+      let balance = this.data.balance  //垫付的金额
       let pay_price = util.toFixed(total_pay - balance, 2)
       fee_hint_content = (total_pay == thank_price ? '' : '由于微信手续费，') +
         '从账户扣除' + balance + '元后，您需支付' + pay_price + '元。'
@@ -283,13 +293,14 @@ Page({
     })
   },
   /**
-   * doThankPayWithBalance 勾选余额垫付的答谢支付实际处理函数
+   * doThankPayWithBalance 使用余额垫付的支付，分纯余额和余额加支付两种
+   * 勾选余额垫付的答谢支付实际处理函数
    */
   doThankPayWithBalance: function () {
-    let total_pay = this.data.total_pay
-    let balance = this.data.balance
-    let thank_price = this.data.thank_price
-    if (total_pay <= balance) {
+    let thank_price = this.data.thank_price  //用户输入的答谢金额s
+    let total_pay = this.data.total_pay  //根据手续费计算得出的用户需要支付的金额
+    let balance = this.data.balance  //余额垫付的金额
+    if (total_pay <= this.data.total_balance) {
       //纯余额支付
       changeUserBalance(-total_pay, () => {
         this.createThanks(thank_price)
@@ -297,13 +308,12 @@ Page({
     } else {
       //先支付后再扣除余额
       let pay_price = util.toFixed(total_pay - balance, 2)
-      thankPay(pay_price, (order_sn) => {
-        console.log(order_sn)
+      thankPay(pay_price, (order_sn) => { //答谢的支付订单流水号
         changeUserBalance(-balance, () => {
           console.log(order_sn)
           this.createThanks(thank_price, order_sn)
         })
-      }, this)
+      }, this) //this用于失败后取消答谢按钮的禁用
     }
   },
   /**
@@ -319,6 +329,10 @@ Page({
     //后端创建感谢记录
     this.doCreateThanks(data)
   },
+  /**
+   * doCreateThanks 真正创建答谢的函数
+   * @param data 创建答谢的数据
+   */
   doCreateThanks: function (data = {}) {
     wx.request({
       url: app.buildUrl("/thanks/create"),

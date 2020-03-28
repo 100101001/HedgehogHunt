@@ -41,7 +41,7 @@ const changeUseBalance = function (e = {}, cb_confirm = () => {}) {
  * 如果余额大于5毛钱则
  * @param cb_confirm
  */
-const initData = function (that, cb_success=()=>{}){
+const initData = function (that, cb_success=(total_balance)=>{}){
   wx.request({
     url: app.buildUrl("/member/balance"),
     header: app.getRequestHeader(),
