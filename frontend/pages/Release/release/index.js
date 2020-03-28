@@ -1,6 +1,6 @@
 const useBalance = require("../../template/use-balance/use-balance")
 const util = require("../../../utils/util")
-const app = getApp();
+const app = getApp()
 
 /**
  * topCharge
@@ -758,6 +758,10 @@ Page({
       use_balance: isTop? false: this.data.use_balance //原来开着，说明关闭置顶，就必定false；反之开着选项则按原来的用户勾选
     })
   },
+  /**
+   * 设置使用余额开关
+   * @param e
+   */
   changeUseBalance: function (e) {
     useBalance.changeUseBalance(e, () => {
       this.setData({

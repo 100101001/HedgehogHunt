@@ -4,14 +4,22 @@
   <view class="nickname">{{nickname}}</view>
 </view>
 
-<video src="{{intro_url}}"
-       initial-time="{{intro_init_time}}"
-       style="position: absolute; z-index=1"
-       object-fit="fill"
-       title="使用介绍"
-       bindended="cancelIntroduce"
-       autoplay="true"
-       wx:if="{{!hiddenIntroduceModal}}"/>
+
+<view class="video-container" wx:if="{{!hiddenIntroduceModal}}">
+  <view class="close-video-btn-container" hover-class="close-animation-clockwise" bindtap="cancelIntroduce">
+    <image class="close-video-btn" src="/images/icons/kill-O.png"></image>
+  </view>
+  <video
+         class="video"
+         src="{{intro_url}}"
+         initial-time="{{intro_init_time}}"
+         object-fit="fill"
+         title="使用介绍"
+         bindended="cancelIntroduce"
+         autoplay="true"
+        />
+</view>
+
 
 <view class="userinfo">
   <view class="fundation_message">基本信息</view>
@@ -50,18 +58,13 @@
   <view class="userinfo_container" data-id="3" bindtap="onCatchTap">
     <view class="title">闪寻码</view>
     <view class="next">
-<!--      <view class="recharge_btn" bindtap="toGetQrCode" wx:if="{{!has_qrcode}}">获取</view>-->
-<!--      <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode && !show_qrcode}}">查看</view>-->
-<!--      <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode && show_qrcode}}">隐藏</view>-->
-
       <view class="recharge_btn intro" bindtap="toIntroduce">简介</view>
-      <view class="recharge_btn" bindtap="toGetQrCode">获取</view>
+      <view class="recharge_btn" bindtap="toGetQrCode" wx:if="{{!has_qrcode}}">获取</view>
+      <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode && !show_qrcode}}">查看</view>
+      <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode && show_qrcode}}">隐藏</view>
     </view>
   </view>
-
-
-
-  <image class="qr_code" data-src="{{qrCode}}" src="{{qrCode}}" bindtap='previewImage' data-id="0" wx:if="{{show_qrcode}}"></image>
+  <image class="qr_code" data-src="{{qr_code}}" src="{{qr_code}}" bindtap='previewImage' data-id="0" wx:if="{{show_qrcode}}"></image>
   <text class="save-qrcode-text" wx:if="{{show_qrcode}}">点击保存</text>
 </view>
 

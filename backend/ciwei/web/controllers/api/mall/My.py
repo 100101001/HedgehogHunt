@@ -5,7 +5,7 @@ import time
 
 from flask import g, request, jsonify
 
-from application import db
+from application import app, db
 from common.libs.Helper import selectFilterObj, getDictFilterField, seconds2str, getCurrentDate
 from common.libs.UrlManager import UrlManager
 from common.libs.mall.PayService import PayService
@@ -85,6 +85,10 @@ def myOrderList():
         for item in order_list:
             discount_price = item.discount_price
             tmp_map = order_sp_cnt_map[item.id]
+            app.logger.info("折扣是")
+            app.logger.info(discount_price)
+            app.logger.info("折扣类型是")
+            app.logger.info(item.discount_type)
             tmp_data = {
                 'status': item.pay_status,
                 'status_desc': item.status_desc,

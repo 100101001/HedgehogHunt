@@ -16,7 +16,7 @@ from common.models.ciwei.mall.Product import Product
 from web.controllers.api import route_api
 
 
-@route_api.route("/order/status/set", methods=['POST', 'GET'])
+@route_api.route("/order/express/status/set", methods=['POST', 'GET'])
 def setOrderStatus():
     resp = {'code': 200, 'msg': '', 'data': {}}
     req = request.values
@@ -36,7 +36,7 @@ def setOrderStatus():
         resp['code'] = -1
         resp['msg'] = "操作失败，请重试"
         return jsonify(resp)
-    order.status = status
+    order.express_status = status
     db.session.add(order)
     db.session.commit()
     return jsonify(resp)

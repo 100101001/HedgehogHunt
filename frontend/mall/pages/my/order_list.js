@@ -12,27 +12,81 @@ const getQrcodeFromWechat = function(cb_success=()=>{}) {
         success: function (res) {
             let resp = res.data
             if(resp['code']!==200){
+                qrCodeFailCallback()
                 return
             }
             app.globalData.has_qrcode = true
             cb_success()
         },
         fail: function (res) {
-            app.serverBusy()
+            qrCodeFailCallback()
         }
     })
 }
 
+/**
+ * qrCodeFailCallback 获取二维码失败时跳转联系技术支持
+ */
+const qrCodeFailCallback = function () {
+    app.alert({
+        title: "跳转提示",
+        content: "联系技术支持帮您获取二维码",
+        cb_confirm: () => {
+            wx.redirectTo({
+                url: '/pages/Mine/connect/index'
+            })
+        }
+    })
+}
 
-const smsBuySuccessCommonCallback = function (msg) {
+/**
+ * qrCodeSuccessCallback
+ * 获取二维码成功时，提示成功
+ */
+const qrCodeSuccessCallback = function (order_sn="") {
+    autoSendGoods(order_sn)
+    wx.showToast({
+        title: '购买闪寻码成功',
+        icon: 'success',
+        mask: true,
+        duration: 800,
+        success: function () {
+            setTimeout(function () {
+                app.alert({
+                    title: '赠品提示',
+                    content: '已发放5次免费的失物通知！',
+                    cb_confirm: () => {
+                        app.alert({
+                            title: '查看提示',
+                            content: '在入口页【我的】—【个人信息】查看您的专属闪寻码',
+                        })
+                    }
+                })
+            }, 700)
+        }
+    })
+}
+
+const autoSendGoods = function (order_sn) {
+    wx.request({
+        url: app.buildUrl("/order/express/status/set"),
+        data: {
+            order_sn: order_sn,
+            status: -6
+        }
+    })
+}
+
+/**
+ * smsBuySuccessCommonCallback
+ * 自动发短信包和短信货，并且用户提示
+ * @param msg
+ */
+const smsBuySuccessCommonCallback = function (order_sn="", msg="") {
+    autoSendGoods(order_sn)
     wx.showToast({
         title: msg,
-        duration: 600,
-        success:()=>{
-            setTimeout(()=>{
-                wx.navigateBack()
-            }, 600)
-        }
+        duration: 600
     })
 }
 
@@ -164,7 +218,7 @@ const orderPay = function (order_sn, cb_success=()=>{}) {
  * @param unit 余额变化
  * @param cb_success 回调函数
  */
-const changeUserBalance = function (unit = 0, cb_success = () => {}) {
+const changeUserBalance = function (unit = 0, cb_success = (order_sn) => {}) {
     wx.showLoading({
         title: "扣除余额中"
     })
@@ -223,15 +277,7 @@ Page({
      */
     onShow: function () {
         this.setSearchInitData()
-        if (this.data.isGettingQrcode) {
-            hasQrcode((has_qr_code) => {
-                this.data.has_qrcode = has_qr_code
-                this.data.isGettingQrcode = false
-                this.getPayOrderAndShowGettingQrcode()
-            })
-        } else {
-            this.getPayOrder();
-        }
+        this.getPayOrder()
     },
     /**
      * setSearchInitData
@@ -253,58 +299,6 @@ Page({
      */
     orderCancel: function (e) {
         this.orderOps(e.currentTarget.dataset.id, "cancel", "确定取消订单？");
-    },
-    /**
-     * getPayOrderAndShowGettingQrcode
-     * 除了获取订单列表外，根据二维码获取情况，给用户操作提示
-     */
-    getPayOrderAndShowGettingQrcode: function(){
-        this.getPayOrder()
-        wx.showLoading({
-            title: '获取闪寻码中',
-            mask: true
-        })
-        if (this.data.has_qrcode) {
-            //获取成功
-            setTimeout(() => {
-                wx.hideLoading()
-                wx.showToast({
-                    title: '获取成功',
-                    icon: 'success',
-                    mask: true,
-                    duration: 800,
-                    success: function () {
-                        setTimeout(function () {
-                            app.alert({
-                                title: '赠品提示',
-                                content: '已发放5次免费的失物通知！',
-                                cb_confirm: () => {
-                                    app.alert({
-                                        title: '查看提示',
-                                        content: '在入口页【我的】—【个人信息】查看您的专属闪寻码',
-                                    })
-                                }
-                            })
-                        }, 700)
-                    }
-                })
-            }, 500)
-        } else {
-            //获取失败
-            setTimeout(() => {
-                wx.hideLoading()
-                app.alert({
-                    title: "跳转提示",
-                    content: "联系技术支持帮您获取二维码",
-                    cb_confirm: () => {
-                        wx.redirectTo({
-                           url: '/pages/Mine/connect/index'
-                        })
-                    }
-                })
-            }, 500)
-        }
-
     },
     /**
      * getPayOrder 获取一页订单列(更多标记)
@@ -349,13 +343,13 @@ Page({
         if(balance_discount == 0) {
             //无余额垫付
             orderPay(order_sn, () => {
-                this.orderPaySuccessCallback(qr_code_num, sms_pkg_num, sms_num)
+                this.orderPaySuccessCallback(order_sn, qr_code_num, sms_pkg_num, sms_num)
             })
         }else{
             //余额垫付
             orderPay(order_sn, () => {
                 changeUserBalance(-balance_discount, () => {
-                    this.orderPaySuccessCallback(qr_code_num, sms_pkg_num, sms_num)
+                    this.orderPaySuccessCallback(order_sn, qr_code_num, sms_pkg_num, sms_num)
                 })
             })
         }
@@ -366,24 +360,26 @@ Page({
      * @param sms_pkg_num 购买的套餐包数量
      * @param sms_num 购买的按量计费消息数
      */
-    orderPaySuccessCallback: function(qr_code_num=0, sms_pkg_num=0, sms_num=0){
+    orderPaySuccessCallback: function(order_sn="", qr_code_num=0, sms_pkg_num=0, sms_num=0){
         if (qr_code_num) {
             //操作member和qr_code表
             this.data.isGettingQrcode = true
             getQrcodeFromWechat(()=>{
-                changeMemberSmsTimes(app.globalData.buyQrCodeFreeSmsTimes, ()=>{})
+                changeMemberSmsTimes(app.globalData.buyQrCodeFreeSmsTimes, ()=>{
+                    qrCodeSuccessCallback(order_sn)  //自动发货和用户提示
+                })
             })
         }
         else if(sms_pkg_num) {
             //操作sms_pkg表
             addSmsPkg(()=>{
-               smsBuySuccessCommonCallback('短信包购买成功')
+               smsBuySuccessCommonCallback(order_sn, '短信包购买成功') //自动发货和用户提示
             })
         }
         else if(sms_num){
             //操作qr_code表
             changeMemberSmsTimes(sms_num, ()=>{
-                smsBuySuccessCommonCallback('短信购买成功')
+                smsBuySuccessCommonCallback(order_sn,'短信购买成功') //自动发货和用户提示
             })
         }
     },

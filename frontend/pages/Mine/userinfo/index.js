@@ -435,9 +435,11 @@ Page({
   },
   cancelIntroduce: function(){
     //停止播放并隐藏模态框
-    this.setData({
-      hiddenIntroduceModal: true
-    })
+    setTimeout(()=>{
+      this.setData({
+        hiddenIntroduceModal: true
+      })
+    }, 700)
   },
   toEditPhone: function () {
     wx.navigateTo({
