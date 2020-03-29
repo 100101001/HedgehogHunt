@@ -307,10 +307,9 @@ Page({
    * 否则，终止操作
    */
   confirmRechargeBalance: function(){
-    let amount = parseFloat(this.data.balance_recharge_amount)
-    if (amount) {
+    let pay_price = util.toFixed(parseFloat(this.data.balance_recharge_amount) * 1.01, 2)
+    if (pay_price) {
       //充值金额大于零才继续
-      let pay_price = util.toFixed(this.data.balance_recharge_amount * 1.01, 2)
       app.alert({
         title: '充值确认',
         content: '您需要支付' + pay_price + '元，确认充值？',
@@ -320,6 +319,7 @@ Page({
         }
       })
     }
+    //关闭输入金额的弹出框
     this.cancelRechargeBalance()
   },
   /**
