@@ -406,9 +406,21 @@ def memberInfo():
     else:
         qr_code_url = ""
 
-    pkg = MemberSmsPkg.query.filter(MemberSmsPkg.open_id == member_info.openid,
-                                    MemberSmsPkg.expired_time >= datetime.datetime.now()) \
-        .order_by(MemberSmsPkg.id.desc()).first()
+    pkgs = MemberSmsPkg.query.filter(MemberSmsPkg.open_id == member_info.openid,
+                                    MemberSmsPkg.expired_time >= datetime.datetime.now()).all()
+
+    p_times = 0  # 计算套餐包有效期内总数量
+    pkg_data_list = []
+    for item in pkgs:
+        p_time = item.left_notify_times
+        tmp_data = {
+            'num': p_time,
+            'expire': item.expired_time.strftime(format="%Y-%m-%d")
+        }
+        p_times += p_time
+        pkg_data_list.append(tmp_data)
+
+    m_times = member_info.left_notify_times  # 计算按量购买的数量
     resp['data']['info'] = {
         'nickname': member_info.nickname,
         'avatar': member_info.avatar,
@@ -419,9 +431,9 @@ def memberInfo():
         "has_qrcode": has_qrcode,
         "name": member_info.name,
         "mobile": member_info.mobile,
-        "m_times": member_info.left_notify_times,
-        "p_times": pkg.left_notify_times if pkg else 0,
-        "p_expire": pkg.expired_time.strftime(format="%Y-%m-%d") if pkg else ''
+        "m_times": m_times,
+        "total_times": p_times + m_times,
+        "pkgs": pkg_data_list
     }
     return jsonify(resp)
 

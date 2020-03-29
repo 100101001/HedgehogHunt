@@ -89,16 +89,22 @@ def myOrderList():
                 'status': item.pay_status,
                 'status_desc': item.status_desc,
                 'date': item.created_time.strftime("%Y-%m-%d %H:%M:%S"),
-                'order_number': item.order_number,
+                'order_number': item.order_number,  # 向前端隐藏真实id
                 'order_sn': item.order_sn,
                 'note': item.note,
                 'total_price': str(item.total_price),
-                'goods_list': order_item_map[item.id],
+                'goods_list': order_item_map[item.id],  # 产品列表
+                'express_sn': item.express_sn,  # 订单号
                 'balance_discount': str(discount_price) if discount_price > 0 else "0.00",
                 'qr_code_num': tmp_map['qr_code'] if 'qr_code' in tmp_map else 0,
                 'sms_num': tmp_map['sms'] if 'sms' in tmp_map else 0,
-                'sms_package_num': tmp_map['sms_package'] if 'sms_package' in tmp_map else 0,
+                'sms_package_num': tmp_map['sms_package'] if 'sms_package' in tmp_map else 0
             }
+            # 如果只有非周边商品则付完款，前端自动发货
+            tmp_data['only_special'] = len(order_item_map[item.id]) == \
+                                       (1 if tmp_data['sms_num'] else 0 + \
+                                        1 if tmp_data['sms_package_num'] else 0 + \
+                                        1 if tmp_data['qr_code_num'] else 0)
 
             data_order_list.append(tmp_data)
     resp['data']['pay_order_list'] = data_order_list

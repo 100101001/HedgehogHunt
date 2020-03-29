@@ -35,6 +35,7 @@ class Order(db.Model):
                                                                              "0：失败")
     express_address_id = db.Column(db.Integer, nullable=False, default=0, comment="快递地址id")
     express_info = db.Column(db.String(1000), nullable=False, default='', comment="快递信息")
+    express_sn = db.Column(db.String(50), nullable=False, default='', comment="快递单号")
     comment_status = db.Column(TINYINT(), nullable=False, default=0, comment="评论状态")
     pay_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment="付款到账时间")
     updated_time = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now,
