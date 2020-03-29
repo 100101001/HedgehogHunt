@@ -30,7 +30,10 @@ page{
 
 .video{
   position: absolute;
-  left: 75rpx;
+  left: 86rpx;
+  top: 5rpx;
+  width: 600rpx;
+  height: 450rpx;
 }
 
 .close-video-btn-container{
@@ -38,8 +41,8 @@ page{
   height: 60rpx;
   position: absolute;
   z-index: 2;
-  left: 645rpx;
-  top: -30rpx;
+  left: 655rpx;
+  top: -25rpx;
   align-content: center;
 }
 

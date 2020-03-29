@@ -139,9 +139,8 @@ Page({
           has_qrcode: info['has_qrcode'],
           qr_code: info['qr_code'],
           member_notify_times: info['m_times'],
-          pkg_notify_times: info['p_times'],
-          total_notify_times: info['m_times'] + info['p_times'],
-          pkg_expire: info['p_expire']
+          total_notify_times: info['total_times'],
+          sms_pkgs: info['pkgs']
         })
       },
       fail: (res) => {
@@ -178,9 +177,9 @@ Page({
     })
   },
   confirmNameEdit: function (e) {
-    if (this.data.editName == "") {
+    if (!this.data.editName) {
       app.alert({
-        'content': '姓名不能为空'
+        content: '姓名不能为空'
       })
       return
     }
@@ -244,6 +243,9 @@ Page({
     }
     toOrderSpecialProduct(data)
   },
+  /**
+   * checkQrCode 点击查看/隐藏二维码
+   */
   checkQrCode: function () {
     this.setData({
       show_qrcode: !this.data.show_qrcode
@@ -265,7 +267,7 @@ Page({
     })
   },
   /**
-   *
+   * cancelContact 关闭了提现客服窗口
    * @param e
    */
   cancelContact: function (e) {
@@ -292,6 +294,10 @@ Page({
       hiddenBalanceRecharge: false
     })
   },
+  /**
+   * listenBalanceRecharge 监听用户输入的钱数
+   * @param e
+   */
   listenBalanceRecharge: function(e){
     this.data.balance_recharge_amount = e.detail.value
   },
@@ -301,27 +307,20 @@ Page({
    * 否则，终止操作
    */
   confirmRechargeBalance: function(){
-    if(!this.data.balance_recharge_amount){
-      this.cancelRechargeBalance()
-      return
+    let amount = parseFloat(this.data.balance_recharge_amount)
+    if (amount) {
+      //充值金额大于零才继续
+      let pay_price = util.toFixed(this.data.balance_recharge_amount * 1.01, 2)
+      app.alert({
+        title: '充值确认',
+        content: '您需要支付' + pay_price + '元，确认充值？',
+        showCancel: true,
+        cb_confirm: () => {
+          this.doBalanceRecharge(pay_price)
+        }
+      })
     }
-    let pay_price = util.toFixed(this.data.balance_recharge_amount*1.01, 2)
-    if(!pay_price) {
-      this.cancelRechargeBalance()
-      return
-    }
-
-    console.log(pay_price)
-    app.alert({
-      title: '充值确认',
-      content: '您需要支付'+pay_price+'元，确认充值？',
-      showCancel: true,
-      cb_confirm: ()=>{
-        this.doBalanceRecharge(pay_price)
-        this.cancelRechargeBalance() //隐藏输入金额的模态框
-      },
-      cb_cancel: this.cancelRechargeBalance() //隐藏金额输入的模态框
-    })
+    this.cancelRechargeBalance()
   },
   /**
    * doBalanceRecharge 充值余额的实际操作函数
@@ -387,25 +386,31 @@ Page({
       }
     })
   },
+  /**
+   * listenSmsCnt 监听用户输入购买的短信条数
+   * @param e
+   */
   listenSmsCnt: function(e){
     this.data.sms_num = e.detail.value
   },
   /**
-   * 确定购买指定条数的短信
+   * confirmSmsTimes 确定购买指定条数的短信
    * @param e
    */
   confirmSmsTimes: function(e){
-    let data = {
-      type: 'toBuy',
-      goods: [{'id': app.globalData.smsProductId, 'price': app.globalData.smsProductPrice, 'number': parseInt(this.data.sms_num)}]
+    let num = parseInt(this.data.sms_num)
+    if (num) {
+      //购买数量大于0，才继续
+      let data = {
+        type: 'toBuy',
+        goods: [{'id': app.globalData.smsProductId, 'price': app.globalData.smsProductPrice, 'number': num}]
+      }
+      toOrderSpecialProduct(data)
     }
-    toOrderSpecialProduct(data)
-    this.setData({
-      hiddenSmsTimesModal: true
-    })
+    this.cancelSmsTimes()
   },
   /**
-   * 取消购买指定条数的短信
+   * cancelSmsTimes 关闭短信购买数量的盒子
    */
   cancelSmsTimes: function(){
     this.setData({

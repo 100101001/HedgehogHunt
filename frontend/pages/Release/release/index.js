@@ -1,6 +1,24 @@
 const useBalance = require("../../template/use-balance/use-balance")
 const util = require("../../../utils/util")
-const app = getApp()
+const app = getApp()  //不能修改app,但可以修改app的属性
+const globalData = app.globalData
+
+
+const getSubscribeTmpIds = function (business_type=0) {
+  let tmpIds = []
+  if (business_type == globalData.business_type.found){ //失物招领
+    tmpIds = [
+      globalData.subscribe.thanks,
+      globalData.subscribe.finished.found
+    ]
+  } else {
+    tmpIds = [
+      globalData.subscribe.recommend,
+      globalData.subscribe.finished.lost
+    ]
+  }
+  return tmpIds
+}
 
 /**
  * topCharge
@@ -136,9 +154,7 @@ Page({
             this.setInitData()
           },
           fail: (res) => {
-            wx.redirectTo({
-              url: '../../Find/Find?business_type=1',
-            })
+            wx.navigateBack()
           }
         })
       }
@@ -376,11 +392,7 @@ Page({
    */
   subscribeMsgAndNotifyRelease: function (data) {
     wx.requestSubscribeMessage({
-      tmplIds: [
-        app.globalData.subscribe.recommend,  //首次(被)匹配
-        app.globalData.subscribe.finished,  //已完成
-        app.globalData.subscribe.thanks  //被答谢
-      ],
+      tmplIds: getSubscribeTmpIds(this.data.business_type),
       complete: (res) => {
         this.notifyAndRelease(data)
       }
@@ -394,7 +406,7 @@ Page({
    */
   notifyAndRelease: function(data){
     //通知失主
-    if (app.globalData.isScanQrcode) {
+    if (globalData.isScanQrcode) {
       this.sendNotification(data)
     }
     //上传数据
@@ -617,7 +629,9 @@ Page({
       }
     })
   },
-  //设置页面参数
+  /**
+   *
+   */
   setInitData: function () {
     var info = app.globalData.info;
     var location = info.location; //用于让别人帮忙寄回物品

@@ -88,6 +88,7 @@
   <view><image data-src="{{contact_img}}" class="contact-info" src="{{contact_img}}" bindtap="previewImage" /></view>
 </modal>
 
+<!--短信-->
 <modal hidden="{{hiddenSmsTimesModal}}" title="购买短信条数" confirm-text="确定" cancel-text="取消" bindconfirm="confirmSmsTimes"  bindcancel="cancelSmsTimes">
     <view class="input-number">
         <input type="number" focus="true"  cursor-spacing='100' placeholder="请输入条数" bindinput="listenSmsCnt" value="{{sms_num}}"/>
@@ -95,15 +96,19 @@
     </view>
 </modal>
 
+<!--短信包详情-->
 <modal hidden="{{hiddenSmsPkgModal}}" title="购买短信套餐包" confirm-text="确定" cancel-text="取消" bindconfirm="confirmSmsPkg" bindcancel="cancelSmsPkg">
     <view>优惠价{{sms_pkg_price}}元，包3年通知，上限50条。</view>
 </modal>
 
+<!--短信套餐详情-->
 <modal class="sms-detail-modal" wx:if="{{total_notify_times}}" hidden="{{hiddenSmsDetailModal}}" title="短信余额详情" no-cancel="true" confirm-text="确定" bindconfirm="closeSmsDetail">
   <view class="sms-detail">
-    <view wx:if="{{pkg_notify_times}}">短信包：{{pkg_notify_times}}条至{{pkg_expire}}</view>
-    <view wx:if="{{!pkg_notify_times}}">短信包：无</view>
-    <view class="hrz"></view>
+    <view wx:if="{{!sms_pkgs.length}}">短信包：无</view>
+    <block wx:for="{{sms_pkgs}}" wx:key="index">
+      <view>短信包：{{item.num}}条至{{item.expire}}</view>
+      <view class="hrz"></view>
+    </block>
     <view wx:if="{{member_notify_times}}">按量购：无限期{{member_notify_times}}条</view>
     <view wx:if="{{!member_notify_times}}">按量购：无限期0条</view>
   </view>

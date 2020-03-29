@@ -18,7 +18,7 @@ App({
     //static_file_domain: "http://192.168.0.116:8999",
     member_status: 1, //用户状态
     op_status: 2,
-    indexPage: null, //首页
+    indexPage: null, //首页（扫码进入控制“逛一逛”按钮显示）
     isScanQrcode: false, //是否扫码进入
     qrcodeOpenid: "", //二维码用户ID
     unLoggedRelease: false, //扫码用户未注册仍继续发布
@@ -33,13 +33,23 @@ App({
     smsPkgProductPrice: 5, //短信包量产品价格
     buyQrCodeFreeSmsTimes: 5, //购买二维码免费赠送的通知次数
     subscribe: {  //订阅消息的模板ID
-      recommend: 'zSCF_j0kTfRvPe8optyb5sx8F25S3Xc9yCvvObXFCh4',
-      finished: 'Vx58nqU-cfi07bu4mslzCFhFyGTT52Xk4zlsrwC-MVA',
-      thanks: 'gBSM-RF5b3L_PoT3f1u8ibxZMz-qzAsNSZy2LSBPsG8'
+      recommend: 'ecym_eXCQjpxYgG3ov95r6OrWernCO3QKqsN1qcx7Yc', //给寻物启事发帖者发送匹配通知
+      finished: {
+        found: '_dAjVN6DHEewP_z01WhKXlZ7xY9nfs_OEtVbnBC88MU',  //各失物招领发布者发送被取回的通知
+        lost: 'bHZTF62ciS-03u8MmGe0cA7YMVHdGpwH-bY9wrmfDfY'  //给寻物启事发布者发送物品被归还通知
+      },
+      thanks: 'MxeBoTL5FcGb8DGtQtsoesFS5VmEd67KlRtMAQj8hoI'  //给失物招领发帖者发送答谢通知
     },
     business_type: { //失物招领与寻物启事的标记
       found: 1, //失物招领
       lost: 0 //寻物启事
+    },
+    kd100 :{   // 快递100的常数
+      appId: "wx6885acbedba59c14",
+      paths: {
+        query: "pages/index/index?source=third_xcx",  //查询页面
+        result: "pages/result/result?com=&querysource=third_xcx&nu="
+      }
     },
     campus_id: -1, //学校id
     campus_name: "", //学校名
@@ -63,6 +73,11 @@ App({
       }
     })
   },
+  /**
+   * loginTip 用户点击了需要登录的功能按键时进入该函数
+   * 用户未登录时，函数会对外部调用的函数拦截，并导向登录页面
+   * @returns {boolean}
+   */
   loginTip: function () {
     //返回值：是否已登录过
     //操作：没登录过就登录，否则什么都不做。
@@ -83,6 +98,10 @@ App({
       return true
     }
   },
+  /**
+   *
+   * @param params
+   */
   tip: function (params) {
     var title = params.hasOwnProperty('title') ? params['title'] : '提示信息';
     var content = params.hasOwnProperty('content') ? params['content'] : '';
@@ -305,14 +324,15 @@ App({
   /***
    * doCheckLogin 前端登录向后台传递code，
    * 后台利用code在微信登录后获得用户的openid，判断openid对应的用户是否已经注册、如果已经注册了是否是管理员，以及是否有二维码等用户状态信息
-   * @param cb_call 成功
+   * 成功后，先缓存数据，再根据是否扫码进行页面跳转(扫码)或者成功登录提示(非扫码)
    */
   doCheckLogin: function(){
     wx.login({
       success: (res) => {
         let code = res.code
         if (!code) {
-          app.alert({content: '网络开小差了，请稍后再用小程序'})
+          //没有拿到登录用的code
+          app.alert({content: '网络开小差了，请稍后再试'})
           return
         }
         //成功拿到code

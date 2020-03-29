@@ -167,3 +167,8 @@
     color: #999;
     background-color: #fff;
 }
+
+.topay-specific {
+    margin-left: 120rpx;
+    justify-content: flex-end;
+}

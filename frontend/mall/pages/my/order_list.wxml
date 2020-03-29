@@ -38,12 +38,15 @@
             <view class="price-box">
                 <view class="total-price">合计：¥ {{item.total_price}}</view>
                 <view class="btn cancel-btn" bindtap="orderCancel" data-id="{{item.order_sn}}" wx:if="{{item.status==-8}}">取消订单</view>
-                <!--是否余额折扣，是否要买二维码，按量短信，短信包-->
+                <!--dataset包含：是否余额折扣，是否要买二维码，按量短信，短信包-->
                 <view class="btn topay-btn" bindtap="toPay" data-id="{{item.order_sn}}" data-balance="{{item.balance_discount}}"
                       data-sms ="{{item.sms_num}}" data-qr_code ="{{item.qr_code_num}}" data-sms_pkg="{{item.sms_package_num}}"
+                      data-special="item.only_special"
                       wx:if="{{item.status==-8}}">马上付款</view>
                 
-                <!-- <view class="btn cancel-btn" bindtap="orderRecall" data-id="{{item.order_sn}}" wx:if="{{item.status==-8}}">取消订单</view> -->
+                 <view class="btn topay-btn" bindtap="orderRecall" data-id="{{item.order_sn}}" wx:if="{{item.status==-7}}">取消订单</view>
+
+                <view class="btn cancel-btn" bindtap="orderLogistic" data-id="{{item.order_sn}}" data-express_sn="{{item.express_sn}}" wx:if="{{item.status==-6}}">查看物流</view>
                 <view class="btn topay-btn" bindtap="orderConfirm" data-id="{{item.order_sn}}" wx:if="{{item.status==-6}}">确认收货</view>
 
                 <view class="btn topay-btn" bindtap="orderComment" data-id="{{item.order_sn}}" wx:if="{{item.status==-5}}">走，去评价</view>

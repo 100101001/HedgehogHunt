@@ -62,5 +62,8 @@
     "scope.userLocation": {
       "desc": "物品的定位将更加精确"
     }
-  }
+  },
+  "navigateToMiniProgramAppIdList":[
+    "wx6885acbedba59c14"
+  ]
 }

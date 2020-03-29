@@ -1,5 +1,5 @@
 const app = getApp();
-
+const globalData = app.globalData
 /**
  * getQrcodeFromWechat
  * 获取二维码
@@ -67,6 +67,10 @@ const qrCodeSuccessCallback = function (order_sn="") {
     })
 }
 
+/**
+ * autoSendGoods 将order_sn订单物流状态设为已发货
+ * @param order_sn
+ */
 const autoSendGoods = function (order_sn) {
     wx.request({
         url: app.buildUrl("/order/express/status/set"),
@@ -293,8 +297,7 @@ Page({
         })
     },
     /**
-     * orderCancel
-     * 取消订单
+     * orderCancel 取消订单
      * @param e
      */
     orderCancel: function (e) {
@@ -328,13 +331,14 @@ Page({
         });
     },
     /**
-     * 如果订单余额垫付，则增加一层扣除余额
+     * toPay 如果订单余额垫付，则增加一层扣除余额
      * @param e
      */
     toPay: function (e) {
         let dataset = e.currentTarget.dataset
         //订单流水号和垫付的余额数
         let order_sn = dataset.id
+        let only_special = dataset.special
         let balance_discount = dataset.balance
         //订单中购买的非周边产品
         let sms_num = dataset.sms
@@ -343,13 +347,13 @@ Page({
         if(balance_discount == 0) {
             //无余额垫付
             orderPay(order_sn, () => {
-                this.orderPaySuccessCallback(order_sn, qr_code_num, sms_pkg_num, sms_num)
+                this.orderPaySuccessCallback(order_sn, qr_code_num, sms_pkg_num, sms_num, only_special)
             })
         }else{
             //余额垫付
             orderPay(order_sn, () => {
                 changeUserBalance(-balance_discount, () => {
-                    this.orderPaySuccessCallback(order_sn, qr_code_num, sms_pkg_num, sms_num)
+                    this.orderPaySuccessCallback(order_sn, qr_code_num, sms_pkg_num, sms_num, only_special)
                 })
             })
         }
@@ -359,14 +363,17 @@ Page({
      * @param qr_code_num 购买的二维码数量
      * @param sms_pkg_num 购买的套餐包数量
      * @param sms_num 购买的按量计费消息数
+     * @param only_special 是否只有非实物产品(非周边)，根据这点自动发货
      */
-    orderPaySuccessCallback: function(order_sn="", qr_code_num=0, sms_pkg_num=0, sms_num=0){
+    orderPaySuccessCallback: function(order_sn="", qr_code_num=0, sms_pkg_num=0, sms_num=0, only_special=false){
         if (qr_code_num) {
             //操作member和qr_code表
             this.data.isGettingQrcode = true
             getQrcodeFromWechat(()=>{
                 changeMemberSmsTimes(app.globalData.buyQrCodeFreeSmsTimes, ()=>{
-                    qrCodeSuccessCallback(order_sn)  //自动发货和用户提示
+                    if (only_special) {
+                        qrCodeSuccessCallback(order_sn)  //自动发货和用户提示
+                    }
                 })
             })
         }
@@ -383,19 +390,77 @@ Page({
             })
         }
     },
+    /**
+     * orderConfirm 待确认订单 status=-6,进行确认收货操作
+     * @param e
+     */
     orderConfirm: function (e) {
         this.orderOps(e.currentTarget.dataset.id, "confirm", "确定收到？");
     },
+    /**
+     * orderComment 待评价的订单
+     * @param e
+     */
     orderComment: function (e) {
         wx.navigateTo({
             url: "/mall/pages/my/comment?order_sn=" + e.currentTarget.dataset.id
         })
     },
+    /**
+     * orderRecall 待发货订单——进行退货
+     * @param e
+     */
+    orderRecall: function(e){
+        //提示确认退货
+        //调用后端进行退款 https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_4
+        //显示调用成功，等待退款到账
+        wx.request({
+            url: app.buildUrl(),
+            header: app.getRequestHeader(),
+            data: {
+
+            },
+            success: (res) => {
+
+            }
+        })
+    },
+    /**
+     * orderLogistic 待确认订单——查看物流
+     * @param e
+     */
+    orderLogistic: function(e){
+        // e.currentTarget.dataset.express_sn
+        wx.setClipboardData({
+            data: "75337965025053",
+            success: res => {
+                wx.showToast({
+                    title: '快递单号已复制',
+                    success: res =>{
+                        setTimeout(()=>{
+                            wx.navigateToMiniProgram({
+                                appId: globalData.kd100.appId,
+                                path: globalData.kd100.paths.result+"75337965025053",
+                            })
+                        }, 400)
+                    }
+                })
+            }
+        })
+    },
+    /**
+     * orderOps 订单操作前进行操作核实
+     * 确认继续操作，否则终止
+     * @param order_sn 订单号
+     * @param act 操作
+     * @param msg 核实信息
+     */
     orderOps: function (order_sn, act, msg) {
-        var that = this;
-        var params = {
-            "content": msg,
-            "cb_confirm": function () {
+        app.alert({
+            title: '提示信息',
+            content: msg,
+            showCancel: true,
+            cb_confirm: () => {
                 wx.request({
                     url: app.buildUrl("/order/ops"),
                     header: app.getRequestHeader(),
@@ -404,17 +469,16 @@ Page({
                         order_sn: order_sn,
                         act: act
                     },
-                    success: function (res) {
-                        var resp = res.data;
-                        app.alert({ "content": resp.msg });
-                        if (resp.code == 200) {
-                            that.getPayOrder();
+                    success: (res) => {
+                        let resp = res.data;
+                        app.alert({content: resp['msg']})
+                        if (resp['code'] == 200) {
+                            this.getPayOrder()
                         }
                     }
-                });
+                })
             }
-        };
-        app.tip(params);
+        })
     },
     /**
      * onReachBottom 如果还有未加载的订单就获取下一页
