@@ -92,11 +92,11 @@ Page({
       ]
     }
     this.setData({
-      only_new: false,
+      only_new: true,
       check_status_id: op_status == 1 ? 2 : 1, //代表当前选中的选项卡，认寻记录的默认状态是预，其它都是待
       infos: {
         list: {},
-        only_new: false,
+        only_new: true,
         saveHidden: true,
         op_status: op_status,  //参数,代表正在查看认领/匹配/发布/答谢
         check_status_id: 1, //代表当前选中的选项卡
