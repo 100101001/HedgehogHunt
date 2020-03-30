@@ -24,11 +24,6 @@ from common.models.ciwei.Thanks import Thank
 from web.controllers.api import route_api
 
 
-@route_api.route('/goods/top/info', methods=['GET'])
-def topPrice():
-    return jsonify({'code': 200, 'data': {'price': 0.01, 'days': 7}})
-
-
 @route_api.route("/goods/top/order", methods=['POST', 'GET'])
 def topOrder():
     resp = {'code': 200, 'msg': 'success', 'data': {}}
@@ -377,6 +372,9 @@ def goodsSearch():
         now = datetime.datetime.now()
         for item in goods_list:
             if item.member_id not in member_map:
+                item.status = 7
+                db.session.add(item)
+                db.session.commit(item)
                 continue
             tmp_member_info = member_map[item.member_id]
             tmp_data = {
