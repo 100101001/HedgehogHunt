@@ -120,7 +120,7 @@ class MemberService():
         # 按物主owner_name, 物品名name 匹配失/拾物品
         # 在失去物品的作者的recommmend_id中加入匹配到的拾物品id
         # 不能是同一个人发布的拾/失
-        query = Good.query.filter(Good.status != 7, Good.status != 5, Good.status != 8)
+        query = Good.query.filter(Good.status != 7, Good.status != 5)
         query = query.filter_by(owner_name=goods_info.owner_name)
         query = query.filter_by(name=goods_info.name)
         query = query.filter(Good.member_id != goods_info.member_id)
