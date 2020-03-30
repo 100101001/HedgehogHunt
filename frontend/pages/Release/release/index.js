@@ -27,7 +27,7 @@ const getSubscribeTmpIds = function (business_type=0) {
  * @param cb_success 回调函数
  * @param that 页面指针
  */
-const topCharge = function (pay_price=app.globalData.goodsTopPrice, cb_success=()=>{}, that) {
+const topCharge = function (pay_price=globalData.goodsTopPrice, cb_success=()=>{}, that) {
   wx.request({
     url: app.buildUrl('/thank/order'),
     header: app.getRequestHeader(),
@@ -125,7 +125,7 @@ Page({
    */
   onLoad: function (options) {
     let auther_id = options.auther_id == undefined ? "" : options.auther_id
-    if (app.globalData.isScanQrcode) { //扫码发布
+    if (globalData.isScanQrcode) { //扫码发布
       this.setData({
         business_type: 1,
         location: [],
@@ -317,7 +317,7 @@ Page({
    * @param data 包含发布所需数据
    */
   handleRelease: function (data) {
-    if (app.globalData.unLoggedRelease) {
+    if (globalData.unLoggedRelease) {
       //无登录发布
       this.notifyAndRelease(data)
     } else {
@@ -417,28 +417,31 @@ Page({
    * @param data 失物数据
    */
   sendNotification: function (data) {
-    wx.request({
-      url: app.buildUrl('/qrcode/notify'),
-      header: app.getRequestHeader(1),
-      method: 'post',
-      data: {
-        'goods': data,
-        'openid': app.globalData.qrcodeOpenid
-      },
-      complete: res => {
-        app.globalData.isScanQrcode = false
-        app.globalData.qrcodeOpenid = ""
-      }
-    })
+    if (globalData.qrcodeOpenid) {
+      wx.request({
+        url: app.buildUrl('/qrcode/notify'),
+        header: app.getRequestHeader(1),
+        method: 'post',
+        data: {
+          'goods': data,
+          'openid': globalData.qrcodeOpenid
+        },
+        complete: res => {
+          //通知完毕
+          app.qrcodeNotified()
+        }
+      })
+    }
   },
   /**
+   * @name releaseUnload
    * onUnload 一旦退出页面就将扫码相关全局标记重置
    */
   onUnload: function () {
-    app.globalData.isScanQrcode = false
-    app.globalData.qrcodeOpenid = ""
-    app.globalData.unLoggedRelease = false
-    app.globalData.unLoggedReleaseToken = null
+    if (globalData.isScanQrcode) {
+      //清除扫码标记
+      app.cancelQrcodeScan()
+    }
   },
   /**
    * uploadData 创建帖子(填充除图片外的数据)
@@ -448,7 +451,7 @@ Page({
     wx.request({
       url: app.buildUrl("/goods/create"),
       method: 'POST',
-      header: app.globalData.unLoggedRelease ? app.globalData.unLoggedReleaseToken : app.getRequestHeader(),
+      header: globalData.unLoggedRelease ? globalData.unLoggedReleaseToken : app.getRequestHeader(),
       data: data,
       success: (res) => {
         let resp = res.data;
@@ -508,7 +511,7 @@ Page({
     wx.request({
       url: app.buildUrl('/goods/update-pics'),
       method: 'POST',
-      header: app.globalData.unLoggedRelease ? app.globalData.unLoggedReleaseToken : app.getRequestHeader(),
+      header: globalData.unLoggedRelease ? globalData.unLoggedReleaseToken : app.getRequestHeader(),
       data: {
         id: id,
         img_url: img_list[i - 1]
@@ -536,7 +539,7 @@ Page({
   addImage: function (id, img_list, i) {
     wx.uploadFile({
       url: app.buildUrl('/goods/add-pics'), //接口地址
-      header: app.globalData.unLoggedRelease ? app.globalData.unLoggedReleaseToken : app.getRequestHeader(),
+      header: globalData.unLoggedRelease ? globalData.unLoggedReleaseToken : app.getRequestHeader(),
       filePath: img_list[i - 1], //文件路径
       formData: {
         'id': id
@@ -569,7 +572,7 @@ Page({
       data = {
         id: id,
         auther_id: auther_id,
-        target_goods_id: app.globalData.info.id,
+        target_goods_id: globalData.info.id,
       }
     } else {
       data = {
@@ -586,7 +589,7 @@ Page({
     wx.request({
       url: app.buildUrl("/goods/end-create"),
       method: 'POST',
-      header: app.globalData.unLoggedRelease ? app.globalData.unLoggedReleaseToken : app.getRequestHeader(),
+      header: globalData.unLoggedRelease ? globalData.unLoggedReleaseToken : app.getRequestHeader(),
       data: data,
       success: (res) => {
         let resp = res.data;
@@ -601,7 +604,7 @@ Page({
         app.getNewRecommend()
         //初始化本地数据和全局数据
         this.setInitData();
-        app.globalData.info = {}
+        globalData.info = {}
         //用户提示
         wx.showToast({
           title: '提交成功',
@@ -609,9 +612,9 @@ Page({
           duration: 2000,
           success: res => {
             setTimeout(() => {
-              wx.reLaunch({
+              wx.redirectTo({
                 url: '../../Find/Find?business_type=' + this.data.business_type,
-              });
+              })
             }, 1500)
           }
         });
@@ -633,7 +636,7 @@ Page({
    *
    */
   setInitData: function () {
-    var info = app.globalData.info;
+    var info = globalData.info;
     var location = info.location; //用于让别人帮忙寄回物品
     var business_type = this.data.business_type;
     //表单
@@ -720,8 +723,8 @@ Page({
     if (!business_type) {
       //置顶开关
       this.setData({
-        top_price: app.globalData.goodsTopPrice,
-        top_days: app.globalData.goodsTopDays,
+        top_price: globalData.goodsTopPrice,
+        top_days: globalData.goodsTopDays,
         isTop: false
       })
       //余额勾选框

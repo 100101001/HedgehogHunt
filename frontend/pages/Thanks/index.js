@@ -354,7 +354,7 @@ Page({
           duration: 700,
           complete: () => {
             setTimeout(() => {
-              this.goHome()
+              wx.navigateBack()
             }, 500)
           }
         })

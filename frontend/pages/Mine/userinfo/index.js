@@ -109,6 +109,7 @@ Page({
     sms_pkg_price: app.globalData.smsPkgProductPrice
   },
   onLoad: function () {
+
   },
   onShow() {
     // 会员的闪寻码信息

@@ -1,4 +1,8 @@
-const app = getApp();
+/**@module **/
+
+const app = getApp()
+const globalData = app.globalData
+
 
 const getNewSessionKey = function (cb_success=(session_key)=>{}) {
   wx.login({
@@ -102,11 +106,26 @@ Page({
   onShow: function () {
 
   },
+  /**
+   * @name registerUnload
+   */
+  onUnload: function() {
+    if (!globalData.regFlag && globalData.isScanQrcode && this.data.getPhone) {
+      //如果扫码后选择先注册再发布，但因为注册失败而中途退出了注册的第一个页面
+      //算扫码失败
+      app.toConfirmUnRegRelease()
+    }
+  },
   //微信用户授权后,获取公开用户信息
   getInfo: function (e) {
-    this.login(e.detail.userInfo, this.data.mobile)
+    this.toRegister(e.detail.userInfo, this.data.mobile)
   },
-  login: function (userInfo, mobile) {
+  /**
+   * @name registerHandler 注册处理函数
+   * @param userInfo 用户授权的身份信息
+   * @param mobile 用户授权的手机号
+   */
+  toRegister: function (userInfo, mobile) {
     //向注册用户信息userInfo中加入手机号
     if (userInfo) {
       wx.showLoading({
@@ -118,7 +137,7 @@ Page({
       }, 1500)
       userInfo['mobile'] = mobile
     }
-    app.login(userInfo)
+    app.register(userInfo)
   },
   //微信用户授权后,获取加密的手机号
   getPhoneNumber(e) {

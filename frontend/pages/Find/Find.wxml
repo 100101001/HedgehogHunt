@@ -38,7 +38,6 @@
       </view>
     </scroll-view>
   </view>
-
   <view class="message_container">
     <block wx:for="{{goods_list}}" wx:key="index">
       <view class="goods_message">
@@ -52,6 +51,6 @@
 <!-- <view wx:if="{{!business_type && !loadingMoreHidden}}" class="no-more-goods">没有更多待寻物品了~可以去发布待领</view> -->
 <view wx:if="{{loadingMoreHidden}}" class="no-more-goods">上滑加载更多～</view>
 
-<view>
-  <template is="navigate-bar-template" data="{{...isSelecteds}}" />
-</view>
+<!--<view>-->
+<!--  <template is="navigate-bar-template" data="{{...isSelecteds}}" />-->
+<!--</view>-->

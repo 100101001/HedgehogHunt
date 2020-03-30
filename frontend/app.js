@@ -18,11 +18,19 @@ App({
     //static_file_domain: "http://192.168.0.116:8999",
     member_status: 1, //用户状态
     op_status: 2,
+    showHintQrcode: true, //导航栏上方的提示浮窗，标记是否显示浮窗，用户可关闭
+    navigateUrls: [
+      "/pages/Homepage/homepage",
+      "/pages/Find/Find?business_type=1",
+      "/pages/Release/release/index",
+      "/pages/Find/Find?business_type=0",
+      "/pages/Mine/Mine",
+    ],
     indexPage: null, //首页（扫码进入控制“逛一逛”按钮显示）
     isScanQrcode: false, //是否扫码进入
     qrcodeOpenid: "", //二维码用户ID
     unLoggedRelease: false, //扫码用户未注册仍继续发布
-    unLoggedReleaseToken: null, //扫码用户未注册仍继续发布使用的用户token
+    unLoggedReleaseToken: {}, //扫码用户未注册仍继续发布使用的用户token
     qrcodePrice: 2, //闪寻码的价格
     qrcodeProductId: 15, //闪寻码产品ID
     goodsTopPrice: 100, // 置顶发布价格
@@ -53,7 +61,7 @@ App({
     },
     campus_id: -1, //学校id
     campus_name: "", //学校名
-    showHintQrcode: true //用户未关闭提示浮窗
+
   },
   onLaunch: function () {
     //获取后端二维码产品价格和产品ID
@@ -99,7 +107,7 @@ App({
     }
   },
   /**
-   *
+   * tip 会弹出模态框，显示提示文字
    * @param params
    */
   tip: function (params) {
@@ -112,16 +120,20 @@ App({
       success: function (res) {
         if (res.confirm) { //点击确定
           if (params.hasOwnProperty('cb_confirm') && typeof (params.cb_confirm) == "function") {
-            params.cb_confirm();
+            params.cb_confirm()
           }
         } else { //点击否
           if (params.hasOwnProperty('cb_cancel') && typeof (params.cb_cancel) == "function") {
-            params.cb_cancel();
+            params.cb_cancel()
           }
         }
       }
     })
   },
+  /**
+   * tip 和tips类似会弹出模态框，显示提示文字
+   * @param params
+   */
   alert: function (params) {
     var title = params.hasOwnProperty('title') ? params['title'] : '提示信息';
     var content = params.hasOwnProperty('content') ? params['content'] : '';
@@ -208,8 +220,9 @@ App({
     return value;
   },
   /**
-   * getCache 异步设置缓存
+   * setCache 异步设置缓存
    * @param key
+   * @param value
    */
   setCache: function (key, value) {
     wx.setStorage({
@@ -250,7 +263,7 @@ App({
     return img_list
   },
   /**
-   * 判断json对象中属性是否有空的
+   * judgeEmpty 判断json对象中属性是否有空的
    * @param json_obj json对象
    * @param tips_obj 属性对应的用户显示map
    * @returns {boolean}
@@ -267,7 +280,7 @@ App({
     return false
   },
   /**
-   * 服务器忙提示
+   * serverBusy 服务器忙提示
    * @param cb_confirm 用户点击确定关闭提示框后的回调函数
    */
   serverBusy: function (cb_confirm=()=>{}) {
@@ -282,7 +295,7 @@ App({
     })
   },
   /**
-   * getNewRecommend
+   * getNewRecommend 更新新消息计数
    * 向后台获取新收到的答谢和匹配推荐计数，类似新消息的图标会展示在导航栏
    */
   getNewRecommend: function () {
@@ -305,11 +318,12 @@ App({
     })
   },
   /**
-   * checkLogin
-   * 一打开小程序就会执行的登录函数(如果注册了缓存用户状态信息，否则什么都不做)
+   * Login 一打开小程序会执行的登录注册判定函数（注册过的用户就直接登录），用户可能通过扫码打开的小程序
    * 根据小程序内登录标记regFlag和缓存的登录用户的认证信息token，进行防重
+   * @see doLogin 进行判定注册登录函数
+   * @see qrCodeNavigate 扫码处理
    */
-  checkLogin: function () {
+  login: function () {
     //已登录就不再重复登录
     if (this.globalData.regFlag && this.getCache("token") != "") {
       //已登录
@@ -319,20 +333,28 @@ App({
       }
       return
     }
-    this.doCheckLogin()
+    this.doLogin()
   },
   /***
-   * doCheckLogin 前端登录向后台传递code，
-   * 后台利用code在微信登录后获得用户的openid，判断openid对应的用户是否已经注册、如果已经注册了是否是管理员，以及是否有二维码等用户状态信息
-   * 成功后，先缓存数据，再根据是否扫码进行页面跳转(扫码)或者成功登录提示(非扫码)
+   * doLogin 一打开小程序会执行的登录注册判定函数（注册过的用户就直接登录），用户可能通过扫码打开的小程序。
+   * 发生任何请求失败，就置空扫码状态
+   * 扫码打开的，进入下一步操作
+   * @see login 调用者
+   * @see cancelQrcodeScan 置空扫码状态
+   * @see qrCodeNavigate 扫码处理
    */
-  doCheckLogin: function(){
+  doLogin: function(){
+    let isScanQrcode = this.globalData.isScanQrcode
     wx.login({
       success: (res) => {
         let code = res.code
         if (!code) {
           //没有拿到登录用的code
           app.alert({content: '网络开小差了，请稍后再试'})
+          if (isScanQrcode) {
+            //扫码失败
+            this.cancelQrcodeScan()
+          }
           return
         }
         //成功拿到code
@@ -353,7 +375,7 @@ App({
                 //缓存session-key和openid（用于注册）
                 this.setCache("loginInfo", resp['data'])
               }
-              if (this.globalData.isScanQrcode) {
+              if (isScanQrcode) {
                 //未注册用户扫码
                 this.qrCodeNavigate()
               }
@@ -361,7 +383,7 @@ App({
             }
             //成功获取用户状态信息，进行全局缓存
             this.onLoginSuccessSetData(res)
-            if (this.globalData.isScanQrcode) {
+            if (isScanQrcode) {
               //已注册用户(扫码时未登录，刚登录)扫码
               this.qrCodeNavigate()
             } else {
@@ -371,15 +393,19 @@ App({
           },
           fail: (res) => {
             this.serverBusy()
+            if (isScanQrcode) {
+              this.cancelQrcodeScan()
+            }
           }
         })
       }
     })
   },
   /**
-   * onLoginSuccessSetData
-   * 在checkLogin成功获取到注册用户状态信息后，缓存到小程序的全局数据
-   * @param res
+   * onLoginSuccessSetData 用户注册or登录后设置全局数据
+   * @param res 登录响应体
+   * @see doLogin 调用者
+   * @see doRegister 调用者
    */
   onLoginSuccessSetData: function (res) {
     let data = res.data.data
@@ -393,9 +419,11 @@ App({
     this.globalData.regFlag = true
   },
   /**
-   * onLoginSuccessShowToast
-   * 在checkLogin成功获取到注册用户身份信息后，缓存到小程序的全局数据
+   * onLoginSuccessShowToast 向非扫码登录的用户显示登陆成功的提示信息
+   * 对于通过注册登录的用户，自动关闭注册页面
    * @param content
+   * @see doLogin 调用者
+   * @see doRegister 调用者
    */
   onLoginSuccessShowToast: function (content, back_delta=1) {
     wx.showToast({
@@ -412,31 +440,40 @@ App({
     })
   },
   /**
-   * login
-   * 解析出授权获取到的微信用户公开信息和手机号，可用于后台注册或者直接登录
-   * 如果授权失败则返回
-   * @param userInfo
+   * @name appRegister
+   * register 新用户的注册入口函数
+   * 如果微信用户信息授权失败则返回，
+   * 否则继续调用 doRegister 进行注册
+   * @param userInfo 用户授权获取到的微信用户公开信息和手机号，授权失败为空
+   * @link registerHandler 调用者
+   * @see doRegister 进行注册的函数
    */
-  login: function (userInfo) {
+  register: function (userInfo) {
     if (this.globalData.regFlag && this.getCache('token') != '') {
-      //已经登陆过
-      wx.navigateBack() //回到授权登录之前的页面
+      //已经注册登录的
+      wx.navigateBack({delta: 2}) //回到授权登录之前的页面
     }
     if (!userInfo) {
       //授权失败
       this.alert({content: '登录失败，请再次登录～～'})
       return
     }
-    this.doLoginOrReg(userInfo)
+    this.doRegister(userInfo)
   },
   /**
-   * doLoginOrReg
-   * 真正用于向后台请求登录或注册的函数
+   * doRegister 向后台传入用户授权信息和code请求注册
+   * 将注册成功返回的数据设置到全局变量中
+   * 如果注册用户正在扫码，就继续扫码处理
    * @param userInfo 微信用户手机号和公开信息
+   * @link appRegister 调用者
+   * @see continueScanQrcodeAfterReg 注册后继续扫码
+   * @see onLoginSuccessSetData 注册成功后设置数据
+   * @see onLoginSuccessShowToast 注册成功后提示信息和页面导航
    */
-  doLoginOrReg: function(userInfo={}){
+  doRegister: function (userInfo = {}) {
+    let isScanQrcode = this.globalData.isScanQrcode
     wx.login({
-      success:  (res) => {
+      success: (res) => {
         let code = res.code
         if (!code) {
           this.alert({content: '登录失败，请再次登录～～'})
@@ -448,18 +485,16 @@ App({
           header: this.getRequestHeader(),
           method: 'POST',
           data: userInfo,
-          success:  (res) => {
+          success: (res) => {
             let resp = res.data
             if (resp['code'] != 200) {
               this.alert({content: resp['msg']})
               return
             }
             this.onLoginSuccessSetData(res)
-            if (this.globalData.isScanQrcode) {
+            if (isScanQrcode) {
               //注册用户是扫码进入注册的，继续去发布
-              wx.reLaunch({
-                url: '/pages/Release/release/index'
-              })
+              this.continueScanQrcodeAfterReg()
             } else {
               this.onLoginSuccessShowToast('登录成功', 2)
             }
@@ -472,34 +507,56 @@ App({
     })
   },
   /**
+   * cancelQrcodeScan 置空扫码状态
+   * 除了用户主动的取消扫码，手机绑定页，发布失物信息页退出时都需要调用此方法
+   * @link mobileUnload 调用者
+   * @link releaseUnload 调用者
+   * @link doLogin 调用者
+   * @link toConfirmUnRegRelease 调用者
+   * @link selfScanQrcode 调用者
+   * @link otherScanQrcode 调用者
+   */
+  cancelQrcodeScan: function () {
+    if (this.globalData.indexPage) {
+      //显示首页的逛一逛按钮
+      this.globalData.indexPage.setData({
+        isScanQrcode: false
+      })
+      this.globalData.indexPage = null
+    }
+    //标记清空
+    this.globalData.isScanQrcode = false
+    this.globalData.qrcodeOpenid = ""
+    this.globalData.unLoggedRelease = false
+    this.globalData.unLoggedReleaseToken = {}
+  },
+  /**
+   * qrcodeNotified 防止重复通知，通知一次后，就将通知对象置空
+   * @link sendNotification 调用者
+   */
+  qrcodeNotified: function(){
+    this.globalData.qrcodeOpenid = ""
+  },
+  /**
    * qrCodeNavigate
-   * 根据扫码解析的二维码主OPENID和扫码者的OPENID（登录获取）判断是否是同一人
-   * 如果是同一人，那么询问是绑定手机还是随便扫扫
-   * 如果不是同一人
-   * 如果扫码者未注册，那么询问注册，确认注册后跳转发布页面
-   * 如果扫码者已注册，那么直接进行发布
+   * 根据扫码解析的二维码主OPENID和扫码者的OPENID判断是否是同一人
+   * @link doLogin 调用者
+   * @see selfScanQrcode 自己扫码
+   * @see otherScanQrcode 其他用户扫码
    */
   qrCodeNavigate: function () {
-    let openid = this.globalData.qrcodeOpenid
-    if (openid == this.globalData.openid) {
+    if (this.globalData.qrcodeOpenid == this.globalData.openid) {
       //自己扫码
       this.selfScanQrcode()
     } else {
       //别人扫码
-      if (!this.globalData.regFlag) {
-        //扫码用户未注册
-        this.askToReg()
-      } else{
-        //扫码用户已注册
-        wx.redirectTo({
-          url: "/pages/Release/release/index"
-        })
-      }
+      this.otherScanQrcode()
     }
   },
   /**
-   * selfScanQrcode
-   * 自己扫码，选择绑定手机或者随便扫扫
+   * selfScanQrcode 自己扫码，选择绑定手机或者随便扫扫
+   * @link qrCodeNavigate 调用者
+   * @see cancelQrcodeScan
    */
   selfScanQrcode: function () {
     let page = this.globalData.indexPage
@@ -508,29 +565,63 @@ App({
       success: (res) => {
         if (res.tapIndex == 0) {
           //绑定手机号
-          wx.redirectTo({
+          wx.navigateTo({
             url: "/pages/Qrcode/Mobile/index"
           })
         } else {
-          //随便扫扫
-          page.setData({
-            isScanQrcode: false
-          })
-          this.globalData.isScanQrcode = false
-          this.globalData.qrcodeOpenid = ""
+          //随便扫扫 == 取消扫码
+          this.cancelQrcodeScan()
         }
       },
       fail: (res) => {
-        //取消
-        page.setData({
-          isScanQrcode: false
-        })
-        this.globalData.isScanQrcode = false
-        this.globalData.qrcodeOpenid = ""
+        //取消扫码
+        this.cancelQrcodeScan()
       }
     })
   },
-  askToReg: function () {
+  /**
+   * otherScanQrcode 处理别人扫码
+   * @link qrCodeNavigate 调用者
+   * @see unRegScanQrcode
+   * @see regScanQrcode
+   * @see cancelQrcodeScan
+   */
+  otherScanQrcode: function(){
+    this.alert({
+      title: '扫码提示',
+      content: '填写拾物信息去通知失主获取答谢金',
+      showCancel: true,
+      cb_confirm: () => {
+        if (!this.globalData.regFlag) {
+          //扫码用户未注册
+          this.unRegScanQrcode()
+        } else {
+          //扫码用户已注册
+          this.regScanQrcode()
+        }
+      },
+      cb_cancel: () => {
+        //取消扫码发布信息
+        this.cancelQrcodeScan()
+      }
+    })
+  },
+  /**
+   * regScanQrcode 用户已注册，扫了别人的码，直接跳转发布页面去发布拾物信息
+   * @link otherScanQrcode 调用者
+   */
+  regScanQrcode: function(){
+    wx.navigateTo({
+      url: "/pages/Release/release/index"
+    })
+  },
+  /**
+   * unRegScanQrcode 未注册者扫码
+   * 可选择先注册再发布信息，也可直接发布
+   * @link otherScanQrcode 调用者
+   * @see toConfirmUnRegRelease 选择不注册
+   */
+  unRegScanQrcode: function () {
     wx.showModal({
       title: '是否注册?',
       content: '注册用户可得失主的答谢金',
@@ -541,16 +632,52 @@ App({
             url: '/pages/login/index',
           })
         } else if (res.cancel) {
-          //前往发布
-          this.globalData.unLoggedReleaseToken = {
-            'content-type': 'application/x-www-form-urlencoded',
-            'Authorization': 'opLxO5fubMUl7GdPFgZOUaDHUik8#100001'
-          }
-          this.globalData.unLoggedRelease = true
-          wx.redirectTo({
-            url: "/pages/Release/release/index?business_type=1&openid=" + openid
-          })
+          //确认不注册发布
+          this.toConfirmUnRegRelease()
         }
+      }
+    })
+  },
+  /**
+   * toConfirmUnRegRelease 不注册发布
+   * 除了选择不注册，选择注册但注册中途终止回退也会触发询问是否要不注册发布
+   * @link registerUnload 调用者
+   * @link unRegScanQrcode 调用者
+   * @see cancelQrcodeScan
+   */
+  toConfirmUnRegRelease: function(){
+    this.alert({
+      title: '扫码提示',
+      content: '继续发布拾物信息？',
+      showCancel: true,
+      cb_confirm: () => {
+        //前往发布
+        this.globalData.unLoggedReleaseToken = {
+          'content-type': 'application/x-www-form-urlencoded',
+          'Authorization': 'opLxO5fubMUl7GdPFgZOUaDHUik8#100001'
+        }
+        this.globalData.unLoggedRelease = true
+        wx.navigateTo({
+          url: "/pages/Release/release/index"
+        })
+      },
+      cb_cancel: () => {
+        //终止扫码
+        this.cancelQrcodeScan()
+      }
+    })
+  },
+  /**
+   * continueScanQrcodeAfterReg 注册后继续扫码的处理
+   * @link doRegister 调用者
+   */
+  continueScanQrcodeAfterReg: function () {
+    wx.navigateBack({
+      delta: 2,
+      success: res => {
+        wx.navigateTo({
+          url: '/pages/Release/release/index'
+        })
       }
     })
   }

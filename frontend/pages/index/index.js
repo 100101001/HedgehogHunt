@@ -29,14 +29,14 @@ Page({
         id: id
       })
     }
-    /****(member_)id干什么用的？？***/
+    /****(member_id干什么用的？？***/
     if (goods_id) {
-      wx.redirectTo({
+      wx.navigateTo({
         url: '/pages/Find/info?goods_id=' + goods_id,
       })
     } else {
-      wx.redirectTo({
-        url: '/pages/Find/Find?business_type=1',
+      wx.navigateTo({
+        url: '/pages/Homepage/index',
       })
     }
   },
@@ -61,7 +61,7 @@ Page({
       app.globalData.isScanQrcode = true
       app.globalData.qrcodeOpenid = openid
     }
-    app.checkLogin()
+    app.login()
     app.getNewRecommend()
     /****************扫二维码结束******************/
   },

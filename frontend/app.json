@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/Homepage/index",
     "pages/Homepage/homepage",
     "pages/Record/index",
     "pages/Thanks/record/index",
@@ -63,7 +64,7 @@
       "desc": "物品的定位将更加精确"
     }
   },
-  "navigateToMiniProgramAppIdList":[
+  "navigateToMiniProgramAppIdList": [
     "wx6885acbedba59c14"
   ]
 }

@@ -1,6 +1,8 @@
 // pages/Qrcode/Register/index.js
-var util = require("../../../utils/util.js")
+const util = require("../../../utils/util.js")
 const app = getApp()
+const globalData = app.globalData
+
 
 Page({
   data: {
@@ -27,9 +29,15 @@ Page({
     // 页面隐藏
 
   },
+  /**
+   * @name mobileUnload
+   */
   onUnload: function () {
-    // 页面关闭
-
+    // 页面关闭，重置扫码标记
+    if (globalData.isScanQrcode) {
+      //清除扫码标记
+      app.cancelQrcodeScan()
+    }
   },
   formSubmit: function (e) {
     //后端检查码，对就注册跳转新页面，错就提示失败
@@ -141,12 +149,9 @@ Page({
             duration: 800,
             success: (res) => {
               setTimeout(() => {
-                if(app.globalData.isScanQrcode){
-                  //清除扫码标记
-                  this.globalData.isScanQrcode = false
-                  this.globalData.qrcodeOpenid = ""
+                if (app.globalData.isScanQrcode) {
                   wx.redirectTo({
-                    url: '/pages/Find/Find?business_type=1'
+                    url: '/pages/Homepage/index'
                   })
                 } else {
                   wx.navigateBack()

@@ -9,7 +9,6 @@ Page({
     duration: 1000,
     swiperCurrent: 0,
     loadingHidden: true,
-
     info: {
       "auther_name": "韦朝旭",
       "avatar": "https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTJLMa7CuCcoXicK6SpMA9E0IHxPgLYibKFbeCkUo3IicyyDr8ssosTEaaptIL2Xjic6LXEC2OmjwmXMmQ/132",
