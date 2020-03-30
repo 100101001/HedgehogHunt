@@ -266,11 +266,12 @@ def endCreate():
     goods_info.updated_time = getCurrentDate()
     auther_id = req['auther_id'] if 'auther_id' in req else None
     if auther_id:
-        auther_info = Member.query.filter_by(id=auther_id).with_for_update().first()
-        MemberService.addRecommendGoods(auther_info, goods_info.id)
+        auther_info = Member.query.filter_by(id=auther_id).first()
+        if auther_info:
+            MemberService.addRecommendGoods(auther_info, goods_info.id)
     target_goods_id = int(req['target_goods_id']) if 'target_goods_id' in req else None
     if target_goods_id is not None:
-        target_goods_info = Good.query.filter_by(id=target_goods_id).with_for_update().first()
+        target_goods_info = Good.query.filter_by(id=target_goods_id).first()
         if target_goods_info:
             target_goods_info.status = 2
             db.session.add(target_goods_info)

@@ -120,7 +120,7 @@ class MemberService():
         # 按物主owner_name, 物品名name 匹配失/拾物品
         # 在失去物品的作者的recommmend_id中加入匹配到的拾物品id
         # 不能是同一个人发布的拾/失
-        query = Good.query.filetr(Good.status != 7, Good.status != 5, Good.status != 8)
+        query = Good.query.filter(Good.status != 7, Good.status != 5, Good.status != 8)
         query = query.filter_by(owner_name=goods_info.owner_name)
         query = query.filter_by(name=goods_info.name)
         query = query.filter(Good.member_id != goods_info.member_id)
@@ -138,9 +138,10 @@ class MemberService():
                         db.session.commit()
                         continue
                     tmp_member_info = member_map[item.member_id]
-                    MemberService.addRecommendGoods(tmp_member_info, item.id)
-                    # 通知：有人可能捡到了你遗失的东西
-                    SubscribeService.send_recommend_subscribe(item)
+                    if tmp_member_info:
+                        MemberService.addRecommendGoods(tmp_member_info, item.id)
+                        # 通知：有人可能捡到了你遗失的东西
+                        SubscribeService.send_recommend_subscribe(item)
         else:
             # 发布的是寻物启事，找到了对应的失物招领,给用户返回失物招领的列表
             goods_list = query.filter_by(business_type=1).all()
@@ -148,8 +149,8 @@ class MemberService():
                 member_info = g.member_info
                 for item in goods_list:
                     MemberService.addRecommendGoods(member_info, item.id)
-                    # 通知：有人可能丢了你捡到的东西
-                    SubscribeService.send_recommend_subscribe(item)
+                    # # 通知：有人可能丢了你捡到的东西
+                    # SubscribeService.send_recommend_subscribe(item)
         return True
 
     @staticmethod
