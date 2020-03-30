@@ -293,6 +293,7 @@ Page({
       "business_type": info.business_type,
       "goods_name": info.goods_name,
       "auther_name": info.auther_name,
+      "owner_name": info.owner_name,
       "updated_time": info.updated_time,
       "avatar": info.avatar
     }

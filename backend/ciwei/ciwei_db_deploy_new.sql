@@ -311,6 +311,7 @@ CREATE TABLE `order`  (
   `express_status` tinyint(4) NOT NULL DEFAULT 0 COMMENT '快递状态，-8 待支付 -7 已付款待发货 1：确认收货 0：失败',
   `express_address_id` int(11) NOT NULL DEFAULT 0 COMMENT '快递地址id',
   `express_info` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '快递信息',
+  `express_sn` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '快递单号',
   `comment_status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '评论状态',
   `pay_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '付款到账时间',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
