@@ -188,6 +188,8 @@ Page({
       this.showToast('请填不同姓名!', 'none')
       return
     }
+    //关闭输入框
+    this.cancelNameEdit()
     this.doSetName()
   },
   doSetName: function () {
@@ -204,8 +206,7 @@ Page({
           return
         }
         this.setData({
-          name: resp.data.name,
-          hiddenNameModal: true
+          name: resp.data.name
         })
       }, complete: res => {
         wx.hideToast()
@@ -308,7 +309,7 @@ Page({
    * 否则，终止操作
    */
   confirmRechargeBalance: function(){
-    let pay_price = util.toFixed(parseFloat(this.data.balance_recharge_amount) * 1.01, 2)
+    let pay_price = util.toFixed(this.data.balance_recharge_amount, 2)
     if (pay_price) {
       //充值金额大于零才继续
       app.alert({
@@ -454,12 +455,6 @@ Page({
     this.cancelMobileEdit()
   },
   toLookupSms: function () {
-    // let pkg_times = this.data.pkg_notify_times
-    // let m_times = this.data.member_notify_times
-    // wx.showModal({
-    //   title: '次数明细',
-    //   content: (pkg_times?  pkg_times+'条至'+this.data.pkg_expire+'。' : '') + (m_times? '不限期'+m_times+'条。':'')
-    // })
     this.setData({
       hiddenSmsDetailModal: false
     })
