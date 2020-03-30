@@ -3,7 +3,7 @@
 const app = getApp()
 const globalData = app.globalData
 
-
+//TODO cb_fail
 const getNewSessionKey = function (cb_success=(session_key)=>{}) {
   wx.login({
     success: res => {
@@ -48,14 +48,8 @@ const checkReg = function (openid, cb_comp = (isReg) => {}) {
       'content-type': 'application/x-www-form-urlencoded',
     },
     success: (res) => {
-      console.log(res.data['data']['is_reg'])
-      if (res.data['data']['is_reg']) {
-        //openid已注册
-        cb_comp(true)
-      } else {
-        //openid未注册
-        cb_comp(false)
-      }
+      console.log(typeof res.data['data']['is_reg'])
+      cb_comp(res.data['data']['is_reg'])
     }
   })
 }
@@ -81,26 +75,25 @@ Page({
     if (phone == undefined) {
       //刚进入获取手机页面，检查是否已注册过，已注册过就回退
       //已注册未登录的还会自动登录
-      checkReg(app.getCache('loginInfo').openid,(isReg) => {
+      let loginInfo = app.getCache('loginInfo')
+      checkReg(loginInfo? loginInfo.openid: "",(isReg) => {
         if (isReg) {
           wx.navigateBack()
-          return
         } else {
-          this.setData()
+          //显示页面
+          this.setData({dataReady: true})
         }
       })
     } else {
       //已经获取到手机号，并进入了获取用户信息页面
+      //显示页面
       this.setData({
         getUserInfo: true,
         getPhone: false,
-        mobile: phone
+        mobile: phone,
+        dataReady: true
       })
     }
-    //显示页面
-    this.setData({
-      dataReady: true
-    })
   },
   //如果进入页面时，已经登陆，就回退
   onShow: function () {

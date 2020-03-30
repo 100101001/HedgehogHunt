@@ -64,7 +64,7 @@ function onNavigateTap(id) {
 function regexConfig() {
   var reg = {
     email: /^(\w-*\.*)+@(\w-?)+(\.\w{2,})+$/,
-    phone: /^1(3|4|5|7|8)\d{9}$/
+    phone: /^1(3|4|5|6|7|8|9)\d{9}$/  //10,11,12开头电话分配给固定机构使用
   }
   return reg;
 }

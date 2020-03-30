@@ -69,7 +69,7 @@ const app = getApp();
  */
 const topCharge = function (pay_price=app.globalData.goodsTopPrice, cb_success=()=>{}, that) {
   wx.request({
-    url: app.buildUrl('/thank/order'),
+    url: app.buildUrl('/goods/top/order'),
     header: app.getRequestHeader(),
     data: {
       price: pay_price
@@ -259,7 +259,7 @@ Page({
       this.setData({
         top_price: app.globalData.goodsTopPrice,
         top_days: app.globalData.goodsTopDays,
-        isTop: false
+        isTop: false  //默认置顶开关关闭
       })
       //余额勾选框
       useBalance.initData(this, (total_balance)=>{
@@ -529,18 +529,18 @@ Page({
     })
   },
   /**
-   * changSetTop 改变置顶
+   * changSetTop 改变置顶开关
    */
   changSetTop: function () {
     let isTop = this.data.isTop
     this.setData({
       isTop: !isTop,
-      balance_use_disabled: isTop,
+      balance_use_disabled: isTop, //注意这里的isTop是改变开关前的置顶开关状态(原来开着代表现在用户关了所以禁用余额勾选框)
       use_balance: isTop? false: this.data.use_balance //原来开着，说明关闭置顶，就必定false；反之开着选项则按原来的用户勾选
     })
   },
   /**
-   *
+   * changeUseBalance 改变了勾选余额垫付框的状态
    * @param e
    */
   changeUseBalance: function (e) {

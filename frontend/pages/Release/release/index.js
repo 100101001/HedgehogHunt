@@ -4,6 +4,11 @@ const app = getApp()  //不能修改app,但可以修改app的属性
 const globalData = app.globalData
 
 
+/**
+ * getSubscribeTmpIds 发布不同类型的物品帖，需要订阅的消息不同
+ * @param business_type
+ * @returns {[]}
+ */
 const getSubscribeTmpIds = function (business_type=0) {
   let tmpIds = []
   if (business_type == globalData.business_type.found){ //失物招领
@@ -11,7 +16,7 @@ const getSubscribeTmpIds = function (business_type=0) {
       globalData.subscribe.thanks,
       globalData.subscribe.finished.found
     ]
-  } else {
+  } else {  // 寻物启事
     tmpIds = [
       globalData.subscribe.recommend,
       globalData.subscribe.finished.lost
@@ -29,7 +34,7 @@ const getSubscribeTmpIds = function (business_type=0) {
  */
 const topCharge = function (pay_price=globalData.goodsTopPrice, cb_success=()=>{}, that) {
   wx.request({
-    url: app.buildUrl('/thank/order'),
+    url: app.buildUrl('/goods/top/order'),
     header: app.getRequestHeader(),
     data: {
       price: pay_price
@@ -77,13 +82,14 @@ const topCharge = function (pay_price=globalData.goodsTopPrice, cb_success=()=>{
   })
 }
 
+
 /**
  * changeUserBalance
  * 扣除(改变)用户余额
  * @param unit 改变量
  * @param cb_success 回调函数
  */
-const changeUserBalance = function (unit = 0, cb_success = () => {}) {
+const changeUserBalance = function (unit = 0, cb_success = () => {}, cb_fail=()=>{}) {
   wx.showLoading({
     title: "扣除余额中"
   })
@@ -96,6 +102,9 @@ const changeUserBalance = function (unit = 0, cb_success = () => {}) {
     },
     success: res => {
       cb_success()
+    },
+    fail: res=> {
+      cb_fail()
     },
     complete: res => {
       wx.hideLoading()
@@ -270,6 +279,7 @@ Page({
    * toRelease
    * 如果必填项为空，提示补上
    * 否则继续进行提交处理
+   * @see handleRelease
    */
   toRelease: function () {
     this.setData({
@@ -315,6 +325,7 @@ Page({
    *   如果用户选择置顶先让用户确认置顶并付款，再继续发布
    *   否则先让用户选择订阅消息，然后再发布数据
    * @param data 包含发布所需数据
+   * @link toRelease
    */
   handleRelease: function (data) {
     if (globalData.unLoggedRelease) {
@@ -336,6 +347,7 @@ Page({
    * 询问置顶
    * 如果取消重置置顶开关和余额勾选框状态以及解禁提交按钮
    * 否则就根据勾选框情况进行收费
+   * @see toTopCharge
    */
   confirmTopAndSubNoteRelease: function(data){
     app.alert({
@@ -358,8 +370,9 @@ Page({
     })
   },
   /**
-   * toTopCharge
+   * toTopCharge 置顶扣费后发布，失败则取消发布
    * @param data 发布数据
+   * TODO 余额扣除失败，进行退钱
    */
   toTopCharge: function (data = {}) {
     let pay_price = this.data.top_price
