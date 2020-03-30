@@ -67,6 +67,7 @@ const topCharge = function (pay_price=globalData.goodsTopPrice, cb_success=()=>{
           cb_success()
         },
         fail: res => {
+          app.alert({title: '支付失败', content: '重新发布或取消置顶'})
           that.setData({
             submitDisable: false
           })
@@ -88,6 +89,7 @@ const topCharge = function (pay_price=globalData.goodsTopPrice, cb_success=()=>{
  * 扣除(改变)用户余额
  * @param unit 改变量
  * @param cb_success 回调函数
+ * @param cb_fail 回调函数 TODO
  */
 const changeUserBalance = function (unit = 0, cb_success = () => {}, cb_fail=()=>{}) {
   wx.showLoading({
@@ -377,14 +379,14 @@ Page({
   toTopCharge: function (data = {}) {
     let pay_price = this.data.top_price
     if (this.data.use_balance) {
-      if (this.data.balance >= pay_price) {
+      if (this.data.total_balance >= pay_price) {
         //扣除余额后发布
         changeUserBalance(-pay_price, ()=>{
           this.subscribeMsgAndNotifyRelease(data)
         })
       } else {
         //支付并扣除余额再发布
-        pay_price -= this.data.balance
+        pay_price = util.toFixed(pay_price - this.data.balance, 2)
         topCharge(pay_price, ()=>{
           changeUserBalance(-this.data.balance, ()=>{
             this.subscribeMsgAndNotifyRelease(data)
@@ -402,6 +404,7 @@ Page({
    * subscribeMsgAndNotifyRelease
    * 先让用户订阅消息后，再继续通知失主和发布物品贴
    * @param data
+   * @see getSubscribeTmpIds
    */
   subscribeMsgAndNotifyRelease: function (data) {
     wx.requestSubscribeMessage({
@@ -416,6 +419,8 @@ Page({
    * 如果有通知用户的openid，就先通知
    * 然后继续发布物品
    * @param data 发布数据
+   * @see sendNotification
+   * @see uploadData
    */
   notifyAndRelease: function(data){
     //通知失主
@@ -428,6 +433,7 @@ Page({
   /**
    * sendNotification 通知失主
    * @param data 失物数据
+   * @see qrcodeNotified
    */
   sendNotification: function (data) {
     if (globalData.qrcodeOpenid) {
@@ -449,6 +455,7 @@ Page({
   /**
    * @name releaseUnload
    * onUnload 一旦退出页面就将扫码相关全局标记重置
+   * @see cancelQrcodeScan
    */
   onUnload: function () {
     if (globalData.isScanQrcode) {
@@ -743,17 +750,17 @@ Page({
       //余额勾选框
       useBalance.initData(this, (total_balance)=>{
         //计算可用余额和折后价格
-        if (total_balance > this.data.top_price){
+        if (total_balance >= this.data.top_price){
           //余额足够
           this.setData({
             discount_price: 0, //使用余额，支付0元
-            balance: this.data.top_price
+            balance: this.data.top_price //可用于垫付的余额
           })
         } else {
           //余额不足
           this.setData({
             discount_price: util.toFixed(this.data.top_price - total_balance, 2), //使用余额支付的价格
-            balance: total_balance
+            balance: total_balance  //可用于垫付的余额
           })
         }
         //默认

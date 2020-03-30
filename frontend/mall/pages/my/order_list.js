@@ -32,7 +32,7 @@ const qrCodeFailCallback = function () {
         title: "跳转提示",
         content: "联系技术支持帮您获取二维码",
         cb_confirm: () => {
-            wx.redirectTo({
+            wx.navigateTo({
                 url: '/pages/Mine/connect/index'
             })
         }
@@ -43,8 +43,10 @@ const qrCodeFailCallback = function () {
  * qrCodeSuccessCallback
  * 获取二维码成功时，提示成功
  */
-const qrCodeSuccessCallback = function (order_sn="") {
-    autoSendGoods(order_sn)
+const qrCodeSuccessCallback = function (only_special=false, order_sn="") {
+    if (only_special) {
+        autoSendGoods(order_sn)
+    }
     wx.showToast({
         title: '购买闪寻码成功',
         icon: 'success',
@@ -114,7 +116,6 @@ const smsBuyFailCommonCallback = function () {
 
 /**
  * 为用户增加一个短信套餐包
- * @param buy_times
  * @param cb_success
  */
 const addSmsPkg = function (cb_success=()=>{}) {
@@ -222,7 +223,7 @@ const orderPay = function (order_sn, cb_success=()=>{}) {
  * @param unit 余额变化
  * @param cb_success 回调函数
  */
-const changeUserBalance = function (unit = 0, cb_success = (order_sn) => {}) {
+const changeUserBalance = function (unit = 0, cb_success = () => {}) {
     wx.showLoading({
         title: "扣除余额中"
     })
@@ -338,8 +339,8 @@ Page({
         let dataset = e.currentTarget.dataset
         //订单流水号和垫付的余额数
         let order_sn = dataset.id
-        let only_special = dataset.special
-        let balance_discount = dataset.balance
+        let only_special = dataset.special //订单仅包含非周边商品，用来自动发货
+        let balance_discount = dataset.balance //订单余额折扣
         //订单中购买的非周边产品
         let sms_num = dataset.sms
         let sms_pkg_num = dataset.sms_pkg
@@ -371,9 +372,7 @@ Page({
             this.data.isGettingQrcode = true
             getQrcodeFromWechat(()=>{
                 changeMemberSmsTimes(app.globalData.buyQrCodeFreeSmsTimes, ()=>{
-                    if (only_special) {
-                        qrCodeSuccessCallback(order_sn)  //自动发货和用户提示
-                    }
+                    qrCodeSuccessCallback(only_special, order_sn)  //自动发货和用户提示
                 })
             })
         }

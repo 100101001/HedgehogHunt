@@ -36,7 +36,7 @@ const getNewSessionKey = function (cb_success=(session_key)=>{}) {
 
 const checkReg = function (openid, cb_comp = (isReg) => {}) {
   if (app.regFlag && this.getCache("token")) {
-    //已注册
+    //已注册且已登录
     cb_comp(true)
   }
   wx.request({
@@ -48,8 +48,12 @@ const checkReg = function (openid, cb_comp = (isReg) => {}) {
       'content-type': 'application/x-www-form-urlencoded',
     },
     success: (res) => {
-      console.log(typeof res.data['data']['is_reg'])
-      cb_comp(res.data['data']['is_reg'])
+      let is_reg = res.data['data']['is_reg']
+      cb_comp(is_reg)
+      if (is_reg) {
+        //未登录的注册用户，直接登录
+        app.login()
+      }
     }
   })
 }
@@ -78,7 +82,7 @@ Page({
       let loginInfo = app.getCache('loginInfo')
       checkReg(loginInfo? loginInfo.openid: "",(isReg) => {
         if (isReg) {
-          wx.navigateBack()
+          app.alert({title:'注册提示', content:'已是注册用户！', cb_confirm: ()=>{wx.navigateBack()}})
         } else {
           //显示页面
           this.setData({dataReady: true})

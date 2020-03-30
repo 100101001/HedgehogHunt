@@ -264,7 +264,7 @@ Page({
       //余额勾选框
       useBalance.initData(this, (total_balance)=>{
         //计算可用余额和折后价格
-        if (total_balance > this.data.top_price){
+        if (total_balance >= this.data.top_price){
           //余额足够
           this.setData({
             discount_price: 0, //使用余额，支付0元
@@ -395,7 +395,7 @@ Page({
         })
       } else {
         //支付并扣除余额再发布
-        pay_price -= this.data.balance
+        pay_price = util.toFixed(pay_price - this.data.balance, 2)
         topCharge(pay_price, ()=>{
           changeUserBalance(-this.data.balance, ()=>{
             this.uploadData(data)
