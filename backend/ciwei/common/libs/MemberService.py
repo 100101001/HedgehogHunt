@@ -120,7 +120,8 @@ class MemberService():
         # 按物主owner_name, 物品名name 匹配失/拾物品
         # 在失去物品的作者的recommmend_id中加入匹配到的拾物品id
         # 不能是同一个人发布的拾/失
-        query = Good.query.filter_by(owner_name=goods_info.owner_name)
+        query = Good.query.filetr(Good.status != 7, Good.status != 5, Good.status != 8)
+        query = query.filter_by(owner_name=goods_info.owner_name)
         query = query.filter_by(name=goods_info.name)
         query = query.filter(Good.member_id != goods_info.member_id)
         if goods_info.business_type == 1:
@@ -131,6 +132,11 @@ class MemberService():
                 member_ids = selectFilterObj(goods_list, "member_id")
                 member_map = getDictFilterField(Member, Member.id, "id", member_ids)
                 for item in goods_list:
+                    if item.member_id not in member_map:
+                        item.status = 7
+                        db.session.add(item)
+                        db.session.commit()
+                        continue
                     tmp_member_info = member_map[item.member_id]
                     MemberService.addRecommendGoods(tmp_member_info, item.id)
                     # 通知：有人可能捡到了你遗失的东西
