@@ -28,13 +28,13 @@ def setOrderStatus():
     order_sn = req['order_sn'] if 'order_sn' in req else ''
     if not order_sn:
         resp['code'] = -1
-        resp['msg'] = "操作失败，请重试"
+        resp['msg'] = "操作失败，订单不存在"
         return jsonify(resp)
 
     order = Order.query.filter_by(order_sn=order_sn).first()
     if not order:
         resp['code'] = -1
-        resp['msg'] = "操作失败，请重试"
+        resp['msg'] = "操作失败，订单不存在"
         return jsonify(resp)
     order.express_status = status
     db.session.add(order)
@@ -206,7 +206,6 @@ def orderPay():
         'trade_type': "JSAPI",
         'openid': member_info.openid
     }
-    app.logger.info(data)
     pay_info = target_wechat.get_pay_info(pay_data=data)
 
     # 保存prepay_id为了后面发模板消息
