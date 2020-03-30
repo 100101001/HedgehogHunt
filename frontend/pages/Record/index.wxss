@@ -4,6 +4,7 @@ page {
   /*背景图片*/
   background-image: url("https://console.changshunlive.com/static/img/20190308185846.png");
   background-attachment: fixed;
+  background-position: 0 -30rpx;
 }
 
 .all_container {
@@ -51,6 +52,10 @@ page {
   text-align: center;
   display: inline-block;
   overflow: hidden;
+}
+
+.type-box-wider{
+    width: 375rpx
 }
 
 .box-report{

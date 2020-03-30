@@ -1,7 +1,7 @@
 #!/usr/bin/python3.6.8
 import datetime
 import decimal
-import time
+
 from decimal import Decimal
 
 from flask import request, jsonify, g
@@ -22,11 +22,6 @@ from common.models.ciwei.Member import Member
 from common.models.ciwei.Report import Report
 from common.models.ciwei.Thanks import Thank
 from web.controllers.api import route_api
-
-
-@route_api.route('/goods/top/info', methods=['GET'])
-def topPrice():
-    return jsonify({'code': 200, 'data': {'price': 0.01, 'days': 7}})
 
 
 @route_api.route("/goods/top/order", methods=['POST', 'GET'])
@@ -271,11 +266,12 @@ def endCreate():
     goods_info.updated_time = getCurrentDate()
     auther_id = req['auther_id'] if 'auther_id' in req else None
     if auther_id:
-        auther_info = Member.query.filter_by(id=auther_id).with_for_update().first()
-        MemberService.addRecommendGoods(auther_info, goods_info.id)
+        auther_info = Member.query.filter_by(id=auther_id).first()
+        if auther_info:
+            MemberService.addRecommendGoods(auther_info, goods_info.id)
     target_goods_id = int(req['target_goods_id']) if 'target_goods_id' in req else None
     if target_goods_id is not None:
-        target_goods_info = Good.query.filter_by(id=target_goods_id).with_for_update().first()
+        target_goods_info = Good.query.filter_by(id=target_goods_id).first()
         if target_goods_info:
             target_goods_info.status = 2
             db.session.add(target_goods_info)
@@ -376,6 +372,11 @@ def goodsSearch():
         member_map = getDictFilterField(Member, Member.id, "id", member_ids)
         now = datetime.datetime.now()
         for item in goods_list:
+            if item.member_id not in member_map:
+                item.status = 7
+                db.session.add(item)
+                db.session.commit(item)
+                continue
             tmp_member_info = member_map[item.member_id]
             tmp_data = {
                 "id": item.id,

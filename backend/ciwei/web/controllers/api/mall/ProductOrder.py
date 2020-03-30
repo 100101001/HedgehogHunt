@@ -5,6 +5,7 @@ from flask import request, jsonify, g
 
 from application import db, app
 from common.libs.Helper import getCurrentDate
+from common.libs.MemberService import MemberService
 from common.libs.mall.WechatService import WeChatService
 from common.libs.mall.CartService import CartService
 from common.libs.UrlManager import UrlManager
@@ -13,6 +14,32 @@ from common.models.ciwei.mall.Address import Address
 from common.models.ciwei.mall.Order import Order
 from common.models.ciwei.mall.Product import Product
 from web.controllers.api import route_api
+
+
+@route_api.route("/order/express/status/set", methods=['POST', 'GET'])
+def setOrderStatus():
+    resp = {'code': 200, 'msg': '', 'data': {}}
+    req = request.values
+    status = req['status'] if 'status' in req else None
+    if status is None:
+        resp['code'] = -1
+        resp['msg'] = "操作失败，请重试"
+        return jsonify(resp)
+    order_sn = req['order_sn'] if 'order_sn' in req else ''
+    if not order_sn:
+        resp['code'] = -1
+        resp['msg'] = "操作失败，订单不存在"
+        return jsonify(resp)
+
+    order = Order.query.filter_by(order_sn=order_sn).first()
+    if not order:
+        resp['code'] = -1
+        resp['msg'] = "操作失败，订单不存在"
+        return jsonify(resp)
+    order.express_status = status
+    db.session.add(order)
+    db.session.commit()
+    return jsonify(resp)
 
 
 @route_api.route("/order/info", methods=["POST"])
@@ -74,6 +101,8 @@ def orderCreate():
     express_address_id = int(req['express_address_id']) if 'express_address_id' in req and req[
         'express_address_id'] else 0
     params_goods = req['goods'] if 'goods' in req else None
+    discount_price = req['discount_price'] if 'discount_price' in req else 0
+    discount_type = req['discount_type'] if 'discount_type' in req else "帐户余额"
 
     items = []
     if params_goods:
@@ -100,13 +129,14 @@ def orderCreate():
             'nickname': address_info.nickname,
             "address": "%s%s%s%s" % (
                 address_info.province_str, address_info.city_str, address_info.area_str, address_info.address)
-        }
+        },
+        "discount_price": discount_price,
+        "discount_type": discount_type
     }
     resp = target.createOrder(member_info.id, items, params)
     # 如果是来源购物车的，下单成功将下单的商品去掉
     if resp['code'] == 200 and src_type == "cart":
         CartService.deleteItem(member_info.id, items)
-
     return jsonify(resp)
 
 
@@ -161,7 +191,7 @@ def orderPay():
         return jsonify(resp)
 
     app_config = app.config['OPENCS_APP']
-    notify_url = app.config['APP']['domain'] + app_config['callback_url']
+    notify_url = app.config['APP']['domain'] + '/api/order/callback'
 
     target_wechat = WeChatService(merchant_key=app_config['mch_key'])
 
@@ -176,7 +206,6 @@ def orderPay():
         'trade_type': "JSAPI",
         'openid': member_info.openid
     }
-
     pay_info = target_wechat.get_pay_info(pay_data=data)
 
     # 保存prepay_id为了后面发模板消息

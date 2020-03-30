@@ -1,57 +1,106 @@
-const util = require("../../../utils/util.js");
-const app = getApp();
-const onNavigateTap = function (event, object) {
-  var id = event.currentTarget.dataset.id * 1; //乘1强制转换成数字
+const util = require("../../../utils/util.js")
+const app = getApp()
+
+/**
+ * 点击了导航栏
+ * @param event
+ * @param object
+ */
+const onNavigateTap = function (event, that) {
+  let id = event.currentTarget.dataset.id * 1; //乘1强制转换成数字
   //TODO: 希望登录后直接进入页面
   if ((id == 4 || id == 2) && !app.loginTip()) {
-    return;
+    return
   }
-  app.getNewRecommend();
-  var [isSelecteds, urls] = util.onNavigateTap(id);
-  object.setData({
-    isSelecteds: isSelecteds
+  //导航，并延时隐藏提示浮窗
+  wx.navigateTo({
+    url: app.globalData.navigateUrls[id],
+    success: () => {
+      hideHint(that)
+    }
   })
-
-  //发布信息页面没有导航栏
-  if (id == 2) {
-    wx.navigateTo({
-      url: urls[id]
-    })
-  } else {
-    wx.redirectTo({
-      url: urls[id],
-    })
-  }
 }
 
 const closeQrcodeHint = function (that) {
+
+  let hint_content = ''
+  if (app.globalData.regFlag) {
+    hint_content = '在【我的】-【个人信息】' + (app.globalData.has_qrcode ? '查看' : '获取')
+  } else {
+    hint_content = '部分功能需要登录使用'
+  }
+
   app.alert({
-    'title': '温馨提示',
-    'content': '关闭后，请点击【我的->个人信息】可' + (app.globalData.has_qrcode ? '查看' : '获取') + '您的专属二维码~',
-    'cb_confirm': function (that) {
+    title: '关闭确认',
+    content: hint_content,
+    cb_confirm: function () {
       app.globalData.showHintQrcode = false
-      var isSelecteds = that.data.isSelecteds
+      let isSelecteds = that.data.isSelecteds
       isSelecteds['showHintQrcode'] = false
       that.setData({
         isSelecteds: isSelecteds
       })
     },
-    'cb_confirm_param': that,
-    'showCancel': true
+    showCancel: true
   })
 }
 
-const closeQrcodeHintConfirm = function (that) {
-  app.globalData.showHintQrcode = false
-  var isSelecteds = that.data.isSelecteds
-  isSelecteds['showHintQrcode'] = false
-  that.setData({
-    isSelecteds: isSelecteds
+const toGetQrcode = function (that) {
+  wx.navigateTo({
+    url: '/pages/Mine/userinfo/index',
+    success: ()=>{
+      hideHint(that)
+    }
   })
+}
+
+const toLogin = function (that) {
+  wx.navigateTo({
+    url: '/pages/login/index',
+    success: ()=>{
+      hideHint(that)
+    }
+  })
+}
+
+const toSeeQrcode=function (that) {
+  wx.navigateTo({
+    url: '/pages/Mine/userinfo/index',
+    success: res => {
+      //关闭浮窗，为了回来能显示动画效果
+      hideHint(that)
+    }
+  })
+}
+
+
+const hideHint = function (that) {
+  setTimeout(()=>{
+    let isSelecteds = that.data.isSelecteds
+    isSelecteds['showHintQrcode'] = false
+    that.setData({
+      isSelecteds: isSelecteds
+    })
+  }, 300)
+}
+
+
+const tapOnHint = function(that){
+  that.setData({
+    touch_hint: true
+  })
+  setTimeout(()=>{
+    that.setData({
+      touch_hint: false
+    })
+  }, 1000)
 }
 
 module.exports = {
   onNavigateTap: onNavigateTap,
   closeQrcodeHint: closeQrcodeHint,
-  closeQrcodeHintConfirm: closeQrcodeHintConfirm
+  toGetQrcode: toGetQrcode,
+  toSeeQrcode: toSeeQrcode,
+  toLogin: toLogin,
+  tapOnHint: tapOnHint
 }

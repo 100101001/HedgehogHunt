@@ -5,6 +5,7 @@ from flask import request, jsonify, g
 from sqlalchemy import or_
 
 from application import db
+from common.libs import Helper
 from common.libs.Helper import getCurrentDate, getDictFilterField
 from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
@@ -13,7 +14,7 @@ from common.models.ciwei.Goods import Good
 from common.models.ciwei.Report import Report
 # -*- coding:utf-8 -*-
 from common.models.ciwei.User import User
-from web.controllers.api import route_api, Helper
+from web.controllers.api import route_api
 
 
 # 查询所有记录

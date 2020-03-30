@@ -21,6 +21,52 @@ page{
   font-weight: 600;
 }
 
+
+/**简介视频**/
+.video-container{
+  position: absolute;
+  z-index:1;
+}
+
+.video{
+  position: absolute;
+  left: 86rpx;
+  top: 5rpx;
+  width: 600rpx;
+  height: 450rpx;
+}
+
+.close-video-btn-container{
+  width: 60rpx;
+  height: 60rpx;
+  position: absolute;
+  z-index: 2;
+  left: 655rpx;
+  top: -25rpx;
+  align-content: center;
+}
+
+.close-video-btn{
+  width: 60rpx;
+  height: 60rpx;
+  opacity: 50%;
+  border-radius: 60rpx;
+  box-shadow:0rpx 0rpx 10rpx 4rpx #333333; /**将h-shadow,v-shadow设为0px,实现四周阴影**/
+}
+
+/**关闭动画**/
+.close-animation-clockwise{
+  animation: headRotate 0.7s linear infinite;
+}
+
+@keyframes headRotate{
+  0% {transform: rotate(0deg); transform-origin: center;}
+  50% {transform: rotate(180deg); transform-origin: center;}
+  100% {transform: rotate(360deg); transform-origin: center;}
+}
+
+/**简介视频**/
+
 .wechatid {
   font-size: 15px;
 }
@@ -108,19 +154,30 @@ page{
   font-weight: 600;
   width: 100rpx;
   text-align:left;
-  margin-right: 185rpx;
+  margin-right: 108rpx;
   color: #f7931e;
 }
 
+.no-sms-detail{
+  margin-right: 200rpx ;
+}
+
+.has-sms-detail{
+  margin-right: 107rpx;
+}
 /*账户信息*/
 .recharge_btn {
   color: #f7931e;
-  padding: 2rpx 30rpx 2rpx 30rpx;
+  padding: 2rpx 20rpx;
   margin-bottom: 15rpx;
   font-size: 20rpx;
   font-weight: 600;
-  border: 2px #f7931e solid;
+  border: 5rpx #f7931e solid;
   border-radius: 30rpx;
+}
+
+.intro{
+  margin-right: 15rpx;
 }
 
 /*最后一个不划线*/
@@ -170,3 +227,29 @@ page{
   border-radius: 50rpx;
 }
 
+.bind-phone-btn{
+  background: #f7931e;
+  color: #fff;
+}
+
+.input-number{
+  display: flex;
+  flex-direction: row;
+  margin-left: 60rpx;
+}
+
+
+.sms-detail{
+  display: flex;
+  flex-direction: column;
+}
+
+.hrz {
+  border: 3rpx solid #ededed;
+  margin-top: 30rpx;
+  margin-bottom: 30rpx;
+}
+
+.sms-detail-modal{
+  marigin: 0 auto;
+}

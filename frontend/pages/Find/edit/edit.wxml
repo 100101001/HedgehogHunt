@@ -1,4 +1,4 @@
-<!--import src="../template/upload-pics/upload-pics-template.wxml" /-->
+<import src="../../template/use-balance/use-balance.wxml"></import>
 <view class="container">
   <loading hidden="{{loadingHidden}}" wx:if="{{ !upload_qrcode }}">上传第{{i}}张图片..</loading>
   <form class="goods-box" bindsubmit="formSubmit">
@@ -44,22 +44,20 @@
       <view class="tips-views">物品描述</view>
       <textarea class="summary" maxlength="{{false}}" name="summary" placeholder="{{summary_placeholder}}" value="{{summary_value}}"></textarea>
     </view>
+    <view class="hrz1"></view>
     <!--原来置顶已过期或者没有置顶过且是寻物启事才显示-->
     <view id="top" wx:if="{{business_type==0 && !top}}">
-      <view class="hrz1"></view>
       <view class="tips-views">付费置顶，失物在最醒目位置，大大提高寻回的概率~</view>
-      <switch class="top-switch" type="switch" color="#f7931e" disabled="{{submitDisable}}" bindchange="changSetTop">
-        <view class="ribbon">
-          <text>置顶 ￥{{top_price}} / {{top_days}}天</text>
+      <view class="top-switch-container">
+        <switch class="top-switch" type="switch" color="#f7931e" disabled="{{submitDisable}}" checked="{{isTop}}" bindchange="changSetTop"></switch>
+        <view class="top-text">
+          <text>置顶</text>
+          <text class="top-price {{use_balance? 'delete': ''}}" >￥{{top_price}}</text>
+          <text wx:if="{{use_balance}}"> ￥{{discount_price}}</text>
+          <text> / {{top_days}}天</text>
         </view>
-      </switch>
-      <view class="hrz1"></view>
-    </view>
-    <view id="top" wx:if="{{business_type==0 && top}}">
-      <view class="hrz1"></view>
-        <view class="ribbon">
-          <text>已 置 顶</text>
-        </view>
+      </view>
+      <template is="use-balance-checker" data="{{balance_got, balance_use_disabled, balance_low, total_balance, use_balance, balance}}"></template>
       <view class="hrz1"></view>
     </view>
     <button class="submit-btn" form-type="submit" disabled="{{submitDisable}}">提交发布</button>

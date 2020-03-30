@@ -1,9 +1,9 @@
 SERVER_PORT = 8999
 # IP = '127.0.0.1'
 # IP = '192.168.0.115'
-# IP = '192.168.0.116'
+IP = '192.168.0.116'
 # IP='100.68.70.139'
-IP='47.102.201.193'
+# IP='47.102.201.193'
 DEBUG = True
 SQLALCHEMY_ECHO = True
 
@@ -11,9 +11,10 @@ PAGE_SIZE = 50
 PAGE_DISPLAY = 10
 
 SQLALCHEMY_DATABASE_URI = 'mysql://root:wcx9517530@47.102.201.193/ciwei_db?charset=utf8mb4'
-#SQLALCHEMY_DATABASE_URI = 'mysql://root:wcx9517530@188.131.240.205/ciwei_db1?charset=utf8mb4'
+# SQLALCHEMY_DATABASE_URI = 'mysql://root:wcx9517530@188.131.240.205/ciwei_db1?charset=utf8mb4'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_ENCODING = 'utf-8'
+
 
 # 过滤url，登录页面本身的url要跳过
 API_IGNORE_URLS = [
@@ -67,12 +68,6 @@ SUBSCRIBE_TEMPLATES = {
     "thanks": "gBSM-RF5b3L_PoT3f1u8ibxZMz-qzAsNSZy2LSBPsG8"
 }
 
-TWILIO_SERVICE = {
-    'accountSID': 'AC11e40a4fac01008a5f6841be60ceb9e1',
-    'authToken': '037c7506ccf5936c6da0effb00531e94',
-    'twilioNumber': '+14088377012'
-}
-
 UPLOAD = {
     'ext': ['jpg', 'bmp', 'jpeg', 'png'],
     'prefix_path': '/web/static/upload/',
@@ -80,8 +75,19 @@ UPLOAD = {
 }
 
 APP = {
-    # 'domain':'http://0.0.0.0:8999'
-    # 'domain':'http://192.168.31.66:8999'
     # 'domain': "http://100.68.70.139:8999",
-    'domain': "http://" + IP + ":8889",
+    'domain': "http://" + IP + ":8999",
+}
+
+ACS_SMS = {
+    'ACCESS_KEY_ID': "LTAIiT0TFPLB4i4j",
+    'ACCESS_KEY_SECRET': "UVOjJwxTnT1kv5GpvY4BX7YMDhgWOu",
+    'TEMP_IDS': {
+        'VERIFY': 'SMS_186612670',
+        'NOTIFY': 'SMS_186598289'
+    },
+    'SIGN_NAMES': {
+        'VERIFY': '应寻',
+        'NOTIFY': '闪寻'
+    }
 }

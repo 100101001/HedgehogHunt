@@ -1,125 +1,151 @@
-var app = getApp();
+const app = getApp();
+const util = require('../../../utils/util')
+const toOrderSpecialProduct = function (data={}) {
+  wx.showToast({
+    title: '前往下单',
+    icon: 'loading',
+    success: res => {
+      setTimeout(function () {
+        wx.navigateTo({
+          'url': '/mall/pages/order/index?data=' + JSON.stringify(data)
+        })
+      }, 200)
+    }
+  })
+}
+
+
+const balanceCharge = function (pay_price=0.01, cb_success=()=>{}) {
+  wx.request({
+    url: app.buildUrl('/balance/order'),
+    header: app.getRequestHeader(),
+    data: {
+      price: pay_price
+    },
+    method: 'POST',
+    success: res => {
+      let resp = res.data
+
+      //下单失败提示后返回
+      if (resp['code'] !== 200) {
+        app.alert({
+          content: resp['msg']
+        })
+        return
+      }
+
+      //下单成功调起支付
+      let pay_data = resp['data']
+      wx.requestPayment({
+        timeStamp: pay_data['timeStamp'],
+        nonceStr: pay_data['nonceStr'],
+        package: pay_data['package'],
+        signType: pay_data['signType'],
+        paySign: pay_data['paySign'],
+        success: res => {
+          //支付成功，继续发布
+          cb_success()
+        },
+        fail: res => {
+          app.alert({content: "支付失败"})
+        }
+      })
+    },
+    fail: res => {
+      app.serverBusy()
+    }
+  })
+}
+
+/**
+ * changeUserBalance
+ * 扣除(改变)用户余额
+ * @param unit 改变量
+ * @param cb_success 回调函数
+ */
+const changeUserBalance = function (unit = 0, cb_success = () => {}, cb_fail=()=>{}) {
+  wx.showLoading({
+    title: "扣除余额中"
+  })
+  wx.request({
+    url: app.buildUrl("/member/balance/change"),
+    header: app.getRequestHeader(),
+    data: {
+      unit: unit,
+      note: "余额充值"
+    },
+    success: res => {
+      cb_success()
+    },
+    fail: res=>{
+      cb_fail()
+    },
+    complete: res => {
+      wx.hideLoading()
+    }
+  })
+}
+
 
 Page({
   data: {
     userInfo: {},
     has_qrcode: false,
     show_qrcode: false,
-    qrCode: "",
-    hiddenNameModal: true,
-    hiddenMobileModal: true,
-    hiddenContactModal: true,
-    contact_img: app.globalData.static_file_domain + "/static/QRcode.jpg"
+    qr_code: "",
+    hiddenNameModal: true, //编辑姓名
+    hiddenMobileModal: true, //编辑手机
+    hiddenContactModal: true, //余额提现，客服
+    hiddenSmsTimesModal: true, //短信按量购买
+    hiddenSmsPkgModal: true, //短信套餐包购买
+    hiddenIntroduceModal: true, //二维码使用介绍
+    hiddenBalanceRecharge: true, //充值余额
+    hiddenSmsDetailModal: true, //短信余额详情
+    contact_img: app.globalData.static_file_domain + "/static/QRcode.jpg",
+    intro_url: app.globalData.static_file_domain+ "/static/introduce.mp4",
+    intro_init_time: 0, //
+    balance_recharge_amount: "",
+    sms_num: "",
+    sms_pkg_price: app.globalData.smsPkgProductPrice
   },
   onLoad: function () {
-    //会员基本信息
-    var name = app.globalData.memberInfo.name
-    var mobile = app.globalData.memberInfo.mobile
-    this.setData({
-      avatar: app.globalData.memberInfo.avatar,
-      nickname: app.globalData.memberInfo.nickname,
-      mobile: mobile == "" ? "-" : mobile,
-      name: name == "" ? "-" : name,
-      balance: app.globalData.memberInfo.balance
-    });
+
   },
   onShow() {
-    wx.checkSession({
-      fail: (res) => {
-        wx.login({
-          success: res => {
-            wx.request({
-              method: 'POST',
-              url: app.buildUrl('/member/login/wx'),
-              header: {
-                'content-type': 'application/json',
-              },
-              data: {code: res.code},
-              success: res => {
-                app.setCache("loginInfo", res.data.data)
-              }
-            })
-          }
-        })
-      }
-    })
     // 会员的闪寻码信息
-    this.setData({
-      has_qrcode: app.globalData.has_qrcode,
-      qrCode: app.globalData.has_qrcode ? app.globalData.qr_code_list[0] : "",
-    })
+    this.getMemberInfo()
   },
-  getPhoneNumber(e) {
-    console.log(e)
-    var msg = e.detail.errMsg
-    var that = this
-    var session_key = app.getCache('loginInfo').session_key
-    var encryptedData = e.detail.encryptedData
-    var iv = e.detail.iv;
-    if (msg == "getPhoneNumber:fail:user deny") {
-      this.setData({
-        hiddenMobileModal: true
-      })
-      return
-    }
-    if (msg == 'getPhoneNumber:ok') {
-      wx.checkSession({
-        success: (res) => {
-          that.deciyption(session_key, encryptedData, iv);
-        },
-        fail: (res) => {
-          wx.login({
-            success: res => {
-              wx.request({
-                method: 'POST',
-                url: app.buildUrl('/member/login/wx'),
-                header: {
-                  'content-type': 'application/json',
-                },
-                data: { code: res.code },
-                success: function (res) {
-                  var resp = res.data
-                  if (resp.code !== 200) {
-                    app.alert({
-                      'content': resp.msg
-                    })
-                    return
-                  }
-                  var loginInfo = resp.data;
-                  app.setCache('loginInfo', loginInfo)
-                  that.deciyption(loginInfo.session_key, encryptedData, iv);
-                }
-              })
-            }
-          })
-        }
-      })
-    }
-  },
-  deciyption(session_key, encryptedData, iv) {
-    this.showToast('设置中', 'loading', 800)
+  getMemberInfo: function(){
     wx.request({
-      method: 'POST',
-      url: app.buildUrl('/member/set/phone'),
-      header: app.getRequestHeader(1),
-      data: {
-        session_key: session_key,
-        encrypted_data: encryptedData,
-        iv: iv
-      },
-      success: res => {
-        var resp = res.data
-        if (resp.code !== 200) {
+      url: app.buildUrl("/member/info"),
+      header: app.getRequestHeader(),
+      success: (res) => {
+        let resp = res.data
+        if (resp['code'] !== 200) {
           app.alert({
-            'content': resp.msg
+            content: resp['msg'],
+            cb_confirm: () => {
+              wx.navigateBack()
+            }
           })
           return
         }
-        app.globalData.memberInfo.mobile = resp.data.mobile
+        let info = resp['data']['info']
         this.setData({
-          hiddenMobileModal: true,
-          mobile: resp.data.mobile
+          avatar: info['avatar'],
+          nickname: info['nickname'],
+          name: info['name'],
+          mobile: info['mobile'],
+          balance: util.toFixed(info['balance'],2),
+          has_qrcode: info['has_qrcode'],
+          qr_code: info['qr_code'],
+          member_notify_times: info['m_times'],
+          total_notify_times: info['total_times'],
+          sms_pkgs: info['pkgs']
         })
+      },
+      fail: (res) => {
+        app.serverBusy(()=>{wx.navigateBack()})
       }
     })
   },
@@ -145,16 +171,16 @@ Page({
   },
   showToast: function (title = '', icon = 'none', duraton = 1000, mask = true) {
     wx.showToast({
-      'title': title,
-      'icon': icon,
-      'duraton': duraton,
-      'mask': mask
+      title: title,
+      icon: icon,
+      duraton: duraton,
+      mask: mask
     })
   },
   confirmNameEdit: function (e) {
-    if (this.data.editName == "") {
+    if (!this.data.editName) {
       app.alert({
-        'content': '姓名不能为空'
+        content: '姓名不能为空'
       })
       return
     }
@@ -162,28 +188,28 @@ Page({
       this.showToast('请填不同姓名!', 'none')
       return
     }
-    var that = this
+    //关闭输入框
+    this.cancelNameEdit()
+    this.doSetName()
+  },
+  doSetName: function () {
     this.showToast('设置中', 'loading')
     wx.request({
       method: 'POST',
       url: app.buildUrl('/member/set/name'),
       header: app.getRequestHeader(),
-      data: { name: that.data.editName },
+      data: {name: this.data.editName},
       success: res => {
-        console.log(res)
-        var resp = res.data
-        if (resp.code !== 200) {
-          app.alert({
-            'content': resp.msg
-          })
+        let resp = res.data
+        if (resp['code'] !== 200) {
+          app.alert({content: resp['msg']})
           return
         }
-        app.globalData.memberInfo.name = resp.data.name
         this.setData({
-          name: resp.data.name,
-          hiddenNameModal: true,
-          nameInputfocus: false
+          name: resp.data.name
         })
+      }, complete: res => {
+        wx.hideToast()
       }
     })
   },
@@ -196,51 +222,45 @@ Page({
    * toGetQrCode 判断没有姓名或手机号提示用户补上，否则继续下单获取二维码
    */
   toGetQrCode: function(){
-    var name = this.data.name
-    var mobile = this.data.mobile
-    if (name == "-") {
+    let name = this.data.name
+    let mobile = this.data.mobile
+    if (!name) {
       app.alert({ 'content': '姓名不能为空' })
       return
     }
-    if (mobile == "-") {
+    if (!mobile) {
       app.alert({ 'content': '手机不能为空' })
       return
     }
-    this.getQrCode()
+    this.doGetQrCode()
   },
   /***
-   * getQrCode 去下单获取二维码
+   * doGetQrCode 去下单获取二维码
    */
-  getQrCode: function () {
+  doGetQrCode: function () {
     //下单
     let data = {
       type: 'toBuy',
       goods: [{'id': app.globalData.qrcodeProductId, 'price': app.globalData.qrcodePrice, 'number': 1}]
     }
-    wx.showToast({
-      title: '前往下单',
-      icon: 'loading',
-      success: res => {
-         setTimeout(function(){
-           wx.navigateTo({
-             'url' : '/mall/pages/order/index?data='+ JSON.stringify(data)
-           })
-         }, 200)
-      }
+    toOrderSpecialProduct(data)
+  },
+  /**
+   * checkQrCode 点击查看/隐藏二维码
+   */
+  checkQrCode: function () {
+    this.setData({
+      show_qrcode: !this.data.show_qrcode
     })
   },
-  checkQrCode: function () {
-    var show_qrcode = !this.data.show_qrcode;
-    this.setData({
-      show_qrcode: show_qrcode
-    });
-  },
+  /**
+   * onWithDrawTap 用户按下提现按钮后根据余额，做出操作提示
+   */
   onWithDrawTap: function () {
-    var balance = this.data.balance
-    if (balance < 10) {
+    if (this.data.balance < 10) {
       app.alert({
-        'title': '温馨提示',
-        'content': '额度满10元即可提现'
+        title: '提现提示',
+        content: '额度满10元即可提现'
       })
       return
     }
@@ -248,16 +268,200 @@ Page({
       hiddenContactModal: false
     })
   },
+  /**
+   * cancelContact 关闭了提现客服窗口
+   * @param e
+   */
   cancelContact: function (e) {
     this.setData({
       hiddenContactModal: true
     })
   },
+  /**
+   * previewImage 预览并保存二维码
+   * @param e
+   */
   previewImage: function (e) {
-    var image = e.currentTarget.dataset.src
+    let image = e.currentTarget.dataset.src
     wx.previewImage({
       current: image, // 当前显示图片的http链接
       urls: [image] // 需要预览的图片http链接列表
     })
   },
+  /**
+   * toRechargeBalance 用户按下余额充值按钮显示输入充值金额的模态框
+   */
+  toRechargeBalance: function(){
+    this.setData({
+      hiddenBalanceRecharge: false
+    })
+  },
+  /**
+   * listenBalanceRecharge 监听用户输入的钱数
+   * @param e
+   */
+  listenBalanceRecharge: function(e){
+    this.data.balance_recharge_amount = e.detail.value
+  },
+  /**
+   * confirmRechargeBalance 与用户核对充值收费金额
+   * 如果用户确认就继续进入收费充值过程
+   * 否则，终止操作
+   */
+  confirmRechargeBalance: function(){
+    let pay_price = util.toFixed(this.data.balance_recharge_amount, 2)
+    if (pay_price) {
+      //充值金额大于零才继续
+      app.alert({
+        title: '充值确认',
+        content: '您需要支付' + pay_price + '元，确认充值？',
+        showCancel: true,
+        cb_confirm: () => {
+          this.doBalanceRecharge(pay_price)
+        }
+      })
+    }
+    //关闭输入金额的弹出框
+    this.cancelRechargeBalance()
+  },
+  /**
+   * doBalanceRecharge 充值余额的实际操作函数
+   * 先收费，如果支付成功增加余额，
+   * 如果收费成功但是余额增加失败则提示用户联系技术人员操作增加
+   * @param pay_price
+   */
+  doBalanceRecharge: function (pay_price = 0.01) {
+    balanceCharge(pay_price, () => {
+      changeUserBalance(pay_price, () => {
+        wx.showToast({
+          title: '充值成功',
+          duration: 500
+        })
+        this.setData({
+          balance: this.data.balance + pay_price
+        })
+      }, () => {
+        app.alert({
+          title: '跳转提示',
+          content: '联系技术人员充值余额',
+          cb_confirm: () => {
+            wx.navigateTo({url: '/pages/Mine/connect/index'})
+          }
+        })
+      })
+    })
+  },
+  /**
+   * cancelRechargeBalance 隐藏金额输入的模态框
+   */
+  cancelRechargeBalance: function(){
+    this.setData({
+      hiddenBalanceRecharge: true,
+      balance_recharge_amount: ""
+    })
+  },
+  /**
+   * toRechargeSms 根据用户选择的按量购买或者短信包进入下一步的操作
+   */
+  toRechargeSms: function(){
+    wx.showActionSheet({
+      itemList: ['按量计费', '优惠短信包'],
+      success: (res) => {
+        if(res.tapIndex == 0){
+          //出现编辑购买条数
+          app.alert({
+            title: '计价提示',
+            content: '0.1元/1条。继续购买？',
+            showCancel: true,
+            cb_confirm: ()=>{
+              this.setData({
+                hiddenSmsTimesModal: false
+              })
+            }
+          })
+        } else {
+          //直接跳转下单
+          this.setData({
+            hiddenSmsPkgModal: false
+          })
+        }
+      }
+    })
+  },
+  /**
+   * listenSmsCnt 监听用户输入购买的短信条数
+   * @param e
+   */
+  listenSmsCnt: function(e){
+    this.data.sms_num = e.detail.value
+  },
+  /**
+   * confirmSmsTimes 确定购买指定条数的短信
+   * @param e
+   */
+  confirmSmsTimes: function(e){
+    let num = parseInt(this.data.sms_num)
+    if (num) {
+      //购买数量大于0，才继续
+      let data = {
+        type: 'toBuy',
+        goods: [{'id': app.globalData.smsProductId, 'price': app.globalData.smsProductPrice, 'number': num}]
+      }
+      toOrderSpecialProduct(data)
+    }
+    this.cancelSmsTimes()
+  },
+  /**
+   * cancelSmsTimes 关闭短信购买数量的盒子
+   */
+  cancelSmsTimes: function(){
+    this.setData({
+      hiddenSmsTimesModal: true,
+      sms_num: ""
+    })
+  },
+  confirmSmsPkg: function(){
+    let data = {
+      type: 'toBuy',
+      goods: [{'id': app.globalData.smsPkgProductId, 'price': app.globalData.smsPkgProductPrice, 'number': 1}]
+    }
+    toOrderSpecialProduct(data)
+    this.setData({
+      hiddenSmsPkgModal: true
+    })
+  },
+  cancelSmsPkg: function(){
+    this.setData({
+      hiddenSmsPkgModal: true
+    })
+  },
+  toIntroduce: function () {
+    this.setData({
+      hiddenIntroduceModal: false
+    })
+  },
+  cancelIntroduce: function(){
+    //停止播放并隐藏模态框
+    setTimeout(()=>{
+      this.setData({
+        hiddenIntroduceModal: true
+      })
+    }, 700)
+  },
+  toEditPhone: function () {
+    wx.navigateTo({
+      url: '/pages/Qrcode/Mobile/index'
+    })
+    this.cancelMobileEdit()
+  },
+  toLookupSms: function () {
+    this.setData({
+      hiddenSmsDetailModal: false
+    })
+  },
+  closeSmsDetail: function () {
+    this.setData({
+      hiddenSmsDetailModal: true
+    })
+  }
 })

@@ -158,10 +158,17 @@
     color: #fff;
 }
 
+
 .no-more-goods {
     text-align: center;
     font-size: 24rpx;
     padding-bottom: 228rpx;
-    margin-top: 30rpx;
+    padding-top: 30rpx;
     color: #999;
+    background-color: #fff;
+}
+
+.topay-specific {
+    margin-left: 120rpx;
+    justify-content: flex-end;
 }

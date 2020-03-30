@@ -1,3 +1,5 @@
+@import "../../../pages/template/use-balance/use-balance.wxss";
+
 .container{
     background-color:#F2f2f2;
 }
@@ -87,7 +89,6 @@ form{
      height: 74rpx;
      color:#000000;
      line-height: 1.6;
-     overflow: hidden;
  }
 .a-goods .text-box .arow01{
     margin-bottom: 30rpx;
@@ -186,4 +187,13 @@ form{
 .jiesuan-box .total{
     color: #f7931e;
     text-align: right;
+}
+
+.use-balance-specific{
+    padding-top: 20rpx;
+    margin-bottom: 20rpx;
+    margin-left: 35rpx;
+}
+.delete{
+  text-decoration:line-through;
 }

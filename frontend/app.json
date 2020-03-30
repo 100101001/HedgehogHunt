@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/Homepage/index",
     "pages/Homepage/homepage",
     "pages/Record/index",
     "pages/Thanks/record/index",
@@ -33,15 +34,15 @@
       ]
     },
     {
-      "root":"pages/Report",
-      "pages":[
+      "root": "pages/Report",
+      "pages": [
         "index",
         "info/info"
       ]
     },
     {
-      "root":"controls",
-      "pages":[
+      "root": "controls",
+      "pages": [
         "pages/index",
         "pages/static/index",
         "pages/add_adm/index",
@@ -62,6 +63,8 @@
     "scope.userLocation": {
       "desc": "物品的定位将更加精确"
     }
-  }
+  },
+  "navigateToMiniProgramAppIdList": [
+    "wx6885acbedba59c14"
+  ]
 }
-

@@ -5,7 +5,7 @@ import time
 
 from flask import g, request, jsonify
 
-from application import db
+from application import app, db
 from common.libs.Helper import selectFilterObj, getDictFilterField, seconds2str, getCurrentDate
 from common.libs.UrlManager import UrlManager
 from common.libs.mall.PayService import PayService
@@ -58,10 +58,13 @@ def myOrderList():
         product_ids = selectFilterObj(order_item_list, "product_id")
         product_map = getDictFilterField(Product, Product.id, "id", product_ids)
         order_item_map = {}
+        order_sp_cnt_map = {}
         if order_item_list:
             for item in order_item_list:
                 if item.order_id not in order_item_map:
                     order_item_map[item.order_id] = []
+                if item.order_id not in order_sp_cnt_map:
+                    order_sp_cnt_map[item.order_id] = {}
 
                 tmp_product_info = product_map[item.product_id]
                 order_item_map[item.order_id].append({
@@ -72,18 +75,36 @@ def myOrderList():
                     'pic_url': UrlManager.buildImageUrl(tmp_product_info.main_image, image_type='PRODUCT'),
                     'name': tmp_product_info.name
                 })
+                if item.product_id == 15:
+                    order_sp_cnt_map[item.order_id]['qr_code'] = 1
+                if item.product_id == 17:
+                    order_sp_cnt_map[item.order_id]['sms'] = item.product_num
+                if item.product_id == 16:
+                    order_sp_cnt_map[item.order_id]['sms_package'] = 1
 
         for item in order_list:
+            discount_price = item.discount_price
+            tmp_map = order_sp_cnt_map[item.id]
             tmp_data = {
                 'status': item.pay_status,
                 'status_desc': item.status_desc,
                 'date': item.created_time.strftime("%Y-%m-%d %H:%M:%S"),
-                'order_number': item.order_number,
+                'order_number': item.order_number,  # 向前端隐藏真实id
                 'order_sn': item.order_sn,
                 'note': item.note,
                 'total_price': str(item.total_price),
-                'goods_list': order_item_map[item.id]
+                'goods_list': order_item_map[item.id],  # 产品列表
+                'express_sn': item.express_sn,  # 订单号
+                'balance_discount': str(discount_price) if discount_price > 0 else "0.00",
+                'qr_code_num': tmp_map['qr_code'] if 'qr_code' in tmp_map else 0,
+                'sms_num': tmp_map['sms'] if 'sms' in tmp_map else 0,
+                'sms_package_num': tmp_map['sms_package'] if 'sms_package' in tmp_map else 0
             }
+            # 如果只有非周边商品则付完款，前端自动发货
+            tmp_data['only_special'] = len(order_item_map[item.id]) == \
+                                       (1 if tmp_data['sms_num'] else 0 + \
+                                        1 if tmp_data['sms_package_num'] else 0 + \
+                                        1 if tmp_data['qr_code_num'] else 0)
 
             data_order_list.append(tmp_data)
     resp['data']['pay_order_list'] = data_order_list
@@ -117,6 +138,7 @@ def myOrderInfo():
         "status_desc": pay_order_info.status_desc,
         "pay_price": str(pay_order_info.pay_price),
         "yun_price": str(pay_order_info.yun_price),
+        "discount_price": str(pay_order_info.discount_price),
         "total_price": str(pay_order_info.total_price),
         "address": express_info,
         "goods": [],
@@ -201,6 +223,5 @@ def myCommentAdd():
     order_info.comment_status = 1
     order_info.updated_time = getCurrentDate()
     db.session.add(order_info)
-
     db.session.commit()
     return jsonify(resp)

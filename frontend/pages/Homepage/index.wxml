@@ -1,0 +1,15 @@
+<!--pages/Homepage/index.wxml-->
+<import src="../template/navigate-bar/navigate-bar-template.wxml" />
+<!---积分和成长值-->
+<view class="user-info-container">
+  <image src="{{info.avatar}}"></image>
+  
+</view>
+<!---二维码，余额--->
+
+<!--活动中心-->
+
+<!--活动卡片-->
+
+<!--导航栏-->
+<template is="navigate-bar-template" data="{{...isSelecteds, touch_hint}}" />

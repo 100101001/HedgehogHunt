@@ -16,6 +16,7 @@ from common.libs.Helper import getCurrentDate
 from common.libs.Helper import selectFilterObj, getDictFilterField
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Member import Member
+from common.models.ciwei.MemberBalanceChangeLog import MemberBalanceChangeLog
 
 
 class MemberService():
@@ -119,7 +120,8 @@ class MemberService():
         # 按物主owner_name, 物品名name 匹配失/拾物品
         # 在失去物品的作者的recommmend_id中加入匹配到的拾物品id
         # 不能是同一个人发布的拾/失
-        query = Good.query.filter_by(owner_name=goods_info.owner_name)
+        query = Good.query.filter(Good.status != 7, Good.status != 5)
+        query = query.filter_by(owner_name=goods_info.owner_name)
         query = query.filter_by(name=goods_info.name)
         query = query.filter(Good.member_id != goods_info.member_id)
         if goods_info.business_type == 1:
@@ -130,10 +132,16 @@ class MemberService():
                 member_ids = selectFilterObj(goods_list, "member_id")
                 member_map = getDictFilterField(Member, Member.id, "id", member_ids)
                 for item in goods_list:
+                    if item.member_id not in member_map:
+                        item.status = 7
+                        db.session.add(item)
+                        db.session.commit()
+                        continue
                     tmp_member_info = member_map[item.member_id]
-                    MemberService.addRecommendGoods(tmp_member_info, item.id)
-                    # 通知：有人可能捡到了你遗失的东西
-                    SubscribeService.send_recommend_subscribe(item)
+                    if tmp_member_info:
+                        MemberService.addRecommendGoods(tmp_member_info, item.id)
+                        # 通知：有人可能捡到了你遗失的东西
+                        SubscribeService.send_recommend_subscribe(item)
         else:
             # 发布的是寻物启事，找到了对应的失物招领,给用户返回失物招领的列表
             goods_list = query.filter_by(business_type=1).all()
@@ -141,8 +149,8 @@ class MemberService():
                 member_info = g.member_info
                 for item in goods_list:
                     MemberService.addRecommendGoods(member_info, item.id)
-                    # 通知：有人可能丢了你捡到的东西
-                    SubscribeService.send_recommend_subscribe(item)
+                    # # 通知：有人可能丢了你捡到的东西
+                    # SubscribeService.send_recommend_subscribe(item)
         return True
 
     @staticmethod
@@ -191,3 +199,21 @@ class MemberService():
         for key in keys[1:]:
             recommend_id = recommend_id + '#' + str(key) + ':' + str(re_dict[key])
         return recommend_id
+
+    @staticmethod
+    def setMemberBalanceChange(member_info=None, unit=0, note="答谢"):
+        """
+        记录会员账户余额变化
+        :param member_info:
+        :param unit:
+        :param note:
+        :return:
+        """
+        balance_change_model = MemberBalanceChangeLog()
+        balance_change_model.member_id = member_info.id
+        balance_change_model.openid = member_info.openid
+        balance_change_model.unit = unit
+        balance_change_model.total_balance = member_info.balance
+        balance_change_model.note = note
+        balance_change_model.created_time = getCurrentDate()
+        db.session.add(balance_change_model)

@@ -64,14 +64,35 @@ function onNavigateTap(id) {
 function regexConfig() {
   var reg = {
     email: /^(\w-*\.*)+@(\w-?)+(\.\w{2,})+$/,
-    phone: /^1(3|4|5|7|8)\d{9}$/
+    phone: /^1(3|4|5|6|7|8|9)\d{9}$/  //10,11,12开头电话分配给固定机构使用
   }
   return reg;
 }
 
+function toFixed(num=0, fix_num=2){
+  if (typeof num === 'number'){
+    return parseFloat(num.toFixed(fix_num))
+  }
+  if(typeof num === 'string'){
+    return parseFloat(parseFloat(num).toFixed(fix_num))
+  }
+  return 0.00
+}
+
+function toFixedStr(num=0, fix_num=2){
+  if (typeof num === 'number'){
+    return num.toFixed(fix_num)
+  }
+  if(typeof num === 'string'){
+    return parseFloat(num).toFixed(fix_num)
+  }
+  return "0.00"
+}
+
 module.exports = {
   formatTime: formatTime,
-  showMessage: showMessage,
   onNavigateTap: onNavigateTap,
-  regexConfig: regexConfig
+  regexConfig: regexConfig,
+  toFixed: toFixed,
+  toFixedStr: toFixedStr
 }

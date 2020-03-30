@@ -1,26 +1,28 @@
 <template name="navigate-bar-template">
 	<view class="navigate-bar-template">
 		<!--用户未点击关闭浮窗--->
-		<view class="hint-qrcode-container" wx:if="{{showHintQrcode}}">
+		<view class="hint-qrcode-container {{touch_hint? 'hint-qrcode-touch': ''}}" bindtap="tapOnHint" wx:if="{{showHintQrcode}}">
 			<view class="hint-qrcode-text-container">
 				<!--未登录-->
 				<view class="hint-qrcode-text" wx:if="{{regFlag && !hasQrcode}}">获取专属闪寻码，失物闪寻~</view>
-				<navigator class="hint-navigator" url="/pages/Mine/userinfo/index" hover-class="hint-navigator-hover" wx:if="{{regFlag && !hasQrcode}}">[去获取]</navigator>
+				<view catchtap="toGetQrcode" class="hint-navigator" wx:if="{{regFlag && !hasQrcode}}">[去获取]</view>
 				<!--登录无二维码-->
 				<view class="hint-qrcode-text" wx:if="{{!regFlag}}">登录后可获取专属闪寻码~</view>
-				<navigator class="hint-navigator" url="/pages/login/index" hover-class="hint-navigator-hover" wx:if="{{!regFlag}}">[去登录]</navigator>
+				<view catchtap="toLogin" class="hint-navigator" wx:if="{{!regFlag}}">[去登录]</view>
 				<!--登录且有二维码-->
 				<view class="hint-qrcode-text" wx:if="{{regFlag && hasQrcode}}">前往看查看我的专属闪寻码~</view>
-				<navigator class="hint-navigator" url="/pages/Mine/userinfo/index" hover-class="hint-navigator-hover" wx:if="{{regFlag && hasQrcode}}">[去查看]</navigator>
-				<view class="close-hint" bindtap="closeQrcodeHint">x</view>
+				<view catchtap="toSeeQrcode" class="hint-navigator" wx:if="{{regFlag && hasQrcode}}">[去查看]</view>
+				<view  class="close-hint-container" catchtap="closeQrcodeHint">
+					<view class="close-hint"></view>
+				</view>
 			</view>
 			<view class="arrow"></view>
 		</view>
 		<view class="navigate_icon_container">
 			<view catchtap='onNavigateTap' class="home_icon_container" data-id="0">
 				<image class="our_icon" style='width:77rpx; height:70rpx' src="{{isSelected0? '/images/icons/home_select.png':'/images/icons/home.png'}}"></image>
-				<view class="icon_text" wx:if="{{isSelected0}}" style="color:#f7931e">首页</view>
-				<view class="icon_text" wx:if="{{!isSelected0}}" style="color:#b3b3b3">首页</view>
+				<view class="icon_text" wx:if="{{isSelected0}}" style="color:#f7931e">校园周边</view>
+				<view class="icon_text" wx:if="{{!isSelected0}}" style="color:#b3b3b3">校园周边</view>
 			</view>
 
 			<view catchtap='onNavigateTap' class="icon_container" data-id="1">

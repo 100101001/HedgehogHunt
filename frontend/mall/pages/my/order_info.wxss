@@ -165,10 +165,11 @@ page{
     width: 720rpx;
     margin-left: 30rpx;
     border-top: 1rpx solid #eee;
+    padding-bottom: 5rpx;
 }
 .confirm-btn{
     background:#ffffff;
-    border:1rpx solid #e64340;
+    border:1rpx solid #f7931e;
     border-radius:6rpx;
     width:164rpx;
     height:60rpx;
@@ -176,7 +177,7 @@ page{
     text-align: center;
     margin: 20rpx 30rpx 20rpx auto;
     font-size:26rpx;
-    color:#e64340;
+    color:#f7931e;
     text-align:center;
 }
 .a-goods .text-box .arow{

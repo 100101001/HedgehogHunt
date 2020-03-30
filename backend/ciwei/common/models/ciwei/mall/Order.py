@@ -22,6 +22,8 @@ class Order(db.Model):
     total_price = db.Column(db.Numeric(10, 2), nullable=False, default=decimal.Decimal(0.00), comment="订单应付金额")
     yun_price = db.Column(db.Numeric(10, 2), nullable=False, default=decimal.Decimal(0.00), comment="运费金额")
     pay_price = db.Column(db.Numeric(10, 2), nullable=False, default=decimal.Decimal(0.00), comment="订单实付金额")
+    discount_price = db.Column(db.Numeric(10, 2), nullable=False, default=decimal.Decimal(0.00), comment="订单折扣金额")
+    discount_type = db.Column(db.String(40), nullable=False, default='', comment="折扣类型")
     pay_sn = db.Column(db.String(128), nullable=False, default='', comment="第三方流水号")
     prepay_id = db.Column(db.String(128), nullable=False, default='', comment="第三方预付id")
     note = db.Column(db.Text, nullable=False, comment="备注信息")
@@ -33,6 +35,7 @@ class Order(db.Model):
                                                                              "0：失败")
     express_address_id = db.Column(db.Integer, nullable=False, default=0, comment="快递地址id")
     express_info = db.Column(db.String(1000), nullable=False, default='', comment="快递信息")
+    express_sn = db.Column(db.String(50), nullable=False, default='', comment="快递单号")
     comment_status = db.Column(TINYINT(), nullable=False, default=0, comment="评论状态")
     pay_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment="付款到账时间")
     updated_time = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now,

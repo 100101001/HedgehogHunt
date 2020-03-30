@@ -1,3 +1,5 @@
+@import "../../template/use-balance/use-balance.wxss";
+
 .container {
   margin-left: 20rpx;
   margin-right: 20rpx;
@@ -157,11 +159,10 @@
 }
 
 .tips-btn {
-  background-color: #f7931e;
   font-size: 24rpx;
   font-weight: 600;
   text-align: center;
-  color: #fff;
+  color: #999;
   width: 580rpx;
   margin: 20rpx 0 20rpx 30rpx;
   border-radius: 10rpx;
@@ -186,17 +187,29 @@
 }
 
 
-.top-switch-container text {
-  color: #f7931e;
-  font: bold 35rpx 'Helvetica Neue', Helvetica, Arial, sans-serif;
+.top-text {
   margin: 15rpx  50rpx 6rpx 30rpx;
   text-align: center;
-  text-decoration: none;
 }
 
+.top-switch-container text{
+  color: #f7931e;
+  font: bold 35rpx 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  text-align: center;
+}
 
 .hrz1 {
   border: 1px solid #ededed;
   margin-top: 30rpx;
   margin-bottom: 30rpx;
+}
+
+.delete{
+  text-decoration:line-through;
+}
+
+.use-balance-specific{
+  margin-top: 20rpx;
+  margin-bottom: 20rpx;
+  margin-left: 35rpx;
 }

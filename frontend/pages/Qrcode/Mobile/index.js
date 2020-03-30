@@ -1,6 +1,8 @@
 // pages/Qrcode/Register/index.js
-var util = require("../../../utils/util.js")
+const util = require("../../../utils/util.js")
 const app = getApp()
+const globalData = app.globalData
+
 
 Page({
   data: {
@@ -11,13 +13,9 @@ Page({
     getSmsCodeBtnTxt: "获取验证码",
     getSmsCodeBtnColor: "#ff9900",
     getSmsCodeBtnDisabled: false,
-    phoneNum: '',
-    qrcode_openid: ''
+    phoneNum: ''
   },
   onLoad: function (options) {
-    this.setData({
-      qrcode_openid: options.openid,
-    })
   },
   onReady: function () {
     // 页面渲染完成
@@ -31,19 +29,23 @@ Page({
     // 页面隐藏
 
   },
+  /**
+   * @name mobileUnload
+   */
   onUnload: function () {
-    // 页面关闭
-
+    // 页面关闭，重置扫码标记
+    if (globalData.isScanQrcode) {
+      //清除扫码标记
+      app.cancelQrcodeScan()
+    }
   },
   formSubmit: function (e) {
-    var param = e.detail.value
     //后端检查码，对就注册跳转新页面，错就提示失败
-    this.checkSmsCode(param)
+    this.checkSmsCode(e.detail.value)
   },
   listenPhoneInput: function (e) {
-    var value = e.detail.value
     this.setData({
-      phoneNum: value
+      phoneNum: e.detail.value
     })
   },
   loading: function () {
@@ -65,133 +67,106 @@ Page({
     })
   },
   verifyInput: function (param) {
-    var phone = util.regexConfig().phone
-    var inputUserName = param.trim()
+    let phone = util.regexConfig().phone
+    let inputUserName = param.trim()
     if (phone.test(inputUserName)) {
       return true
     } else {
-      wx.showModal({
-        title: '提示',
-        showCancel: false,
-        content: '请输入正确的手机号码'
-      })
+      app.alert({content: '请输入正确的手机号码'})
       return false
     }
   },
   getSmsCode: function () {
-    var phoneNum = this.data.phoneNum
-    var that = this
-    var count = 60
+    let phoneNum = this.data.phoneNum
     if (this.verifyInput(phoneNum)) {
       //前端禁用验证码按钮
-      var si = setInterval(function () {
-        if (count > 0) {
-          count--
-          that.setData({
-            getSmsCodeBtnTxt: count + ' s',
-            getSmsCodeBtnColor: "#999",
-            getSmsCodeBtnDisabled: true
-          })
-        } else {
-          that.setData({
-            getSmsCodeBtnTxt: "获取验证码",
-            getSmsCodeBtnColor: "#ff9900",
-            getSmsCodeBtnDisabled: false
-          })
-          count = 60
-          clearInterval(si)
-        }
-      }, 1000)
       //后端发送短信
-      wx.request({
-        method: 'post',
-        url: app.buildUrl('/qrcode/sms'),
-        header: app.getRequestHeader(1),
-        data: {
-          "phone": phoneNum
-        },
-        success: function (res) {
-          var resp = res.data
-          if (resp.code === 200) {
-            app.alert({
-              content: "验证码发送成功，请留意短信"
-            })
-          } else if (resp.code === 400) {
-            app.alert({
-              content: "操作过于频繁，请稍后再试"
-            })
-          } else if (resp.code === 500) {
-            app.alert({
-              content: "验证码发送失败"
-            })
-          }
-        },
-        fail: function (res) {
-          that.alert({
-            content: "验证码发送失败"
-          })
-        }
-      })
+      this.doGetSmsCode(phoneNum)
     }
   },
+  doDownCounting: function (count = 60) {
+    let si = setInterval(() => {
+      if (count > 0) {
+        count--
+        this.setData({
+          getSmsCodeBtnTxt: count + ' s',
+          getSmsCodeBtnColor: "#999",
+          getSmsCodeBtnDisabled: true
+        })
+      } else {
+        this.setData({
+          getSmsCodeBtnTxt: "获取验证码",
+          getSmsCodeBtnColor: "#ff9900",
+          getSmsCodeBtnDisabled: false
+        })
+        clearInterval(si)
+      }
+    }, 1000)
+  },
+  doGetSmsCode: function (phone) {
+    wx.request({
+      method: 'post',
+      url: app.buildUrl('/qrcode/sms'),
+      header: app.getRequestHeader(1),
+      data: {
+        "phone": phone
+      },
+      success: (res) => {
+        app.alert({
+          content: res.data['msg']
+        })
+        if (res.data['code'] == 200) {
+          this.doDownCounting(60)
+        }
+      },
+      fail: (res) => {
+        app.serverBusy()
+      }
+    })
+  },
   checkSmsCode: function (param) {
-    var qrcode_openid = this.data.qrcode_openid
     if (this.verifyInput(param.phone)) {
       //前端禁用按钮
       this.loading()
-      var smsCode = param.smsCode.trim()
-      var that = this
       // 请求后端校验码，后端校验成功就绑定成功，否则就提示短信码失败
       wx.request({
         method: 'post',
         header: app.getRequestHeader(1),
         url: app.buildUrl("/qrcode/check/sms"),
         data: {
-          phone: that.data.phoneNum,
-          code: smsCode,
-          openid: qrcode_openid
+          phone: this.data.phoneNum,
+          code: param.smsCode.trim()
         },
-        success: function (res) {
-          console.log(res)
-          var resp = res.data
-          //前端提示
-          if (resp.code == 200) {
-            wx.showToast({
-              title: '绑定成功',
-              icon: 'success',
-              duration: 1200
-            })
-            app.globalData.memberInfo.mobile = that.data.phoneNum
-            that.cancelLoading()
-            that.redirectTo("/pages/Find/Find?business_type=1")
+        success: (res) => {
+          let resp = res.data
+          if (resp['code'] !== 200) {
+            app.alert({content: resp['msg']})
             return
-          } else if (resp.code == 401) {
-            wx.showModal({
-              title: '提示',
-              showCancel: false,
-              content: '请输入正确的短信验证码'
-            })
-          } else if (resp.code == 400) {
-            wx.showModal({
-              title: '提示',
-              showCancel: false,
-              content: '短信验证码已过期，请重新获取验证码'
-            })
           }
-          that.cancelLoading()
+          wx.showToast({
+            title: '绑定成功',
+            icon: 'success',
+            duration: 800,
+            success: (res) => {
+              setTimeout(() => {
+                if (app.globalData.isScanQrcode) {
+                  wx.redirectTo({
+                    url: '/pages/Homepage/index'
+                  })
+                } else {
+                  wx.navigateBack()
+                }
+              }, 700)
+            }
+          })
         },
-        fail: function (res) {
+        fail: (res) => {
           app.serverBusy()
-          that.cancelLoading()
+        },
+        complete: (res) => {
+          this.cancelLoading()
         }
       })
     }
-  },
-  redirectTo: function (url) {
-    //需要将param转换为字符串
-    wx.reLaunch({
-      url: url//参数只能是字符串形式，不能为json对象
-    })
   }
-
 })

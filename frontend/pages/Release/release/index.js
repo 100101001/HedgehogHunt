@@ -1,17 +1,43 @@
-var app = getApp();
+const useBalance = require("../../template/use-balance/use-balance")
+const util = require("../../../utils/util")
+const app = getApp()  //不能修改app,但可以修改app的属性
+const globalData = app.globalData
 
-/***
+
+/**
+ * getSubscribeTmpIds 发布不同类型的物品帖，需要订阅的消息不同
+ * @param business_type
+ * @returns {[]}
+ */
+const getSubscribeTmpIds = function (business_type=0) {
+  let tmpIds = []
+  if (business_type == globalData.business_type.found){ //失物招领
+    tmpIds = [
+      globalData.subscribe.thanks,
+      globalData.subscribe.finished.found
+    ]
+  } else {  // 寻物启事
+    tmpIds = [
+      globalData.subscribe.recommend,
+      globalData.subscribe.finished.lost
+    ]
+  }
+  return tmpIds
+}
+
+/**
  * topCharge
  * 置顶下单并支付
- * @param data 发布数据
+ * @param pay_price 支付金额
+ * @param cb_success 回调函数
  * @param that 页面指针
  */
-const topCharge = function (data, that) {
+const topCharge = function (pay_price=globalData.goodsTopPrice, cb_success=()=>{}, that) {
   wx.request({
     url: app.buildUrl('/goods/top/order'),
     header: app.getRequestHeader(),
     data: {
-      price: that.data.top_price
+      price: pay_price
     },
     method: 'POST',
     success: res => {
@@ -38,18 +64,10 @@ const topCharge = function (data, that) {
         paySign: pay_data['paySign'],
         success: res => {
           //支付成功，继续发布
-          if (res.errMsg == "requestPayment:ok") {
-            that.subscribeMsgAndNotifyRelease(data)
-          }
-          //支付失败，停止发布
-          if (res.errMsg == "requestPayment:fail cancel") {
-            that.setData({
-              submitDisable: false
-            })
-          }
+          cb_success()
         },
         fail: res => {
-          app.alert({'content': '微信支付失败，请稍后重试'})
+          app.alert({title: '支付失败', content: '重新发布或取消置顶'})
           that.setData({
             submitDisable: false
           })
@@ -66,14 +84,49 @@ const topCharge = function (data, that) {
 }
 
 
+/**
+ * changeUserBalance
+ * 扣除(改变)用户余额
+ * @param unit 改变量
+ * @param cb_success 回调函数
+ * @param cb_fail 回调函数 TODO
+ */
+const changeUserBalance = function (unit = 0, cb_success = () => {}, cb_fail=()=>{}) {
+  wx.showLoading({
+    title: "扣除余额中"
+  })
+  wx.request({
+    url: app.buildUrl("/member/balance/change"),
+    header: app.getRequestHeader(),
+    data: {
+      unit: unit,
+      note: "寻物置顶"
+    },
+    success: res => {
+      cb_success()
+    },
+    fail: res=> {
+      cb_fail()
+    },
+    complete: res => {
+      wx.hideLoading()
+    }
+  })
+}
+
+
 Page({
   data: {
     loadingHidden: true, //上传图片时的loading图标是否隐藏
     imglist: [], //发布图片列表
-    notify_id: "", //需要通知的失主的openid
     dataReady: false, //页面数据是否已加载
     submitDisable: false, //是否禁按提交发布按钮
-    isTop: false //是否置顶
+    isTop: false, //是否置顶
+    use_balance: false, //使用余额
+    balance_got: false, //数据正确加载，向用户显示勾选框
+    balance_use_disabled: true, //禁用勾选框
+    balance: 0.00, //用户可垫付余额
+    total_balance: 0.00  //用户余额
   },
   /**
    * 1、扫码发布(失物招领)
@@ -82,16 +135,14 @@ Page({
    * @param options
    */
   onLoad: function (options) {
-    var openid = options.openid == undefined ? "" : options.openid
-    var auther_id = options.auther_id == undefined ? "" : options.auther_id
-    if (openid != "") { //扫码发布
+    let auther_id = options.auther_id == undefined ? "" : options.auther_id
+    if (globalData.isScanQrcode) { //扫码发布
       this.setData({
-        notify_id: openid,
         business_type: 1,
         location: [],
         dataReady: true
-      });
-      this.setInitData();
+      })
+      this.setInitData()
     } else {
       if (auther_id != "") { //归还
         this.setData({
@@ -100,7 +151,7 @@ Page({
           location: [],
           dataReady: true
         })
-        this.setInitData();
+        this.setInitData()
       }
       else { //常规发布
         wx.showActionSheet({
@@ -110,20 +161,15 @@ Page({
               business_type: res.tapIndex,
               location: [],
               dataReady: true
-            });
-            this.setInitData();
+            })
+            this.setInitData()
           },
           fail: (res) => {
-            wx.redirectTo({
-              url: '../../Find/Find',
-            })
+            wx.navigateBack()
           }
         })
       }
     }
-  },
-  onShow: function () {
-
   },
   //获取位置的方法
   getLocation: function (e) {
@@ -179,7 +225,10 @@ Page({
       urls: this.data.imglist // 需要预览的图片http链接列表
     })
   },
-  //选择图片方法
+  /**
+   * 选择图片方法
+   * @param e
+   */
   chooseLoadPics: function (e) {
     //选择图片
     wx.chooseImage({
@@ -232,6 +281,7 @@ Page({
    * toRelease
    * 如果必填项为空，提示补上
    * 否则继续进行提交处理
+   * @see handleRelease
    */
   toRelease: function () {
     this.setData({
@@ -277,9 +327,10 @@ Page({
    *   如果用户选择置顶先让用户确认置顶并付款，再继续发布
    *   否则先让用户选择订阅消息，然后再发布数据
    * @param data 包含发布所需数据
+   * @link toRelease
    */
   handleRelease: function (data) {
-    if (app.globalData.unLoggedRelease) {
+    if (globalData.unLoggedRelease) {
       //无登录发布
       this.notifyAndRelease(data)
     } else {
@@ -296,6 +347,9 @@ Page({
   /**
    * confirmTopAndSubNoteRelease
    * 询问置顶
+   * 如果取消重置置顶开关和余额勾选框状态以及解禁提交按钮
+   * 否则就根据勾选框情况进行收费
+   * @see toTopCharge
    */
   confirmTopAndSubNoteRelease: function(data){
     app.alert({
@@ -303,29 +357,58 @@ Page({
       content: '置顶收费' + this.data.top_price + '元，确认置顶？',
       showCancel: true,
       cb_confirm:  () => {
-        topCharge(data, this)
+        this.toTopCharge(data)
       },
       cb_cancel:  () => {
+        //重置置顶开关和勾选框
+        //解禁提交按钮
         this.setData({
-          isTop: false
+          isTop: false,
+          use_balance: false,
+          balance_use_disabled: true,
+          submitDisable: false
         })
-        data['is_top'] = 0
-        this.subscribeMsgAndNotifyRelease(data)
       }
     })
+  },
+  /**
+   * toTopCharge 置顶扣费后发布，失败则取消发布
+   * @param data 发布数据
+   * TODO 余额扣除失败，进行退钱
+   */
+  toTopCharge: function (data = {}) {
+    let pay_price = this.data.top_price
+    if (this.data.use_balance) {
+      if (this.data.total_balance >= pay_price) {
+        //扣除余额后发布
+        changeUserBalance(-pay_price, ()=>{
+          this.subscribeMsgAndNotifyRelease(data)
+        })
+      } else {
+        //支付并扣除余额再发布
+        pay_price = util.toFixed(pay_price - this.data.balance, 2)
+        topCharge(pay_price, ()=>{
+          changeUserBalance(-this.data.balance, ()=>{
+            this.subscribeMsgAndNotifyRelease(data)
+          })
+        }, this)
+      }
+    } else {
+      //支付后发布
+      topCharge(pay_price, ()=>{
+        this.subscribeMsgAndNotifyRelease(data)
+      }, this)
+    }
   },
   /**
    * subscribeMsgAndNotifyRelease
    * 先让用户订阅消息后，再继续通知失主和发布物品贴
    * @param data
+   * @see getSubscribeTmpIds
    */
   subscribeMsgAndNotifyRelease: function (data) {
     wx.requestSubscribeMessage({
-      tmplIds: [
-        app.globalData.subscribe.recommend,  //首次(被)匹配
-        app.globalData.subscribe.finished,  //已完成
-        app.globalData.subscribe.thanks  //被答谢
-      ],
+      tmplIds: getSubscribeTmpIds(this.data.business_type),
       complete: (res) => {
         this.notifyAndRelease(data)
       }
@@ -336,10 +419,12 @@ Page({
    * 如果有通知用户的openid，就先通知
    * 然后继续发布物品
    * @param data 发布数据
+   * @see sendNotification
+   * @see uploadData
    */
   notifyAndRelease: function(data){
     //通知失主
-    if (this.data.notify_id !== "") {
+    if (globalData.isScanQrcode) {
       this.sendNotification(data)
     }
     //上传数据
@@ -348,27 +433,35 @@ Page({
   /**
    * sendNotification 通知失主
    * @param data 失物数据
+   * @see qrcodeNotified
    */
   sendNotification: function (data) {
-    wx.request({
-      url: app.buildUrl('/qrcode/notify'),
-      header: app.getRequestHeader(1),
-      method: 'post',
-      data: {
-        'goods': data,
-        'openid': this.data.notify_id
-      },
-      complete: res => {
-        this.setData({
-          notify_id: ""
-        })
-      }
-    })
+    if (globalData.qrcodeOpenid) {
+      wx.request({
+        url: app.buildUrl('/qrcode/notify'),
+        header: app.getRequestHeader(1),
+        method: 'post',
+        data: {
+          'goods': data,
+          'openid': globalData.qrcodeOpenid
+        },
+        complete: res => {
+          //通知完毕
+          app.qrcodeNotified()
+        }
+      })
+    }
   },
-  //一旦退出页面就
+  /**
+   * @name releaseUnload
+   * onUnload 一旦退出页面就将扫码相关全局标记重置
+   * @see cancelQrcodeScan
+   */
   onUnload: function () {
-    app.globalData.unLoggedRelease = false
-    app.globalData.unLoggedReleaseToken = null
+    if (globalData.isScanQrcode) {
+      //清除扫码标记
+      app.cancelQrcodeScan()
+    }
   },
   /**
    * uploadData 创建帖子(填充除图片外的数据)
@@ -378,7 +471,7 @@ Page({
     wx.request({
       url: app.buildUrl("/goods/create"),
       method: 'POST',
-      header: app.globalData.unLoggedRelease ? app.globalData.unLoggedReleaseToken : app.getRequestHeader(),
+      header: globalData.unLoggedRelease ? globalData.unLoggedReleaseToken : app.getRequestHeader(),
       data: data,
       success: (res) => {
         let resp = res.data;
@@ -438,7 +531,7 @@ Page({
     wx.request({
       url: app.buildUrl('/goods/update-pics'),
       method: 'POST',
-      header: app.globalData.unLoggedRelease ? app.globalData.unLoggedReleaseToken : app.getRequestHeader(),
+      header: globalData.unLoggedRelease ? globalData.unLoggedReleaseToken : app.getRequestHeader(),
       data: {
         id: id,
         img_url: img_list[i - 1]
@@ -466,7 +559,7 @@ Page({
   addImage: function (id, img_list, i) {
     wx.uploadFile({
       url: app.buildUrl('/goods/add-pics'), //接口地址
-      header: app.globalData.unLoggedRelease ? app.globalData.unLoggedReleaseToken : app.getRequestHeader(),
+      header: globalData.unLoggedRelease ? globalData.unLoggedReleaseToken : app.getRequestHeader(),
       filePath: img_list[i - 1], //文件路径
       formData: {
         'id': id
@@ -499,7 +592,7 @@ Page({
       data = {
         id: id,
         auther_id: auther_id,
-        target_goods_id: app.globalData.info.id,
+        target_goods_id: globalData.info.id,
       }
     } else {
       data = {
@@ -516,7 +609,7 @@ Page({
     wx.request({
       url: app.buildUrl("/goods/end-create"),
       method: 'POST',
-      header: app.globalData.unLoggedRelease ? app.globalData.unLoggedReleaseToken : app.getRequestHeader(),
+      header: globalData.unLoggedRelease ? globalData.unLoggedReleaseToken : app.getRequestHeader(),
       data: data,
       success: (res) => {
         let resp = res.data;
@@ -531,7 +624,7 @@ Page({
         app.getNewRecommend()
         //初始化本地数据和全局数据
         this.setInitData();
-        app.globalData.info = {}
+        globalData.info = {}
         //用户提示
         wx.showToast({
           title: '提交成功',
@@ -539,9 +632,9 @@ Page({
           duration: 2000,
           success: res => {
             setTimeout(() => {
-              wx.reLaunch({
+              wx.redirectTo({
                 url: '../../Find/Find?business_type=' + this.data.business_type,
-              });
+              })
             }, 1500)
           }
         });
@@ -559,9 +652,11 @@ Page({
       }
     })
   },
-  //设置页面参数
+  /**
+   *
+   */
   setInitData: function () {
-    var info = app.globalData.info;
+    var info = globalData.info;
     var location = info.location; //用于让别人帮忙寄回物品
     var business_type = this.data.business_type;
     //表单
@@ -646,9 +741,32 @@ Page({
     })
     //寻物启事需要的置顶信息
     if (!business_type) {
+      //置顶开关
       this.setData({
-        top_price: app.globalData.goodsTopPrice,
-        top_days: app.globalData.goodsTopDays
+        top_price: globalData.goodsTopPrice,
+        top_days: globalData.goodsTopDays,
+        isTop: false
+      })
+      //余额勾选框
+      useBalance.initData(this, (total_balance)=>{
+        //计算可用余额和折后价格
+        if (total_balance >= this.data.top_price){
+          //余额足够
+          this.setData({
+            discount_price: 0, //使用余额，支付0元
+            balance: this.data.top_price //可用于垫付的余额
+          })
+        } else {
+          //余额不足
+          this.setData({
+            discount_price: util.toFixed(this.data.top_price - total_balance, 2), //使用余额支付的价格
+            balance: total_balance  //可用于垫付的余额
+          })
+        }
+        //默认
+        this.setData({
+          balance_use_disabled: true //默认置顶开关关闭，所以禁用勾选框
+        })
       })
     }
   },
@@ -666,14 +784,26 @@ Page({
     })
   },
   /**
-   *
+   * changSetTop
+   * 置顶开关，如果关闭禁用使用余额的选项盒子
    */
   changSetTop: function () {
     let isTop = this.data.isTop
     this.setData({
-      isTop: !isTop
+      isTop: !isTop,
+      balance_use_disabled: isTop,
+      use_balance: isTop? false: this.data.use_balance //原来开着，说明关闭置顶，就必定false；反之开着选项则按原来的用户勾选
+    })
+  },
+  /**
+   * 设置使用余额开关
+   * @param e
+   */
+  changeUseBalance: function (e) {
+    useBalance.changeUseBalance(e, () => {
+      this.setData({
+        use_balance: e.detail.value.length == 1
+      })
     })
   }
-
-
 });

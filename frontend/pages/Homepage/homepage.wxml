@@ -17,4 +17,4 @@
   <view wx:if="{{!loadingMore}}" class="no-more-goods">没有更多校园专属闪寻周边了~可以联系客服加盟</view>
   <view wx:if="{{loadingMore}}" class="no-more-goods">上滑加载更多～</view>
 </view>
-<template is="navigate-bar-template" data="{{...isSelecteds}}" />
+<!--<template is="navigate-bar-template" data="{{...isSelecteds}}" />-->

@@ -1,19 +1,78 @@
-var app = getApp();
+const useBalance = require("../../template/use-balance/use-balance")
+const app = getApp();
 
 
 
-/***
+// /***
+//  * topCharge
+//  * 置顶下单并支付
+//  * @param data 发布数据
+//  * @param that 页面指针
+//  */
+// const topCharge = function (data, that) {
+//   wx.request({
+//     url: app.buildUrl('/goods/top/order'),
+//     header: app.getRequestHeader(),
+//     data: {
+//       price: that.data.top_price
+//     },
+//     method: 'POST',
+//     success: res => {
+//       let resp = res.data
+//
+//       //下单失败提示后返回
+//       if (resp['code'] !== 200) {
+//         app.alert({content: resp['msg']})
+//         that.setData({submitDisable: false})
+//         return
+//       }
+//
+//       //下单成功调起支付
+//       let pay_data = resp['data']
+//       wx.requestPayment({
+//         timeStamp: pay_data['timeStamp'],
+//         nonceStr: pay_data['nonceStr'],
+//         package: pay_data['package'],
+//         signType: pay_data['signType'],
+//         paySign: pay_data['paySign'],
+//         success: res => {
+//           //支付成功，继续发布
+//           if (res.errMsg == "requestPayment:ok") {
+//             that.uploadData(data)
+//           }
+//           //支付失败，停止发布
+//           if (res.errMsg == "requestPayment:fail cancel") {
+//             that.setData({submitDisable: false})
+//           }
+//         },
+//         fail: (res) => {
+//           app.alert({'content': '微信支付失败，请稍后重试'})
+//           that.setData({submitDisable: false})
+//         }
+//       })
+//     },
+//     fail: (res) => {
+//       app.serverBusy()
+//       that.setData({submitDisable: false})
+//     }
+//   })
+// }
+//
+//
+
+/**
  * topCharge
  * 置顶下单并支付
- * @param data 发布数据
+ * @param pay_price 支付金额
+ * @param cb_success 回调函数
  * @param that 页面指针
  */
-const topCharge = function (data, that) {
+const topCharge = function (pay_price=app.globalData.goodsTopPrice, cb_success=()=>{}, that) {
   wx.request({
     url: app.buildUrl('/goods/top/order'),
     header: app.getRequestHeader(),
     data: {
-      price: that.data.top_price
+      price: pay_price
     },
     method: 'POST',
     success: res => {
@@ -21,8 +80,12 @@ const topCharge = function (data, that) {
 
       //下单失败提示后返回
       if (resp['code'] !== 200) {
-        app.alert({content: resp['msg']})
-        that.setData({submitDisable: false})
+        app.alert({
+          content: resp['msg']
+        })
+        that.setData({
+          submitDisable: false
+        })
         return
       }
 
@@ -34,25 +97,48 @@ const topCharge = function (data, that) {
         package: pay_data['package'],
         signType: pay_data['signType'],
         paySign: pay_data['paySign'],
-        success: res => {
+        success: (res) => {
           //支付成功，继续发布
-          if (res.errMsg == "requestPayment:ok") {
-            that.uploadData(data)
-          }
-          //支付失败，停止发布
-          if (res.errMsg == "requestPayment:fail cancel") {
-            that.setData({submitDisable: false})
-          }
+          cb_success()
         },
         fail: (res) => {
-          app.alert({'content': '微信支付失败，请稍后重试'})
-          that.setData({submitDisable: false})
+          that.setData({
+            submitDisable: false
+          })
         }
       })
     },
-    fail: (res) => {
+    fail: res => {
       app.serverBusy()
-      that.setData({submitDisable: false})
+      that.setData({
+        submitDisable: false
+      })
+    }
+  })
+}
+
+/**
+ * changeUserBalance
+ * 扣除(改变)用户余额
+ * @param unit 改变量
+ * @param cb_success 回调函数
+ */
+const changeUserBalance = function (unit = 0, cb_success = () => {}) {
+  wx.showLoading({
+    title: "扣除余额中"
+  })
+  wx.request({
+    url: app.buildUrl("/member/balance/change"),
+    header: app.getRequestHeader(),
+    data: {
+      unit: unit,
+      note: "寻物置顶"
+    },
+    success: res => {
+      cb_success()
+    },
+    complete: res => {
+      wx.hideLoading()
     }
   })
 }
@@ -165,11 +251,38 @@ Page({
       goods_id: info.id,
       location: info.location,
       top: info.top, //原来是否置顶
-      isTop: false, //选择置顶
-      top_days: app.globalData.goodsTopDays, //置顶时长
-      top_price: app.globalData.goodsTopPrice, //置顶价格
       submitDisable: false
     })
+    //寻物启事且原来不是置顶帖需要的置顶信息
+    if (!business_type && !info.top) {
+      //置顶开关
+      this.setData({
+        top_price: app.globalData.goodsTopPrice,
+        top_days: app.globalData.goodsTopDays,
+        isTop: false  //默认置顶开关关闭
+      })
+      //余额勾选框
+      useBalance.initData(this, (total_balance)=>{
+        //计算可用余额和折后价格
+        if (total_balance >= this.data.top_price){
+          //余额足够
+          this.setData({
+            discount_price: 0, //使用余额，支付0元
+            balance: this.data.top_price
+          })
+        } else {
+          //余额不足
+          this.setData({
+            discount_price: util.toFixed(this.data.top_price - total_balance, 2), //使用余额支付的价格
+            balance: total_balance
+          })
+        }
+        //默认
+        this.setData({
+          balance_use_disabled: true //默认置顶开关关闭，所以禁用勾选框
+        })
+      })
+    }
   },
   //预览图片
   previewImage: function(e) {
@@ -257,7 +370,8 @@ Page({
       content: '置顶收费' + this.data.top_price + '元，确认置顶？',
       showCancel: true,
       cb_confirm:  () => {
-        topCharge(data, this)
+        //topCharge(data, this)
+        this.toTopCharge(data)
       },
       cb_cancel:  () => {
         this.setData({isTop: false})
@@ -266,6 +380,34 @@ Page({
         this.uploadData(data)
       }
     })
+  },
+  /**
+   * toTopCharge 实际进行扣费的函数
+   * @param data 发布数据
+   */
+  toTopCharge: function (data = {}) {
+    let pay_price = this.data.top_price
+    if (this.data.use_balance) {
+      if (this.data.total_balance >= pay_price) {
+        //扣除余额后发布
+        changeUserBalance(-pay_price, ()=>{
+          this.uploadData(data)
+        })
+      } else {
+        //支付并扣除余额再发布
+        pay_price = util.toFixed(pay_price - this.data.balance, 2)
+        topCharge(pay_price, ()=>{
+          changeUserBalance(-this.data.balance, ()=>{
+            this.uploadData(data)
+          })
+        }, this)
+      }
+    } else {
+      //支付后发布
+      topCharge(pay_price, ()=>{
+        this.uploadData(data)
+      }, this)
+    }
   },
   //上传文件
   uploadData: function(data) {
@@ -387,12 +529,25 @@ Page({
     })
   },
   /**
-   * changSetTop 改变置顶
+   * changSetTop 改变置顶开关
    */
   changSetTop: function () {
     let isTop = this.data.isTop
     this.setData({
-      isTop: !isTop
+      isTop: !isTop,
+      balance_use_disabled: isTop, //注意这里的isTop是改变开关前的置顶开关状态(原来开着代表现在用户关了所以禁用余额勾选框)
+      use_balance: isTop? false: this.data.use_balance //原来开着，说明关闭置顶，就必定false；反之开着选项则按原来的用户勾选
+    })
+  },
+  /**
+   * changeUseBalance 改变了勾选余额垫付框的状态
+   * @param e
+   */
+  changeUseBalance: function (e) {
+    useBalance.changeUseBalance(e, () => {
+      this.setData({
+        use_balance: e.detail.value.length == 1
+      })
     })
   }
 });

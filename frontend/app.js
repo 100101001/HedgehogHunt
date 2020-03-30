@@ -1,17 +1,15 @@
 //app.js
 App({
   globalData: {
-    debug: true, //用于微信二维码获取无限个的接口/有限个的接口
+    qrCodeDebug: false, //用于微信二维码获取无限个(false)的接口/有限个(true)的接口
     adv_info: {},
     info: {},
     is_adm: false,
     is_user: false, //唯一用于判断是否是管理员的标记
-    has_qrcode: false, //唯一用于判定用户有无闪寻码的数据，只在登陆成功/新获取了闪寻码后被更新
-    qr_code_list: [], //唯一用于获取用户闪寻码图像
-    memberInfo: null, //只用于绑定用户头像，昵称，手机号，姓名等基本信息
+    has_qrcode: false, //唯一用于判定用户有无闪寻码的数据，只在新获取了闪寻码后被更新(勿删，首页浮窗显示的内容全靠这个变量)
     version: "1.0",
     id: null, //用户的id(首页goToIndex会用到)
-    regFlag: false, //用于判断用户登陆
+    regFlag: false, //用于判断用户已注册(和缓存中的token一起代表用户已经登录)
     shopName: "闪寻-失物招领",
     //domain: "http://127.0.0.1:8999/api",
     //domain: "http://192.168.0.116:8999/api",
@@ -20,45 +18,74 @@ App({
     //static_file_domain: "http://192.168.0.116:8999",
     member_status: 1, //用户状态
     op_status: 2,
-    isScanQrcode: true, //是否扫码进入
-    qrcodeOpenid: null, //二维码用户ID
+    showHintQrcode: true, //导航栏上方的提示浮窗，标记是否显示浮窗，用户可关闭
+    navigateUrls: [
+      "/pages/Homepage/homepage",
+      "/pages/Find/Find?business_type=1",
+      "/pages/Release/release/index",
+      "/pages/Find/Find?business_type=0",
+      "/pages/Mine/Mine",
+    ],
+    indexPage: null, //首页（扫码进入控制“逛一逛”按钮显示）
+    isScanQrcode: false, //是否扫码进入
+    qrcodeOpenid: "", //二维码用户ID
     unLoggedRelease: false, //扫码用户未注册仍继续发布
-    unLoggedReleaseToken: null, //扫码用户未注册仍继续发布使用的用户token
+    unLoggedReleaseToken: {}, //扫码用户未注册仍继续发布使用的用户token
     qrcodePrice: 2, //闪寻码的价格
     qrcodeProductId: 15, //闪寻码产品ID
     goodsTopPrice: 100, // 置顶发布价格
     goodsTopDays: 1, //置顶天数
+    smsProductId: 16, //短信按量计费产品ID
+    smsProductPrice: 1, //短信按量购买价格
+    smsPkgProductId: 17, //短信包量产品ID
+    smsPkgProductPrice: 5, //短信包量产品价格
+    buyQrCodeFreeSmsTimes: 5, //购买二维码免费赠送的通知次数
     subscribe: {  //订阅消息的模板ID
-      recommend: 'zSCF_j0kTfRvPe8optyb5sx8F25S3Xc9yCvvObXFCh4',
-      finished: 'Vx58nqU-cfi07bu4mslzCFhFyGTT52Xk4zlsrwC-MVA',
-      thanks: 'gBSM-RF5b3L_PoT3f1u8ibxZMz-qzAsNSZy2LSBPsG8'
+      recommend: 'ecym_eXCQjpxYgG3ov95r6OrWernCO3QKqsN1qcx7Yc', //给寻物启事发帖者发送匹配通知
+      finished: {
+        found: '_dAjVN6DHEewP_z01WhKXlZ7xY9nfs_OEtVbnBC88MU',  //各失物招领发布者发送被取回的通知
+        lost: 'bHZTF62ciS-03u8MmGe0cA7YMVHdGpwH-bY9wrmfDfY'  //给寻物启事发布者发送物品被归还通知
+      },
+      thanks: 'MxeBoTL5FcGb8DGtQtsoesFS5VmEd67KlRtMAQj8hoI'  //给失物招领发帖者发送答谢通知
     },
     business_type: { //失物招领与寻物启事的标记
       found: 1, //失物招领
       lost: 0 //寻物启事
     },
+    kd100 :{   // 快递100的常数
+      appId: "wx6885acbedba59c14",
+      paths: {
+        query: "pages/index/index?source=third_xcx",  //查询页面
+        result: "pages/result/result?com=&querysource=third_xcx&nu="
+      }
+    },
     campus_id: -1, //学校id
     campus_name: "", //学校名
-    showHintQrcode: true //用户未关闭提示浮窗
+
   },
   onLaunch: function () {
     //获取后端二维码产品价格和产品ID
     wx.request({
-      'url': this.buildUrl('/product/qrcode/info'),
-      'success': res => {
-        let resp = res.data
-        this.globalData.qrcodePrice = resp['data'].price
-        this.globalData.qrcodeProductId = resp['data'].id
-      }
-    })
-    wx.request({
-      url: this.buildUrl('/goods/top/info'),
-      success: res =>{
-        this.globalData.goodsTopPrice = res.data['data']['price']
-        this.globalData.goodsTopDays = res.data['data']['days']
+      url: this.buildUrl('/special/info'),
+      success: res => {
+        let data = res.data
+        this.globalData.qrcodePrice = data['qrcode'].price
+        this.globalData.qrcodeProductId = data['qrcode'].id
+        this.globalData.smsProductId = data['sms'].id
+        this.globalData.smsProductPrice = data['sms'].price
+        this.globalData.smsPkgProductId = data['sms_pkg'].id
+        this.globalData.smsPkgProductPrice = data['sms_pkg'].price
+        this.globalData.goodsTopPrice = data['top'].price
+        this.globalData.goodsTopDays = data['top'].days
+        this.globalData.buyQrCodeFreeSmsTimes = data['free_sms'].times
       }
     })
   },
+  /**
+   * loginTip 用户点击了需要登录的功能按键时进入该函数
+   * 用户未登录时，函数会对外部调用的函数拦截，并导向登录页面
+   * @returns {boolean}
+   */
   loginTip: function () {
     //返回值：是否已登录过
     //操作：没登录过就登录，否则什么都不做。
@@ -74,32 +101,39 @@ App({
           } else if (res.cancel) { }
         }
       })
-      return false;
+      return false
     } else {
-      return true;
+      return true
     }
   },
+  /**
+   * tip 会弹出模态框，显示提示文字
+   * @param params
+   */
   tip: function (params) {
-    var that = this;
     var title = params.hasOwnProperty('title') ? params['title'] : '提示信息';
     var content = params.hasOwnProperty('content') ? params['content'] : '';
     wx.showModal({
       title: title,
       content: content,
+      showCancel: params.showCancel == undefined ? false : params.showCancel,
       success: function (res) {
-
         if (res.confirm) { //点击确定
           if (params.hasOwnProperty('cb_confirm') && typeof (params.cb_confirm) == "function") {
-            params.cb_confirm();
+            params.cb_confirm()
           }
         } else { //点击否
           if (params.hasOwnProperty('cb_cancel') && typeof (params.cb_cancel) == "function") {
-            params.cb_cancel();
+            params.cb_cancel()
           }
         }
       }
     })
   },
+  /**
+   * tip 和tips类似会弹出模态框，显示提示文字
+   * @param params
+   */
   alert: function (params) {
     var title = params.hasOwnProperty('title') ? params['title'] : '提示信息';
     var content = params.hasOwnProperty('content') ? params['content'] : '';
@@ -110,7 +144,7 @@ App({
       success: function (res) {
         if (res.confirm) { //用户点击确定
           if (params.hasOwnProperty('cb_confirm') && typeof (params.cb_confirm) == "function") {
-            params.cb_confirm(params.cb_confirm_param);
+            params.cb_confirm();
           }
         } else {
           if (params.hasOwnProperty('cb_cancel') && typeof (params.cb_cancel) == "function") {
@@ -159,24 +193,25 @@ App({
     return items;
   },
   buildUrl: function (path, params) {
-    var url = this.globalData.domain + path;
-    var _paramUrl = "";
+    let url = this.globalData.domain + path;
+    let _paramUrl = "";
     if (params) {
-
       //循环params里面的变量，取key为变量k，然后将k与其对应的值用等号链接起来
       //如果params={a:'b',c:'d'}
       //拼接结果的格式如a=b&c=d,GET方法都是使用‘=’来区分的
       _paramUrl = Object.keys(params).map(function (k) {
         return [encodeURIComponent(k), encodeURIComponent(params[k])].join("=");
       }).join("&");
-
       _paramUrl = "?" + _paramUrl
     }
-
     return url + _paramUrl;
   },
+  /**
+   * getCache 同步获取缓存（非异步）
+   * @param key
+   */
   getCache: function (key) {
-    var value = undefined;
+    let value = undefined;
     try {
       value = wx.getStorageSync(key);
     } catch (e) {
@@ -184,272 +219,466 @@ App({
     }
     return value;
   },
+  /**
+   * setCache 异步设置缓存
+   * @param key
+   * @param value
+   */
   setCache: function (key, value) {
     wx.setStorage({
       key: key,
       data: value
-    });
+    })
   },
   getFilename: function (filepath) {
     // 为了避免转义反斜杠出问题，这里将对其进行转换
-    var re = /(\\+)/g;
-    var filename = filepath.replace(re, "#");
-    var fileArray = filename.split("#");
-    var fileName = fileArray[fileArray.length - 1];
+    let re = /(\\+)/g;
+    let filename = filepath.replace(re, "#");
+    let fileArray = filename.split("#");
+    let fileName = fileArray[fileArray.length - 1];
     return fileName;
   },
+  /**
+   * addImages 根据文件名后缀判断文件是否是图片，将不是图片的文件筛出去，并提示用户
+   * @param ori_img_list 原图片列表
+   * @param img_list 筛选后的图片列表
+   * @returns {*}
+   */
   addImages: function (ori_img_list, img_list) {
-    for (var i in ori_img_list) {
-      var filepath = ori_img_list[i].path;
-      var fileName = this.getFilename(filepath);
-      var suffixName = fileName.split(".");
-      var ext = suffixName[suffixName.length - 1];
-      var tp = "jpg,bmp,png,jpeg,JPG,PNG,BMP,JPEG";
-      var rs = tp.indexOf(ext);
-      if (rs >= 0) {
+    for (let i in ori_img_list) {
+      let filepath = ori_img_list[i].path
+      let fileName = this.getFilename(filepath);
+      let suffixName = fileName.split(".");
+      let ext = suffixName[suffixName.length - 1];
+      let tp = "jpg,bmp,png,jpeg,JPG,PNG,BMP,JPEG";
+      if (tp.indexOf(ext) >= 0) {
         img_list.push(filepath);
       } else {
         this.alert({
-          'content': "图片类型不在许可范围:" + tp
-        });
-        continue;
+          content: "图片类型不在许可范围:" + tp
+        })
+        continue
       }
     }
-    return img_list;
+    return img_list
   },
-  //判断json对象中是否有空的字段
+  /**
+   * judgeEmpty 判断json对象中属性是否有空的
+   * @param json_obj json对象
+   * @param tips_obj 属性对应的用户显示map
+   * @returns {boolean}
+   */
   judgeEmpty: function (json_obj, tips_obj) {
-    for (var key in json_obj) {
+    for (let key in json_obj) {
       if (json_obj[key].length === 0) {
         this.alert({
-          'content': tips_obj[key] + "不能为空"
-        });
-        return true;
+          content: tips_obj[key] + "不能为空"
+        })
+        return true
       }
     }
-    return false;
+    return false
   },
-  serverBusy: function () {
+  /**
+   * serverBusy 服务器忙提示
+   * @param cb_confirm 用户点击确定关闭提示框后的回调函数
+   */
+  serverBusy: function (cb_confirm=()=>{}) {
     this.alert({
-      'content': '服务器响应超时，请稍后重试'
-    });
-    return;
+      content: '服务器响应超时，请稍后重试',
+      cb_confirm: cb_confirm
+    })
   },
   serverInternalError: function () {
     this.alert({
-      'content': '服务器内部异常，请稍后重试'
-    });
-    return;
+      content: '服务器内部异常，请稍后重试'
+    })
   },
+  /**
+   * getNewRecommend 更新新消息计数
+   * 向后台获取新收到的答谢和匹配推荐计数，类似新消息的图标会展示在导航栏
+   */
   getNewRecommend: function () {
-    var that = this;
     wx.request({
-      url: that.buildUrl('/member/get-new-recommend'),
-      header: that.getRequestHeader(),
+      url: this.buildUrl('/member/get-new-recommend'),
+      header: this.getRequestHeader(),
       method: 'GET',
       data: {},
-      success: function (res) {
-        if (res.data.code !== 200) {
+      success: (res) => {
+        let resp = res.data
+        if (resp['code'] !== 200) {
           return;
         }
-        that.globalData.total_new = res.data.data.total_new;
-        that.globalData.recommend_new = res.data.data.recommend_new;
-        that.globalData.thanks_new = res.data.data.thanks_new;
-        that.globalData.recommend = res.data.data.recommend;
+        let data = resp['data']
+        this.globalData.total_new = data.total_new;
+        this.globalData.recommend_new = data.recommend_new;
+        this.globalData.thanks_new = data.thanks_new;
+        this.globalData.recommend = data.recommend;
       }
-    });
+    })
   },
-  checkLogin: function (page = undefined) {
+  /**
+   * Login 一打开小程序会执行的登录注册判定函数（注册过的用户就直接登录），用户可能通过扫码打开的小程序
+   * 根据小程序内登录标记regFlag和缓存的登录用户的认证信息token，进行防重
+   * @see doLogin 进行判定注册登录函数
+   * @see qrCodeNavigate 扫码处理
+   */
+  login: function () {
     //已登录就不再重复登录
     if (this.globalData.regFlag && this.getCache("token") != "") {
+      //已登录
       if(this.globalData.isScanQrcode){
-        this.qrCodeNavigate(page)
+        //已登录用户扫码
+        this.qrCodeNavigate()
       }
       return
     }
-    var that = this;
+    this.doLogin()
+  },
+  /***
+   * doLogin 一打开小程序会执行的登录注册判定函数（注册过的用户就直接登录），用户可能通过扫码打开的小程序。
+   * 发生任何请求失败，就置空扫码状态
+   * 扫码打开的，进入下一步操作
+   * @see login 调用者
+   * @see cancelQrcodeScan 置空扫码状态
+   * @see qrCodeNavigate 扫码处理
+   */
+  doLogin: function(){
+    let isScanQrcode = this.globalData.isScanQrcode
     wx.login({
-      success: function (res) {
-        if (!res.code) {
-          app.alert({
-            'content': '登录失败，请再点击～～'
-          });
-          return;
+      success: (res) => {
+        let code = res.code
+        if (!code) {
+          //没有拿到登录用的code
+          app.alert({content: '网络开小差了，请稍后再试'})
+          if (isScanQrcode) {
+            //扫码失败
+            this.cancelQrcodeScan()
+          }
+          return
         }
+        //成功拿到code
         wx.request({
-          url: that.buildUrl('/member/check-reg'),
-          header: that.getRequestHeader(),
+          url: this.buildUrl('/member/check-reg'),
+          header: {
+            'content-type': 'application/x-www-form-urlencoded'
+          },
           method: 'POST',
           data: {
-            code: res.code
+            code: code
           },
-          success: function (res) {
-            if (res.data.code !== 200) {
+          success: (res) => {
+            let resp = res.data
+            if (resp['code'] !== 200) {
               //非注册用户
-              if (res.data.code == -2) {
-                that.setCache("loginInfo", res.data.data)
+              if (resp['code'] == -2) {
+                //缓存session-key和openid（用于注册）
+                this.setCache("loginInfo", resp['data'])
               }
-              //如果在扫码
-              if(that.globalData.isScanQrcode){
-                that.qrCodeNavigate(page)
+              if (isScanQrcode) {
+                //未注册用户扫码
+                this.qrCodeNavigate()
               }
-              return;
+              return
             }
-            that.onCheckLoginSuccessSetData(res)
-            if(that.globalData.isScanQrcode){
-              that.qrCodeNavigate(page)
+            //成功获取用户状态信息，进行全局缓存
+            this.onLoginSuccessSetData(res)
+            if (isScanQrcode) {
+              //已注册用户(扫码时未登录，刚登录)扫码
+              this.qrCodeNavigate()
             } else {
-              that.onCheckLoginSuccessShowToast('登录成功')
+              //登陆成功的用户提示
+              this.onLoginSuccessShowToast('登录成功')
             }
           },
-          fail: function (res) {
-            that.serverBusy();
-            return;
-          },
-          complete: function (res) {
-          },
-        });
-      }
-    });
-  },
-  login: function (userInfo) {
-    if (this.globalData.regFlag && this.getCache('token') != '') {
-      wx.navigateBack()
-    }
-    var that = this;
-    if (!userInfo) {
-      that.alert({
-        'content': '登录失败，请再次登录～～'
-      });
-      return;
-    }
-    var data = userInfo
-    wx.login({
-      success: function (res) {
-        if (!res.code) {
-          that.alert({
-            'content': '登录失败，请再次登录～～'
-          });
-          return;
-        }
-        data['code'] = res.code;
-        //用wx.request方法来提交数据，类似于ajax
-        wx.request({
-          url: that.buildUrl('/member/login'),
-          header: that.getRequestHeader(),
-          method: 'POST',
-          data: data,
-          success: function (res) {
-            if (res.data.code != 200) {
-              that.alert({
-                'content': res.data.msg
-              });
-              return;
+          fail: (res) => {
+            this.serverBusy()
+            if (isScanQrcode) {
+              this.cancelQrcodeScan()
             }
-            that.setCache("token", res.data.data.token);
-            that.checkLogin();
-          },
-          fail: function (res) {
-            that.serverBusy();
-            return;
-          },
-          complete: function (res) { },
-        });
+          }
+        })
       }
-    });
+    })
   },
-  onCheckLoginSuccessSetData: function (res) {
-    var that = this
-    that.setCache("token", res.data.data.token);
-    that.setCache("loginInfo", res.data.data.login_info)
-    that.globalData.is_adm = res.data.data.is_adm;
-    that.globalData.is_user = res.data.data.is_user;
-    that.globalData.has_qrcode = res.data.data.has_qrcode;
-    that.globalData.qr_code_list = res.data.data.qr_code_list;
-    that.globalData.member_status = res.data.data.member_status;
-    that.globalData.id = res.data.data.id;
-    that.globalData.openid = res.data.data.token.split("#")[0]
-    that.globalData.regFlag = true;
-    that.globalData.memberInfo = res.data.data.member_info
+  /**
+   * onLoginSuccessSetData 用户注册or登录后设置全局数据
+   * @param res 登录响应体
+   * @see doLogin 调用者
+   * @see doRegister 调用者
+   */
+  onLoginSuccessSetData: function (res) {
+    let data = res.data.data
+    this.setCache("token", data.token)
+    this.globalData.is_adm = data.is_adm
+    this.globalData.is_user = data.is_user
+    this.globalData.has_qrcode = data.has_qrcode
+    this.globalData.member_status = data.member_status
+    this.globalData.id = data.id
+    this.globalData.openid = data.token.split("#")[0]
+    this.globalData.regFlag = true
   },
-  onCheckLoginSuccessShowToast: function (content) {
+  /**
+   * onLoginSuccessShowToast 向非扫码登录的用户显示登陆成功的提示信息
+   * 对于通过注册登录的用户，自动关闭注册页面
+   * @param content
+   * @see doLogin 调用者
+   * @see doRegister 调用者
+   */
+  onLoginSuccessShowToast: function (content, back_delta=1) {
     wx.showToast({
       title: content,
       icon: 'success',
       duration: 1500,
-      success: function (res) {
-        var pages = getCurrentPages()
-        if (pages.length == 1) {
-          return
+      success:  (res) => {
+        if (getCurrentPages().length > 1) {
+          setTimeout(function () {
+            wx.navigateBack({delta: back_delta})
+          }, 1000)
         }
-        setTimeout(function () {
-          wx.navigateBack({})
-        }, 1000);
       }
     })
   },
-  qrCodeNavigate: function (page) {
-    var openid = this.globalData.qrcodeOpenid
-    if (openid == this.globalData.openid) {
-      //自己扫码更换绑定手机号
-      wx.showActionSheet({
-        itemList: ['绑定手机号', '随便扫扫'],
-        success: res => {
-          if (res.tapIndex == 0) {
-            wx.redirectTo({
-              url: "/pages/Qrcode/Mobile/index?openid=" + openid
-            })
-            //已经去了绑定手机页面，说明用户已经是登陆状态，不再需要标记登陆处于扫码阶段
-            this.globalData.isScanQrcode = false
-            this.globalData.qrcodeOpenid = null
-          }else{
-            page.setData({
-              isScanQrcode: false
-            })
-          }
-        },
-        fail: res => {
-          //不再需要标记登陆处于扫码阶段
-          this.globalData.isScanQrcode = false
-          this.globalData.qrcodeOpenid = null
-          page.setData({
-            isScanQrcode: false
-          })
+  /**
+   * @name appRegister
+   * register 新用户的注册入口函数
+   * 如果微信用户信息授权失败则返回，
+   * 否则继续调用 doRegister 进行注册
+   * @param userInfo 用户授权获取到的微信用户公开信息和手机号，授权失败为空
+   * @link registerHandler 调用者
+   * @see doRegister 进行注册的函数
+   */
+  register: function (userInfo) {
+    if (this.globalData.regFlag && this.getCache('token') != '') {
+      //已经注册登录的
+      wx.navigateBack({delta: 2}) //回到授权登录之前的页面
+    }
+    if (!userInfo) {
+      //授权失败
+      this.alert({content: '登录失败，请再次登录～～'})
+      return
+    }
+    this.doRegister(userInfo)
+  },
+  /**
+   * doRegister 向后台传入用户授权信息和code请求注册
+   * 将注册成功返回的数据设置到全局变量中
+   * 如果注册用户正在扫码，就继续扫码处理
+   * @param userInfo 微信用户手机号和公开信息
+   * @link appRegister 调用者
+   * @see continueScanQrcodeAfterReg 注册后继续扫码
+   * @see onLoginSuccessSetData 注册成功后设置数据
+   * @see onLoginSuccessShowToast 注册成功后提示信息和页面导航
+   */
+  doRegister: function (userInfo = {}) {
+    let isScanQrcode = this.globalData.isScanQrcode
+    wx.login({
+      success: (res) => {
+        let code = res.code
+        if (!code) {
+          this.alert({content: '登录失败，请再次登录～～'})
+          return
         }
-      })
-    } else {
-      //别人扫码发布帖子，通知失主
-      if(!this.globalData.regFlag){
-        //扫码用户未注册
-        wx.showModal({
-          title: '是否注册?',
-          content: '注册用户可得失主的答谢金',
-          success: res => {
-            if (res.confirm) {
-              wx.navigateTo({
-                url: '/pages/login/index',
-              })
+        userInfo['code'] = code
+        wx.request({
+          url: this.buildUrl('/member/login'),
+          header: this.getRequestHeader(),
+          method: 'POST',
+          data: userInfo,
+          success: (res) => {
+            let resp = res.data
+            if (resp['code'] != 200) {
+              this.alert({content: resp['msg']})
               return
-            } else if (res.cancel) {
-              this.globalData.unLoggedReleaseToken =  {
-                'content-type': 'application/x-www-form-urlencoded',
-                'Authorization': 'opLxO5fubMUl7GdPFgZOUaDHUik8#100001' }
-              this.globalData.unLoggedRelease = true
-              wx.redirectTo({
-                url: "/pages/Release/release/index?business_type=1&openid=" + openid
-              })
-              //已经去了发布页面，说明用户已经是登陆状态，不再需要标记登陆处于扫码阶段
-              this.globalData.isScanQrcode = false
-              this.globalData.qrcodeOpenid = null
             }
+            this.onLoginSuccessSetData(res)
+            if (isScanQrcode) {
+              //注册用户是扫码进入注册的，继续去发布
+              this.continueScanQrcodeAfterReg()
+            } else {
+              this.onLoginSuccessShowToast('登录成功', 2)
+            }
+          },
+          fail: (res) => {
+            this.serverBusy()
           }
-        })
-      }else{
-        //扫码用户已注册
-        wx.redirectTo({
-          url: "/pages/Release/release/index?business_type=1&openid=" + openid
         })
       }
+    })
+  },
+  /**
+   * cancelQrcodeScan 置空扫码状态
+   * 除了用户主动的取消扫码，手机绑定页，发布失物信息页退出时都需要调用此方法
+   * @link mobileUnload 调用者
+   * @link releaseUnload 调用者
+   * @link doLogin 调用者
+   * @link toConfirmUnRegRelease 调用者
+   * @link selfScanQrcode 调用者
+   * @link otherScanQrcode 调用者
+   */
+  cancelQrcodeScan: function () {
+    if (this.globalData.indexPage) {
+      //显示首页的逛一逛按钮
+      this.globalData.indexPage.setData({
+        isScanQrcode: false
+      })
+      this.globalData.indexPage = null
+    }
+    //标记清空
+    this.globalData.isScanQrcode = false
+    this.globalData.qrcodeOpenid = ""
+    this.globalData.unLoggedRelease = false
+    this.globalData.unLoggedReleaseToken = {}
+  },
+  /**
+   * qrcodeNotified 防止重复通知，通知一次后，就将通知对象置空
+   * @link sendNotification 调用者
+   */
+  qrcodeNotified: function(){
+    this.globalData.qrcodeOpenid = ""
+  },
+  /**
+   * qrCodeNavigate
+   * 根据扫码解析的二维码主OPENID和扫码者的OPENID判断是否是同一人
+   * @link doLogin 调用者
+   * @see selfScanQrcode 自己扫码
+   * @see otherScanQrcode 其他用户扫码
+   */
+  qrCodeNavigate: function () {
+    if (this.globalData.qrcodeOpenid == this.globalData.openid) {
+      //自己扫码
+      this.selfScanQrcode()
+    } else {
+      //别人扫码
+      this.otherScanQrcode()
     }
   },
+  /**
+   * selfScanQrcode 自己扫码，选择绑定手机或者随便扫扫
+   * @link qrCodeNavigate 调用者
+   * @see cancelQrcodeScan
+   */
+  selfScanQrcode: function () {
+    let page = this.globalData.indexPage
+    wx.showActionSheet({
+      itemList: ['绑定手机号', '随便扫扫'],
+      success: (res) => {
+        if (res.tapIndex == 0) {
+          //绑定手机号
+          wx.navigateTo({
+            url: "/pages/Qrcode/Mobile/index"
+          })
+        } else {
+          //随便扫扫 == 取消扫码
+          this.cancelQrcodeScan()
+        }
+      },
+      fail: (res) => {
+        //取消扫码
+        this.cancelQrcodeScan()
+      }
+    })
+  },
+  /**
+   * otherScanQrcode 处理别人扫码
+   * @link qrCodeNavigate 调用者
+   * @see unRegScanQrcode
+   * @see regScanQrcode
+   * @see cancelQrcodeScan
+   */
+  otherScanQrcode: function(){
+    this.alert({
+      title: '扫码提示',
+      content: '填写拾物信息去通知失主获取答谢金',
+      showCancel: true,
+      cb_confirm: () => {
+        if (!this.globalData.regFlag) {
+          //扫码用户未注册
+          this.unRegScanQrcode()
+        } else {
+          //扫码用户已注册
+          this.regScanQrcode()
+        }
+      },
+      cb_cancel: () => {
+        //取消扫码发布信息
+        this.cancelQrcodeScan()
+      }
+    })
+  },
+  /**
+   * regScanQrcode 用户已注册，扫了别人的码，直接跳转发布页面去发布拾物信息
+   * @link otherScanQrcode 调用者
+   */
+  regScanQrcode: function(){
+    wx.navigateTo({
+      url: "/pages/Release/release/index"
+    })
+  },
+  /**
+   * unRegScanQrcode 未注册者扫码
+   * 可选择先注册再发布信息，也可直接发布
+   * @link otherScanQrcode 调用者
+   * @see toConfirmUnRegRelease 选择不注册
+   */
+  unRegScanQrcode: function () {
+    wx.showModal({
+      title: '是否注册?',
+      content: '注册用户可得失主的答谢金',
+      success: res => {
+        if (res.confirm) {
+          //前往注册
+          wx.navigateTo({
+            url: '/pages/login/index',
+          })
+        } else if (res.cancel) {
+          //确认不注册发布
+          this.toConfirmUnRegRelease()
+        }
+      }
+    })
+  },
+  /**
+   * toConfirmUnRegRelease 不注册发布
+   * 除了选择不注册，选择注册但注册中途终止回退也会触发询问是否要不注册发布
+   * @link registerUnload 调用者
+   * @link unRegScanQrcode 调用者
+   * @see cancelQrcodeScan
+   */
+  toConfirmUnRegRelease: function(){
+    this.alert({
+      title: '扫码提示',
+      content: '继续发布拾物信息？',
+      showCancel: true,
+      cb_confirm: () => {
+        //前往发布
+        this.globalData.unLoggedReleaseToken = {
+          'content-type': 'application/x-www-form-urlencoded',
+          'Authorization': 'opLxO5fubMUl7GdPFgZOUaDHUik8#100001'
+        }
+        this.globalData.unLoggedRelease = true
+        wx.navigateTo({
+          url: "/pages/Release/release/index"
+        })
+      },
+      cb_cancel: () => {
+        //终止扫码
+        this.cancelQrcodeScan()
+      }
+    })
+  },
+  /**
+   * continueScanQrcodeAfterReg 注册后继续扫码的处理
+   * @link doRegister 调用者
+   */
+  continueScanQrcodeAfterReg: function () {
+    wx.navigateBack({
+      delta: 2,
+      success: res => {
+        wx.navigateTo({
+          url: '/pages/Release/release/index'
+        })
+      }
+    })
+  }
 })

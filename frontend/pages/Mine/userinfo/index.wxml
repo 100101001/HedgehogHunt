@@ -1,14 +1,32 @@
+
 <view class="user">
   <image class="avatar" src="{{avatar}}"></image>
   <view class="nickname">{{nickname}}</view>
 </view>
+
+
+<view class="video-container" wx:if="{{!hiddenIntroduceModal}}">
+  <view class="close-video-btn-container" hover-class="close-animation-clockwise" bindtap="cancelIntroduce">
+    <image class="close-video-btn" src="/images/icons/kill-O.png"></image>
+  </view>
+  <video
+         class="video"
+         src="{{intro_url}}"
+         initial-time="{{intro_init_time}}"
+         object-fit="fill"
+         title="使用介绍"
+         bindended="cancelIntroduce"
+         autoplay="true"
+        />
+</view>
+
 
 <view class="userinfo">
   <view class="fundation_message">基本信息</view>
       <view class="userinfo_container" bindtap="onEditName">
       <view class="title">姓名</view>
       <view class="next">
-        <view class="content">{{name}}</view>
+        <view class="content">{{name? name: '-'}}</view>
         <image class='next_img' src='/images/icons/write.png'></image>
       </view>
     </view>
@@ -16,38 +34,82 @@
     <view class="userinfo_container" bindtap="onEditMobile">
       <view class="title">手机</view>
       <view class="next">
-        <view class="content">{{mobile}}</view>
+        <view class="content">{{mobile? mobile: '-'}}</view>
         <image class='next_img' src='/images/icons/write.png'></image>
       </view>
     </view>
   <!-- 提现余额，满十元可提现 -->
   <view class="userinfo_container" data-id="4">
-    <view class="title">答谢额度</view>
+    <view class="title">账户余额</view>
     <view class="next">
       <view class="content2">¥ {{balance}}</view>
+      <view class="recharge_btn intro" bindtap="toRechargeBalance">充值</view>
       <view class="recharge_btn" bindtap="onWithDrawTap">提现</view>
+    </view>
+  </view>
+  <view class="userinfo_container" data-id="5">
+    <view class="title">短信余额</view>
+    <view class="next">
+      <view class="content2  {{total_notify_times? 'has-sms-detail': 'no-sms-detail' }}">{{total_notify_times}} 条</view>
+      <view class="recharge_btn intro" bindtap="toLookupSms" wx:if="{{total_notify_times}}">详情</view>
+      <view class="recharge_btn" bindtap="toRechargeSms">充值</view>
     </view>
   </view>
   <view class="userinfo_container" data-id="3" bindtap="onCatchTap">
     <view class="title">闪寻码</view>
     <view class="next">
+      <view class="recharge_btn intro" bindtap="toIntroduce">简介</view>
       <view class="recharge_btn" bindtap="toGetQrCode" wx:if="{{!has_qrcode}}">获取</view>
       <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode && !show_qrcode}}">查看</view>
       <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode && show_qrcode}}">隐藏</view>
     </view>
   </view>
-  <image class="qr_code" data-src="{{qrCode}}" src="{{qrCode}}" bindtap='previewImage' data-id="0" wx:if="{{show_qrcode}}"></image>
+  <image class="qr_code" data-src="{{qr_code}}" src="{{qr_code}}" bindtap='previewImage' data-id="0" wx:if="{{show_qrcode}}"></image>
   <text class="save-qrcode-text" wx:if="{{show_qrcode}}">点击保存</text>
 </view>
 
-<modal class="edit-modal" hidden="{{hiddenNameModal}}" title="编辑姓名" confirm-text="确定" cancel-text="取消" bindcancel="cancelNameEdit" bindconfirm="confirmNameEdit" >
-  <view><input type='text' auto-focus="true" cursor-spacing='100' placeholder="请输入姓名" auto-focus bindinput="listenerNameInput"/></view>
+<modal class="edit-modal" hidden="{{hiddenNameModal}}" title="编辑姓名" confirm-text="确定" cancel-text="取消" bindcancel="cancelNameEdit" bindconfirm="confirmNameEdit"  color="#f7931e" >
+  <view><input type='text' focus="true" cursor-spacing='100' placeholder="请输入姓名" bindinput="listenerNameInput" value="{{name}}"/></view>
 </modal>
 
-<modal class="edit-modal" hidden="{{hiddenMobileModal}}" title="编辑手机" no-cancel="true" confirm-text="取消" bindconfirm="cancelMobileEdit">
-  <view> <button class='bottom' type='primary' open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber">一键绑定</button></view>
+<modal class="edit-modal" hidden="{{hiddenMobileModal}}" title="编辑手机" no-cancel="true" confirm-text="取消" bindconfirm="cancelMobileEdit" color="#f7931e">
+  <view> <button class='bind-phone-btn' bindtap="toEditPhone">一键绑定</button></view>
 </modal>
+
+<modal hidden="{{hiddenBalanceRecharge}}" title="充值金额" confirm-text="确定" cancel-text="取消" bindconfirm="confirmRechargeBalance"  bindcancel="cancelRechargeBalance"  cancel-color="#f7931e">
+    <view class="input-number">
+        <input type="digit" focus="true"  cursor-spacing='100' placeholder="请输入充值金额" bindinput="listenBalanceRecharge" value="{{balance_recharge_amount}}" />
+        <view>元</view>
+    </view>
+</modal>
+
 
 <modal hidden="{{hiddenContactModal}}" title="扫码联系客服提现" no-cancel="true" confirm-text="取消" bindconfirm="cancelContact">
   <view><image data-src="{{contact_img}}" class="contact-info" src="{{contact_img}}" bindtap="previewImage" /></view>
+</modal>
+
+<!--短信-->
+<modal hidden="{{hiddenSmsTimesModal}}" title="购买短信条数" confirm-text="确定" cancel-text="取消" bindconfirm="confirmSmsTimes"  bindcancel="cancelSmsTimes">
+    <view class="input-number">
+        <input type="number" focus="true"  cursor-spacing='100' placeholder="请输入条数" bindinput="listenSmsCnt" value="{{sms_num}}"/>
+        <view>条</view>
+    </view>
+</modal>
+
+<!--短信包详情-->
+<modal hidden="{{hiddenSmsPkgModal}}" title="购买短信套餐包" confirm-text="确定" cancel-text="取消" bindconfirm="confirmSmsPkg" bindcancel="cancelSmsPkg">
+    <view>优惠价{{sms_pkg_price}}元，包3年通知，上限50条。</view>
+</modal>
+
+<!--短信套餐详情-->
+<modal class="sms-detail-modal" wx:if="{{total_notify_times}}" hidden="{{hiddenSmsDetailModal}}" title="短信余额详情" no-cancel="true" confirm-text="确定" bindconfirm="closeSmsDetail">
+  <view class="sms-detail">
+    <view wx:if="{{!sms_pkgs.length}}">短信包：无</view>
+    <block wx:for="{{sms_pkgs}}" wx:key="index">
+      <view>短信包：{{item.num}}条至{{item.expire}}</view>
+      <view class="hrz"></view>
+    </block>
+    <view wx:if="{{member_notify_times}}">按量购：无限期{{member_notify_times}}条</view>
+    <view wx:if="{{!member_notify_times}}">按量购：无限期0条</view>
+  </view>
 </modal>

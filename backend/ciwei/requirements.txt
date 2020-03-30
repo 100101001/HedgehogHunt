@@ -6,6 +6,7 @@ mysqlclient
 flask_script
 requests
 twilio
+aliyun-python-sdk-core-v3
 Flask-Caching
 bs4
 lxml
