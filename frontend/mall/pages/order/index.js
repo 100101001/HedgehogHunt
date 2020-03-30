@@ -108,7 +108,7 @@ Page({
         type: this.data.params.type,
         goods: JSON.stringify(this.data.params.goods),
         express_address_id: this.data.default_address.id,
-        discount_price: this.data.discount_price //余额折扣
+        discount_price: this.data.use_balance ? this.data.balance : 0//余额折扣
       },
       success: (res) => {
         let resp = res.data;
@@ -200,9 +200,7 @@ Page({
           default_address: data.default_address,
           yun_price: parseFloat(data.yun_price),
           pay_price: parseFloat(data.pay_price),
-          origin_pay_price: parseFloat(data.pay_price),
           total_price: parseFloat(data.total_price),
-          origin_total_price: parseFloat(data.total_price),
           dataReady: true
         })
 
@@ -244,18 +242,6 @@ Page({
         this.setData({
           use_balance: e.detail.value.length == 1
         })
-        //用户显示（最终创建订单的价格仅根据订单列表）
-        if (this.data.use_balance) {
-          this.setData({
-            discount_price: this.data.balance,
-            total_price: this.data.low_pay_price
-          })
-        } else {
-          this.setData({
-            discount_price: 0,
-            total_price: this.data.origin_total_price
-          })
-        }
       }
     )
   }
