@@ -91,7 +91,7 @@ page{
   font-weight: 700;
   border-radius: 30rpx;
   background-color: #f7931e;
-  letter-spacing: 3px;
+  letter-spacing: 6rpx;
 }
 
 .userinfo_container {
@@ -142,29 +142,18 @@ page{
   font-size: 24rpx;
   font-weight: 600;
   color: #999;
-  width: 350rpx;
   text-align:left;
-  margin-left: 20rpx;
 }
-
 
 .content2 {
   margin-top: -20rpx;
   font-size: 28rpx;
   font-weight: 600;
-  width: 100rpx;
-  text-align:left;
-  margin-right: 108rpx;
+  text-align: left;
   color: #f7931e;
 }
 
-.no-sms-detail{
-  margin-right: 200rpx ;
-}
 
-.has-sms-detail{
-  margin-right: 107rpx;
-}
 /*账户信息*/
 .recharge_btn {
   color: #f7931e;

@@ -15,7 +15,6 @@
          initial-time="{{intro_init_time}}"
          object-fit="fill"
          title="使用介绍"
-         bindended="cancelIntroduce"
          autoplay="true"
         />
 </view>
@@ -25,32 +24,32 @@
   <view class="fundation_message">基本信息</view>
       <view class="userinfo_container" bindtap="onEditName">
       <view class="title">姓名</view>
+      <view class="content">{{name? name: '-'}}</view>
       <view class="next">
-        <view class="content">{{name? name: '-'}}</view>
         <image class='next_img' src='/images/icons/write.png'></image>
       </view>
     </view>
 
     <view class="userinfo_container" bindtap="onEditMobile">
       <view class="title">手机</view>
+      <view class="content">{{mobile? mobile: '-'}}</view>
       <view class="next">
-        <view class="content">{{mobile? mobile: '-'}}</view>
         <image class='next_img' src='/images/icons/write.png'></image>
       </view>
     </view>
   <!-- 提现余额，满十元可提现 -->
   <view class="userinfo_container" data-id="4">
     <view class="title">账户余额</view>
+    <view class="content2">¥ {{balance}}</view>
     <view class="next">
-      <view class="content2">¥ {{balance}}</view>
       <view class="recharge_btn intro" bindtap="toRechargeBalance">充值</view>
       <view class="recharge_btn" bindtap="onWithDrawTap">提现</view>
     </view>
   </view>
   <view class="userinfo_container" data-id="5">
     <view class="title">短信余额</view>
+    <view class="content2">{{total_notify_times}} 条</view>
     <view class="next">
-      <view class="content2  {{total_notify_times? 'has-sms-detail': 'no-sms-detail' }}">{{total_notify_times}} 条</view>
       <view class="recharge_btn intro" bindtap="toLookupSms" wx:if="{{total_notify_times}}">详情</view>
       <view class="recharge_btn" bindtap="toRechargeSms">充值</view>
     </view>

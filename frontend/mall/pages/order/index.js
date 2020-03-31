@@ -6,6 +6,7 @@ const app = getApp()
 /**
  * hasQrcode 设置用户是否有二维码
  * @param cb_success
+ * @link orderIndexOnload
  */
 const hasQrcode = function (cb_success=(has_qr_code)=>{}) {
   wx.request({
@@ -18,6 +19,93 @@ const hasQrcode = function (cb_success=(has_qr_code)=>{}) {
         return
       }
       cb_success(resp['data']['has_qr_code'])
+    }
+  })
+}
+
+/**
+ * 创建订单
+ * @param data
+ * @param cb_success
+ * @param that
+ * @link doCreateOrder
+ */
+const createOrder = function(data={}, cb_success = ()=>{}, that){
+  that.setData({
+    createOrderDisabled: true
+  })
+  wx.showLoading({
+    mask: true,
+    title: '正在下单'
+  })
+  wx.request({
+    url: app.buildUrl("/order/create"),
+    header: app.getRequestHeader(),
+    method: 'POST',
+    data: data,
+    success: (res) => {
+      let resp = res.data;
+      if (resp['code'] != 200) {
+        app.alert({content: resp['msg']})
+        that.setData({
+          createOrderDisabled: false
+        })
+        return
+      }
+      //下单成功前去订单列表，进行支付
+      cb_success()
+    },
+    fail: (res) => {
+      app.serverBusy()
+      that.setData({
+        createOrderDisabled: false
+      })
+    },
+    complete: function (res) {
+      wx.hideLoading()
+    }
+  })
+}
+/**
+ * 创建订单成功后回调
+ * 根据有无余额折扣进行余额扣除{@see changeUserBalance}
+ * @param balance_discount
+ */
+const onCreateOrderSuccess = function (balance_discount) {
+  if (balance_discount) {
+    changeUserBalance(-balance_discount, () => {
+      wx.redirectTo({
+        url: "/mall/pages/my/order_list"
+      })
+    })
+  } else {
+    wx.redirectTo({
+      url: "/mall/pages/my/order_list"
+    })
+  }
+}
+/**
+ * 用户余额扣除
+ * @param unit 余额变化
+ * @param cb_success 回调函数
+ * @link onCreateOrderSuccess 成功创建订单后立即扣除余额
+ */
+const changeUserBalance = function (unit = 0, cb_success = () => {}) {
+  wx.showLoading({
+    title: "扣除余额中"
+  })
+  wx.request({
+    url: app.buildUrl("/member/balance/change"),
+    header: app.getRequestHeader(),
+    data: {
+      unit: unit,
+      note: "在线购物"
+    },
+    success: res => {
+      cb_success()
+    },
+    complete: res => {
+      wx.hideLoading()
     }
   })
 }
@@ -41,12 +129,11 @@ Page({
     discount_price: 0.00
   },
   /***
+   * @name orderIndexOnload
    * onLoad 加载订单详情页
+   * 如果用户没有二维码{@see hasQrcode}且订单项中没有二维码则需随单加购二维码{@see requireOrderQrcode}
+   * 否则正常加载订单详细信息，用户进行核对下单{@see getOrderInfo}
    * @param e 下单产品列表和下单来源
-   *
-   * 需要balance和用户has_qrcode所以
-     * 如果用户没有二维码且订单项中没有二维码则需随单加购二维码（不同意则终止核对下单流程）
-     * 否则正常加载订单详细信息，用户进行核对下单
    */
   onLoad: function (e) {
     this.setData({
@@ -76,8 +163,7 @@ Page({
   },
   /***
    * toCreateOrder 确认下单的入口
-   * 判断收货地址如果没有的话，提示用户操作增加
-   * 否则，继续进行订单创建
+   * 收货地址判非空后，继续进行订单创建{@see doCreateOrder}
    */
   toCreateOrder: function (e) {
     if (!this.data.default_address) {
@@ -87,50 +173,24 @@ Page({
       })
       return
     }
-    this.createOrder(e)
+    this.doCreateOrder()
   },
-  /***
-   * createOrder 根据订单列表创建订单
+  /**
+   * doCreateOrder 创建订单
+   * 先创建订单 {@see createOrder} , 成功后扣除余额{@see changeUserBalance}
+   * @link toCreateOrder
    */
-  createOrder: function () {
-    this.setData({
-      createOrderDisabled: true
-    })
-    wx.showLoading({
-      mask: true,
-      title: '正在下单'
-    })
-    wx.request({
-      url: app.buildUrl("/order/create"),
-      header: app.getRequestHeader(),
-      method: 'POST',
-      data: {
-        type: this.data.params.type,
-        goods: JSON.stringify(this.data.params.goods),
-        express_address_id: this.data.default_address.id,
-        discount_price: this.data.use_balance ? this.data.balance : 0//余额折扣
-      },
-      success: (res) => {
-        let resp = res.data;
-        if (resp['code'] != 200) {
-          app.alert({content: resp['msg']})
-          return
-        }
-        //下单成功前去订单列表，进行支付
-        wx.redirectTo({
-          url: "/mall/pages/my/order_list"
-        })
-      },
-      fail: (res) => {
-        app.serverBusy()
-        this.setData({
-          createOrderDisabled: false
-        })
-      },
-      complete: function (res) {
-        wx.hideLoading()
-      }
-    })
+  doCreateOrder: function() {
+    let data = {
+      type: this.data.params.type, //根据type后端会扣除购物车商品
+      goods: JSON.stringify(this.data.params.goods), //订单所有商品(其数量和价格)
+      express_address_id: this.data.default_address.id, //订单收货地址(后端存为快递信息)
+      discount_price: this.data.use_balance ? this.data.balance : 0, //余额折扣
+      discount_type: this.data.use_balance? '账户余额': ''//折扣类型
+    }
+    createOrder(data, () => {
+      onCreateOrderSuccess(data.discount_price)
+    }, this)
   },
   /**
    * addressSet 无地址前往增加地址
@@ -149,7 +209,8 @@ Page({
     })
   },
   /***
-   * requireOrderQrcode 征得用户同意后随单加购二维码，否则不能下单
+   * requireOrderQrcode 征得用户同意后随单加购二维码，然后继续核对订单信息{@see getOrderInfo}。否则不能下单
+   * @link orderIndexOnload
    */
   requireOrderQrcode: function () {
     let qrcodePrice = app.globalData.qrcodePrice
@@ -178,6 +239,7 @@ Page({
   },
   /***
    * getOrderInfo 根据订单列表的产品ID，获取详细的产品信息，并计算出支付价格
+   * 初始化余额垫付框
    */
   getOrderInfo: function () {
     wx.request({
@@ -204,6 +266,7 @@ Page({
           dataReady: true
         })
 
+        //初始化余额勾选框
         useBalance.initData(this, (total_balance)=>{
           if(total_balance >= this.data.pay_price){ //运费不进行抵扣
             //余额够花，至少要支付0.01元
