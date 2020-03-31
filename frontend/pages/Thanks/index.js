@@ -128,7 +128,7 @@ Page({
       price: e.detail.value
     })
     //计算可用余额
-    let pay_money = util.toFixed(parseFloat(e.detail.value)*1.01, 2)
+    let pay_money = util.toFixed(parseFloat(e.detail.value), 2)
     if(pay_money<=this.data.total_balance){
       //余额足够
       this.setData({
@@ -178,7 +178,7 @@ Page({
     //计算可用余额
     if(checkedRadio != 3){
       //没有选择自定义
-      let pay_price = util.toFixed(items[checkedRadio].price*1.01, 2)
+      let pay_price = util.toFixed(items[checkedRadio].price, 2)
       if(pay_price<=this.data.total_balance) {
         this.setData({
           balance: pay_price

@@ -259,9 +259,7 @@ Page({
     });
   },
   goHome: function (e) {
-    wx.reLaunch({
-      url: "../../Find/Find?business_type=1"
-    })
+    wx.navigateBack()
   },
   goRelease: function (e) {
     if (!app.loginTip()) {
