@@ -104,7 +104,7 @@ def orderCreate():
         'express_address_id'] else 0
     params_goods = req['goods'] if 'goods' in req else None
     discount_price = req['discount_price'] if 'discount_price' in req else 0
-    discount_type = req['discount_type'] if 'discount_type' in req else "帐户余额"
+    discount_type = req['discount_type'] if 'discount_type' in req else ""
 
     items = []
     if params_goods:

@@ -430,7 +430,7 @@ class PayService:
         member_info = g.member_info
         for order in order_list:
             self.closeOrder(pay_order_id=order.id)
-            if order.discount_price != 0:
+            if order.discount_type == "账户余额":
                 member_info.balance += order.discount_price
                 db.session.add(member_info)
                 db.session.commit()

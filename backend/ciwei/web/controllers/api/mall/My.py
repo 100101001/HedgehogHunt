@@ -83,7 +83,6 @@ def myOrderList():
                     order_sp_cnt_map[item.order_id]['sms_package'] = 1
 
         for item in order_list:
-            discount_price = item.discount_price
             tmp_map = order_sp_cnt_map[item.id]
             tmp_data = {
                 'status': item.pay_status,
@@ -95,15 +94,15 @@ def myOrderList():
                 'total_price': str(item.total_price),
                 'goods_list': order_item_map[item.id],  # 产品列表
                 'express_sn': item.express_sn,  # 订单号
-                'balance_discount': str(discount_price) if discount_price > 0 else "0.00",
+                'balance_discount': str(item.discount_price) if item.discount_type == "账户余额" else "0.00",
                 'qr_code_num': tmp_map['qr_code'] if 'qr_code' in tmp_map else 0,
                 'sms_num': tmp_map['sms'] if 'sms' in tmp_map else 0,
                 'sms_package_num': tmp_map['sms_package'] if 'sms_package' in tmp_map else 0
             }
             # 如果只有非周边商品则付完款，前端自动发货
             tmp_data['only_special'] = len(order_item_map[item.id]) == \
-                                       (1 if tmp_data['sms_num'] else 0 + \
-                                        1 if tmp_data['sms_package_num'] else 0 + \
+                                       (1 if tmp_data['sms_num'] else 0 +
+                                        1 if tmp_data['sms_package_num'] else 0 +
                                         1 if tmp_data['qr_code_num'] else 0)
 
             data_order_list.append(tmp_data)
