@@ -1,5 +1,5 @@
 @import "../template/goods-item/goods-item-template.wxss";
-@import "../template/navigate-bar/navigate-bar-template.wxss";
+
 
 page {
   /*背景图片*/
