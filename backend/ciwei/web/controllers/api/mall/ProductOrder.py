@@ -277,6 +277,7 @@ def hasSpOrder():
         return jsonify(resp)
 
     order_list = Order.query.filter(Order.member_id == member_info.id,
+                                    Order.status == -8,
                                     Order.created_time > datetime.datetime.now() - datetime.timedelta(minutes=25)).all()
     for order in order_list:
         target_product = OrderProduct.query.filter(OrderProduct.product_id == product_id,
