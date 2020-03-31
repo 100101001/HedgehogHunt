@@ -427,5 +427,10 @@ class PayService:
         """
         order_list = Order.query.filter(Order.member_id == member_id, Order.status == -8,
                                         Order.updated_time <= seconds2str(time.time() - 1800)).all()
+        member_info = g.member_info
         for order in order_list:
             self.closeOrder(pay_order_id=order.id)
+            if order.discount_type == "账户余额":
+                member_info.balance += order.discount_price
+                db.session.add(member_info)
+                db.session.commit()

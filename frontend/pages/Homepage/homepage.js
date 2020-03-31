@@ -1,5 +1,5 @@
 const navigate = require("../template/navigate-bar/navigate-bar-template.js")
-var util = require("../../utils/util.js");
+const util = require("../../utils/util.js")
 const app = getApp()
 Page({
   data:{
@@ -9,27 +9,17 @@ Page({
     searching: false
   },
   onLoad: function () {
-    var textArray = {
+    let textArray = {
       text1: "好看又实用校园闪寻周边可附着在物品上",
       text2: "在物品遗失后可帮助物主快速寻回物品",
       text3: "快来点击获取你学校专属的闪寻周边吧！",
-    };
+    }
     this.setData({
       textArray: textArray
     })
   },
   onShow: function(){
-    //设置底部导航栏
-    var [isSelecteds, urls] = util.onNavigateTap(0);
-    isSelecteds['total_new'] = app.globalData.total_new;
-    isSelecteds['showHintQrcode'] = app.globalData.showHintQrcode
-    isSelecteds['regFlag'] = app.globalData.regFlag
-    isSelecteds['hasQrcode'] = app.globalData.has_qrcode
-    this.setData({
-      isSelecteds: isSelecteds
-    })
     this.getUniversityList()
-    
   },
   getUniversityList: function(){
     var that = this

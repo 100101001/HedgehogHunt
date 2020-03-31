@@ -259,9 +259,7 @@ Page({
     });
   },
   goHome: function (e) {
-    wx.reLaunch({
-      url: "../../Find/Find?business_type=1"
-    })
+    wx.navigateBack()
   },
   goRelease: function (e) {
     if (!app.loginTip()) {
@@ -273,9 +271,14 @@ Page({
   },
   //归还按钮
   goReturn: function (e) {
-    app.globalData.info = this.data.infos.info;
+    let auther_id = this.data.infos.info.auther_id
+    if(auther_id === app.globalData.id){
+      app.alert({title: '操作提示', content: '发布者不能操作自己的记录！'})
+      return
+    }
+    app.globalData.info = this.data.infos.info
     wx.navigateTo({
-      url: "../../Release/release/index?auther_id=" + this.data.infos.info.auther_id,
+      url: "../../Release/release/index?auther_id=" + this.data.infos.info.auther_id
     })
   },
   //归还按钮

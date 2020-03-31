@@ -1,6 +1,6 @@
 const navigate = require("../template/navigate-bar/navigate-bar-template.js")
-var util = require("../../utils/util.js");
-var app = getApp();
+const util = require("../../utils/util.js");
+const app = getApp();
 Page({
   data: {
     banners: ["/images/logo.jpg"],
@@ -84,35 +84,23 @@ Page({
     })
   },
   onShow: function () {
-    if (this.data.business_type == 1) {
-      var [isSelecteds, urls] = util.onNavigateTap(1);
-    } else {
-      var [isSelecteds, urls] = util.onNavigateTap(3);
-    }
-    isSelecteds['total_new'] = app.globalData.total_new;
-    isSelecteds['showHintQrcode'] = app.globalData.showHintQrcode
-    isSelecteds['regFlag'] = app.globalData.regFlag
-    isSelecteds['hasQrcode'] = app.globalData.has_qrcode
-    var regFlag = app.globalData.regFlag;
     this.setData({
-      regFlag: regFlag,
-      isSelecteds: isSelecteds
-    });
-    this.setInitData();
-    this.onPullDownRefresh();
-    // this.getBanners();
+      regFlag: app.globalData.regFlag
+    })
+    this.setInitData()
+    this.onPullDownRefresh()
   },
   catClick: function (e) {
     //选择一次分类时返回选中值
     this.setData({
       activeCategoryId: e.currentTarget.id,
-    });
-    this.onPullDownRefresh();
+    })
+    this.onPullDownRefresh()
   },
   //点击信息卡查看详情
   onDetailTap: function (event) {
-    var id = event.currentTarget.dataset.id;
-    app.globalData.op_status = 2;
+    let id = event.currentTarget.dataset.id
+    app.globalData.op_status = 2
     wx.navigateTo({
       url: 'info/info?goods_id=' + id,
     })
@@ -235,7 +223,7 @@ Page({
       goods_list: [],
       loadingMoreHidden: true,
       p: 1,
-      activeCategoryId: -1,
+      activeCategoryId: this.data.activeCategoryId,
       loadingHidden: true, // loading
       swiperCurrent: 0,
       goods: [],

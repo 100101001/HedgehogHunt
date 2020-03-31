@@ -49,6 +49,10 @@ page{
 .hint-navigator {
   color: rgba(255, 255, 0, 1);
 }
+.hint-navigator-hover{
+  background: #999;
+}
+
 .close-hint-container{
   padding: 20rpx 20rpx;
   position: absolute;

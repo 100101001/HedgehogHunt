@@ -3,8 +3,12 @@
 <!---积分和成长值-->
 <view class="user-info-container">
   <image src="{{info.avatar}}"></image>
-  
 </view>
+
+
+<navigator url="/mall/pages/my/order_list">[我的订单]</navigator>
+
+<navigator url="/mall/pages/my/index">[我的购物]</navigator>
 <!---二维码，余额--->
 
 <!--活动中心-->

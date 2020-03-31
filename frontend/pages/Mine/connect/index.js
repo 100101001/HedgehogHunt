@@ -10,10 +10,17 @@ Page({
     qr_code_preview_list:[
       app.globalData.static_file_domain+"/static/wcx.jpg",
       app.globalData.static_file_domain +"/static/lyx.jpg"
-    ]
+    ],
+    business_contact: true,
+    tech_contact: true
   },
-  onLoad: function (options) { },
-
+  onLoad: function (options) {
+    if (options.only_tech_contact) {
+      this.setData({
+        business_contact: false
+      })
+    }
+  },
   //预览图片
   previewImage: function (e) {
     var image = e.currentTarget.dataset.src;

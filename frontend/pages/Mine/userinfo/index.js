@@ -1,5 +1,11 @@
-const app = getApp();
+const app = getApp()
+const globalData = app.globalData
 const util = require('../../../utils/util')
+
+/**
+ * 在获取新二维码，短信(包)时{@link doGetNewProduct, @link confirmSmsTimes, @link confirmSmsPkg} 前往下单
+ * @param data 订单项
+ */
 const toOrderSpecialProduct = function (data={}) {
   wx.showToast({
     title: '前往下单',
@@ -15,6 +21,11 @@ const toOrderSpecialProduct = function (data={}) {
 }
 
 
+/**
+ * balanceCharge 为了充余额{@link doBalanceRecharge}付费
+ * @param pay_price
+ * @param cb_success
+ */
 const balanceCharge = function (pay_price=0.01, cb_success=()=>{}) {
   wx.request({
     url: app.buildUrl('/balance/order'),
@@ -59,7 +70,7 @@ const balanceCharge = function (pay_price=0.01, cb_success=()=>{}) {
 
 /**
  * changeUserBalance
- * 扣除(改变)用户余额
+ * 充值支付成功后{@link doBalanceRecharge}，扣除(改变)用户余额
  * @param unit 改变量
  * @param cb_success 回调函数
  */
@@ -86,6 +97,85 @@ const changeUserBalance = function (unit = 0, cb_success = () => {}, cb_fail=()=
   })
 }
 
+
+/**
+ * remindOldOrder 获取二维码时 {@link doGetQrCode} 提醒还有旧的二维码，短信包，短信订单
+ * 用户可选择继续获取新的 {@see doGetNewProduct}
+ * @param product_name
+ */
+const remindOldOrder = function (product_name = "二维码", that = null) {
+  app.alert({
+    title: '已购提示',
+    content: '有未支付的' + product_name + '订单，前往支付？',
+    showCancel: true,
+    cb_confirm: res => {
+      wx.navigateTo({
+        url: '/mall/pages/my/order_list'
+      })
+    },
+    cb_cancel: res => {
+      app.alert({
+        title: '操作提示',
+        content: '是否继续获取' + product_name + '？',
+        showCancel: true,
+        cb_confirm: res => {
+          doGetNewProduct(product_name, that)
+        }
+      })
+    }
+  })
+}
+
+/**
+ * doGetNewProduct 用户无视旧订单提醒{@link remindOldOrder}或本来就没有{@link toRechargeSms, @link doGetQrCode}时，根据产品名进入获取新产品的下一步处理
+ * @param product_name
+ * @param that
+ */
+const doGetNewProduct = function (product_name = "二维码", that = null) {
+  if (product_name === "二维码") {
+    let data = {
+      type: 'toBuy',
+      goods: [{'id': app.globalData.qrcodeProductId, 'price': app.globalData.qrcodePrice, 'number': 1}]
+    }
+    toOrderSpecialProduct(data)
+  } else if (product_name === "短信包") {
+    that.setData({
+      hiddenSmsPkgModal: false
+    })
+  } else if (product_name === "短信") {
+    app.alert({
+      title: '计价提示',
+      content: '0.1元/1条。继续购买？',
+      showCancel: true,
+      cb_confirm: () => {
+        that.setData({
+          hiddenSmsTimesModal: false
+        })
+      }
+    })
+  }
+}
+
+
+/**
+ * onFailContactTech 系统操作使得用户利益受损的，让用户联系技术人员
+ * 余额充值时，已支付，但到账失败的{@link doBalanceRecharge}
+ * @param title
+ * @param content
+ * @link onOrderCancelSuccess
+ * @link onOrderPaySuccess
+ */
+const onFailContactTech = function (title = "跳转提示", content = '服务出错了，为避免您的利益损失，将跳转联系技术支持') {
+  app.alert({
+    title: title,
+    content: content,
+    cb_confirm: () => {
+      wx.navigateTo({
+        url: '/pages/Mine/connect/index?only_tech_contact='+ 1
+      })
+    }
+  })
+}
 
 Page({
   data: {
@@ -219,7 +309,7 @@ Page({
     })
   },
   /***
-   * toGetQrCode 判断没有姓名或手机号提示用户补上，否则继续下单获取二维码
+   * toGetQrCode 判断没有姓名或手机号提示用户补上，否则继续下单获取二维码{@see doGetQrCode}
    */
   toGetQrCode: function(){
     let name = this.data.name
@@ -234,16 +324,29 @@ Page({
     }
     this.doGetQrCode()
   },
-  /***
-   * doGetQrCode 去下单获取二维码
+  /**
+   * doGetQrCode 如果还有未支付的二维码，会提醒用户{@see remindOldOrder}，否则直接下新的二维码订单 {@see doGetNewProduct}
+   * @link toGetQrCode
    */
   doGetQrCode: function () {
-    //下单
-    let data = {
-      type: 'toBuy',
-      goods: [{'id': app.globalData.qrcodeProductId, 'price': app.globalData.qrcodePrice, 'number': 1}]
-    }
-    toOrderSpecialProduct(data)
+    wx.request({
+      url: app.buildUrl('/order/sp/has'),
+      header: app.getRequestHeader(),
+      data: {
+        product_id: globalData.qrcodeProductId
+      },
+      success: res => {
+        let has = res.data['has']
+        if (has) {
+          remindOldOrder( "二维码", this)
+        } else {
+          doGetNewProduct( "二维码", this)
+        }
+      },
+      fail: res => {
+        app.serverBusy()
+      }
+    })
   },
   /**
    * checkQrCode 点击查看/隐藏二维码
@@ -326,8 +429,8 @@ Page({
   },
   /**
    * doBalanceRecharge 充值余额的实际操作函数
-   * 先收费，如果支付成功增加余额，
-   * 如果收费成功但是余额增加失败则提示用户联系技术人员操作增加
+   * 先收费{@see balanceCharge}，如果支付成功增加余额{@see changeUserBalance}，
+   * 如果收费成功但是余额增加失败则提示用户联系技术人员操作增加{@see onFailContactTech}
    * @param pay_price
    */
   doBalanceRecharge: function (pay_price = 0.01) {
@@ -340,15 +443,7 @@ Page({
         this.setData({
           balance: this.data.balance + pay_price
         })
-      }, () => {
-        app.alert({
-          title: '跳转提示',
-          content: '联系技术人员充值余额',
-          cb_confirm: () => {
-            wx.navigateTo({url: '/pages/Mine/connect/index'})
-          }
-        })
-      })
+      }, onFailContactTech)
     })
   },
   /**
@@ -363,28 +458,31 @@ Page({
   /**
    * toRechargeSms 根据用户选择的按量购买或者短信包进入下一步的操作
    */
-  toRechargeSms: function(){
+  toRechargeSms: function () {
     wx.showActionSheet({
       itemList: ['按量计费', '优惠短信包'],
       success: (res) => {
-        if(res.tapIndex == 0){
-          //出现编辑购买条数
-          app.alert({
-            title: '计价提示',
-            content: '0.1元/1条。继续购买？',
-            showCancel: true,
-            cb_confirm: ()=>{
-              this.setData({
-                hiddenSmsTimesModal: false
-              })
+        let idx = res.tapIndex
+        let product_id = idx ? globalData.smsPkgProductId : globalData.smsProductId
+        let product_name = idx ? '短信包' : '短信'
+        wx.request({
+          url: app.buildUrl('/order/sp/has'),
+          header: app.getRequestHeader(),
+          data: {
+            product_id: product_id
+          },
+          success: res => {
+            let has = res.data['has']
+            if (has) {
+              remindOldOrder(product_name, this)
+            } else {
+              doGetNewProduct(product_name, this)
             }
-          })
-        } else {
-          //直接跳转下单
-          this.setData({
-            hiddenSmsPkgModal: false
-          })
-        }
+          },
+          fail: res => {
+            app.serverBusy()
+          }
+        })
       }
     })
   },
@@ -446,7 +544,7 @@ Page({
       this.setData({
         hiddenIntroduceModal: true
       })
-    }, 700)
+    }, 580)
   },
   toEditPhone: function () {
     wx.navigateTo({

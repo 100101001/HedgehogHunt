@@ -375,7 +375,7 @@ def goodsSearch():
             if item.member_id not in member_map:
                 item.status = 7
                 db.session.add(item)
-                db.session.commit(item)
+                db.session.commit()
                 continue
             tmp_member_info = member_map[item.member_id]
             tmp_data = {
