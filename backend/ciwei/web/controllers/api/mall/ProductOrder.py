@@ -1,3 +1,4 @@
+import datetime
 import decimal
 import json
 
@@ -12,6 +13,7 @@ from common.libs.UrlManager import UrlManager
 from common.libs.mall.PayService import PayService
 from common.models.ciwei.mall.Address import Address
 from common.models.ciwei.mall.Order import Order
+from common.models.ciwei.mall.OrderProduct import OrderProduct
 from common.models.ciwei.mall.Product import Product
 from web.controllers.api import route_api
 
@@ -259,3 +261,28 @@ def orderCallback():
     target_pay.orderSuccess(pay_order_id=pay_order_info.id, params={"pay_sn": callback_data['transaction_id']})
     target_pay.addPayCallbackData(pay_order_id=pay_order_info.id, data=request.data)
     return target_wechat.dict_to_xml(result_data), header
+
+
+@route_api.route('/order/sp/has', methods=['GET', 'POST'])
+def hasSpOrder():
+    resp = {'has': False, 'code': 200}
+    member_info = g.member_info
+    if not member_info:
+        resp['code'] = -1
+        return jsonify(resp)
+    req = request.values
+    product_id = req['product_id'] if 'product_id' in req else None
+    if product_id is None:
+        resp['code'] = -1
+        return jsonify(resp)
+
+    order_list = Order.query.filter(Order.member_id == member_info.id,
+                                    Order.created_time > datetime.datetime.now() - datetime.timedelta(minutes=25)).all()
+    for order in order_list:
+        target_product = OrderProduct.query.filter(OrderProduct.product_id == product_id,
+                                                 OrderProduct.order_id == order.id).first()
+        if target_product:
+            resp['has'] = True
+            return jsonify(resp)
+
+    return jsonify(resp)
