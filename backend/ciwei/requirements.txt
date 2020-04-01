@@ -13,6 +13,7 @@ lxml
 flask-migrate
 pycrypto
 uwsgi
+synonyms
 
 # 以下是测试依赖
 mock
