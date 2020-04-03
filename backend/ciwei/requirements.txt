@@ -13,8 +13,9 @@ lxml
 flask-migrate
 pycrypto
 uwsgi
-synonyms
-
+# smart_open
+# synonyms
+jieba
 # 以下是测试依赖
 mock
 coverage

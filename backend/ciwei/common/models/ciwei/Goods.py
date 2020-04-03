@@ -37,6 +37,15 @@ class Good(db.Model):
     mark_id = db.Column(db.String(400), nullable=False, default='', comment="点击获取或者提交的用户id,列表")
     top_expire_time = db.Column(db.DateTime, nullable=False, index=True, default=datetime.now,
                                 comment='置顶过期时间')
+    category = db.Column(TINYINT(), index=True, nullable=False, default=9, comment="0:钱包, 1：钥匙, "
+                                                                                   "2: 卡类/证照"
+                                                                                   "3: 数码产品"
+                                                                                   "4：手袋/挎包"
+                                                                                   "5：衣服/鞋帽"
+                                                                                   "6：首饰/挂饰"
+                                                                                   "7：行李/包裹"
+                                                                                   "8：书籍/文件"
+                                                                                   "9：其它")
     updated_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment="最后更新时间")
     created_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment="插入时间")
 

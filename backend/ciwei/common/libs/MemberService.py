@@ -2,14 +2,15 @@
 
 # -*- coding:utf-8 -*-
 
-
+import jieba, itertools
 import hashlib
+import json
 import random
 import string
 
-import json
 import requests
 from flask import g
+from sqlalchemy import or_
 
 from application import app, db
 from common.libs.Helper import getCurrentDate
@@ -17,6 +18,7 @@ from common.libs.Helper import selectFilterObj, getDictFilterField
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Member import Member
 from common.models.ciwei.MemberBalanceChangeLog import MemberBalanceChangeLog
+from common.models.ciwei.Recommend import Recommend
 
 
 class MemberService():
@@ -106,99 +108,98 @@ class MemberService():
         return True
 
     @staticmethod
-    def recommendGoods(goods_info):
+    def autoRecommendGoods(goods_info=None, edit=False):
         """
-        当有新的发布时，在系统中进行查询对立面，即发布失物招领时查询寻物启示，
-        发布寻物启事时查询失物招领，如果姓名相同，则给用户推荐信息
-        当用户被直接扫码时也推荐
-        在end-creat完成之后进行推荐
-        寻物启事发布时是给发布者推荐，失物招领时是给寻物启事的发布者推荐
-       :param goods_info:
-       :return: True
-       """
+        自动匹配推荐
+        :param edit:
+        :param goods_info:
+        """
         from common.libs import SubscribeService
-        # 按物主owner_name, 物品名name 匹配失/拾物品
-        # 在失去物品的作者的recommmend_id中加入匹配到的拾物品id
-        # 不能是同一个人发布的拾/失
+
+        # 不能是同一个人发布的拾/失,物品有效
         query = Good.query.filter(Good.status != 7, Good.status != 5)
-        query = query.filter_by(owner_name=goods_info.owner_name)
-        query = query.filter_by(name=goods_info.name)
         query = query.filter(Good.member_id != goods_info.member_id)
-        if goods_info.business_type == 1:
-            # 发布的是失物招领，找到了对应的寻物启事
-            goods_list = query.filter_by(business_type=0).all()
-            if goods_list:
-                # 获取用户的信息
-                member_ids = selectFilterObj(goods_list, "member_id")
-                member_map = getDictFilterField(Member, Member.id, "id", member_ids)
-                for item in goods_list:
-                    if item.member_id not in member_map:
-                        item.status = 7
-                        db.session.add(item)
-                        db.session.commit()
-                        continue
-                    tmp_member_info = member_map[item.member_id]
-                    if tmp_member_info:
-                        MemberService.addRecommendGoods(tmp_member_info, item.id)
-                        # 通知：有人可能捡到了你遗失的东西
-                        SubscribeService.send_recommend_subscribe(item)
+        # 筛选物品类别
+        query = query.filter(Good.category == goods_info.category)
+
+        # 拓展搜索词
+        search_words = MemberService.getSearchWords(goods_info.name)
+        common_rule = or_(*[Good.name.like(name) for name in search_words])
+        if goods_info.owner_name != "无":
+            rule = or_(Good.owner_name == goods_info.owner_name, common_rule)
+            query = query.filter(rule)
         else:
-            # 发布的是寻物启事，找到了对应的失物招领,给用户返回失物招领的列表
-            goods_list = query.filter_by(business_type=1).all()
-            if goods_list:
-                member_info = g.member_info
-                for item in goods_list:
-                    MemberService.addRecommendGoods(member_info, item.id)
-                    # # 通知：有人可能丢了你捡到的东西
-                    # SubscribeService.send_recommend_subscribe(item)
-        return True
+            query = query.filter(common_rule)
+
+        # 互相匹配
+        release_type = goods_info.business_type
+        goods_list = query.filter_by(business_type=1-release_type).all()
+        for good in goods_list:
+            member_id = good.member_id if release_type == 1 else g.member_info.id  # 获得寻物启示贴主id
+            new_recommend = MemberService.addRecommendGoods(member_id=member_id,
+                                                            goods_id=good.id, edit=edit)
+            if new_recommend and release_type == 1:
+                # 通知：有人可能捡到了你遗失的东西
+                SubscribeService.send_recommend_subscribe(goods_info=good)
 
     @staticmethod
-    def addRecommendGoods(member_info, goods_id):
+    def addRecommendGoods(member_id=0, goods_id=0, edit=False):
         """
-        在会员的
-        :param member_info:
+        增加新的记录，进行防重
+        归还和通知会加进推荐
+        :param edit:
+        :param member_id:
         :param goods_id:
         :return:
         """
-        if member_info.recommend_id:
-            recommend_id_dict = MemberService.getRecommendDict(member_info.recommend_id, False)
-            recommend_id_list = recommend_id_dict.keys()
-            # 考虑到信息编辑更新时如果之前已经推荐过就不再推荐了
-            if str(goods_id) not in recommend_id_list:
-                member_info.recommend_id = member_info.recommend_id + '#' + str(goods_id) + ':0'
-        else:
-            member_info.recommend_id = str(goods_id) + ':0'
-        db.session.add(member_info)
+        if not member_id or not goods_id:
+            return False
+        repeat_recommend = Recommend.query.filter_by(goods_id=goods_id, member_id=member_id).first()
+        if repeat_recommend:
+            if edit and repeat_recommend.status == 1:
+                # 已阅推荐记录，但因为物品被编辑了就更新为未读
+                repeat_recommend.status = 0
+                db.session.add(repeat_recommend)
+                db.session.commit()
+            return False
+        model_recommend = Recommend()
+        model_recommend.goods_id = goods_id
+        model_recommend.member_id = member_id
+        db.session.add(model_recommend)
         db.session.commit()
+        return True
 
     @staticmethod
-    def getRecommendDict(recommend_id, only_new):
-        re_list = recommend_id.split('#')
-        re_dict = {}
-        for i in re_list:
-            goods_id = int(i.split(':')[0])
-            status = int(i.split(':')[1])
-            good = Good.query.filter_by(id=goods_id).first()
-            if good is None or good.status == 7 or good.status == 8:  # 已被删除或封锁
-                continue
-            if only_new:
-                if status == 0:
-                    re_dict[goods_id] = status
-            else:
-                re_dict[goods_id] = status
-
-        return re_dict
+    def filterRecommends(recommend_list=[], only_new=True):
+        """
+        对于只看新增的就过滤已经删除的物品
+        如果推荐的物品，已经被删除，将推荐的状态置为 -1
+        :param only_new: 只要新的有效的推荐记录
+        :param recommend_list: 推荐记录列表
+        :return:
+        """
+        recommend_dict = {}
+        for recommend in recommend_list:
+            good_id = recommend.goods_id
+            good = Good.query.filter_by(id=good_id).first()
+            if good is None or good.status in [7, 8]:
+                # 推荐的物品已被删除
+                recommend.status = -1
+                db.session.add(recommend)
+                db.session.commit()
+                if only_new:
+                    # 只要最新的，不要看被删除的
+                    continue
+            recommend_dict[good_id] = recommend.status
+        return recommend_dict
 
     @staticmethod
-    def joinRecommendDict(re_dict):
-        keys = list(re_dict.keys())
-        if len(re_dict) == 0:
-            return ''
-        recommend_id = str(keys[0]) + ':' + str(re_dict[keys[0]])
-        for key in keys[1:]:
-            recommend_id = recommend_id + '#' + str(key) + ':' + str(re_dict[key])
-        return recommend_id
+    def setRecommendStatus(member_id=0, goods_id=0, status=1):
+        recommend = Recommend.query.filter_by(goods_id=goods_id, member_id=member_id).first()
+        if recommend and recommend.status != status:
+            recommend.status = status
+            db.session.add(recommend)
+            db.session.commit()
 
     @staticmethod
     def setMemberBalanceChange(member_info=None, unit=0, note="答谢"):
@@ -217,3 +218,23 @@ class MemberService():
         balance_change_model.note = note
         balance_change_model.created_time = getCurrentDate()
         db.session.add(balance_change_model)
+
+    @staticmethod
+    def getSearchWords(name):
+        search_words = list(jieba.cut_for_search(name))
+        tag = search_words[-1]
+        more = [tag.replace(item, '') for item in search_words[:-1]]
+        more.extend([tag, name] if tag != name else [tag])
+        search_words = []
+        for k, _ in itertools.groupby(more):
+            if k:
+                search_words.append('%' + k + '%')
+        # keyword = synonyms.seg(goods_info.name)[0][-1]
+        # # 获取近义词
+        # synonyms_good_names = synonyms.nearby(keyword)[0][:2]
+        # synonyms_good_names.extend([keyword])
+        # synonyms_good_names = ['%'+name+'%' for name in synonyms_good_names]
+        # 一定非空
+        # 寻物启示可精准，失物招领宜宽泛。
+        # 寻物启示三思后发
+        return search_words
