@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import datetime
 import decimal
 import hashlib
 import json
@@ -426,7 +427,7 @@ class PayService:
         :return:
         """
         order_list = Order.query.filter(Order.member_id == member_id, Order.status == -8,
-                                        Order.updated_time <= seconds2str(time.time() - 1800)).all()
+                                        Order.updated_time <= datetime.datetime.now()-datetime.timedelta(seconds=1800)).all()
         member_info = g.member_info
         for order in order_list:
             self.closeOrder(pay_order_id=order.id)
