@@ -11,6 +11,7 @@ from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
 from common.models.ciwei.Member import Member
 from common.models.ciwei.Goods import Good
+from common.models.ciwei.Recommend import Recommend
 from common.models.ciwei.Report import Report
 # -*- coding:utf-8 -*-
 from common.models.ciwei.User import User
@@ -31,7 +32,7 @@ def recordSearch():
     req = request.values
 
     # 检查登陆
-    # 检查参数：status, TODO:status是选项卡？
+    # 检查参数：status
     member_info = g.member_info
     if not member_info:
         resp['msg'] = "没有相关用户信息"
@@ -51,9 +52,10 @@ def recordSearch():
     recommend_dict = {}
     op_status = int(req['op_status']) if 'op_status' in req else ''
     if op_status == 0:
+        # 找出发布记录
         query = query.filter_by(member_id=member_info.id)
-    # 找出认领列表
     elif op_status == 1:
+        # 找出认寻列表
         if member_info.mark_id:
             mark_id_list = member_info.mark_id.split('#')
             mark_id_list_int = [int(i) for i in mark_id_list]
@@ -63,17 +65,24 @@ def recordSearch():
             resp['data']['list'] = []
             resp['data']['has_more'] = 0
             return jsonify(resp)
-    # 找出推荐列表里面的所有物品信息
     elif op_status == 2:
-        if member_info.recommend_id:
+        # 找出推荐列表里面的所有物品信息
+        only_new = req['only_new']
+        if only_new == 'false':
+            # 新推荐和历史推荐（推荐中可能包含被删除的物品）
+            recommend_list = Recommend.query.filter(Recommend.member_id == member_info.id,
+                                                    Recommend.status != 7).all()
+        else:
+            # 只要新推荐（推荐中不包含被删除的物品）
+            recommend_list = Recommend.query.filter_by(member_id=member_info.id, status=0).all()
+        if recommend_list:
             # 获取推荐列表的字典，格式{id:0或者1}{1000：0}表示id为1000的数据未读
-            only_new = req['only_new']
-            if only_new == 'false':
-                recommend_dict = MemberService.getRecommendDict(member_info.recommend_id, False)
-            else:
-                recommend_dict = MemberService.getRecommendDict(member_info.recommend_id, True)
-            recommend_id_list_int = recommend_dict.keys()
-            query = query.filter(Good.id.in_(recommend_id_list_int))
+            recommend_dict = MemberService.filterRecommends(recommend_list=recommend_list,
+                                                            only_new=(only_new == 'true'))
+            # 获取推荐的物品列表
+            if recommend_dict:
+                recommend_id_list = recommend_dict.keys()
+                query = query.filter(Good.id.in_(recommend_id_list))
         else:
             resp['code'] = 200
             resp['data']['list'] = []
@@ -101,7 +110,8 @@ def recordSearch():
         p = 1
     page_size = 10
     offset = (p - 1) * page_size
-    goods_list = query.order_by(Good.id.desc()).offset(offset).limit(10).all()
+    query = query.order_by(Good.id.desc()).offset(offset)
+    goods_list = query.limit(page_size).all()
 
     # 将对应的用户信息取出来，组合之后返回
     data_goods_list = []
@@ -112,8 +122,8 @@ def recordSearch():
         for item in goods_list:
             tmp_member_info = member_map[item.member_id]
             tmp_data = {
-                "id": item.id,
-                "new": recommend_dict[item.id] if recommend_dict else 1,  # 不存在时置1
+                "id": item.id,  # 供前端用户点击查看详情用的
+                "new": recommend_dict[item.id] if recommend_dict else 1,  # 不存在时置不是new记录
                 "goods_name": item.name,
                 "owner_name": item.owner_name,
                 "updated_time": str(item.updated_time),
@@ -122,15 +132,15 @@ def recordSearch():
                 "main_image": UrlManager.buildImageUrl(item.main_image),
                 "auther_name": tmp_member_info.nickname,
                 "avatar": tmp_member_info.avatar,
-                "selected": False,
+                "selected": False,  # 供前端编辑用的属性
                 "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
-                "top": item.top_expire_time > now
+                "top": item.top_expire_time > now  # 是否为置顶记录
             }
             data_goods_list.append(tmp_data)
 
     resp['code'] = 200
     resp['data']['list'] = data_goods_list
-    resp['data']['has_more'] = 0 if len(data_goods_list) < page_size else 1
+    resp['data']['has_more'] = 0 if len(query.all()) <= page_size else 1
     return jsonify(resp)
 
 
@@ -175,12 +185,9 @@ def recordDelete():
             db.session.add(member_info)
             # TODO：物品的mark_id也要去掉？？
     elif op_status == 2:
-        recommend_id_dict = MemberService.getRecommendDict(member_info.recommend_id, False)
-        for i in id_list:
-            del recommend_id_dict[int(i)]
-        member_info.recommend_id = MemberService.joinRecommendDict(recommend_id_dict)
-        db.session.add(member_info)
-        # TODO:物品的recommend_id也要去掉？？
+        # 批量更新 status = 7
+        Recommend.query.filter(Recommend.member_id == member_info.id,
+                               Recommend.goods_id.in_(id_list)).update(dict(status=7))
     elif op_status == 4:
         # 物品和举报状态为 5
         id_list_int = [int(i) for i in id_list]

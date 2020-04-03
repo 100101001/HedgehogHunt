@@ -7,8 +7,8 @@ from application import db
 from datetime import datetime
 
 
-class ProductCat(db.Model):
-    __tablename__ = 'product_cat'
+class ProductCategory(db.Model):
+    __tablename__ = 'product_category'
     __table_args__ = ({'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8mb4', 'comment': '周边分类'})
 
     id = db.Column(INTEGER(11, unsigned=True), primary_key=True, autoincrement=True)

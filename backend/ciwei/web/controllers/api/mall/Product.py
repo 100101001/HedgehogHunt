@@ -11,7 +11,7 @@ from common.models.ciwei.mall.CampusProduct import CampusProduct
 from common.models.ciwei.mall.ProductComments import ProductComments
 from common.models.ciwei.mall.Cart import Cart
 from common.models.ciwei.mall.Product import Product
-from common.models.ciwei.mall.ProductCat import ProductCat
+from common.models.ciwei.mall.ProductCategory import ProductCategory
 from web.controllers.api import route_api, jsonify
 
 
@@ -56,7 +56,7 @@ def productIndex():
     campus = int(req['campus']) if 'campus' in req else -1
 
     # 类别
-    cat_list = ProductCat.query.filter_by(status=1).order_by(ProductCat.weight.desc()).all()
+    cat_list = ProductCategory.query.filter_by(status=1).order_by(ProductCategory.weight.desc()).all()
     data_cat_list = [{
         'id': 0,
         'name': "全部"

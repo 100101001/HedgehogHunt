@@ -9,6 +9,7 @@ from application import app, db
 
 from common.libs import ThankOrderService
 from common.libs.Helper import getCurrentDate, selectFilterObj, getDictFilterField
+from common.libs.MemberService import MemberService
 from common.models.ciwei.Member import Member
 from common.models.ciwei.Report import Report
 from common.models.ciwei.ThankOrder import ThankOrder
@@ -73,7 +74,7 @@ def thanksCreate():
             target_member_info = Member.query.filter_by(id=target_member_id).first()
             target_member_info.balance += thanks_model.thank_price
             target_member_info.updated_time = getCurrentDate()
-            ThankOrderService.setMemberBalanceChange(member_info=target_member_info, unit=thanks_model.thank_price,
+            MemberService.setMemberBalanceChange(member_info=target_member_info, unit=thanks_model.thank_price,
                                                      note="答谢收款")
             db.session.add(target_member_info)
         thanks_model.summary = req['thanks_text'] if 'thanks_text' in req else ''

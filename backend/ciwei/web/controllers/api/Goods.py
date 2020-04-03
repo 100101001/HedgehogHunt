@@ -19,6 +19,7 @@ from common.models.ciwei.Goods import Good
 # -*- coding:utf-8 -*-
 from common.models.ciwei.GoodsTopOrder import GoodsTopOrder
 from common.models.ciwei.Member import Member
+from common.models.ciwei.Recommend import Recommend
 from common.models.ciwei.Report import Report
 from common.models.ciwei.Thanks import Thank
 from web.controllers.api import route_api
@@ -41,7 +42,7 @@ def topOrder():
     model_order.order_sn = pay_service.geneGoodsTopOrderSn()
     model_order.openid = member_info.openid
     model_order.member_id = member_info.id
-    model_order.price = decimal.Decimal(req['price']).quantize(decimal.Decimal('0.00'))\
+    model_order.price = decimal.Decimal(req['price']).quantize(decimal.Decimal('0.00')) \
         if 'price' in req else decimal.Decimal('20.00')
 
     # 微信下单
@@ -156,6 +157,7 @@ def createGoods():
     model_goods.owner_name = req['owner_name']
     model_goods.summary = req['summary']
     model_goods.business_type = business_type
+    model_goods.category = int(req['category']) if 'category' in req else 9  # 没有类别默认属于其它
     model_goods.status = 7  # 创建未完成
     model_goods.mobile = req['mobile']
     model_goods.top_expire_time = getCurrentDate() if not int(req['is_top']) \
@@ -257,28 +259,34 @@ def endCreate():
         return jsonify(resp)
 
     # 更新id号物品的状态 7->1
-    # TODO:auther_id和target_goods_id???
-    # 在 auther_id 会员的 recommend_id 中加入物品id
-    # 更新 target_goods_id 物品 status ->2
-    # 创建或者修改完成时, 对用户进行推荐(匹配拾/失物品, 将匹配的物品id加入失去物品作者的recommend_id)
+
     if goods_info.status == 7:
         goods_info.status = 1
     goods_info.updated_time = getCurrentDate()
+
+    # 根据发帖类型，进行精准推荐，和全局匹配推荐
     auther_id = req['auther_id'] if 'auther_id' in req else None
+    notify_id = req['notify_id'] if 'notify_id' in req else None
     if auther_id:
-        auther_info = Member.query.filter_by(id=auther_id).first()
-        if auther_info:
-            MemberService.addRecommendGoods(auther_info, goods_info.id)
-    target_goods_id = int(req['target_goods_id']) if 'target_goods_id' in req else None
-    if target_goods_id is not None:
-        target_goods_info = Good.query.filter_by(id=target_goods_id).first()
-        if target_goods_info:
-            target_goods_info.status = 2
-            db.session.add(target_goods_info)
-    MemberService.recommendGoods(goods_info)
+        # 发布的是归还贴
+        MemberService.addRecommendGoods(member_id=auther_id, goods_id=goods_info.id)
+        target_goods_id = int(req['target_goods_id']) if 'target_goods_id' in req else None
+        if target_goods_id is not None:
+            target_goods_info = Good.query.filter_by(id=target_goods_id).first()
+            if target_goods_info:
+                target_goods_info.status = 2
+                db.session.add(target_goods_info)
+    elif notify_id:
+        # 发布的是通知贴
+        notified_member_info = Member.query.filter_by(openid=notify_id).first()
+        if notified_member_info:
+            MemberService.addRecommendGoods(member_id=notified_member_info.id, goods_id=goods_info.id)
+    else:
+        edit = req['edit'] if 'edit' in req else None
+        MemberService.autoRecommendGoods(goods_info=goods_info, edit=(edit == 'true'))
+
     db.session.add(goods_info)
     db.session.commit()
-
     resp['code'] = 200
     return jsonify(resp)
 
@@ -362,7 +370,8 @@ def goodsSearch():
         p = 1
     page_size = 10
     offset = (p - 1) * page_size
-    goods_list = query.order_by(Good.top_expire_time.desc(), Good.view_count.desc()).offset(offset).limit(page_size).all()
+    goods_list = query.order_by(Good.top_expire_time.desc(), Good.view_count.desc()).offset(offset).limit(
+        page_size).all()
 
     # 组装返回的对象列表（需要作者名,头像）
     data_goods_list = []
@@ -562,7 +571,6 @@ def goodsInfo():
 
     # 已认领显示地址,默认不显示
     member_info = g.member_info
-    # TODO：用户能否看到地址,如果是在mark列表或者发布者可以看到地址和电话？？
     show_location = False
     if member_info and member_info.mark_id:
         mark_goods_id = member_info.mark_id
@@ -570,18 +578,13 @@ def goodsInfo():
         if str(goods_info.id) in mark_id_list:
             show_location = True
 
-    # 用户查看了被系统推荐的物品, 将推荐状态从0更新为1
-    # 在会员的 recommand_id 字典中, 更新该物品状态从 0 为 1
-    if member_info and member_info.recommend_id:
-        recommend_id_list = MemberService.getRecommendDict(member_info.recommend_id, False)
-        if goods_id in recommend_id_list.keys() and recommend_id_list[goods_id] == 0:
-            recommend_id_list[goods_id] = 1
-        member_info.recommend_id = MemberService.joinRecommendDict(recommend_id_list)
-        db.session.add(member_info)
+    if member_info:
+        # 用户可能查看了被系统推荐的物品, 如果查看了推荐记录就将推荐状态更新为1
+        MemberService.setRecommendStatus(member_id=member_info.id, goods_id=goods_id, status=1)
+
     # 浏览量加一(TODO:同一次登陆会话看多少次应都只算一次浏览)
     goods_info.view_count = goods_info.view_count + 1
     db.session.add(goods_info)
-
     db.session.commit()
 
     # 作者可以编辑, 和查看地址
@@ -617,6 +620,7 @@ def goodsInfo():
         "auther_name": author_info.nickname,
         "avatar": author_info.avatar,
         "is_auth": is_auth,
+        # "is_owner": is_owner,
         "top": goods_info.top_expire_time > datetime.datetime.now()
     }
     resp['data']['show_location'] = show_location
@@ -647,17 +651,18 @@ def goodsReport():
     if record_type != 0 and record_type != 1:
         resp['msg'] = '参数错误/缺失'
         return jsonify(resp)
-    report_info = Report.query.filter_by(record_id=record_id).first()
+    report_info = Report.query.filter_by(record_id=record_id, record_type=record_type).first()
     if report_info:
         resp['msg'] = "该条信息已被举报过，管理员处理中"
         return jsonify(resp)
-    # TODO：物品/答谢两表ID不重复？
+
+    record_info = None
     if record_type == 1:
         # 物品信息违规
-        record_info = Good.query.filter_by(id=record_id).with_for_update().first()
+        record_info = Good.query.filter_by(id=record_id).first()
     elif record_type == 0:
         # 答谢信息违规
-        record_info = Thank.query.filter_by(id=record_id).with_for_update().first()
+        record_info = Thank.query.filter_by(id=record_id).first()
     if not record_info:
         resp['msg'] = '参数错误'
         return jsonify(resp)
