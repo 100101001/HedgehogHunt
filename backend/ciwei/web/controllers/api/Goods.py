@@ -157,7 +157,7 @@ def createGoods():
     model_goods.owner_name = req['owner_name']
     model_goods.summary = req['summary']
     model_goods.business_type = business_type
-    model_goods.category = int(req['category']) if 'category' in req else 9  # 没有类别默认属于其它
+    model_goods.category = int(req['category']) if 'category' in req else 10  # 没有类别默认属于其它
     model_goods.status = 7  # 创建未完成
     model_goods.mobile = req['mobile']
     model_goods.top_expire_time = getCurrentDate() if not int(req['is_top']) \

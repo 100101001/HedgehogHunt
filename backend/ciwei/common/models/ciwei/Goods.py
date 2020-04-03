@@ -31,21 +31,21 @@ class Good(db.Model):
                                                                                   "8:发布者被管理员拉黑")
     recommended_times = db.Column(INTEGER(11, unsigned=True), nullable=False, default=0, comment="总匹配过失/拾物次数")
     report_status = db.Column(TINYINT(), nullable=False, default=1, comment="被举报后的状态，用于存储举报的状态值")
-    business_type = db.Column(TINYINT(), nullable=False, default=1, comment="状态 1：失物招领 0：寻物启事")
+    business_type = db.Column(TINYINT(), nullable=False, default=1, comment="状态 1:失物招领 0:寻物启事")
     view_count = db.Column(INTEGER(11, unsigned=True), nullable=False, index=True,  default=0, comment="总浏览次数")
     tap_count = db.Column(INTEGER(11, unsigned=True), nullable=False, default=0, comment="查看地址次数")
     mark_id = db.Column(db.String(400), nullable=False, default='', comment="点击获取或者提交的用户id,列表")
     top_expire_time = db.Column(db.DateTime, nullable=False, index=True, default=datetime.now,
                                 comment='置顶过期时间')
-    category = db.Column(TINYINT(), index=True, nullable=False, default=9, comment="0:钱包, 1：钥匙, "
-                                                                                   "2: 卡类/证照"
-                                                                                   "3: 数码产品"
-                                                                                   "4：手袋/挎包"
-                                                                                   "5：衣服/鞋帽"
-                                                                                   "6：首饰/挂饰"
-                                                                                   "7：行李/包裹"
-                                                                                   "8：书籍/文件"
-                                                                                   "9：其它")
+    category = db.Column(TINYINT(), index=True, nullable=False, default=10, comment="1:钱包, 2:钥匙, "
+                                                                                   "3: 卡类/证照"
+                                                                                   "4: 数码产品"
+                                                                                   "5:手袋/挎包"
+                                                                                   "6:衣服/鞋帽"
+                                                                                   "7:首饰/挂饰"
+                                                                                   "8:行李/包裹"
+                                                                                   "9:书籍/文件"
+                                                                                   "10:其它")
     updated_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment="最后更新时间")
     created_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment="插入时间")
 
@@ -79,3 +79,19 @@ class Good(db.Model):
             '5': '商品违规但不拉黑人员，我也不看了的记录',  # 举报待处理
         }
         return report_status_mapping[str(self.status)]
+
+    @property
+    def category_desc(self):
+        category_mapping = {
+            '1': '钱包',
+            '2': '钥匙',
+            "3": "卡类/证照",
+            "4": "数码产品",
+            "5": "手袋/挎包",
+            "6": "衣服/鞋帽",
+            "7": "首饰/挂饰",
+            "8": "行李/包裹",
+            "9": "书籍/文件",
+            "10": "其它"
+        }
+        return category_mapping[str(self.category)]

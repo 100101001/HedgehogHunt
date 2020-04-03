@@ -21,7 +21,7 @@ from common.models.ciwei.MemberBalanceChangeLog import MemberBalanceChangeLog
 from common.models.ciwei.Recommend import Recommend
 
 
-class MemberService():
+class MemberService:
 
     @staticmethod
     def geneAuthCode(member_info=None):
