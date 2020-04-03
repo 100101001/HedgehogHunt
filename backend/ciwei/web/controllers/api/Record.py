@@ -187,7 +187,7 @@ def recordDelete():
     elif op_status == 2:
         # 批量更新 status = 7
         Recommend.query.filter(Recommend.member_id == member_info.id,
-                               Recommend.goods_id.in_(id_list)).update(dict(status=7))
+                                Recommend.goods_id.in_(id_list)).update({'status': 7}, synchronize_session='fetch')
     elif op_status == 4:
         # 物品和举报状态为 5
         id_list_int = [int(i) for i in id_list]

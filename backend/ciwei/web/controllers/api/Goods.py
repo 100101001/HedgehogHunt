@@ -17,12 +17,20 @@ from common.libs.mall.PayService import PayService
 from common.libs.mall.WechatService import WeChatService
 from common.models.ciwei.Goods import Good
 # -*- coding:utf-8 -*-
+from common.models.ciwei.GoodsCategory import GoodsCategory
 from common.models.ciwei.GoodsTopOrder import GoodsTopOrder
 from common.models.ciwei.Member import Member
-from common.models.ciwei.Recommend import Recommend
 from common.models.ciwei.Report import Report
 from common.models.ciwei.Thanks import Thank
 from web.controllers.api import route_api
+
+
+@route_api.route('/goods/category/all', methods=['POST', 'GET'])
+def goodsCategory():
+    resp = {'code': 200, 'msg': 'success', 'data': {}}
+    categories = GoodsCategory.query.all()
+    resp['data']['cat_list'] = [item.tag for item in categories]
+    return jsonify(resp)
 
 
 @route_api.route("/goods/top/order", methods=['POST', 'GET'])

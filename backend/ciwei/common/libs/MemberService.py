@@ -2,19 +2,19 @@
 
 # -*- coding:utf-8 -*-
 
-import jieba, itertools
 import hashlib
 import json
 import random
 import string
 
+import itertools
+import jieba
 import requests
 from flask import g
 from sqlalchemy import or_
 
 from application import app, db
 from common.libs.Helper import getCurrentDate
-from common.libs.Helper import selectFilterObj, getDictFilterField
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Member import Member
 from common.models.ciwei.MemberBalanceChangeLog import MemberBalanceChangeLog

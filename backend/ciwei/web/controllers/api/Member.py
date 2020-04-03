@@ -15,6 +15,7 @@ from common.models.ciwei.BalanceOder import BalanceOrder
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Member import Member
 from common.models.ciwei.MemberSmsPkg import MemberSmsPkg
+from common.models.ciwei.Recommend import Recommend
 from common.models.ciwei.Thanks import Thank
 from common.models.ciwei.User import User
 
@@ -496,13 +497,13 @@ def getNewRecommend():
     # 获取所有会员的recommend_id列表中的物品,按状态：待,预,已分类
     recommend_status_2 = recommend_status_3 = recommend_status_1 = 0
     recommend_new = thanks_new = 0
-    if member_info.recommend_id:
-        recommend_dict = MemberService.getRecommendDict(member_info.recommend_id, True)
-        query = Good.query.filter(Good.id.in_(recommend_dict.keys()))
+    recommends = Recommend.query.filter_by(status=0, member_id=member_info.id).all()
+    if recommends:
+        query = Good.query.filter(Good.id.in_([r.id for r in recommends]))
         recommend_status_1 = len(query.filter_by(status=1).all())
         recommend_status_2 = len(query.filter_by(status=2).all())
         recommend_status_3 = len(query.filter_by(status=3).all())
-        recommend_new = len(recommend_dict) if len(recommend_dict) <= 99 else 99
+        recommend_new = len(recommends) if len(recommends) <= 99 else 99
 
     # 获取会员未读的答谢记录
     thanks_query = Thank.query.filter_by(target_member_id=member_info.id)
