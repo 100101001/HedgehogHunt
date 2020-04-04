@@ -194,14 +194,39 @@ CREATE TABLE `goods`  (
   `tap_count` int(11) NOT NULL DEFAULT 0 COMMENT '查看地址次数',
   `mark_id` varchar(400) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '点击获取或者提交的用户id,列表',
   `top_expire_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '置顶过期时间',
+  `category` tinyint(1) UNSIGNED NOT NULL DEFAULT 10 COMMENT '1:钱包 2：钥匙 3: 卡类/证照 4: 数码产品 5：手袋/挎包 6：衣服/鞋帽 7：首饰/挂饰 8：行李/包裹 9：书籍/文件 10：其它',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_goods_member_id`(`member_id`) USING BTREE,
   INDEX `ix_goods_status`(`status`) USING BTREE,
   INDEX `ix_goods_top_expire_time`(`top_expire_time`) USING BTREE,
-  INDEX `ix_goods_view_count`(`view_count`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品表' ROW_FORMAT = Dynamic;
+  INDEX `ix_goods_view_count`(`view_count`) USING BTREE,
+  INDEX `ix_goods_category`(`category`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1  CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品表' ROW_FORMAT = Dynamic;
+
+
+-- ----------------------------------
+-- Table structure for goods_category
+-- ----------------------------
+DROP TABLE IF EXISTS `goods_category`;
+CREATE TABLE `goods_category`  (
+   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+   `tag` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '类别标签',
+   `default_goods` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '类别默认失物',
+   PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1  CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品类别表' ROW_FORMAT = Dynamic;
+INSERT INTO `goods_category` VALUES (1,'钱包','钱包');
+INSERT INTO `goods_category` VALUES (2,'钥匙', '钥匙');
+INSERT INTO `goods_category` VALUES (3,'卡类/证照', '校园卡');
+INSERT INTO `goods_category` VALUES (4,'数码产品', '手机');
+INSERT INTO `goods_category` VALUES (5,'手袋/挎包', '书包');
+INSERT INTO `goods_category` VALUES (6,'衣服/鞋帽', '外套');
+INSERT INTO `goods_category` VALUES (7,'首饰/挂饰', '手链');
+INSERT INTO `goods_category` VALUES (8,'行李/包裹', '快递');
+INSERT INTO `goods_category` VALUES (9,'书籍/文件', '文件夹');
+INSERT INTO `goods_category` VALUES (10,'其它', '');
+
 
 -- ----------------------------
 -- Table structure for recommend
@@ -211,11 +236,13 @@ CREATE TABLE `recommend`(
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `goods_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '推荐的物品id',
   `member_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '被推荐的用户id',
-  `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 0:未读 1:已读',
+  `status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '状态 0:未读, 1:已读, -1: 已删除',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `ix_recommend_member_id`(`member_id`) USING BTREE
+  INDEX `ix_recommend_goods_id`(`goods_id`) USING BTREE,
+  INDEX `ix_recommend_member_id`(`member_id`) USING BTREE,
+  INDEX `ix_recommend_status` (`status`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '推荐表' ROW_FORMAT = Dynamic;
 
 
@@ -423,10 +450,10 @@ INSERT INTO `product` VALUES (16, 9, 0, '2年50次通知包', 1, '50次3年有�
 INSERT INTO `product` VALUES (17, 9, 1, '按量计费通知', 1, '1次失物通知，购买通知套餐包价格更优惠哦', 0.10, '20200327/sms2.jpg', '20200327/sms2.jpg', '', '有了它，失物通知即刻到', 0, 0, 1000000000, 0, 0, '2020-03-27 12:45:20', '2020-03-27 12:45:20');
 
 -- ----------------------------
--- Table structure for product_cat
+-- Table structure for product_category
 -- ----------------------------
-DROP TABLE IF EXISTS `product_cat`;
-CREATE TABLE `product_cat`  (
+DROP TABLE IF EXISTS `product_category`;
+CREATE TABLE `product_category`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '类别名称',
   `weight` tinyint(4) NOT NULL DEFAULT 1 COMMENT '权重',
@@ -434,14 +461,14 @@ CREATE TABLE `product_cat`  (
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `idx_name`(`name`) USING BTREE
+  UNIQUE INDEX `idx_product_category_name`(`name`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '周边分类' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of product_cat
 -- ----------------------------
-INSERT INTO `product_cat` VALUES (1, '文具', 1, 1, '2020-02-21 07:14:19', '2020-02-21 07:14:19');
-INSERT INTO `product_cat` VALUES (2, '生活', 1, 1, '2020-02-21 07:14:23', '2020-02-21 07:14:23');
+INSERT INTO `product_category` VALUES (1, '文具', 1, 1, '2020-02-21 07:14:19', '2020-02-21 07:14:19');
+INSERT INTO `product_category` VALUES (2, '生活', 1, 1, '2020-02-21 07:14:23', '2020-02-21 07:14:23');
 
 -- ----------------------------
 -- Table structure for product_comments
