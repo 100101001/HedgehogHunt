@@ -15,10 +15,10 @@ page {
   height:100%;
   top:0;
   background:rgba(0,0,0,0.5);
-  overflow: hidden;
+  overflow: scroll;
   /*要显示在wrap的上面 */
   z-index: 100;
-  position: absolute;
+  position: fixed;
 }
 
 /***显示教程***/
