@@ -780,7 +780,7 @@ def editGoods():
     goods_info.business_type = business_type
     goods_info.mobile = req['mobile']
     # 修改成置顶贴子
-    if int(req['is_top']):
+    if int(req['is_top'] if 'is_top' in req else 0):
         goods_info.top_expire_time = (datetime.datetime.now() + datetime.timedelta(days=int(req['days']))) \
             .strftime("%Y-%m-%d %H:%M:%S")
     goods_info.updated_time = getCurrentDate()
