@@ -170,7 +170,7 @@ def createGoods():
     model_goods.category = int(req['category']) if 'category' in req else 10  # 没有类别默认属于其它
     model_goods.status = 7  # 创建未完成
     model_goods.mobile = req['mobile']
-    model_goods.top_expire_time = getCurrentDate() if not int(req['is_top']) \
+    model_goods.top_expire_time = getCurrentDate() if not int(req['is_top'] if 'is_top' in req else 0) \
         else (datetime.datetime.now() + datetime.timedelta(days=int(req['days']))).strftime("%Y-%m-%d %H:%M:%S")
     model_goods.updated_time = model_goods.created_time = getCurrentDate()
     db.session.add(model_goods)
