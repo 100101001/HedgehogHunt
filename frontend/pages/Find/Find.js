@@ -68,14 +68,17 @@ Page({
       ]
     };
     this.setData({
-      filter_address: '',
+      filter_address: '',  // 搜索栏的地址
       business_type: business_type,
-      categories: categories,
-      goods_name: '',
-      owner_name: '',
-      filter_address: '',
-      loadingMoreHidden: true
-    });
+      categories: categories,  // 类别
+      goods_name: '',  // 物品名
+      owner_name: '',  // 物主名
+      filter_address: '',  // 搜索栏的地址关键词
+      loadingMoreHidden: true,  // 更多数据未加载
+      goods_category: ['全部'].concat(app.globalData.goodsCategories), // 分类栏数据
+      filter_good_category: 0, // 默认是全部类型的物品
+      open: false //侧边栏折叠
+    })
   },
   //轮播图变化
   swiperchange: function (e) {
@@ -90,12 +93,20 @@ Page({
     this.setInitData()
     this.onPullDownRefresh()
   },
+  /**
+   * catClick 如果切换了状态栏，就加载新的数据
+   * @param e
+   */
   catClick: function (e) {
     //选择一次分类时返回选中值
+    let old_status = this.data.activeCategoryId
+    let new_status = e.currentTarget.id
     this.setData({
-      activeCategoryId: e.currentTarget.id,
+      activeCategoryId: new_status,
     })
-    this.onPullDownRefresh()
+    if (old_status != new_status) {
+      this.onPullDownRefresh()
+    }
   },
   //点击信息卡查看详情
   onDetailTap: function (event) {
@@ -250,7 +261,7 @@ Page({
   },
   //获取轮播图
   getBanners: function () {
-    var that = this;
+    let that = this;
     if (!that.data.loadingMoreHidden) {
       return;
     }
@@ -291,24 +302,23 @@ Page({
     })
   },
   onReachBottom: function (e) {
-    var that = this;
     //延时500ms处理函数
-    setTimeout(function () {
-      that.setData({
+    setTimeout( () => {
+      this.setData({
         loadingHidden: true
-      });
-      that.getGoodsList();
-    }, 500);
+      })
+      this.getGoodsList();
+    }, 500)
   },
   listenerNameInput: function (e) {
     this.setData({
       owner_name: e.detail.value
-    });
+    })
   },
   listenerGoodsNameInput: function (e) {
     this.setData({
       goods_name: e.detail.value
-    });
+    })
   },
   listenerAddressInput: function (e) {
     this.setData({
@@ -316,7 +326,7 @@ Page({
     });
   },
   formSubmit: function (e) {
-    var data = e.detail.value
+    let data = e.detail.value
     this.setData({
       owner_name: data['owner_name'],
       goods_name: data['goods_name'],
@@ -326,14 +336,14 @@ Page({
   },
   //获取信息列表
   getGoodsList: function (e) {
-    var that = this;
+    let that = this
     if (!that.data.loadingMoreHidden || that.data.processing) {
-      return;
+      return
     }
     that.setData({
       processing: true,
       loadingHidden: false
-    });
+    })
     wx.request({
       url: app.buildUrl("/goods/search"),
       data: {
@@ -342,22 +352,21 @@ Page({
         owner_name: that.data.owner_name,
         p: that.data.p,
         business_type: that.data.business_type,
-        filter_address: that.data.filter_address
+        filter_address: that.data.filter_address,
+        filter_good_category: this.data.filter_good_category,
       },
       success: function (res) {
-        var resp = res.data;
-        if (resp.code !== 200) {
-          app.alert({
-            'content': resp.msg
-          });
+        let resp = res.data;
+        if (resp['code'] !== 200) {
+          app.alert({content: resp['msg']})
           return
         }
-        var goods_list = resp.data.list;
-        goods_list = app.cutStr(goods_list);
+        let goods_list = resp['data'].list
+        goods_list = app.cutStr(goods_list) //概要，切去各个字符串属性过长的部分
         that.setData({
           goods_list: that.data.goods_list.concat(goods_list),
           p: that.data.p + 1,
-        });
+        })
         if (resp.data.has_more === 0) {
           that.setData({
             loadingMoreHidden: false,
@@ -365,25 +374,69 @@ Page({
         }
       },
       fail: function (res) {
-        app.serverBusy();
-        return;
+        app.serverBusy()
       },
       complete: function (res) {
         that.setData({
           processing: false,
           loadingHidden: true
-        });
+        })
       },
     })
-  },
-  closeQrcodeHint: function (e) {
-    navigate.closeQrcodeHint(this)
   },
   //点击预览图片
   previewImage: function (e) {
     wx.previewImage({
-      current: this.data.infos.info.pics[e.currentTarget.dataset.index], // 当前显示图片的http链接
-      urls: this.data.info.info.pics // 需要预览的图片http链接列表
+      current: this.data.banners[e.currentTarget.dataset.index], // 当前显示图片的http链接
+      urls: [this.data.banners[e.currentTarget.dataset.index]] // 需要预览的图片http链接列表
     })
+  },
+  /**
+   * tapDrag 手指拖动中，记录新x坐标
+   * @param e
+   */
+  tapDrag: function(e){
+    this.data.newmark = e.touches[0].pageX;
+  },
+  /**
+   * tapEnd 手指拖动结束
+   */
+  tapEnd: function(){
+    if(this.data.mark + app.globalData.windowWidth * 0.4 < this.data.newmark){
+      this.setData({
+        open : true
+      });
+    }else{
+      this.setData({
+        open : false
+      });
+    }
+    this.data.mark = 0;
+    this.data.newmark = 0;
+  },
+  /**
+   * tapStart 手指开始拖动
+   * @param e
+   */
+  tapStart:function(e){
+    console.log(e)
+    this.data.mark = this.data.newmark = e.touches[0].pageX;
+  },
+  /**
+   * selectGoodsCat 切换物品类别时重新加载数据
+   * @param e
+   */
+  selectGoodsCat: function (e) {
+    let name = e.currentTarget.dataset.name
+    let old_cat = this.data.filter_good_category
+    let new_cat = this.data.goods_category.indexOf(name)
+    this.setData({
+      open: false,
+      filter_good_category: new_cat
+    })
+    if (old_cat != new_cat) {
+      //换了新的类别
+      this.onPullDownRefresh()
+    }
   },
 })

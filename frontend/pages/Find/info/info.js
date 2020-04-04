@@ -1,6 +1,6 @@
 //index.js
 //获取应用实例
-var app = getApp();
+const app = getApp();
 Page({
   data: {
     loadingHidden: true,
@@ -130,9 +130,10 @@ Page({
       header: app.getRequestHeader(),
       data: {
         id: id,
+        openid: app.getUserOpenId()
       },
       success: function (res) {
-        var resp = res.data;
+        let resp = res.data;
         if (resp.code !== 200) {
           app.alert({
             'content': resp.msg

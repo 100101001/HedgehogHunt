@@ -126,7 +126,8 @@ Page({
     balance_got: false, //数据正确加载，向用户显示勾选框
     balance_use_disabled: true, //禁用勾选框
     balance: 0.00, //用户可垫付余额
-    total_balance: 0.00  //用户余额
+    total_balance: 0.00,  //用户余额
+    category_arr: [] // 仅仅用于最后结束创建加入推荐列表，不用来进行通知(通知做防重处理)
   },
   /**
    * 1、扫码发布(失物招领)
@@ -289,12 +290,14 @@ Page({
     })
     // 必填项判空
     let items = this.data.items
+    // 需要判空的数据
     let data = {
       location: this.data.location.length? this.data.location[1] : "",
       goods_name: items[0].value,
       mobile: items[2].value,
       owner_name: items[1].value,
-      summary: this.data.summary_value
+      summary: this.data.summary_value,
+      category: this.data.category_index
     }
     if (app.judgeEmpty(data, this.data.tips_obj)) {
       this.setData({
@@ -313,11 +316,13 @@ Page({
       return
     }
     //准备发布数据
+    data['category'] += 1 // 因为数据库id从1开始计数
     data['business_type'] = this.data.business_type
     data['location'] = this.data.location
     data['img_list'] = this.data.imglist
     data['is_top'] = this.data.isTop ? 1 : 0
     data['days'] = this.data.isTop ? this.data.top_days : 0
+    data['edit'] = 0 //标记是发布，匹配用
     this.handleRelease(data)
   },
   /**
@@ -592,13 +597,14 @@ Page({
       data = {
         id: id,
         auther_id: auther_id,
-        target_goods_id: globalData.info.id,
+        target_goods_id: globalData.info.id
       }
     } else {
       data = {
-        id: id,
+        id: id
       }
     }
+    data['notify_id'] = this.data.notify_id
     this.endCreate(data)
   },
   /**
@@ -653,122 +659,110 @@ Page({
     })
   },
   /**
-   *
+   * 初始化页面表单{@see setFormInitData}和置顶组件数据{@see setTopAndBalanceUseInitData}
    */
   setInitData: function () {
-    var info = globalData.info;
-    var location = info.location; //用于让别人帮忙寄回物品
-    var business_type = this.data.business_type;
+    //发布信息表单数据初始化
+    this.setFormInitData()
+    //寻物启事需要的置顶信息
+    if (!this.data.business_type) {
+      this.setTopAndBalanceUseInitData()
+    }
+  },
+  /**
+   * setFormInitData 在初始化页面数据{@link setInitData}时，置空表单数据
+   */
+  setFormInitData() {
+    // 物品类别数据
+    // 输入框，地址选择，图片上传框数据
+    let info = globalData.info
+    let location = info.location //用于让别人帮忙寄回物品
+    let business_type = this.data.business_type
+    let tips_obj = {
+      "category": "物品类别",
+      "goods_name": "物品名称",
+      "owner_name": business_type == 1 ? "失主姓名" : "姓名",
+      "location": business_type == 1 ? "物品放置位置" : "居住地址",
+      "summary": "描述",
+      "mobile": "联系电话",
+    }
+    let items = [{
+      name: "goods_name",
+      placeholder: "例:校园卡",
+      label: tips_obj['goods_name'],
+      icons: "/images/icons/goods_name.png",
+      value: business_type == 1 ? (info.goods_name == undefined ? "" : info.goods_name) : "",
+    }, {
+      name: "owner_name",
+      placeholder: "例:可可",
+      label: tips_obj['owner_name'],
+      icons: "/images/icons/discount_price.png",
+      value: business_type == 1 ? (info.owner_name == undefined ? "" : info.owner_name) : ""
+    },
+      {
+        name: "mobile",
+        placeholder: "高危非必填",
+        value: "高危非必填",
+        label: tips_obj['mobile'],
+        icons: "/images/icons/mobile.png",
+      }
+    ]
+    let summary_placeholder = ""
     //表单
     if (business_type == 1) {
-      var summary_placeholder = "添加物品描述：拾到物品的时间、地点以及物品上面的其他特征如颜色、记号等...";
-      var imglist = [];
-      var tips_obj = {
-        "goods_name": "物品",
-        "owner_name": "失主姓名",
-        "location": "物品放置位置",
-        "summary": "描述",
-        "mobile": "联系电话",
-      };
-      var items = [{
-        name: "goods_name",
-        placeholder: "例:校园卡",
-        label: "物品名称",
-        value: info.goods_name == undefined ? "" : info.goods_name,
-        icons: "/images/icons/goods_name.png",
-      },
-      {
-        name: "owner_name",
-        placeholder: "例:可可",
-        label: "失主姓名",
-        value: info.owner_name == undefined ? "" : info.owner_name,
-        icons: "/images/icons/discount_price.png",
-      },
-      {
-        name: "mobile",
-        placeholder: "高危非必填",
-        value: "无",
-        label: "联系电话",
-        icons: "/images/icons/goods_type.png",
-      }
-      ];
+      summary_placeholder = "添加拾物描述：拾到物品的时间、地点以及物品上面的其他特征如颜色、记号等..."
     } else {
-      var tips_obj = {
-        "goods_name": "物品",
-        "owner_name": "失主姓名",
-        "location": "居住地址",
-        "summary": "描述",
-        "mobile": "联系电话",
-      };
-      var items = [{
-        name: "goods_name",
-        placeholder: "例:校园卡",
-        label: "物品名称",
-        icons: "/images/icons/goods_name.png",
-        value: ""
-      },
-      {
-        name: "owner_name",
-        placeholder: "例:可可",
-        label: "姓名",
-        icons: "/images/icons/discount_price.png",
-        value: ""
-      },
-      {
-        name: "mobile",
-        placeholder: "高危非必填",
-        label: "联系电话",
-        icons: "/images/icons/goods_type.png",
-        value: "高危非必填",
-      },
-      ];
-      var summary_placeholder = "添加寻物描述：物品丢失大致时间、地点，记号等...";
-      var imglist = ['/images/icons/wanted.png'];
+      summary_placeholder = "添加寻物描述：物品丢失大致时间、地点，记号等..."
     }
-    var summary_value = "";
     this.setData({
-      imglist: imglist, //图片列表
-      count: imglist.length, //图片列表数量
+      category_arr: app.globalData.goodsCategories,
+      category_default_goods: app.globalData.categoryDefaultGoods,
+      imglist: business_type == 1 ? [] : ['/images/icons/wanted.png'],  //寻物启事有一张默认的寻物图(图片列表)
+      count: 1 - business_type,  //失物招领时business_type==1，图片为0。寻物启事时business_type==0，图片为1。图片列表数量,
       pic_status: true,
       loadingHidden: true, //上传图片时的loading图标是否隐藏
       business_type: business_type, //失物招领or寻物启事标识
       items: items, //表单项
       summary_placeholder: summary_placeholder, //描述填写提示
-      summary_value: summary_value, //描述内容
+      summary_value: "", //描述内容
       tips_obj: tips_obj, //表单项填写提示
       info_owner_name: info.owner_name === undefined ? "" : info.owner_name,
-      location: location === undefined ? "" : location //地址
+      location: location === undefined ? "" : location, //地址
+      notify_id: globalData.isScanQrcode? globalData.qrcodeOpenid: ""
     })
-    //寻物启事需要的置顶信息
-    if (!business_type) {
-      //置顶开关
-      this.setData({
-        top_price: globalData.goodsTopPrice,
-        top_days: globalData.goodsTopDays,
-        isTop: false
-      })
-      //余额勾选框
-      useBalance.initData(this, (total_balance)=>{
-        //计算可用余额和折后价格
-        if (total_balance >= this.data.top_price){
-          //余额足够
-          this.setData({
-            discount_price: 0, //使用余额，支付0元
-            balance: this.data.top_price //可用于垫付的余额
-          })
-        } else {
-          //余额不足
-          this.setData({
-            discount_price: util.toFixed(this.data.top_price - total_balance, 2), //使用余额支付的价格
-            balance: total_balance  //可用于垫付的余额
-          })
-        }
-        //默认
+  },
+  /**
+   * setTopAndBalanceUseInitData 在 {@link setInitData} 初始化置顶组件
+   */
+  setTopAndBalanceUseInitData: function () {
+    //置顶开关
+    this.setData({
+      top_price: globalData.goodsTopPrice,
+      top_days: globalData.goodsTopDays,
+      isTop: false
+    })
+    //余额勾选框
+    useBalance.initData(this, (total_balance) => {
+      //计算可用余额和折后价格
+      if (total_balance >= this.data.top_price) {
+        //余额足够
         this.setData({
-          balance_use_disabled: true //默认置顶开关关闭，所以禁用勾选框
+          discount_price: 0, //使用余额，支付0元
+          balance: this.data.top_price //可用于垫付的余额
         })
+      } else {
+        //余额不足
+        this.setData({
+          discount_price: util.toFixed(this.data.top_price - total_balance, 2), //使用余额支付的价格
+          balance: total_balance  //可用于垫付的余额
+        })
+      }
+      //默认
+      this.setData({
+        balance_use_disabled: true, //默认置顶开关关闭，所以禁用勾选框
+        use_balance: false
       })
-    }
+    })
   },
   listenerInput: function (e) {
     let idx = e.currentTarget.dataset.id
@@ -805,5 +799,19 @@ Page({
         use_balance: e.detail.value.length == 1
       })
     })
+  },
+  bindCategoryChange: function (e) {
+    let index = e.detail.value
+    this.setData({
+      category_index: index
+    })
+    let items = this.data.items
+    let default_goods = this.data.category_default_goods
+    let input_good_name = items[0].value
+    // 如果是用户输入则不随类型变化而设置类型默认物品
+    items[0].value = input_good_name && default_goods.indexOf(input_good_name) == -1 ? input_good_name : default_goods[index]
+    this.setData({
+      items: items
+    })
   }
-});
+})

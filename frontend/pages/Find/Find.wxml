@@ -1,5 +1,19 @@
 <import src="../template/goods-item/goods-item-template.wxml" />
-<view class="all_container">
+
+
+<!--侧边栏-->
+<view class="school_select_area {{open ? 'on' : ''}}">
+  <view class="school_select_content">
+    <block wx:for="{{goods_category}}" wx:key="index">
+      <view  class="campus" bindtap="selectGoodsCat" data-name="{{item}}" wx:if="{{open}}">
+        <text >{{item}}</text>
+      </view>
+    </block>
+  </view>
+</view>
+
+<!--整个页面-->
+<view bindtouchmove="tapDrag" bindtouchend="tapEnd" bindtouchstart="tapStart" class="all_container {{open ? 'fold' : ''}}">
   <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
   <form bindsubmit="formSubmit">
     <view class="search_container">
@@ -39,7 +53,10 @@
       </view>
     </block>
   </view>
+
+  <view wx:if="{{!loadingMoreHidden}}" class="no-more-goods">没有更多物品了~可以去发布</view>
+  <view wx:if="{{loadingMoreHidden}}" class="no-more-goods">上滑加载更多～</view>
+
 </view>
 
-<view wx:if="{{!loadingMoreHidden}}" class="no-more-goods">没有更多物品了~可以去发布</view>
-<view wx:if="{{loadingMoreHidden}}" class="no-more-goods">上滑加载更多～</view>
+

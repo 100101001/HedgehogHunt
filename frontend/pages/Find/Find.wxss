@@ -1,19 +1,19 @@
 @import "../template/goods-item/goods-item-template.wxss";
-
+@import "../template/navigate-bar/navigate-bar-template.wxss";
 
 page {
-  /*背景图片*/
+/*背景图片*/
   background-image: url("https://console.changshunlive.com/static/img/20190308185846.png");
   background-attachment: fixed;
   background-position: 0rpx -30rpx
 }
 
-.all_container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  margin-bottom: 40rpx;
-}
+/*.all_container {*/
+/*  display: flex;*/
+/*  flex-direction: column;*/
+/*  justify-content: center;*/
+/*  margin-bottom: 40rpx;*/
+/*}*/
 
 .search_container {
   align-items: center;
@@ -72,11 +72,12 @@ page {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  z-index: 1;
 }
 
 .swiper-container {
   width: 750rpx;
-  position: relative;
+  /*  position: relative;*/
   margin-top: 65rpx;
 }
 
@@ -153,6 +154,43 @@ swiper-item image {
 .no-more-goods {
   text-align: center;
   font-size: 24rpx;
+  padding-top: 50rpx;
   padding-bottom: 228rpx;
   color: #999;
+}
+
+.school_select_area {
+    height: 100%;
+    width: 50%;
+    position: fixed;
+    z-index: 0;
+}
+
+.on{
+  background-color: rgba(247, 147, 30, 0.5);
+  overflow:scroll;
+}
+
+.campus{
+    color: white;
+    padding: 30rpx 0 30rpx 40rpx;
+}
+.school_select_content{
+    padding-top: 16%;
+    padding-bottom: 45%;
+}
+
+.all_container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: absolute;
+  z-index: 0;
+  transition: All 0.4s ease;
+  -webkit-transition: All 0.4s ease;
+}
+
+.fold{
+  transform: rotate(0deg) scale(1) translate(50%,0%);
+  -webkit-transform: rotate(0deg) scale(1) translate(50%,0%);
 }

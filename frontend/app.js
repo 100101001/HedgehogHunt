@@ -64,7 +64,7 @@ App({
 
   },
   onLaunch: function () {
-    //获取后端二维码产品价格和产品ID
+    // 获取后端二维码产品价格和产品ID
     wx.request({
       url: this.buildUrl('/special/info'),
       success: res => {
@@ -78,6 +78,21 @@ App({
         this.globalData.goodsTopPrice = data['top'].price
         this.globalData.goodsTopDays = data['top'].days
         this.globalData.buyQrCodeFreeSmsTimes = data['free_sms'].times
+      }
+    })
+    // 获得类别列表
+    wx.request({
+      url: this.buildUrl('/goods/category/all'),
+      success: (res) => {
+        this.globalData.goodsCategories = res.data['data']['cat_list']
+        this.globalData.categoryDefaultGoods = res.data['data']['cat_default']
+      }
+    })
+    // 获得屏幕的大小
+    wx.getSystemInfo({
+      success: (res) => {
+        console.log(res)
+        this.globalData.windowWidth = res.windowWidth
       }
     })
   },
@@ -270,7 +285,7 @@ App({
    */
   judgeEmpty: function (json_obj, tips_obj) {
     for (let key in json_obj) {
-      if (json_obj[key].length === 0) {
+      if (json_obj[key]==undefined || json_obj[key] == null || json_obj[key].length === 0) {
         this.alert({
           content: tips_obj[key] + "不能为空"
         })
@@ -680,5 +695,23 @@ App({
         })
       }
     })
+  },
+  /**
+   * getUserOpenId 未登录和登录用户的openid获取，实在获取不到就是空字符串
+   * @returns {string|undefined|*}
+   */
+  getUserOpenId: function () {
+    let openid = app.globalData.openid;
+    if (openid) {
+      return openid;
+    } else {
+      let token = this.getCache("token");
+      if (token) {
+        return token.split('#')[0];
+      } else {
+        let loginInfo = this.getCache("loginInfo");
+        return loginInfo ? loginInfo.openid : "";
+      }
+    }
   }
 })

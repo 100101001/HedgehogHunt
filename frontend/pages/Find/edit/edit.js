@@ -1,64 +1,37 @@
 const useBalance = require("../../template/use-balance/use-balance")
 const app = getApp();
+const globalData = app.globalData
 
 
+// Warn if overriding existing method
+if(Array.prototype.equals)
+  console.warn("Overriding existing Array.prototype.equals. Possible causes: New API defines the method, there's a framework conflict or you've got double inclusions in your code.");
+// attach the .equals method to Array's prototype to call it on any array
+Array.prototype.equals = function (array) {
+  // if the other array is a falsy value, return
+  if (!array)
+    return false;
 
-// /***
-//  * topCharge
-//  * 置顶下单并支付
-//  * @param data 发布数据
-//  * @param that 页面指针
-//  */
-// const topCharge = function (data, that) {
-//   wx.request({
-//     url: app.buildUrl('/goods/top/order'),
-//     header: app.getRequestHeader(),
-//     data: {
-//       price: that.data.top_price
-//     },
-//     method: 'POST',
-//     success: res => {
-//       let resp = res.data
-//
-//       //下单失败提示后返回
-//       if (resp['code'] !== 200) {
-//         app.alert({content: resp['msg']})
-//         that.setData({submitDisable: false})
-//         return
-//       }
-//
-//       //下单成功调起支付
-//       let pay_data = resp['data']
-//       wx.requestPayment({
-//         timeStamp: pay_data['timeStamp'],
-//         nonceStr: pay_data['nonceStr'],
-//         package: pay_data['package'],
-//         signType: pay_data['signType'],
-//         paySign: pay_data['paySign'],
-//         success: res => {
-//           //支付成功，继续发布
-//           if (res.errMsg == "requestPayment:ok") {
-//             that.uploadData(data)
-//           }
-//           //支付失败，停止发布
-//           if (res.errMsg == "requestPayment:fail cancel") {
-//             that.setData({submitDisable: false})
-//           }
-//         },
-//         fail: (res) => {
-//           app.alert({'content': '微信支付失败，请稍后重试'})
-//           that.setData({submitDisable: false})
-//         }
-//       })
-//     },
-//     fail: (res) => {
-//       app.serverBusy()
-//       that.setData({submitDisable: false})
-//     }
-//   })
-// }
-//
-//
+  // compare lengths - can save a lot of time
+  if (this.length != array.length)
+    return false;
+
+  for (let i = 0, l = this.length; i < l; i++) {
+    // Check if we have nested arrays
+    if (this[i] instanceof Array && array[i] instanceof Array) {
+      // recurse into the nested arrays
+      if (!this[i].equals(array[i]))
+        return false;
+    }
+    else if (this[i] != array[i]) {
+      // Warning - two different object instances will never be equal: {x:20} != {x:20}
+      return false;
+    }
+  }
+  return true;
+}
+// Hide method from for-in loops
+Object.defineProperty(Array.prototype, "equals", {enumerable: false});
 
 /**
  * topCharge
@@ -67,7 +40,7 @@ const app = getApp();
  * @param cb_success 回调函数
  * @param that 页面指针
  */
-const topCharge = function (pay_price=app.globalData.goodsTopPrice, cb_success=()=>{}, that) {
+const topCharge = function (pay_price= globalData.goodsTopPrice, cb_success=()=>{}, that) {
   wx.request({
     url: app.buildUrl('/goods/top/order'),
     header: app.getRequestHeader(),
@@ -76,16 +49,16 @@ const topCharge = function (pay_price=app.globalData.goodsTopPrice, cb_success=(
     },
     method: 'POST',
     success: res => {
-      let resp = res.data
+      let resp = res.data;
 
       //下单失败提示后返回
       if (resp['code'] !== 200) {
         app.alert({
           content: resp['msg']
-        })
+        });
         that.setData({
           submitDisable: false
-        })
+        });
         return
       }
 
@@ -147,9 +120,13 @@ const changeUserBalance = function (unit = 0, cb_success = () => {}) {
 Page({
   data: {
     loadingHidden: true,
+    category_arr: []
   },
   onLoad: function(options) {
-    this.onLoadSetData(app.globalData.info)
+    this.setData({
+      origin_info: globalData.info
+    });
+    this.onLoadSetData(globalData.info)
   },
   onShow: function() {},
   //获取位置的方法
@@ -176,72 +153,61 @@ Page({
     });
   },
   onLoadSetData: function(info) {
-    var business_type = info.business_type
+    this.setEditFormInitData(info)
+    //寻物启事且原来不是置顶帖需要的置顶信息
+    if (!info.business_type && !info.top) {
+      this.setTopAndBalanceUseInitData()
+    }
+  },
+  /**
+   * setEditFormInitData 编辑的表单数据初始化
+   * @param info
+   */
+  setEditFormInitData(info={}) {
+    // 物品类别数据
+    // 输入框，地址选择，图片上传框数据
+    let business_type = info.business_type
+    let tips_obj = {
+      "category": "物品类别",
+      "goods_name": "物品名称",
+      "owner_name": business_type == 1 ? "失主姓名" : "姓名",
+      "location": business_type == 1 ? "物品放置位置" : "居住地址",
+      "summary": "描述",
+      "mobile": "联系电话",
+    }
+    let items = [{
+      name: "goods_name",
+      placeholder: "例:校园卡",
+      label: tips_obj['goods_name'],
+      icons: "/images/icons/goods_name.png",
+      value: info.goods_name
+    },
+      {
+        name: "owner_name",
+        placeholder: "例:可可",
+        label: tips_obj['owner_name'],
+        icons: "/images/icons/discount_price.png",
+        value: info.owner_name,
+      },
+      {
+        name: "mobile",
+        placeholder: "高危非必填",
+        label: tips_obj['mobile'],
+        icons: "/images/icons/mobile.png",
+        value: info.mobile
+      }
+    ]
+    let summary_placeholder = ""
     if (business_type == 1) {
-      var summary_placeholder = "添加物品描述：拾到物品的时间、地点以及物品上面的其他特征如颜色、记号等...";
-      var tips_obj = {
-        "goods_name": "物品",
-        "owner_name": "失主姓名",
-        "location": "物品放置位置",
-        "summary": "描述",
-        "mobile": "联系电话",
-      };
-      var items = [{
-          name: "goods_name",
-          placeholder: "例:校园卡",
-          value: info.goods_name,
-          label: "物品名称",
-          icons: "/images/icons/goods_name.png",
-        },
-        {
-          name: "owner_name",
-          placeholder: "例:可可",
-          label: "失主姓名",
-          icons: "/images/icons/discount_price.png",
-          value: info.owner_name,
-        },
-        {
-          name: "mobile",
-          placeholder: "高危非必填",
-          value: info.mobile,
-          label: "联系电话",
-          icons: "/images/icons/goods_type.png",
-        }
-      ];
+      summary_placeholder = "添加物品描述：拾到物品的时间、地点以及物品上面的其他特征如颜色、记号等...";
+
     } else {
-      var tips_obj = {
-        "goods_name": "物品",
-        "owner_name": "失主姓名",
-        "location": "居住地址",
-        "summary": "描述",
-        "mobile": "联系电话",
-      };
-      var items = [{
-          name: "goods_name",
-          placeholder: "例:校园卡",
-          value: info.goods_name,
-          label: "物品名称",
-          icons: "/images/icons/goods_name.png",
-        },
-        {
-          name: "owner_name",
-          placeholder: "例:可可",
-          value: info.owner_name,
-          label: "姓名",
-          icons: "/images/icons/discount_price.png",
-        },
-        {
-          name: "mobile",
-          placeholder: "高危非必填",
-          label: "联系电话",
-          value: info.mobile,
-          icons: "/images/icons/goods_type.png",
-        }
-      ];
-      var summary_placeholder = "添加寻物描述：物品丢失大致时间、地点，记号等...";
+      summary_placeholder = "添加寻物描述：物品丢失大致时间、地点，记号等...";
     }
     this.setData({
-      imglist: info.pics,
+      category_arr: globalData.goodsCategories,
+      category_default_goods: globalData.categoryDefaultGoods,
+      imglist: info.pics.slice(),  //slice使得副本修改不影响原info
       loadingHidden: true,
       business_type: business_type,
       items: items,
@@ -249,40 +215,41 @@ Page({
       summary_value: info.summary,
       tips_obj: tips_obj,
       goods_id: info.id,
-      location: info.location,
+      category_index: info.category - 1, //原来的类别
+      location: info.location.slice(),  //slice使得副本修改不影响原info
       top: info.top, //原来是否置顶
       submitDisable: false
     })
-    //寻物启事且原来不是置顶帖需要的置顶信息
-    if (!business_type && !info.top) {
-      //置顶开关
-      this.setData({
-        top_price: app.globalData.goodsTopPrice,
-        top_days: app.globalData.goodsTopDays,
-        isTop: false  //默认置顶开关关闭
-      })
-      //余额勾选框
-      useBalance.initData(this, (total_balance)=>{
-        //计算可用余额和折后价格
-        if (total_balance >= this.data.top_price){
-          //余额足够
-          this.setData({
-            discount_price: 0, //使用余额，支付0元
-            balance: this.data.top_price
-          })
-        } else {
-          //余额不足
-          this.setData({
-            discount_price: util.toFixed(this.data.top_price - total_balance, 2), //使用余额支付的价格
-            balance: total_balance
-          })
-        }
-        //默认
+  },
+  setTopAndBalanceUseInitData: function(){
+    //置顶开关
+    this.setData({
+      top_price: globalData.goodsTopPrice,
+      top_days: globalData.goodsTopDays,
+      isTop: false  //默认置顶开关关闭
+    })
+    //余额勾选框
+    useBalance.initData(this, (total_balance)=>{
+      //计算可用余额和折后价格
+      if (total_balance >= this.data.top_price){
+        //余额足够
         this.setData({
-          balance_use_disabled: true //默认置顶开关关闭，所以禁用勾选框
+          discount_price: 0, //使用余额，支付0元
+          balance: this.data.top_price
         })
+      } else {
+        //余额不足
+        this.setData({
+          discount_price: util.toFixed(this.data.top_price - total_balance, 2), //使用余额支付的价格
+          balance: total_balance
+        })
+      }
+      //默认
+      this.setData({
+        balance_use_disabled: true, //默认置顶开关关闭，所以禁用勾选框
+        use_balance: false
       })
-    }
+    })
   },
   //预览图片
   previewImage: function(e) {
@@ -329,7 +296,8 @@ Page({
   //表单提交
   formSubmit: function (e) {
     this.setData({submitDisable: true})
-    var data = e.detail.value
+    let data = e.detail.value
+    data['category'] = this.data.category_index
     if (app.judgeEmpty(data, this.data.tips_obj)) {
       this.setData({submitDisable: false})
       return
@@ -340,6 +308,7 @@ Page({
       this.setData({submitDisable: false})
       return
     }
+    data['category'] += 1 // 因为数据库id从1开始计数
     data['business_type'] = this.data.business_type
     data['img_list'] = img_list
     data['location'] = this.data.location
@@ -347,24 +316,33 @@ Page({
     // 原来非置顶/置顶过期，编辑后置顶，才算置顶操作
     data['is_top'] = this.data.isTop && !this.data.top ? 1 : 0
     data['days'] = this.data.isTop && !this.data.top ? this.data.top_days : 0
+
+    // 编辑操作是否更改了匹配信息
+    let origin_info = this.data.origin_info
+    let kw_modified = (data['category'] != origin_info.category ||
+      data['owner_name'] != origin_info.owner_name ||
+      data['goods_name'] != origin_info.goods_name)
+    this.data.keyword_modified = kw_modified ? 1 : 0;
+    let modified = this.data.keyword_modified || !origin_info.pics.equals(img_list)
+      || !origin_info.location.equals(data['location']) || origin_info.summary != data['summary'];
+    this.data.modified = modified ? 1 : 0
     this.toUploadData(data)
   },
   /**
    * toUploadData 根据是否置顶进行收费后编辑帖子
    * @param data 上传数据
    */
-  toUploadData: function(data){
-    if(data['is_top'] == 1){
-      this.confirmTopAndUpload(data)
-    }else{
+  toUploadData: function (data) {
+    if (data['is_top'] == 1) {
+      this.confirmTop(data)
+    } else {
       this.uploadData(data)
     }
   },
   /**
-   * confirmTopAndUpload
-   * 询问置顶
+   * confirmTop 询问置顶
    */
-  confirmTopAndUpload: function(data){
+  confirmTop: function(data){
     app.alert({
       title : '温馨提示',
       content: '置顶收费' + this.data.top_price + '元，确认置顶？',
@@ -374,10 +352,14 @@ Page({
         this.toTopCharge(data)
       },
       cb_cancel:  () => {
-        this.setData({isTop: false})
-        data['is_top'] = 0
-        data['days'] = 0
-        this.uploadData(data)
+        //重置置顶开关和勾选框
+        //解禁提交按钮
+        this.setData({
+          isTop: false,
+          use_balance: false,
+          balance_use_disabled: true,
+          submitDisable: false
+        })
       }
     })
   },
@@ -493,12 +475,16 @@ Page({
     })
   },
   endCreate: function(id) {
+
     wx.request({
       url: app.buildUrl("/goods/end-create"),
       method: 'POST',
       header: app.getRequestHeader(),
       data: {
-        id: id
+        id: id,
+        edit: 1,
+        keyword_modified: this.data.keyword_modified,
+        modified: this.data.modified
       },
       success: (res) => {
         let resp = res.data;
@@ -507,7 +493,7 @@ Page({
           this.setData({submitDisable: false})
           return
         }
-        app.globalData.info={}
+        globalData.info={}
         wx.showToast({
           title: '提交成功',
           icon: 'success',
@@ -549,5 +535,18 @@ Page({
         use_balance: e.detail.value.length == 1
       })
     })
+  },
+  bindCategoryChange: function (e) {
+    let index = e.detail.value
+    this.setData({
+      category_index: index
+    })
+    let items = this.data.items
+    let default_goods = this.data.category_default_goods
+    let input_good_name = items[0].value
+    items[0].value = input_good_name && default_goods.indexOf(input_good_name) == -1 ? input_good_name : default_goods[index]
+    this.setData({
+      items: items
+    })
   }
-});
+})
