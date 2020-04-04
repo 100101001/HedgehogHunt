@@ -12,10 +12,10 @@ App({
     regFlag: false, //用于判断用户已注册(和缓存中的token一起代表用户已经登录)
     shopName: "闪寻-失物招领",
     //domain: "http://127.0.0.1:8999/api",
-    //domain: "http://192.168.0.116:8999/api",
+    //domain: "http://192.168.1.116:8999/api",
     domain: "https://ciwei.opencs.cn/api",
     static_file_domain: "https://ciwei.opencs.cn",
-    //static_file_domain: "http://192.168.0.116:8999",
+    //static_file_domain: "http://192.168.1.116:8999",
     member_status: 1, //用户状态
     op_status: 2,
     showHintQrcode: true, //导航栏上方的提示浮窗，标记是否显示浮窗，用户可关闭
@@ -61,7 +61,7 @@ App({
     },
     campus_id: -1, //学校id
     campus_name: "", //学校名
-
+    tutorial: true,
   },
   onLaunch: function () {
     // 获取后端二维码产品价格和产品ID
@@ -91,7 +91,6 @@ App({
     // 获得屏幕的大小
     wx.getSystemInfo({
       success: (res) => {
-        console.log(res)
         this.globalData.windowWidth = res.windowWidth
       }
     })
@@ -701,7 +700,7 @@ App({
    * @returns {string|undefined|*}
    */
   getUserOpenId: function () {
-    let openid = app.globalData.openid;
+    let openid = this.globalData.openid;
     if (openid) {
       return openid;
     } else {
@@ -712,6 +711,19 @@ App({
         let loginInfo = this.getCache("loginInfo");
         return loginInfo ? loginInfo.openid : "";
       }
+    }
+  },
+  /**
+   * getUserMemberId 获取用户会员ID
+   * @returns {null|*}
+   */
+  getUserMemberId: function () {
+    let id = this.globalData.id
+    if (id) {
+      return id;
+    } else {
+      let token = this.getCache("token");
+      return token ? token.split('#')[1] : "";
     }
   }
 })

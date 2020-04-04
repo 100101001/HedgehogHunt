@@ -1,10 +1,14 @@
-const useBalance = require("../../template/use-balance/use-balance")
+const useBalance = require("../../template/use-balance/use-balance");
 const app = getApp();
-const globalData = app.globalData
+const globalData = app.globalData;
+const util = require("../../../utils/util")
 
 
+/**
+ * 用于检测内容是否真的被编辑了
+ */
 // Warn if overriding existing method
-if(Array.prototype.equals)
+if (Array.prototype.equals)
   console.warn("Overriding existing Array.prototype.equals. Possible causes: New API defines the method, there's a framework conflict or you've got double inclusions in your code.");
 // attach the .equals method to Array's prototype to call it on any array
 Array.prototype.equals = function (array) {
@@ -22,8 +26,7 @@ Array.prototype.equals = function (array) {
       // recurse into the nested arrays
       if (!this[i].equals(array[i]))
         return false;
-    }
-    else if (this[i] != array[i]) {
+    } else if (this[i] != array[i]) {
       // Warning - two different object instances will never be equal: {x:20} != {x:20}
       return false;
     }
@@ -122,11 +125,20 @@ Page({
     loadingHidden: true,
     category_arr: []
   },
-  onLoad: function(options) {
+  onLoad: function (options) {
+    //从详情页进入编辑，info是原来的帖子数据
+    let info = JSON.parse(options.info);
     this.setData({
-      origin_info: globalData.info
+      origin_info: info
     });
-    this.onLoadSetData(globalData.info)
+    this.onLoadSetData(info);
+
+    if (options.top) {
+      //从详情页去置顶过来的，页面将直接滚动到置顶部分，供用户进行后续操作
+      setTimeout(()=>{
+        util.goToPoint('#top')
+      }, 200)
+    }
   },
   onShow: function() {},
   //获取位置的方法
@@ -152,6 +164,10 @@ Page({
       location: location
     });
   },
+  /**
+   * onLoadSetData 页面一加载就设置表单数据{@see setEditFormInitData}和置顶组件
+   * @param info
+   */
   onLoadSetData: function(info) {
     this.setEditFormInitData(info)
     //寻物启事且原来不是置顶帖需要的置顶信息
@@ -164,17 +180,26 @@ Page({
    * @param info
    */
   setEditFormInitData(info={}) {
-    // 物品类别数据
+    //获取物品类别数据
+    wx.request({
+      url: app.buildUrl('/goods/category/all'),
+      success: (res) => {
+        this.setData({
+          category_arr: res.data['data']['cat_list'],
+          category_default_goods: res.data['data']['cat_default']
+        });
+      }
+    });
     // 输入框，地址选择，图片上传框数据
-    let business_type = info.business_type
+    let business_type = info.business_type;
     let tips_obj = {
       "category": "物品类别",
       "goods_name": "物品名称",
-      "owner_name": business_type == 1 ? "失主姓名" : "姓名",
-      "location": business_type == 1 ? "物品放置位置" : "居住地址",
+      "owner_name": business_type ? "失主姓名" : "姓名",
+      "location": business_type ? "物品放置位置" : "居住地址",
       "summary": "描述",
       "mobile": "联系电话",
-    }
+    };
     let items = [{
       name: "goods_name",
       placeholder: "例:校园卡",
@@ -196,18 +221,17 @@ Page({
         icons: "/images/icons/mobile.png",
         value: info.mobile
       }
-    ]
-    let summary_placeholder = ""
-    if (business_type == 1) {
+    ];
+    let summary_placeholder = "";
+    if (business_type) {
       summary_placeholder = "添加物品描述：拾到物品的时间、地点以及物品上面的其他特征如颜色、记号等...";
 
     } else {
       summary_placeholder = "添加寻物描述：物品丢失大致时间、地点，记号等...";
     }
     this.setData({
-      category_arr: globalData.goodsCategories,
-      category_default_goods: globalData.categoryDefaultGoods,
-      imglist: info.pics.slice(),  //slice使得副本修改不影响原info
+      category_index: info.category - 1, //物品分类的序列号，数据库ID从1开始，数组从0开始，所以减一转换
+      imglist: info.pics.slice(),  ///为了比对编辑是否修改了内容，slice使得副本修改不影响原info
       loadingHidden: true,
       business_type: business_type,
       items: items,
@@ -215,12 +239,15 @@ Page({
       summary_value: info.summary,
       tips_obj: tips_obj,
       goods_id: info.id,
-      category_index: info.category - 1, //原来的类别
-      location: info.location.slice(),  //slice使得副本修改不影响原info
+      location: info.location.slice(),  //为了比对编辑是否修改了内容，slice使得副本修改不影响原info
       top: info.top, //原来是否置顶
       submitDisable: false
-    })
+    });
+
   },
+  /**
+   * setTopAndBalanceUseInitData 置顶组件数据初始化
+   */
   setTopAndBalanceUseInitData: function(){
     //置顶开关
     this.setData({
@@ -493,7 +520,8 @@ Page({
           this.setData({submitDisable: false})
           return
         }
-        globalData.info={}
+
+
         wx.showToast({
           title: '提交成功',
           icon: 'success',

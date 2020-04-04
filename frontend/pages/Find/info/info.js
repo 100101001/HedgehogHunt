@@ -1,6 +1,8 @@
 //index.js
 //获取应用实例
 const app = getApp();
+const globalData = app.globalData
+
 Page({
   data: {
     loadingHidden: true,
@@ -49,7 +51,7 @@ Page({
   },
   onLoad: function (options) {
     var goods_id = options.goods_id;
-    var op_status = app.globalData.op_status;
+    var op_status = globalData.op_status;
     this.setData({
       appLoadingHidden: true,
       op_status: op_status,
@@ -57,7 +59,7 @@ Page({
     })
   },
   onShow: function () {
-    var regFlag = app.globalData.regFlag;
+    var regFlag = globalData.regFlag;
     this.setData({regFlag: regFlag})
     if (this.data.op_status == 4) {
       this.getReportInfo(this.data.goods_id)
@@ -206,7 +208,7 @@ Page({
     });
   },
   toReport: function (e) {
-    var regFlag = app.globalData.regFlag;
+    var regFlag = globalData.regFlag;
     if (!regFlag) {
       app.alert({
         "content": "没有授权登录，不能举报！请授权登录"
@@ -270,24 +272,29 @@ Page({
       url: "../../Release/release/index"
     })
   },
-  //归还按钮
+  /**
+   * 归还 == 发布新的失物招领帖子
+   * @see getUserMemberId
+   * @param e
+   */
   goReturn: function (e) {
-    let auther_id = this.data.infos.info.auther_id
-    if(auther_id === app.globalData.id){
-      app.alert({title: '操作提示', content: '发布者不能操作自己的记录！'})
+    let auther_id = this.data.infos.info.auther_id;
+    if (auther_id === app.getUserMemberId()) {
+      //只是以防万一
+      app.alert({title: '操作提示', content: '发布者不能操作自己的记录！'});
       return
     }
-    app.globalData.info = this.data.infos.info
     wx.navigateTo({
-      url: "../../Release/release/index?auther_id=" + this.data.infos.info.auther_id
+      url: "../../Release/release/index?auther_id=" + this.data.infos.info.auther_id + '&info=' + JSON.stringify(this.data.infos.info)
     })
   },
   //归还按钮
   goThanks: function (e) {
     if (this.data.infos.info.is_auth) {
+      //只是以防万一
       app.alert({
         'content': "发布者不可操作自己的记录"
-      })
+      });
       return
     }
     let info = this.data.infos.info;
@@ -432,9 +439,72 @@ Page({
     })
   },
   toEdit: function (event) {
-    app.globalData.info = this.data.infos.info
     wx.navigateTo({
-      url: '../edit/edit',
+      url: '../edit/edit?info=' + JSON.stringify(this.data.infos.info),
     })
   },
+  /**
+   * goAppeal 觉得他人拿错自己的失物，
+   * @param e
+   */
+  goAppeal: function (e) {
+    app.alert({
+      title: '申诉提示',
+      content: '确认是自己的物品被他人取走了？',
+      showCancel: true,
+      cb_confirm: ()=>{
+        this.doAppeal()
+      }
+    })
+  },
+  /**
+   * doAppeal 确认他人拿错后{@link goAppeal}，发起申诉
+   */
+  doAppeal: function () {
+    wx.request({
+      url: app.buildUrl('/goods/appeal'),
+      header: app.getRequestHeader(),
+      data: {
+        id: this.data.goods_id // 物品ID
+      },
+      success: res => {
+        let resp = res.data
+        if(resp['code']!==200){
+          app.alert({content: resp['msg']});
+          return
+        }
+        app.alert({
+          title:'申诉提示',
+          content: '您的申诉已被接受，管理员将在一个工作日内与您取得联系，请保持联络方式畅通。',
+          cb_confirm: ()=>{
+            //处理前端视图
+            this.getGoodsInfo(this.data.goods_id)
+          }
+        })
+      }
+    })
+  },
+  /**
+   * goMyRelease 待状态，作者可以去查看自己其它的所有帖子
+   */
+  goMyRelease: function () {
+    wx.navigateTo({
+      url: '/pages/Record/index?op_status=0'
+    })
+  },
+  /**
+   * toSetTop 待状态的寻物启事，作者可以去一键置顶
+   */
+  toSetTop: function () {
+    app.alert({
+      title: '温馨提示',
+      content: '置顶收费' + globalData.goodsTopPrice + '元，确认去置顶？',
+      showCancel: true,
+      cb_confirm: () => {
+        wx.navigateTo({
+          url: '../edit/edit?info=' + JSON.stringify(this.data.infos.info) + '&top=1',
+        })
+      }
+    })
+  }
 });

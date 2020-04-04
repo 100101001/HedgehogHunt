@@ -89,10 +89,33 @@ function toFixedStr(num=0, fix_num=2){
   return "0.00"
 }
 
+/**
+ * 滚到可见point代表的元素的位置，用于去置顶，进入编辑页自动下拉到置顶组件
+ * @param point
+ */
+function goToPoint(point = "") {
+  const query = wx.createSelectorQuery();
+  //在当前页面中，利用ID选择器，获得指定节点的信息
+  query.select(point).boundingClientRect();
+  //根据设备视区信息，动态计算滚动位置
+  query.selectViewport().scrollOffset();
+  query.exec((res) => {
+    //res[0]是节点信息,res[1]是位置
+    if (res[0] && res[1]) {
+      //如果节点存在，并且位置可得
+      wx.pageScrollTo({
+        scrollTop: res[0].top + res[1].scrollTop,
+        duration: 300
+      })
+    }
+  })
+}
+
 module.exports = {
   formatTime: formatTime,
   onNavigateTap: onNavigateTap,
   regexConfig: regexConfig,
   toFixed: toFixed,
-  toFixedStr: toFixedStr
+  toFixedStr: toFixedStr,
+  goToPoint: goToPoint
 }

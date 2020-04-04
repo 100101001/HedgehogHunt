@@ -142,16 +142,17 @@ Page({
         business_type: 1,
         location: [],
         dataReady: true
-      })
+      });
       this.setInitData()
     } else {
-      if (auther_id != "") { //归还
+      if (auther_id) { //归还
         this.setData({
           auther_id: auther_id,
           business_type: 1,
           location: [],
-          dataReady: true
-        })
+          dataReady: true,
+          info: JSON.parse(options.info)
+        });
         this.setInitData()
       }
       else { //常规发布
@@ -597,7 +598,7 @@ Page({
       data = {
         id: id,
         auther_id: auther_id,
-        target_goods_id: globalData.info.id
+        target_goods_id: this.data.info.id
       }
     } else {
       data = {
@@ -630,7 +631,6 @@ Page({
         app.getNewRecommend()
         //初始化本地数据和全局数据
         this.setInitData();
-        globalData.info = {}
         //用户提示
         wx.showToast({
           title: '提交成功',
@@ -673,31 +673,41 @@ Page({
    * setFormInitData 在初始化页面数据{@link setInitData}时，置空表单数据
    */
   setFormInitData() {
-    // 物品类别数据
+    //获取物品类别数据
+    wx.request({
+      url: app.buildUrl('/goods/category/all'),
+      success: (res) => {
+        this.setData({
+          category_arr: res.data['data']['cat_list'],  //可选物品所属类别的列表
+          category_default_goods: res.data['data']['cat_default']  //各物品类别下的默认填充物品名
+        });
+      }
+    });
     // 输入框，地址选择，图片上传框数据
-    let info = globalData.info
-    let location = info.location //用于让别人帮忙寄回物品
-    let business_type = this.data.business_type
+    let info = this.data.info;  //如果因点击归还寻物而进入发布页，info就是原寻物启事的表单数据(用于初始化发布页表单)，否则是undefined
+    let business_type = this.data.business_type;
+    //发布前data内需要判空的属性，对应属性缺失时，向用户显示的属性的提示语。比如data的category为空，就弹出提示“物品类别为空”
     let tips_obj = {
       "category": "物品类别",
       "goods_name": "物品名称",
-      "owner_name": business_type == 1 ? "失主姓名" : "姓名",
-      "location": business_type == 1 ? "物品放置位置" : "居住地址",
+      "owner_name": business_type ? "失主姓名" : "姓名",
+      "location": business_type ? "物品放置位置" : "居住地址",
       "summary": "描述",
-      "mobile": "联系电话",
-    }
+      "mobile": "联系电话"
+    };
+    //发布页面输入信息项的初始化（输入框占位符，输入默认值，输入框代表什么含义，icon等）
     let items = [{
       name: "goods_name",
       placeholder: "例:校园卡",
       label: tips_obj['goods_name'],
       icons: "/images/icons/goods_name.png",
-      value: business_type == 1 ? (info.goods_name == undefined ? "" : info.goods_name) : "",
+      value: business_type && info ? info.goods_name : "",  //归还帖自动填充归还的物品名
     }, {
       name: "owner_name",
       placeholder: "例:可可",
       label: tips_obj['owner_name'],
       icons: "/images/icons/discount_price.png",
-      value: business_type == 1 ? (info.owner_name == undefined ? "" : info.owner_name) : ""
+      value: business_type && info ? info.owner_name : "" //归还帖自动填充归还物品的失主名
     },
       {
         name: "mobile",
@@ -706,29 +716,28 @@ Page({
         label: tips_obj['mobile'],
         icons: "/images/icons/mobile.png",
       }
-    ]
-    let summary_placeholder = ""
+    ];
+    let summary_placeholder = "";
     //表单
-    if (business_type == 1) {
+    if (business_type) {
       summary_placeholder = "添加拾物描述：拾到物品的时间、地点以及物品上面的其他特征如颜色、记号等..."
     } else {
       summary_placeholder = "添加寻物描述：物品丢失大致时间、地点，记号等..."
     }
     this.setData({
-      category_arr: app.globalData.goodsCategories,
-      category_default_goods: app.globalData.categoryDefaultGoods,
-      imglist: business_type == 1 ? [] : ['/images/icons/wanted.png'],  //寻物启事有一张默认的寻物图(图片列表)
-      count: 1 - business_type,  //失物招领时business_type==1，图片为0。寻物启事时business_type==0，图片为1。图片列表数量,
-      pic_status: true,
+      category_index: info ? info.category - 1 : null, //数据库的物品id是从1开始计数的，所以这里需要-1符合数组下表索引从0开始
+      imglist: business_type ? [] : ['/images/icons/wanted.png'],  //寻物启事有一张默认的寻物图(图片列表)
+      count: 1 - business_type,  //失物招领时business_type==1，图片为0。寻物启事时business_type==0，图片为1。图片数量
+      pic_status: true,  //是否可以继续加图
       loadingHidden: true, //上传图片时的loading图标是否隐藏
       business_type: business_type, //失物招领or寻物启事标识
       items: items, //表单项
       summary_placeholder: summary_placeholder, //描述填写提示
       summary_value: "", //描述内容
       tips_obj: tips_obj, //表单项填写提示
-      info_owner_name: info.owner_name === undefined ? "" : info.owner_name,
-      location: location === undefined ? "" : location, //地址
-      notify_id: globalData.isScanQrcode? globalData.qrcodeOpenid: ""
+      info_owner_name: info ? info.owner_name : "", //归还帖自动填充归还物品的失主名
+      location: info ? info.location : [], //归还帖自动填充归还物品的放置地址(就近放置)
+      notify_id: globalData.isScanQrcode ? globalData.qrcodeOpenid : ""  //记录通知ID，供最后把该帖子加到二维码码主的匹配推荐列表中去
     })
   },
   /**

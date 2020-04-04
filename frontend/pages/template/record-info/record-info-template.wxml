@@ -2,8 +2,13 @@
 <template name="record-info-template">
   <view class="container">
     <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
+
+    <!--仅管理员可见的举报者栏-->
     <template is="info-auth-template" data="{{...report_auth_info}}" wx:if="{{report_auth_info}}"/>
+
+    <!--作者栏-->
     <template is="info-auth-template" data="{{...info}}" />
+
     <!--商品轮播图-->
     <view class="swiper-container">
       <swiper class="swiper_box" autoplay="true" interval="3000" duration="1000" circular="true">
@@ -19,6 +24,7 @@
         </block>
       </view>
     </view>
+
     <!--商品基本介绍-->
     <view class="goods-info">
       <view class="goods-title">
@@ -32,6 +38,8 @@
         <view class="status-container">{{info.status_desc}}</view>
       </view>
     </view>
+
+    <!--地址和联络区-->
     <view class="location" wx:if="{{show_location}}">
       <view bindtap="toNavigate" class="navigate-container">
           <image class="loc_icon" src="/images/icons/navigate.png"></image>
@@ -43,6 +51,8 @@
         <text class="loc_text">电话：{{info.mobile}}</text>
       </view>
     </view>
+
+    <!--描述区-->
     <view class="goods-des-info">
       <view class="label-title">详情介绍
         <text style="color:#f7931e;"> 《::::::》</text>{{info.goods_name}}</view>
@@ -51,53 +61,99 @@
       </view>
     </view>
 
-    <!--用户操作-->
-    <view class="footer-box" wx:if="{{!show_location || info.status==1 && op_status!=4}}">
+    <!---待认领区和预认领区-->
+    <!--待认领帖，作者-->
+    <view class="footer-box" wx:if="{{info.is_auth && info.status==1 && op_status!=4}}">
       <view class="shop-cart-btn" catchtap="goHome">
         <image src="/images/icons/home_select.png"></image>
         <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'> 回首页 </view>
       </view>
+      <!--帖子状态很新鲜，没什么好展示的状态，去看看我发布过的其他帖子好了-->
+      <view class="join-shop-cart" catchtap="goMyRelease">查看我发布的</view>
+      <!--失物招领贴的状态操作区-->
+      <view class="now-buy" wx:if="{{info.business_type}}">等待中</view>
+      <!--寻物启事贴的状态操作区，显示是否置顶，以及支持一键置顶-->
+      <view class="now-buy" catchtap="toSetTop" wx:if="{{!info.business_type && !info.top}}">去置顶</view>
+      <view class="now-buy" wx:if="{{!info.business_type && info.top}}">置顶中</view>
+    </view>
+
+    <!--待认领贴，无操作用户-->
+    <!--预认领贴，无操作用户-->
+    <view class="footer-box" wx:if="{{(!show_location) && (info.status==1 || info.status ==2) && op_status!=4}}">
+      <view class="shop-cart-btn" catchtap="goHome">
+        <image src="/images/icons/home_select.png"></image>
+        <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'> 回首页 </view>
+      </view>
+      <!--帖子状态很新鲜，没什么好展示的状态，用作去发布信息快捷键算了-->
       <view class="join-shop-cart" catchtap="goRelease">去发布信息</view>
+      <!--失物招领贴的状态操作区-->
       <view class="now-buy" catchtap="toApplicate" wx:if="{{info.business_type}}">
         <text>认领</text>
       </view>
+      <!--寻物启事贴的状态操作区-->
       <view class="now-buy" catchtap="goReturn" wx:if="{{!info.business_type}}">
         <text>归还</text>
       </view>
     </view>
 
+    <!--预认领贴，作者-->
+    <!--预认领贴，预认领者-->
     <view class="footer-box" wx:if="{{show_location && info.status==2 && op_status!=4}}">
       <view class="shop-cart-btn" catchtap="goHome">
         <image src="/images/icons/home_select.png"></image>
         <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'> 回首页 </view>
       </view>
-      <view class="join-shop-cart" catchtap="goThanks">答谢</view>
-      <view class="now-buy" catchtap="gotBack">确认取回</view>
+      <!--状态描述区--->
+      <view class="join-shop-cart">已预认领</view>
+      <!--状态操作区: 预认领者可确认取回 TODO 作者可查看预认领人数（是否可查看头像等信息）-->
+      <view class="now-buy" catchtap="gotBack" wx:if="{{!info.is_auth}}">确认取回</view>
+      <view class="now-buy" catchtap="checkMarkDetail" wx:if="{{info.is_auth}}">查看详情</view>
     </view>
 
-    <view class="footer-box" wx:if="{{show_location && info.status==3 && op_status!=4}}">
+
+    <!---已认领区-->
+    <!--已认领贴，作者-->
+    <!--已认领贴，已认领者-->
+    <view class="footer-box" wx:if="{{ (info.is_auth || info.is_owner) && info.status==3 && op_status!=4}}">
       <view class="shop-cart-btn" catchtap="goHome">
         <image src="/images/icons/home_select.png"></image>
         <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'> 回首页 </view>
       </view>
-      <view class="join-shop-cart" catchtap="goTips">物品已取回</view>
-      <view class="now-buy" catchtap="goThanks">答谢</view>
+      <!--状态描述区 TODO 是否提供作者可查看取回者的权限--->
+      <view class="join-shop-cart">物品已取回</view>
+      <!--状态“操作”区 认领者答谢，作者只能看是否被答谢过了--->
+      <view class="now-buy" catchtap="goThanks" wx:if="{{info.is_owner}}">答谢</view>
+      <view class="now-buy" wx:if="{{info.is_auth}}">{{info.is_thanked? '已答谢': '待答谢'}}</view>
     </view>
 
-    <!--底部  查看举报推荐-->
+    <!--已认领帖， 除了作者和已认领者外的所有用户-->
+    <view class="footer-box" wx:if="{{ (!info.is_auth && !info.is_owner) && info.status==3 && op_status!=4}}">
+      <!--回首页按钮-->
+      <view class="shop-cart-btn" catchtap="goHome">
+        <image src="/images/icons/home_select.png"></image>
+        <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'> 回首页 </view>
+      </view>
+      <!--物品状态描述区-->
+      <view class="join-shop-cart" catchtap="goTips" wx:if="{{!info.appeal.once}}">物品已被他人取回</view> <!--从未申诉过-->
+      <view class="join-shop-cart" catchtap="goTips" wx:if="{{info.appeal.doing}}">申诉处理中</view>
+      <view class="join-shop-cart" catchtap="goTips" wx:if="{{info.appeal.done}}">申诉已处理</view>
+      <!--物品状态操作区-->
+      <view class="now-buy" catchtap="goAppeal" wx:if="{{!info.appeal.once}}">申诉</view> <!--从未申诉过-->
+      <view class="now-buy" wx:if="{{info.appeal.once && !info.appeal.doing && !info.appeal.done}}">曾申诉</view>
+      <view class="now-buy" wx:if="{{info.appeal.doing || info.appeal.done}}">已申诉</view>
+    </view>
+
+    <!--管理员用户视图，和管理员操作-->
     <view class="footer-box" wx:if="{{op_status==4}}">
       <view class="shop-cart-btn" catchtap="toBlock" data-report_status="4">
         <image src="/images/icons/home_select.png"></image>
         <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>无违规</view>
       </view>
       <view class="join-shop-cart" catchtap="toBlock" data-report_status="2">拉黑举报者</view>
-      <!-- <view class="join-shop-cart">管理员：韦朝旭</view> -->
       <view class="now-buy" catchtap="toBlock" data-report_status="3">
         <text>拉黑发布者</text>
       </view>
-      <!-- <view class="now-buy">
-      <text>已拉黑发布者</text>
-    </view> -->
     </view>
+
   </view>
 </template>

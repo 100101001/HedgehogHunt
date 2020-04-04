@@ -5,79 +5,55 @@ Page({
   data: {
     banners: ["/images/logo.jpg"],
     activeCategoryId: -1,
-    categories: [{
-      id: -1,
-      name: '全部',
-    },
-    {
-      id: 0,
-      name: '待认领'
-    },
-    {
-      id: 1,
-      name: '预认领'
-    },
-    {
-      id: 2,
-      name: '已认领'
-    },
-    ],
+    categories: []
   },
   onLoad: function (options) {
     //如果没有页面参数，则默认跳转失物招领页面
-    var business_type = options.business_type ? options.business_type : 1;
-    if (business_type == 1) {
-      var categories = [{
-        id: -1,
-        name: '全部',
-      },
+    this.onLoadSetData(options.business_type ? options.business_type : 1)
+  },
+  onLoadSetData: function (business_type = 0) {
+    let verb = business_type ? '认领' : '寻回';
+    let categories = [{
+      id: -1,
+      name: '全部',
+    },
       {
         id: 1,
-        name: '待认领'
+        name: '待' + verb
       },
       {
         id: 2,
-        name: '预认领'
+        name: '预' + verb
       },
       {
         id: 3,
-        name: '已认领'
+        name: '已' + verb
       },
-      ]
-    } else {
+    ];
+    if (!business_type) {
       wx.setNavigationBarTitle({
         title: '寻物启事',
       })
-
-      var categories = [{
-        id: -1,
-        name: '全部',
-      },
-      {
-        id: 1,
-        name: '待寻回'
-      },
-      {
-        id: 2,
-        name: '预寻回'
-      },
-      {
-        id: 3,
-        name: '已寻回'
-      },
-      ]
-    };
+    }
     this.setData({
-      filter_address: '',  // 搜索栏的地址
       business_type: business_type,
       categories: categories,  // 类别
       goods_name: '',  // 物品名
       owner_name: '',  // 物主名
       filter_address: '',  // 搜索栏的地址关键词
       loadingMoreHidden: true,  // 更多数据未加载
-      goods_category: ['全部'].concat(app.globalData.goodsCategories), // 分类栏数据
       filter_good_category: 0, // 默认是全部类型的物品
-      open: false //侧边栏折叠
+      open: false, //侧边栏折叠
+      tutorial: app.globalData.tutorial //侧边栏教程
+    });
+    //请求后端类别列表
+    wx.request({
+      url: app.buildUrl('/goods/category/all'),
+      success: (res) => {
+        this.setData({
+          goods_category: ['全部'].concat(res.data['data']['cat_list'])   // 分类栏数据
+        })
+      }
     })
   },
   //轮播图变化
@@ -86,12 +62,16 @@ Page({
       swiperCurrent: e.detail.current
     })
   },
+  /**
+   * onShow 页面显示
+   */
   onShow: function () {
+    //加载第一页的物品数据
     this.setData({
       regFlag: app.globalData.regFlag
-    })
-    this.setInitData()
-    this.onPullDownRefresh()
+    });
+    this.setInitData();
+    this.onPullDownRefresh();
   },
   /**
    * catClick 如果切换了状态栏，就加载新的数据
@@ -99,21 +79,24 @@ Page({
    */
   catClick: function (e) {
     //选择一次分类时返回选中值
-    let old_status = this.data.activeCategoryId
-    let new_status = e.currentTarget.id
+    let old_status = this.data.activeCategoryId;
+    let new_status = e.currentTarget.id;
     this.setData({
       activeCategoryId: new_status,
-    })
-    if (old_status != new_status) {
+    });
+    if (old_status !== new_status) {
+      //状态如若发生变化就像后端请求新数据,依赖 activeCategoryId，必须先设置再请求
       this.onPullDownRefresh()
     }
+
   },
-  //点击信息卡查看详情
-  onDetailTap: function (event) {
-    let id = event.currentTarget.dataset.id
-    app.globalData.op_status = 2
+  /**
+   * onDetailTap 点击信息卡查看详情
+   * @param event
+   */
+  onDetailTap: function (e) {
     wx.navigateTo({
-      url: 'info/info?goods_id=' + id,
+      url: 'info/info?goods_id=' + e.currentTarget.dataset.id
     })
   },
   //刷新
@@ -160,18 +143,15 @@ Page({
     }
   },
   scroll: function (e) {
-    var that = this,
-      scrollTop = that.data.scrollTop;
-    that.setData({
+    this.setData({
       scrollTop: e.detail.scrollTop
-    });
+    })
   },
   //查看导航栏信息
   goAdvInfo: function (e) {
-    var adv_id = e.currentTarget.dataset.id;
-    console.log(adv_id);
+    let adv_id = e.currentTarget.dataset.id;
     wx.navigateTo({
-      url: '../adv/info/adv-info?id=' + adv_id,
+      url: '../adv/info/adv-info?id=' + adv_id
     })
   },
   //举报按钮
@@ -229,6 +209,9 @@ Page({
       }
     });
   },
+  /**
+   * setInitData 页面各个组件(搜索栏，状态栏，轮播图，帖子列表)的数据初始化
+   */
   setInitData: function () {
     this.setData({
       goods_list: [],
@@ -257,7 +240,7 @@ Page({
         act: "listenerAddressInput",
       }
       ]
-    });
+    })
   },
   //获取轮播图
   getBanners: function () {
@@ -402,7 +385,7 @@ Page({
    * tapEnd 手指拖动结束
    */
   tapEnd: function(){
-    if(this.data.mark + app.globalData.windowWidth * 0.4 < this.data.newmark){
+    if(this.data.mark + app.globalData.windowWidth * 0.5 < this.data.newmark){
       this.setData({
         open : true
       });
@@ -439,4 +422,43 @@ Page({
       this.onPullDownRefresh()
     }
   },
+  /**
+   * onPageScroll 目的：当页面滚动距离超过状态栏距离顶部的距离时，让状态栏吸附在顶部
+   * @param e
+   */
+  onPageScroll(e) {
+    // 页面滚动的距离 > 类别栏元素距离顶部的高度，让其吸附在搜索栏下方
+    this.setData({
+      tabFixed: e.scrollTop > this.data.aboveHeight
+    })
+  },
+  /**
+   * onReady 目的：获取状态栏距离顶部的距离，使状态栏能在下拉后仍然吸附在顶部
+   */
+  onReady() {
+    const query = wx.createSelectorQuery();
+    // 这里：获取轮播图的height 就是 状态切换栏的top(顶部坐标)
+    query.select(".swiper-container").boundingClientRect((res) => {
+      if (res) {
+        this.setData({
+          aboveHeight: res.height
+        })
+      }
+    }).exec()
+  },
+  /**
+   * businessTypeClick 点击浮球页面类别(wx.redirec)
+   */
+  businessTypeClick: function (e) {
+    //刷新页面数据
+    this.onLoadSetData(1-this.data.business_type)
+    this.onShow()
+  },
+  closeTutorial: function () {
+    app.globalData.tutorial = false
+    this.setData({
+      tutorial: false
+    })
+  }
 })
+
