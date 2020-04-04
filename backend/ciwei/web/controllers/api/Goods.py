@@ -7,7 +7,7 @@ from decimal import Decimal
 from flask import request, jsonify, g
 from sqlalchemy import or_
 
-from application import db, app
+from application import db, app, cache
 from common.libs.Helper import getCurrentDate
 from common.libs.Helper import selectFilterObj, getDictFilterField
 from common.libs.MemberService import MemberService
@@ -20,6 +20,7 @@ from common.models.ciwei.Goods import Good
 from common.models.ciwei.GoodsCategory import GoodsCategory
 from common.models.ciwei.GoodsTopOrder import GoodsTopOrder
 from common.models.ciwei.Member import Member
+from common.models.ciwei.Recommend import Recommend
 from common.models.ciwei.Report import Report
 from common.models.ciwei.Thanks import Thank
 from web.controllers.api import route_api
@@ -30,6 +31,7 @@ def goodsCategory():
     resp = {'code': 200, 'msg': 'success', 'data': {}}
     categories = GoodsCategory.query.all()
     resp['data']['cat_list'] = [item.tag for item in categories]
+    resp['data']['cat_default'] = [item.default_goods for item in categories]
     return jsonify(resp)
 
 
@@ -290,8 +292,24 @@ def endCreate():
         if notified_member_info:
             MemberService.addRecommendGoods(member_id=notified_member_info.id, goods_id=goods_info.id)
     else:
-        edit = req['edit'] if 'edit' in req else None
-        MemberService.autoRecommendGoods(goods_info=goods_info, edit=(edit == 'true'))
+        if 'edit' in req and int(req['edit']):
+            # 编辑
+            # 未被用户删除的推荐
+            origin_recommends = Recommend.query.filter(Recommend.goods_id == goods_id,
+                                                       Recommend.status != 7)
+            # 匹配的关键词是否被修改
+            need_recommend = 'keyword_modified' in req and int(req['keyword_modified'])
+            if need_recommend:
+                # 匹配关键字被修改了，可能有些不再匹配，等于帖子被作者删除了
+                origin_recommends.update({'status': -1}, synchronize_session='fetch')
+                MemberService.autoRecommendGoods(goods_info=goods_info, edit=True)
+            else:
+                if 'modified' in req and int(req['modified']):
+                    # 可能是图片/描述/地址等非匹配关键被修改了，更新为未读匹配，但不会再对全局进行自动匹配
+                    origin_recommends.update({'status': 0}, synchronize_session='fetch')
+        else:
+            # 发布
+            MemberService.autoRecommendGoods(goods_info=goods_info, edit=False)
 
     db.session.add(goods_info)
     db.session.commit()
@@ -370,6 +388,11 @@ def goodsSearch():
             fil_str = fil_str + "%{0}%".format(i)
         rule = or_(Good.location.ilike(fil_str))
         query = query.filter(rule)
+
+    # 物品分类
+    filter_category = int(req['filter_good_category']) if 'filter_good_category' in req else 0
+    if filter_category:
+        query = query.filter_by(category=filter_category)
 
     # 分页：获取第p页的所有物品
     # 排序：置顶贴和新发布的热门贴置于最前面
@@ -590,8 +613,18 @@ def goodsInfo():
         # 用户可能查看了被系统推荐的物品, 如果查看了推荐记录就将推荐状态更新为1
         MemberService.setRecommendStatus(member_id=member_info.id, goods_id=goods_id, status=1)
 
-    # 浏览量加一(TODO:同一次登陆会话看多少次应都只算一次浏览)
-    goods_info.view_count = goods_info.view_count + 1
+    # 浏览量加一
+    openid = req['openid'] if 'openid' in req else ''
+    if openid:
+        reader_set = cache.get(goods_id)
+        if not reader_set:
+            goods_info.view_count = goods_info.view_count + 1
+            reader_set = {openid}
+        elif openid not in reader_set:
+            goods_info.view_count = goods_info.view_count + 1
+            reader_set.add(openid)
+        cache.set(goods_id, reader_set, timeout=1800)  # 30分钟之内没人来看，文章阅读缓存数据就全部消失
+
     db.session.add(goods_info)
     db.session.commit()
 
@@ -629,6 +662,7 @@ def goodsInfo():
         "avatar": author_info.avatar,
         "is_auth": is_auth,
         # "is_owner": is_owner,
+        "category": goods_info.category,
         "top": goods_info.top_expire_time > datetime.datetime.now()
     }
     resp['data']['show_location'] = show_location

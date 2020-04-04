@@ -8,4 +8,5 @@ class GoodsCategory(db.Model):
     __table_args__ = ({'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8mb4', 'comment': '物品类别表'})
 
     id = db.Column(db.Integer, primary_key=True)
-    tag = db.Column(db.String(10), nullable=False, default=9, comment='类别标签')
+    tag = db.Column(db.String(10), nullable=False, default='', comment='类别标签')
+    default_goods = db.Column(db.String(10), nullable=False, default='', comment='类别默认失物')

@@ -156,8 +156,9 @@ class MemberService:
             return False
         repeat_recommend = Recommend.query.filter_by(goods_id=goods_id, member_id=member_id).first()
         if repeat_recommend:
-            if edit and repeat_recommend.status == 1:
+            if edit:
                 # 已阅推荐记录，但因为物品被编辑了就更新为未读
+                # 进来前未阅记录被置为物品已删，所以需要重新置为未读
                 repeat_recommend.status = 0
                 db.session.add(repeat_recommend)
                 db.session.commit()
