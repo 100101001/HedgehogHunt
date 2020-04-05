@@ -4,6 +4,7 @@ import datetime
 from decimal import Decimal
 
 from flask import request, jsonify, g
+from sqlalchemy import or_
 
 from application import db, app
 from common.libs.Helper import getCurrentDate
@@ -408,7 +409,7 @@ def memberInfo():
         qr_code_url = ""
 
     pkgs = MemberSmsPkg.query.filter(MemberSmsPkg.open_id == member_info.openid,
-                                    MemberSmsPkg.expired_time >= datetime.datetime.now()).all()
+                                     MemberSmsPkg.expired_time >= datetime.datetime.now()).all()
 
     p_times = 0  # 计算套餐包有效期内总数量
     pkg_data_list = []
@@ -496,7 +497,7 @@ def getNewRecommend():
 
     # 获取所有会员的recommend_id列表中的物品,按状态：待,预,已分类
     recommend_status_2 = recommend_status_3 = recommend_status_1 = 0
-    recommend_new = thanks_new = 0
+    recommend_new = thanks_new = return_new = 0
     recommends = Recommend.query.filter_by(status=0, member_id=member_info.id).all()
     if recommends:
         query = Good.query.filter(Good.id.in_([r.id for r in recommends]))
@@ -511,8 +512,16 @@ def getNewRecommend():
     if thanks_list:
         thanks_new = len(thanks_list) if len(thanks_list) <= 99 else 99
 
+    # 会员待取回的归还记录
+    return_list = Good.query.filter(Good.business_type == 2,
+                                     Good.status == 1,
+                                     or_(Good.qr_code_openid == member_info.openid,
+                                         Good.return_goods_openid == member_info.openid)).all()
+    if return_list:
+        return_new = len(return_list) if len(return_list) <= 99 else 99
+
     # 总数量,最多显示99+
-    total_new = recommend_new + thanks_new
+    total_new = recommend_new + thanks_new + return_new
     total_new = total_new if total_new <= 99 else 99
 
     resp['data'] = {
@@ -520,10 +529,11 @@ def getNewRecommend():
         'recommend_new': recommend_new,
         'thanks_new': thanks_new,
         'recommend': {
-            'wait': recommend_status_1 if recommend_status_1 <= 99 else 99,
-            'doing': recommend_status_2 if recommend_status_2 <= 99 else 99,
-            'done': recommend_status_3 if recommend_status_3 <= 99 else 99,
-        }
+            'wait': recommend_status_1 if recommend_status_1 <= 99 else 99,  # 推荐的失物招领帖子，待领
+            'doing': recommend_status_2 if recommend_status_2 <= 99 else 99,  # 推荐的失物招领帖子，预领
+            'done': recommend_status_3 if recommend_status_3 <= 99 else 99,  # 推荐的失物招领帖子，已领
+        },
+        'return_new': return_new
     }
     return jsonify(resp)
 

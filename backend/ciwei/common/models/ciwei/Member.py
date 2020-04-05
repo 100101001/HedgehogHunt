@@ -33,9 +33,6 @@ class Member(db.Model):
     updated_time = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now,
                              comment="最后一次更新时间")
     created_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment="插入时间")
-    mark_id = db.Column(db.String(1000), nullable=False, default='', comment="用户认领的物品id,字符串")
-    gotback_id = db.Column(db.String(2000), nullable=False, default='', comment="用户最终取回的物品id,字符串")
-    recommend_id = db.Column(db.String(3000), nullable=False, default='', comment="系统推荐的物品id,字符串")
 
     @property
     def has_qr_code(self):

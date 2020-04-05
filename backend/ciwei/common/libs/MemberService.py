@@ -15,7 +15,9 @@ from sqlalchemy import or_
 
 from application import app, db
 from common.libs.Helper import getCurrentDate
+from common.models.ciwei.Appeal import Appeal
 from common.models.ciwei.Goods import Good
+from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Member import Member
 from common.models.ciwei.MemberBalanceChangeLog import MemberBalanceChangeLog
 from common.models.ciwei.Recommend import Recommend
@@ -33,8 +35,8 @@ class MemberService:
     # 生成秘钥
     @staticmethod
     def geneSalt(length=16):
-        keylist = [random.choice((string.ascii_letters + string.digits)) for i in range(length)]
-        return ("".join(keylist))
+        keylist = [random.choice((string.ascii_letters + string.digits)) for _ in range(length)]
+        return "".join(keylist)
 
     @staticmethod
     def getWeChatOpenId(code, get_session_key=False):
@@ -133,7 +135,7 @@ class MemberService:
 
         # 互相匹配
         release_type = goods_info.business_type
-        goods_list = query.filter_by(business_type=1-release_type).all()
+        goods_list = query.filter_by(business_type=1 - release_type).all()
         for good in goods_list:
             member_id = good.member_id if release_type == 1 else g.member_info.id  # 获得寻物启示贴主id
             new_recommend = MemberService.addRecommendGoods(member_id=member_id,
@@ -171,7 +173,7 @@ class MemberService:
         return True
 
     @staticmethod
-    def filterRecommends(recommend_list=[], only_new=True):
+    def filterRecommends(recommend_list=None, only_new=True):
         """
         对于只看新增的就过滤已经删除的物品
         如果推荐的物品，已经被删除，将推荐的状态置为 -1
@@ -179,6 +181,9 @@ class MemberService:
         :param recommend_list: 推荐记录列表
         :return:
         """
+        if recommend_list is None:
+            # 默认赋值[]是可变的，不允许
+            recommend_list = []
         recommend_dict = {}
         for recommend in recommend_list:
             good_id = recommend.goods_id
@@ -200,7 +205,6 @@ class MemberService:
         if recommend and recommend.status != status:
             recommend.status = status
             db.session.add(recommend)
-            db.session.commit()
 
     @staticmethod
     def setMemberBalanceChange(member_info=None, unit=0, note="答谢"):
@@ -239,3 +243,80 @@ class MemberService:
         # 寻物启示可精准，失物招领宜宽泛。
         # 寻物启示三思后发
         return search_words
+
+    @staticmethod
+    def preMarkGoods(member_id=0, goods_id=0):
+        """
+        预认领
+        :param member_id:
+        :param goods_id:
+        :return:
+        """
+        if not member_id or not goods_id:
+            return
+        repeat_mark = Mark.query.filter_by(member_id=member_id, goods_id=goods_id).first()
+        if repeat_mark:
+            if repeat_mark.status == 7:
+                # 将被删除的记录状态初始化
+                repeat_mark.status = 0
+                db.session.add(repeat_mark)
+            return
+        pre_mark = Mark()
+        pre_mark.goods_id = goods_id
+        pre_mark.member_id = member_id
+        db.session.add(pre_mark)
+
+    @staticmethod
+    def markGoods(member_id=0, goods_id=0):
+        """
+        认领
+        :param member_id:
+        :param goods_id:
+        :return: 认领失败/成功
+        """
+        if not member_id or not goods_id:
+            return False
+        pre_mark = Mark.query.filter_by(member_id=member_id, goods_id=goods_id).first()
+        if not pre_mark or pre_mark.status != 0:
+            # 不符合认领的条件
+            return False
+        pre_mark.status = 1
+        db.session.add(pre_mark)
+        return True
+
+    @staticmethod
+    def hasMarkGoods(member_id=0, goods_id=0):
+        """
+        是否预认领/认领了该物品(详情可否见放置地址)
+        :param member_id:
+        :param goods_id:
+        :return:
+        """
+        if not member_id or not goods_id:
+            return False
+        mark = Mark.query.filter(Mark.member_id == member_id,
+                                 Mark.goods_id == goods_id,
+                                 Mark.status != 7).first()
+        return mark is not None
+
+    @staticmethod
+    def appealGoods(member_id=0, goods_id=0):
+        """
+        创建申诉(认为已被他人取走的物品是自己的)
+        :param member_id:
+        :param goods_id:
+        :return:
+        """
+        if not member_id or not goods_id:
+            return
+        repeat_appeal = Appeal.query.filter_by(member_id=member_id, goods_id=goods_id).first()
+        if repeat_appeal:
+            if repeat_appeal.status == 7:
+                # 将被删除的记录状态初始化
+                repeat_appeal.status = 0
+                db.session.add(repeat_appeal)
+            return
+        appeal = Appeal()
+        appeal.member_id = member_id
+        appeal.goods_id = goods_id
+        db.session.add(appeal)

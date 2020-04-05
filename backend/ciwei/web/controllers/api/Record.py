@@ -2,13 +2,14 @@
 import datetime
 
 from flask import request, jsonify, g
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 
 from application import db
 from common.libs import Helper
 from common.libs.Helper import getCurrentDate, getDictFilterField
 from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
+from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Member import Member
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Recommend import Recommend
@@ -55,16 +56,21 @@ def recordSearch():
         # 找出发布记录
         query = query.filter_by(member_id=member_info.id)
     elif op_status == 1:
-        # 找出认寻列表
-        if member_info.mark_id:
-            mark_id_list = member_info.mark_id.split('#')
-            mark_id_list_int = [int(i) for i in mark_id_list]
-            query = query.filter(Good.id.in_(mark_id_list_int))
+        # 找出认领列表
+        mark_goods_ids = Mark.query.filter_by(member_id=member_info.id).with_entities(Mark.goods_id).distinct().all()
+        if mark_goods_ids:
+            query = query.filter(Good.id.in_(mark_goods_ids))
         else:
             resp['code'] = 200
             resp['data']['list'] = []
             resp['data']['has_more'] = 0
             return jsonify(resp)
+    elif op_status == 5:
+        # 找出归还列表
+        query = query.filter(and_(Good.business_type == 2,
+                                  Good.status != 7,
+                                  or_(Good.return_goods_openid == member_info.openid,
+                                      Good.qr_code_openid == member_info.openid)))
     elif op_status == 2:
         # 找出推荐列表里面的所有物品信息
         only_new = req['only_new']
@@ -155,7 +161,7 @@ def recordDelete():
     4.删除(取消)认领
     :return: 成功
     """
-    resp = {'code': -1, 'msg': 'delete record successfully', 'data': {}}
+    resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
 
     # 检查登陆
@@ -173,21 +179,31 @@ def recordDelete():
     op_status = int(req['op_status']) if 'op_status' in req else ''
     id_list = req['id_list'][1:-1].split(',')
     if op_status == 0:
+        # 全部变成管理员发的帖子
         for i in id_list:
             goods_info = Good.query.filter_by(id=int(i)).first()
-            goods_info.status = 7
+            business_type = goods_info.business_type
+            if business_type == 1:
+                # 十五章哦呵令
+                goods_info.id = 100001
+                goods_info.openid = 'opLxO5fubMUl7GdPFgZOUaDHUik8'
+            elif business_type == 2:
+                goods_info.business_type = 1
+                goods_info.id = 100001
+                goods_info.openid = 'opLxO5fubMUl7GdPFgZOUaDHUik8'
+            else:
+                goods_info
             db.session.add(goods_info)
     elif op_status == 1:
-        mark_id_list = member_info.mark_id.split('#')
-        for i in id_list:
-            mark_id_list.remove(i)
-            member_info.mark_id = '#'.join(mark_id_list)
-            db.session.add(member_info)
-            # TODO：物品的mark_id也要去掉？？
+        # 批量更新 status = 7
+        Mark.query.filter(Mark.goods_id.in_(id_list)).update({'status': 7}, synchronize_session='fetch')
+    elif op_status == 5:
+        Good.query.filter(Good.business_type == 2,
+                          Good.id.in_(id_list)).update({'business_type': 1}, synchronize_session='fetch')
     elif op_status == 2:
         # 批量更新 status = 7
         Recommend.query.filter(Recommend.member_id == member_info.id,
-                                Recommend.goods_id.in_(id_list)).update({'status': 7}, synchronize_session='fetch')
+                               Recommend.goods_id.in_(id_list)).update({'status': 7}, synchronize_session='fetch')
     elif op_status == 4:
         # 物品和举报状态为 5
         id_list_int = [int(i) for i in id_list]
