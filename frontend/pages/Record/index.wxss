@@ -1,5 +1,7 @@
 @import "../template/goods-item/goods-item-template.wxss";
 @import "../template/search-bar/search-bar-template.wxss";
+@import "../template/floating-ball/floating-ball-template.wxss";
+
 page {
   /*背景图片*/
   background-image: url("https://console.changshunlive.com/static/img/20190308185846.png");
@@ -54,7 +56,19 @@ page {
   overflow: hidden;
 }
 
-.type-box-wider{
+
+.type-box-four {
+  width: 185rpx;
+  box-sizing: content-box;
+  font-size: 24rpx;
+  line-height: 64rpx;
+  text-align: center;
+  display: inline-block;
+  overflow: hidden;
+}
+
+
+.status-box-two{
     width: 375rpx
 }
 

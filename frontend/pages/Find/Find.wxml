@@ -5,7 +5,7 @@
 <view class="hide{{tutorial?'show':''}}" bindtouchstart="closeTutorial">
   <!--遮罩层  -->
   <view class="shade">
-    <image class="finger" src="/images/icons/finger.png"></image>
+    <image class="finger" src="/images/icons/finger.png" ></image>
   </view>
 </view>
 
@@ -26,13 +26,15 @@
   <view bindtouchmove="tapDrag" bindtouchend="tapEnd" bindtouchstart="tapStart"
         class="all_container {{open ? 'fold' : ''}}">
     <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
-
-    <!--悬浮球-->
-    <view class="ball {{business_type? '': 'ball-extra'}}" catch:touchstart="businessTypeClick">
-      <view class="business_type">
-        {{business_type? '寻': '失'}}
-      </view>
-    </view>
+    
+    <import src="../template/floating-ball/floating-ball-template.wxml"></import>
+    <template is="floating-ball" data="{{business_type}}"></template>
+<!--    &lt;!&ndash;悬浮球&ndash;&gt;-->
+<!--    <view class="ball {{business_type? '': 'ball-extra'}}" catch:touchstart="businessTypeClick">-->
+<!--      <view class="business_type">-->
+<!--        {{business_type? '寻': '失'}}-->
+<!--      </view>-->
+<!--    </view>-->
 
     <form bindsubmit="formSubmit">
       <view class="search_container">

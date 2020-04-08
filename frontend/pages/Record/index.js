@@ -1,4 +1,176 @@
-var app = getApp();
+const app = getApp();
+const util = require("../../utils/util");
+
+
+/**
+ * deleteLinkLostGoods 在删除归还通知的时候删除链接的失物
+ * @param id_list
+ */
+const deleteLinkLostGoods = function (id_list = []) {
+  wx.request({
+    url: app.buildUrl('/goods/link/lost/del'),
+    header: app.getRequestHeader(),
+    data: {
+      id: id_list
+    },
+    success: res => {
+      if (res.data.code !== 200) {
+        app.alert({content: res.data.msg})
+      }
+    },
+    fail: res => {
+      app.serverBusy()
+    }
+  })
+};
+
+
+/**
+ * deleteLinkReturnGoods 在删除归还通知的时候删除链接的失物
+ * @param id_list
+ */
+const deleteLinkReturnGoods = function (id_list = []) {
+  wx.request({
+    url: app.buildUrl('/goods/link/return/del'),
+    header: app.getRequestHeader(),
+    data: {
+      id: id_list
+    },
+    success: res => {
+      if (res.data['code'] !== 200) {
+        app.alert({content: res.data['msg']})
+      }
+    },
+    fail: res => {
+      app.serverBusy()
+    }
+  })
+};
+
+/**
+ * doCancelReturnGoods  取消归还{@link toDeleteMyReleaseReturn}时，选择直接删除归还帖子
+ * @param goods_ids
+ */
+const doCancelReturnGoods = function (goods_ids = [], that) {
+  wx.request({
+    url: app.buildUrl('/goods/return/cancel'),
+    header: app.getRequestHeader(),
+    data: {
+      ids: goods_ids
+    },
+    success: res => {
+      let resp = res.data
+      if (resp['code'] !== 200) {
+        app.alert({content: resp['msg']});
+        return
+      }
+      that.editTap();
+      that.onPullDownRefresh();
+      app.alert({
+        title: '操作提示',
+        content: '删除成功'
+      })
+    },
+    fail: res => {
+      app.serverBusy()
+    }
+  })
+};
+
+
+/**
+ * 只是删除自己发布的归还贴
+ * @param goods_id
+ */
+const doCleanReleasedReturnGoods = function (goods_id = [], that) {
+  wx.request({
+    url: app.buildUrl('/goods/return/clean'),
+    header: app.getRequestHeader(),
+    data: {
+      ids: [goods_id]
+    },
+    success: res => {
+      let resp = res.data
+      if(resp['code'] !== 200){
+        app.alert({content:resp['msg']})
+        return
+      }
+      //关闭编辑栏和刷新
+      that.editTap();
+      that.onPullDownRefresh();
+      app.alert({
+        title: '操作提示',
+        content: '归还贴已删除',
+      })
+    }
+  })
+};
+
+
+/**
+ * returnToFoundGoodsInBatch 取消归还{@link toDeleteMyReleaseReturn}时选择实际将帖子转成公开的失物招领
+ * @param goods_ids
+ */
+const returnToFoundGoodsInBatch = function (goods_ids = []) {
+  wx.request({
+    url: app.buildUrl('/goods/return/to/found'),
+    header: app.getRequestHeader(),
+    data: {
+      id: goods_ids
+    },
+    success: res => {
+      let resp = res.data;
+      if (resp['code'] !== 200) {
+        app.alert({content: resp['msg']});
+        return
+      }
+      //直接前往失物招领的发布页面
+      wx.showToast({
+        title: '操作成功',
+        duration: 500,
+        mask: true,
+        success: res => {
+          wx.redirectTo({
+            url: '/pages/Find/Find?business_type=1'
+          })
+        }
+      })
+    },
+    fail: res => {
+      app.serverBusy()
+    }
+  })
+};
+
+/**
+ * giveUnmarkedFoundToSystem 把待认领的失物招领送给系统
+ * @param goods_ids
+ * @param that
+ */
+const giveUnmarkedFoundToSystem = function(goods_ids=[], that) {
+  wx.request({
+    url: app.buildUrl('/goods/found/to/sys'),
+    header: app.getRequestHeader(),
+    data: {
+      id: goods_ids
+    },
+    success: res => {
+      let resp = res.data;
+      if (resp['code'] !== 200) {
+        app.alert({content: resp['msg']});
+        return
+      }
+      //关闭编辑栏和刷新
+      that.editTap();
+      that.onPullDownRefresh();
+    },
+    fail: res => {
+      app.serverBusy()
+    }
+  })
+};
+
+
 //从Mine/Mine跳转至此
 Page({
   data: {
@@ -12,7 +184,7 @@ Page({
    * @param options 跳转传入参数
    */
   onLoad: function(options) {
-    var op_status = options.op_status;
+    let op_status = options.op_status;
     this.setData({
       op_status: op_status, //参数,代表正在查看认领/匹配/发布/答谢
     })
@@ -24,35 +196,69 @@ Page({
    * @param op_status 发布记录 or 认领找回 or 匹配推荐 or 发布举报(管理员可见的管理后台)
    */
   onLoadSetData: function (op_status) {
-    if (op_status == 0) { //发布
-      var check_cat = [
+    let check_cat;
+    if (op_status == 0) {
+      //发布记录
+      check_cat = [
         {
           id: 1,
-          name: '待寻回/认领'
+          name: '待寻回'
         },
         {
           id: 2,
-          name: '已寻回/认领',
+          name: '预寻回',
         },
         {
           id: 3,
-          name: '已答谢',
-        },
-      ]
-    } else if (op_status == 1) { //认领和找回记录
-      var check_cat = [
-        {
-          id: 2,
-          name: '预认领/找回',
-        },
-        {
-          id: 3,
-          name: '已认领/找回',
-        },
+          name: '已寻回',
+        }
       ];
-    } else if (op_status == 2) { //匹配推送
-      var recommend = app.globalData.recommend
-      var check_cat = [{
+      // 默认查看寻物启事帖子
+      this.setData({
+        business_type: 0
+      })
+    } else if (op_status == 1) {
+      //认领记录（后端是Mark表的status不是Goods表的status）
+       check_cat = [
+        {
+          id: 0,  //mark的status，不是goods的status
+          name: '待取回',
+        },
+        {
+          id: 1, //mark的status，不是goods的status
+          name: '已取回',
+        },
+         {
+           id: 3,
+           name: '已答谢',
+         },
+      ];
+    }
+    else if (op_status == 5){
+      //归还记录（后端是Goods表的status但因为business_type==2所以不用考虑和外部同步）
+      check_cat = [
+        {
+          id: 1,  //goods的status
+          name: '待确认',
+        },
+        {
+          id: 2,   //goods的status
+          name: '待取回',
+        },
+        {
+          id: 3,
+          name: '已取回',
+        },
+        {
+          id: 4,
+          name: '已答谢',
+        }
+      ];
+    }
+    else if (op_status == 2) {
+      //匹配推送
+      let recommend = app.globalData.recommend;
+      check_cat = [{
         id: 1,
         name: '待认领',
         value: recommend.wait,
@@ -68,8 +274,9 @@ Page({
           value: recommend.done,
         },
       ]
-    } else if (op_status == 4) { //管理后台
-      var check_cat = [{
+    } else if (op_status == 4) {
+      //管理后台
+      check_cat = [{
         id: 1,
         name: '待处理'
       },
@@ -91,15 +298,16 @@ Page({
         }
       ]
     }
+    let check_cat_id = op_status == 1? 0: 1
     this.setData({
-      only_new: true,
-      check_status_id: op_status == 1 ? 2 : 1, //代表当前选中的选项卡，认寻记录的默认状态是预，其它都是待
+      only_new: false,
+      check_status_id: check_cat_id, //代表当前选中的选项卡
       infos: {
         list: {},
-        only_new: true,
+        only_new: false,
         saveHidden: true,
         op_status: op_status,  //参数,代表正在查看认领/匹配/发布/答谢
-        check_status_id: 1, //代表当前选中的选项卡
+        check_status_id: check_cat_id, //代表当前选中的选项卡
         check_cat: check_cat
       }
     })
@@ -111,10 +319,9 @@ Page({
     this.setData({
       regFlag: app.globalData.regFlag
     });
-    //新的recommend数量与app全局数据同步化
-    if (this.data.op_status == 2) {
-      this.updateTips();
-    }
+    //新的recommend和return的数量
+    this.onPullDownRefresh();
+    this.updateTips();
   },
   /**
    * onPullDownRefresh 刷新页面
@@ -132,10 +339,8 @@ Page({
     if (op_status == 4) {
       this.getReportList();
     } else {
-      if (op_status == 2) {
-        //匹配更新new计数
-        this.updateTips();
-      }
+      //匹配更新new计数
+      this.updateTips();
       this.getGoodsList();
     }
   },
@@ -144,13 +349,28 @@ Page({
    */
   updateTips: function() {
     if (this.data.op_status == 2) {
-      let recommend = app.globalData.recommend;
-      let infos = this.data.infos;
-      infos.check_cat[0].value = recommend.wait //推荐记录状态是待认领
-      infos.check_cat[1].value = recommend.doing //推荐记录状态是预认领
-      infos.check_cat[2].value = recommend.done //推荐记录状态是已认领
-      this.setData({
-        infos: infos
+      util.getNewRecommend((data) => {
+        //新的推荐通知
+        let recommend = data.recommend;
+        let infos = this.data.infos;
+        infos.check_cat[0].value = recommend.wait;
+        infos.check_cat[1].value = recommend.doing; //推荐记录状态是预认领
+        infos.check_cat[2].value = recommend.done; //推荐记录状态是已认领
+        this.setData({
+          infos: infos
+        })
+      })
+    }
+    else if (this.data.op_status == 5) {
+      //新的归还通知
+      util.getNewRecommend((data) => {
+        let returns = data.return;
+        let infos = this.data.infos;
+        infos.check_cat[0].value = returns.wait;
+        infos.check_cat[1].value = returns.doing; //推荐记录状态是预认领
+        this.setData({
+          infos: infos
+        })
       })
     }
   },
@@ -177,20 +397,19 @@ Page({
    * @param event
    */
   onDetailTap: function(event) {
-    var id = event.currentTarget.dataset.id;
-    var saveHidden = this.data.infos.saveHidden;
+    let id = event.currentTarget.dataset.id;
+    let saveHidden = this.data.infos.saveHidden;
     if (!saveHidden) {
       app.alert({
         'content': "请先完成编辑再查看详情~"
       });
     } else {
-      app.globalData.op_status = this.data.op_status;
       wx.navigateTo({
-        url: '/pages/Find/info/info?goods_id=' + id,
+        url: '/pages/Find/info/info?goods_id=' + id+'&op_status='+this.data.op_status
       })
-      //更新new标识
-      var infos = this.data.infos
-      var idx = (infos.list || []).findIndex((item) => item.id === id)
+      //在当前页的info中找到该帖，更新其new标识
+      let infos = this.data.infos
+      let idx = (infos.list || []).findIndex((item) => item.id === id)
       infos.list[idx].new = 1
       this.setData({
         infos: infos
@@ -238,7 +457,8 @@ Page({
         p: this.data.p,
         op_status: this.data.op_status,
         //仅获取还未处理过的列表
-        only_new: this.data.only_new
+        only_new: this.data.only_new,
+        business_type: this.data.business_type
       },
       success: (res) => {
         let resp = res.data
@@ -417,25 +637,354 @@ Page({
       },
     });
   },
-  //选中删除的数据
-  deleteSelected: function() {
-    var that = this;
-    var list = this.data.infos.list;
-    var id_list = [];
-    for (var i = 0; i < list.length; i++) {
-      var curItem = list[i];
+  /**
+   * getSelectedIdList 获取批量选中的记录
+   * @returns {[]}
+   */
+  getSelectedIdList: function(){
+    let list = this.data.infos.list;
+    let id_list = [];
+    for (let i = 0; i < list.length; i++) {
+      let curItem = list[i];
       if (curItem.selected) {
         id_list.push(curItem.id);
       }
     }
+    return id_list
+  },
+  /**
+   * deleteSelected 删除批量选中的记录
+   */
+  deleteSelected: function() {
+    let id_list = this.getSelectedIdList();
+    let op_status = this.data.op_status;
+    if(op_status == 0){
+      // 删除我的发布记录
+      this.toDeleteMyRelease(id_list);
+    }
+    //删除我的认领，我的匹配，归还通知，答谢等
+    else if (op_status == 5){
+      //删除我的归还通知
+      this.toDeleteReceivedReturn(id_list)
+    } else {
+      this.doDeleteSelected(id_list);
+    }
+  },
+  /**
+   * confirmSelected 批量确认已取回
+   */
+  confirmSelected: function () {
+    //批量确认取回
+    app.alert({
+      title: '操作提示',
+      content: '恭喜取回物品，是否确认取回？',
+      showCancel: true,
+      cb_confirm: () => {
+        let id_list = this.getSelectedIdList();
+        let op_status = this.data.op_status;
+        let url;
+        if(op_status == 1){
+          url='/goods/gotback'
+        } else if(op_status == 5){
+          url = '/goods/return/gotback'
+        }
+        this.doGotbackReturnGoods(url, id_list)
+      }
+    });
+  },
+  /**
+   * doGotbackReturnGoods 确认取回归还帖
+   */
+  doGotbackReturnGoods: function (url="", id_list=[]) {
+    wx.request({
+      url: app.buildUrl(url),
+      header: app.getRequestHeader(),
+      data: {
+        id: id_list
+      },
+      success: res=>{
+        let resp = res.data
+        if (resp['code'] !== 200) {
+          app.alert({content: resp['msg']});
+          return
+        }
+        this.editTap()
+        this.onPullDownRefresh()
+        app.alert({title:'答谢提示', content: '积分+5，记得答谢发布者哦~'})
+      },
+      fail: res => {
+        app.serverBusy()
+      }
+    })
+  },
+  /**
+   * toDeleteReceivedReturn 删除收到的归还通知
+   */
+  toDeleteReceivedReturn: function(id_list=[]){
+    let status = this.data.check_status_id
+    let cnt = id_list.length
+    if( status == 1) {
+      //待确认的归还，删除代表拒绝
+      this.toRejectReturnGoods("确认"+(cnt>1?'都':'')+'不是你丢的东西？', id_list)
+    }
+    else if (status == 3) {
+      //已取回的归还，
+      this.toDeleteGotbackReturnGoods(id_list)
+    }
+  },
+  /**
+   * toRejectReturnGoods 批量删除归还通知代表拒绝归还（不是自己的）
+   * @param msg
+   */
+  toRejectReturnGoods: function (msg = "", id_list = []) {
+    app.alert({
+      title: '删除提示',
+      content: msg,
+      showCancel: true,
+      cb_confirm: res => {
+        wx.request({
+          url: app.buildUrl('/goods/return/reject'),
+          header: app.getRequestHeader(),
+          data: {
+            id: id_list
+          },
+          success: res => {
+            let resp = res.data;
+            if (resp['code'] !== 200) {
+              app.alert({content: resp['msg']});
+              return
+            }
+            this.editTap()
+            this.onPullDownRefresh()
+            app.alert({
+              title: '操作提示',
+              content: '已拒绝归还。望您早日寻回失物！'
+            });
+          },
+          fail: res => {
+            app.serverBusy()
+          }
+        })
+      }
+    })
+  },
+  /**
+   * toDeleteGotbackReturnGoods 删除已取回的归还通知
+   */
+  toDeleteGotbackReturnGoods: function (id_list=[]) {
+    app.alert({
+      title: '删除提示',
+      content: (this.data.check_status_id == 4 ? '' : '还未答谢呢，') + '确认删除？',
+      showCancel: true,
+      cb_confirm: () => {
+        app.alert({
+          title: '智能删除',
+          content: '点击确认可同时删除已取回的寻物贴。取消则只删除归还通知。',
+          showCancel: true,
+          cb_confirm: () => {
+            deleteLinkLostGoods(id_list);
+            this.doDeleteSelected(id_list);
+          },
+          cb_cancel: () => {
+            this.doDeleteSelected(id_list)
+          }
+        })
+      }
+    })
+  },
+  /**
+   * toDeleteMyRelease 删除我发过的帖子
+   */
+  toDeleteMyRelease: function(id_list=[]){
+    let business_type = this.data.business_type;
+    if (business_type == 2) {
+      //删除归还贴
+      this.toDeleteMyReleaseReturn(id_list)
+    } else if (business_type == 1) {
+      //删失物招领
+      this.toDeleteMyFound(id_list)
+    } else if (business_type == 0) {
+      //删寻物启事
+      this.toDeleteMyLost(id_list)
+    }
+  },
+  /**
+   * toDeleteMyReleaseReturn 删除我发布的归还帖
+   * 已答谢
+   */
+  toDeleteMyReleaseReturn: function (id_list=[]){
+    let status = this.data.check_status_id;
+    if (status == 4 || status == 3) {
+      //已答谢过的归还贴
+      app.alert({
+        title: '删除提示',
+        content: (status == 3 ? '失主还未答谢，' : '') + '确认删除？',
+        showCancel: true,
+        cb_confirm: () => {
+          doCleanReleasedReturnGoods(id_list, this)
+        }
+      })
+    } else if (status == 2) {
+      // 待取回时不允许操作
+      app.alert({
+        title: '删除警示',
+        content: '对方还已确认，还未取回，现在不能进行任何操作！'
+      })
+    } else if (status == 1) {
+      //删除待确认的归还贴
+      app.alert({
+        title: '取消提示',
+        content: '好心归还的东西，对方还没查阅呢，不再等等？',
+        showCancel: true,
+        cb_confirm: ()=>{
+          wx.showActionSheet({
+            itemList: ['公开归还贴', '删除归还贴'],
+            success: (res) => {
+              if (res.tapIndex == 0) {
+                //公开归还贴
+                app.alert({
+                  title: '公开提示',
+                  content: '是否转成公开的失物招领？',
+                  showCancel: true,
+                  cb_confirm: res => {
+                    //转成失物招领
+                    returnToFoundGoodsInBatch(id_list)
+                  }
+                })
+              } else {
+                //删除归还帖子
+                app.alert({
+                  title: '删除提示',
+                  content: '确认删除？对方将无法查看归还贴',
+                  showCancel: true,
+                  cb_confirm: ()=>{
+                    doCancelReturnGoods(id_list, this)
+                  }
+                })
+              }
+            }
+          })
+        }
+      })
+    }
+  },
+  /**
+   * toDeleteMyFound 删除我发布的失物招领帖子
+   * 待取回的不能操作
+   * 待认领，已取回，已答谢的可直接单纯删除{@see doDeleteSelected}
+   * 待认领的提示可以送给平台
+   */
+  toDeleteMyFound: function(id_list=[]){
+    let status = this.data.check_status_id;
+    if (status == 1) {
+      // 无人认领
+      app.alert({
+        title: '删除提示',
+        content: '好心捡到的东西，还没有人认领呢，不再等等？',
+        showCancel: true,
+        cb_confirm: () => {
+          wx.showActionSheet({
+            itemList: ['送给系统', '狠心删除'],
+            success: (res) => {
+              if (res.tapIndex == 0) {
+                //公开归还贴
+                app.alert({
+                  title: '转送提示',
+                  content: '被认领后，答谢金将留在系统，确认转送？',
+                  showCancel: true,
+                  cb_confirm: res => {
+                    //送给系统
+                    giveUnmarkedFoundToSystem(id_list, this)
+                  }
+                })
+              } else {
+                //删除归还帖子
+                app.alert({
+                  title: '删除提示',
+                  content: '确认删除？',
+                  showCancel: true,
+                  cb_confirm: ()=>{
+                    this.doDeleteSelected(id_list)
+                  }
+                })
+              }
+            }
+          })
+        }
+      })
+    } else if (status == 2) {
+      // 待取回时不允许操作
+      app.alert({
+        title: '操作警示',
+        content: '对方已确认，还未取回，现在不能进行任何操作！'
+      })
+    } else if (status == 3 || status == 4) {
+      app.alert({
+        title: '删除提示',
+        content: (status == 3 ? '还未答谢，' : '') + '确认删除？',
+        showCancel: true,
+        cb_confirm: () => {
+          this.doDeleteSelected(id_list);
+        }
+      })
+    }
+  },
+  /**
+   * toDeleteMyLost 删除我发布的寻物启事帖子
+   * 待归还的，已取回，已答谢的都可以单纯直接删除
+   * 已取回，已答谢的可以选择智能删除归还通知{@see deleteLinkReturnGoods}
+   */
+  toDeleteMyLost: function(id_list=[]){
+    //寻物启事帖，除了预寻回的可任意删除
+    let status = this.data.check_status_id;
+    if (status == 1) {
+      //待归还的帖子
+      app.alert({
+        title: '删除提示',
+        content: "很遗憾，暂无人拾到归还，确定不再等等？",
+        showCancel: true,
+        cb_confirm: () => {
+          //批量删除
+          this.doDeleteSelected(id_list)
+        }
+      })
+    } else if (status == 3 || status == 4) {
+      //已取回和已答谢的
+      app.alert({
+        title: '删除提示',
+        content: (status == 3 ? '还未答谢，' : '') + '确认删除？',
+        showCancel: true,
+        cb_confirm: () => {
+          //批量删除
+          app.alert({
+            title: '智能清理',
+            content: '是否同步清除寻物贴对应的归还通知？',
+            showCancel: true,
+            cb_confirm: () => {
+              this.doDeleteSelected(id_list);
+              deleteLinkReturnGoods(id_list);
+            },
+            cb_cancel: () => {
+              this.doDeleteSelected(id_list);
+            }
+          })
+        }
+      })
+    }
+  },
+  /**
+   * doDeleteSelected 纯粹的批量删除操作
+   */
+  doDeleteSelected: function (id_list=[]) {
     wx.request({
       url: app.buildUrl("/record/delete"),
       header: app.getRequestHeader(),
       data: {
-        op_status: that.data.op_status,
-        id_list: id_list
+        op_status: this.data.op_status,
+        id_list: id_list,
+        status: this.data.check_status_id
       },
-      success: function(res) {
+      success: (res) => {
         var resp = res.data;
         if (resp.code !== 200) {
           app.alert({
@@ -443,20 +992,26 @@ Page({
           });
           return
         }
-        that.onPullDownRefresh();
+        //关闭编辑栏
+        this.editTap();
+        //刷新
+        this.onPullDownRefresh();
       },
-      fail: function(res) {
+      fail: (res) => {
         app.serverBusy();
-        return;
       },
-      complete: function(res) {
-        that.setData({
+      complete: (res) => {
+        this.setData({
           processing: false,
           loadingHidden: true
         });
       },
     })
   },
+  /**
+   * checkReportClick 举报选项卡切换
+   * @param e
+   */
   checkReportClick: function(e) {
     //选择一次分类时返回选中值
     let infos = this.data.infos;
@@ -481,17 +1036,99 @@ Page({
     this.onPullDownRefresh();
   },
   /**
-   * op_status为4的时候
+   * businessTypeChange 失物招领 <——> 寻物启事 <——> 归还帖
+   */
+  businessTypeClick: function() {
+    let infos = this.data.infos;
+    let business_type = this.data.business_type;
+    if (business_type == 0) {
+      //寻-->失
+      infos.check_cat = [
+        {
+          id: 1,
+          name: '待认领'
+        },
+        {
+          id: 2,
+          name: '预认领',
+        },
+        {
+          id: 3,
+          name: '已认领',
+        },
+        {
+          id: 4,
+          name: '已答谢'
+        }];
+      business_type = 1
+    } else if (business_type == 1) {
+      //失->还
+      infos.check_cat = [
+        {
+          id: 0,
+          name: '已拒绝'
+        },
+        {
+          id: 1,
+          name: '待确认'
+        },
+        {
+          id: 2,
+          name: '待取回',
+        },
+        {
+          id: 3,
+          name: '已取回',
+        },
+        {
+          id: 4,
+          name: '已答谢'
+        }];
+      business_type = 2
+    } else {
+      //还->寻
+      infos.check_cat = [
+        {
+          id: 1,
+          name: '待寻回'
+        },
+        {
+          id: 2,
+          name: '预寻回',
+        },
+        {
+          id: 3,
+          name: '已寻回',
+        }
+      ];
+      business_type = 0
+    }
+    infos.check_status_id = 1;
+      //设置选项栏和业务类型
+    this.setData({
+      check_status_id: 1,
+      infos: infos,
+      business_type: business_type
+    });
+    //重新加载页面
+    this.onPullDownRefresh();
+  },
+  /**
+   * op_status不为4的时候
    * @param e
    */
   recordTypeClick: function(e) {
     //选择一次分类时返回选中值
     let infos = this.data.infos
-    infos.check_status_id = e.currentTarget.id
-    this.setData({
-      infos: infos,
-      check_status_id: e.currentTarget.id
-    })
-    this.onPullDownRefresh();
-  },
-})
+    let old_id = infos.check_status_id
+    let new_id = e.currentTarget.id
+    if(old_id != new_id) {
+      infos.check_status_id = new_id
+        this.setData({
+          infos: infos,
+          check_status_id: e.currentTarget.id
+        })
+      this.onPullDownRefresh();
+    }
+  }
+});

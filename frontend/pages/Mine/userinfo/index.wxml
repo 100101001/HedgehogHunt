@@ -104,6 +104,7 @@
 <modal class="sms-detail-modal" wx:if="{{total_notify_times}}" hidden="{{hiddenSmsDetailModal}}" title="短信余额详情" no-cancel="true" confirm-text="确定" bindconfirm="closeSmsDetail">
   <view class="sms-detail">
     <view wx:if="{{!sms_pkgs.length}}">短信包：无</view>
+    <view class="hrz" wx:if="{{!sms_pkgs.length}}"></view>
     <block wx:for="{{sms_pkgs}}" wx:key="index">
       <view>短信包：{{item.num}}条至{{item.expire}}</view>
       <view class="hrz"></view>

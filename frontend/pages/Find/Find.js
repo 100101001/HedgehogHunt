@@ -4,19 +4,17 @@ const app = getApp();
 Page({
   data: {
     banners: ["/images/logo.jpg"],
-    activeCategoryId: -1,
+    activeCategoryId: 1,
     categories: []
   },
   onLoad: function (options) {
     //如果没有页面参数，则默认跳转失物招领页面
-    this.onLoadSetData(options.business_type ? options.business_type : 1)
+    console.log(options)
+    this.onLoadSetData(options.business_type ? parseInt(options.business_type) : 1)
   },
   onLoadSetData: function (business_type = 0) {
     let verb = business_type ? '认领' : '寻回';
-    let categories = [{
-      id: -1,
-      name: '全部',
-    },
+    let categories = [
       {
         id: 1,
         name: '待' + verb
@@ -29,6 +27,10 @@ Page({
         id: 3,
         name: '已' + verb
       },
+      {
+        id: 4,
+        name: '已答谢'
+      }
     ];
     if (!business_type) {
       wx.setNavigationBarTitle({

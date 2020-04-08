@@ -176,9 +176,10 @@ CREATE TABLE `goods`  (
   `user_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拉黑会员的管理员id',
   `member_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '发布消息的会员id',
   `openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '第三方id',
-  `qr_code_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '扫描上传信息的二维码id',
+  `nickname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '发布消息的会员名',
+  `avatar` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '发布消息的会员头像',
   `mobile` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员手机号码',
-  `owner_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '最终取回物品的会员id,还是换成字符串吧',
+  `owner_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '最终取回物品的会员id',
   `name` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '商品名称',
   `owner_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '物主姓名',
   `location` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '物品放置地址',
@@ -186,15 +187,17 @@ CREATE TABLE `goods`  (
   `main_image` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '主图',
   `pics` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '组图',
   `summary` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
-  `status` tinyint(1) UNSIGNED NOT NULL DEFAULT 7 COMMENT '1:待, 2:预, 3:已, 5:管理员删, 7:发布者创建中, 8:发布者被管理员拉黑',
-  `recommended_times` int(11) NOT NULL DEFAULT 0 COMMENT '总匹配过失/拾物次数',
-  `report_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '被举报后的状态，用于存储举报的状态值',
   `business_type` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 1：失物招领 0：寻物启事',
+  `qr_code_openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '' COMMENT '扫码归还的码主的openid',
+  `return_goods_id` int(11) UNSIGNED DEFAULT 0  COMMENT '归还的寻物启示ID',
+  `return_goods_openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '' COMMENT '归还的寻物启示OPENID',
+  `status` tinyint(1) UNSIGNED NOT NULL DEFAULT 7 COMMENT '1:待, 2:预, 3:已, 5:管理员删, 7:发布者创建中, 8:发布者被管理员拉黑',
+  `is_thanked` tinyint(1) NOT NULL DEFAULT 0 COMMENT '状态 0：未答谢 1:已答谢',
   `view_count` int(11) NOT NULL DEFAULT 0 COMMENT '总浏览次数',
-  `tap_count` int(11) NOT NULL DEFAULT 0 COMMENT '查看地址次数',
-  `mark_id` varchar(400) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '点击获取或者提交的用户id,列表',
   `top_expire_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '置顶过期时间',
   `category` tinyint(1) UNSIGNED NOT NULL DEFAULT 10 COMMENT '1:钱包 2：钥匙 3: 卡类/证照 4: 数码产品 5：手袋/挎包 6：衣服/鞋帽 7：首饰/挂饰 8：行李/包裹 9：书籍/文件 10：其它',
+  `recommended_times` int(11) NOT NULL DEFAULT 0 COMMENT '总匹配过失/拾物次数',
+  `report_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '被举报后的状态，用于存储举报的状态值',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
@@ -202,7 +205,12 @@ CREATE TABLE `goods`  (
   INDEX `ix_goods_status`(`status`) USING BTREE,
   INDEX `ix_goods_top_expire_time`(`top_expire_time`) USING BTREE,
   INDEX `ix_goods_view_count`(`view_count`) USING BTREE,
-  INDEX `ix_goods_category`(`category`) USING BTREE
+  INDEX `ix_goods_category`(`category`) USING BTREE,
+  INDEX `ix_goods_owner_id`(`owner_id`) USING BTREE,
+  INDEX `ix_goods_qr_code_openid`(`qr_code_openid`) USING BTREE,
+  INDEX `ix_goods_return_goods_openid`(`return_goods_openid`) USING BTREE,
+  INDEX `ix_goods_business_type`(`business_type`) USING BTREE,
+  INDEX `ix_goods_is_thanked`(`is_thanked`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1  CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品表' ROW_FORMAT = Dynamic;
 
 
@@ -232,17 +240,19 @@ INSERT INTO `goods_category` VALUES (10,'其它', '');
 -- Table structure for recommend
 -- ----------------------------
 DROP TABLE IF EXISTS `recommend`;
-CREATE TABLE `recommend`(
+CREATE TABLE `recommend`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `goods_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '推荐的物品id',
-  `member_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '被推荐的用户id',
+  `found_goods_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拾物id',
+  `lost_goods_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '寻物id',
+  `target_member_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '看到此推荐记录的用户id',
   `status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '状态 0:未读, 1:已读, -1: 已删除',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `ix_recommend_goods_id`(`goods_id`) USING BTREE,
-  INDEX `ix_recommend_member_id`(`member_id`) USING BTREE,
-  INDEX `ix_recommend_status` (`status`) USING BTREE
+  INDEX `ix_recommend_found_goods_id`(`found_goods_id`) USING BTREE,
+  INDEX `ix_recommend_lost_goods_id`(`lost_goods_id`) USING BTREE,
+  INDEX `ix_recommend_target_member_id`(`target_member_id`) USING BTREE,
+  INDEX `ix_recommend_status`(`status`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '推荐表' ROW_FORMAT = Dynamic;
 
 
@@ -259,8 +269,27 @@ CREATE TABLE `mark`(
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_mark_member_id`(`member_id`) USING BTREE,
-  INDEX `ix_recommend_goods_id`(`goods_id`) USING BTREE
+  INDEX `ix_mark_goods_id`(`goods_id`) USING BTREE,
+  INDEX `ix_mark_status`(`status`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '认领表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for appeal
+-- ----------------------------
+DROP TABLE IF EXISTS `appeal`;
+CREATE TABLE `appeal`(
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `goods_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '申诉的物品id',
+  `member_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '用户id',
+  `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 0:待处理 1:已处理完毕',
+  `adm_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '系统指派处理的管理员id',
+  `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
+  `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `ix_appeal_member_id`(`member_id`) USING BTREE,
+  INDEX `ix_appeal_goods_id`(`goods_id`) USING BTREE,
+  INDEX `ix_appeal_status`(`status`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '申诉表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for images
@@ -272,6 +301,7 @@ CREATE TABLE `images`  (
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '图片表' ROW_FORMAT = Dynamic;
+
 
 -- ----------------------------
 -- Table structure for member
@@ -295,13 +325,11 @@ CREATE TABLE `member`  (
   `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 1：有效 0：无效',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
-  `mark_id` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户认领的物品id,字符串',
-  `gotback_id` varchar(2000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户最终取回的物品id,字符串',
-  `recommend_id` varchar(3000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '系统推荐的物品id,字符串',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `ix_member_openid`(`openid`) USING BTREE,
   INDEX `ix_member_status`(`status`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 100000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员表' ROW_FORMAT = Dynamic;
+
 -- ----------------------------
 -- Table structure for member_balance_change_log
 -- ----------------------------
@@ -608,7 +636,9 @@ CREATE TABLE `thanks`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拉黑会员的管理员id',
   `member_id` int(11) UNSIGNED NOT NULL COMMENT '发布感谢的会员id',
-  `order_id` int(11) UNSIGNED NOT NULL COMMENT '微信支付的订单id',
+  `nickname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '发布感谢的会员名',
+  `avatar` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '发布感谢的会员头像',
+  `order_sn` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '微信支付的订单流水号',
   `thank_price` decimal(10, 2) UNSIGNED NOT NULL DEFAULT 0.00 COMMENT '答谢总金额',
   `target_member_id` int(11) UNSIGNED NOT NULL COMMENT '接受消息的会员id',
   `goods_id` int(11) NOT NULL COMMENT '物品id',

@@ -12,10 +12,10 @@ App({
     regFlag: false, //用于判断用户已注册(和缓存中的token一起代表用户已经登录)
     shopName: "闪寻-失物招领",
     //domain: "http://127.0.0.1:8999/api",
-    //domain: "http://192.168.1.116:8999/api",
-    domain: "https://ciwei.opencs.cn/api",
+    domain: "http://192.168.1.116:8999/api",
+    //domain: "https://ciwei.opencs.cn/api",
     static_file_domain: "https://ciwei.opencs.cn",
-    //static_file_domain: "http://192.168.1.116:8999",
+    static_file_domain: "http://192.168.1.116:8999",
     member_status: 1, //用户状态
     op_status: 2,
     showHintQrcode: true, //导航栏上方的提示浮窗，标记是否显示浮窗，用户可关闭
@@ -41,7 +41,7 @@ App({
     smsPkgProductPrice: 5, //短信包量产品价格
     buyQrCodeFreeSmsTimes: 5, //购买二维码免费赠送的通知次数
     subscribe: {  //订阅消息的模板ID
-      recommend: 'ecym_eXCQjpxYgG3ov95r6OrWernCO3QKqsN1qcx7Yc', //给寻物启事发帖者发送匹配通知
+      recommend: 'eT6wS62k3KzRNagqnZOd_Fuui0As0GBX7fYfpUSyi0Y', //给寻物启事发帖者发送匹配通知
       finished: {
         found: '_dAjVN6DHEewP_z01WhKXlZ7xY9nfs_OEtVbnBC88MU',  //各失物招领发布者发送被取回的通知
         lost: 'bHZTF62ciS-03u8MmGe0cA7YMVHdGpwH-bY9wrmfDfY'  //给寻物启事发布者发送物品被归还通知
@@ -50,7 +50,8 @@ App({
     },
     business_type: { //失物招领与寻物启事的标记
       found: 1, //失物招领
-      lost: 0 //寻物启事
+      lost: 0, //寻物启事
+      return: 2 //扫码和寻物归还帖
     },
     kd100 :{   // 快递100的常数
       appId: "wx6885acbedba59c14",
@@ -445,7 +446,9 @@ App({
       icon: 'success',
       duration: 1500,
       success:  (res) => {
-        if (getCurrentPages().length > 1) {
+        let pages = getCurrentPages()
+        //只有当登陆是发生在登录界面的时候才会回退
+        if (pages.length > 1 && pages[pages.length-1].route=='pages/login/index') {
           setTimeout(function () {
             wx.navigateBack({delta: back_delta})
           }, 1000)

@@ -27,8 +27,4 @@
       </view>
     </view>
   </block>
-  <import src="../template/navigate-bar/navigate-bar-template.wxml" />
-<!--  <view>-->
-<!--    <template is="navigate-bar-template" data="{{...isSelecteds}}" />-->
-<!--  </view>-->
 </view>

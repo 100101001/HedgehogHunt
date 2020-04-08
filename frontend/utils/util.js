@@ -111,11 +111,42 @@ function goToPoint(point = "") {
   })
 }
 
+/**
+ * getNewRecommend 获取新消息计数
+ * @param cb_complete
+ */
+const getNewRecommend = function(cb_complete=(data={})=>{}){
+  wx.request({
+    url: app.buildUrl('/member/get-new-recommend'),
+    header: app.getRequestHeader(),
+    success: (res) => {
+      let resp = res.data
+      if (resp['code'] !== 200) {
+        cb_complete({})
+        return
+      }
+      let data = resp['data']
+      app.globalData.total_new = data.total_new;
+      app.globalData.recommend_new = data.recommend_new;
+      app.globalData.thanks_new = data.thanks_new;
+      app.globalData.return_new = data.return_new;
+      app.globalData.return = data.return;
+      app.globalData.recommend = data.recommend;
+      cb_complete(data)
+    },
+    fail: res => {
+      app.serverBusy()
+      cb_complete({})
+    }
+  })
+};
+
 module.exports = {
   formatTime: formatTime,
   onNavigateTap: onNavigateTap,
   regexConfig: regexConfig,
   toFixed: toFixed,
   toFixedStr: toFixedStr,
-  goToPoint: goToPoint
+  goToPoint: goToPoint,
+  getNewRecommend: getNewRecommend
 }

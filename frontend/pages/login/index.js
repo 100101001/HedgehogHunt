@@ -31,14 +31,14 @@ const getNewSessionKey = function (cb_success=(session_key)=>{}) {
       }
     }
   })
-}
+};
 
 
 const checkReg = function (openid, cb_comp = (isReg) => {}) {
   if (app.regFlag && this.getCache("token")) {
     //已注册且已登录
+    app.alert({title:'登录提示', content:'已登录过，勿重复登录！', cb_confirm: ()=>{wx.navigateBack()}});
     cb_comp(true)
-    app.alert({title:'登录提示', content:'已登录过，勿重复登录！', cb_confirm: ()=>{wx.navigateBack()}})
   }
   wx.request({
     url: app.buildUrl("/member/is-reg"),

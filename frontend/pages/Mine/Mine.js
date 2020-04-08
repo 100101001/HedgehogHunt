@@ -12,16 +12,11 @@ Page({
     })
   },
   onShow: function () {
-    var [isSelecteds, urls] = util.onNavigateTap(4);
-    isSelecteds['total_new'] = app.globalData.total_new;
-    isSelecteds['showHintQrcode'] = app.globalData.showHintQrcode
-    isSelecteds['regFlag'] = app.globalData.regFlag
-    isSelecteds['hasQrcode'] = app.globalData.has_qrcode
     this.setData({
-      isSelecteds: isSelecteds,
       recommend_new: app.globalData.recommend_new,
-      thanks_new: app.globalData.thanks_new
-    })
+      thanks_new: app.globalData.thanks_new,
+      return_new: app.globalData.return_new
+    });
     this.setLoadData();
   },
   setLoadData: function () {
@@ -47,27 +42,34 @@ Page({
         label: "发布记录",
         icons: "/images/icons/next.png",
         act: "goRecord",
-        op_status: "0"
+        op_status: 0
       },
       {
-        label: "认寻记录",
+        label: "认领记录",
         icons: "/images/icons/next.png",
         act: "goRecord",
-        op_status: "1"
+        op_status: 1
+      },
+      {
+        label: "归还通知",
+        icons: "/images/icons/next.png",
+        value: this.data.return_new, //value值是待取回的归还
+        act: "goRecord",
+        op_status: 5
       },
       {
         label: "匹配推送",
         icons: "/images/icons/next.png",
         value: this.data.recommend_new,//value值是新推送的，未查看过的记录数，按时间来划分
         act: "goRecord",
-        op_status: "2"
+        op_status: 2
       },
       {
         label: "物主答谢",
         icons: "/images/icons/next.png",
         value: this.data.thanks_new,//value值是新推送的，未查看过的用户答谢数，按时间来划分
         act: "goThanksList",
-        op_status: "3"
+        op_status: 3
       }
     ];
     this.setData({
@@ -99,16 +101,18 @@ Page({
     })
   },
   goRecord: function (event) {
-    var op_status = event.currentTarget.dataset.op_status * 1;
+    //var op_status = event.currentTarget.dataset.op_status * 1;
+    let op_status = event.currentTarget.dataset.op_status
+    console.log(op_status);
     wx.navigateTo({
-      url: '../Record/index?op_status=' + op_status,
+      url: '../Record/index?op_status=' + op_status
     })
   },
   goThanksList: function (event) {
     //app.globalData.op_status = 2;
-    var op_status = event.currentTarget.dataset.op_status * 1;
+    //var op_status = event.currentTarget.dataset.op_status * 1;
     wx.navigateTo({
-      url: '../Thanks/record/index?op_status=' + op_status,
+      url: '../Thanks/record/index?op_status=' + event.currentTarget.dataset.op_status,
     })
   },
   //点击导航

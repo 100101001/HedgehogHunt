@@ -1,7 +1,7 @@
-const useBalance = require("../../template/use-balance/use-balance")
-const util = require("../../../utils/util")
-const app = getApp()  //不能修改app,但可以修改app的属性
-const globalData = app.globalData
+const useBalance = require("../../template/use-balance/use-balance");
+const util = require("../../../utils/util");
+const app = getApp();  //不能修改app,但可以修改app的属性
+const globalData = app.globalData;
 
 
 /**
@@ -10,16 +10,21 @@ const globalData = app.globalData
  * @returns {[]}
  */
 const getSubscribeTmpIds = function (business_type=0) {
-  let tmpIds = []
+  let tmpIds = [];
   if (business_type == globalData.business_type.found){ //失物招领
     tmpIds = [
       globalData.subscribe.thanks,
       globalData.subscribe.finished.found
     ]
-  } else {  // 寻物启事
+  } else if (business_type == globalData.business_type.lost){  // 寻物启事
     tmpIds = [
       globalData.subscribe.recommend,
       globalData.subscribe.finished.lost
+    ]
+  } else { //归还贴和扫码归还
+    tmpIds = [
+      globalData.subscribe.thanks,
+      globalData.subscribe.finished.found
     ]
   }
   return tmpIds
@@ -136,26 +141,28 @@ Page({
    * @param options
    */
   onLoad: function (options) {
-    let auther_id = options.auther_id == undefined ? "" : options.auther_id
-    if (globalData.isScanQrcode) { //扫码发布
+    let info = options.info
+    if (globalData.isScanQrcode) {
+      //扫码归还
       this.setData({
-        business_type: 1,
+        notify_id: globalData.qrcodeOpenid,  //用于归还帖的链接
+        business_type: 2, //归还贴
         location: [],
         dataReady: true
       });
       this.setInitData()
     } else {
-      if (auther_id) { //归还
+      if (info) {
+        //寻物归还
         this.setData({
-          auther_id: auther_id,
-          business_type: 1,
+          info: JSON.parse(info),  //用于归还贴信息智能填充，以及归还贴与原寻物贴链接
+          business_type: 2, //归还帖
           location: [],
-          dataReady: true,
-          info: JSON.parse(options.info)
+          dataReady: true
         });
         this.setInitData()
-      }
-      else { //常规发布
+      } else {
+        //常规发布
         wx.showActionSheet({
           itemList: ['寻物启事', '失物招领'],
           success: res => {
@@ -173,9 +180,20 @@ Page({
       }
     }
   },
+  /**
+   * @name releaseUnload
+   * onUnload 一旦退出页面就将扫码相关全局标记重置
+   * @see cancelQrcodeScan
+   */
+  onUnload: function () {
+    if (globalData.isScanQrcode) {
+      //清除扫码标记
+      app.cancelQrcodeScan()
+    }
+  },
   //获取位置的方法
   getLocation: function (e) {
-    var that = this;
+    let that = this;
     wx.getSetting({
       success(res) {
         // 获取定位授权
@@ -209,7 +227,10 @@ Page({
       }
     })
   },
-  //获取位置
+  /**
+   * 位置选取后修正精确地址描述
+   * @param e
+   */
   listenLocationInput: function (e) {
     let location = this.data.location;
     location[1] = e.detail.value;
@@ -217,7 +238,10 @@ Page({
       location: location
     });
   },
-  //预览图片
+  /**
+   * 上传的图片点击进入预览
+   * @param e
+   */
   previewImage: function (e) {
     this.setData({
       flush: false,
@@ -228,7 +252,7 @@ Page({
     })
   },
   /**
-   * 选择图片方法
+   * 上传图片
    * @param e
    */
   chooseLoadPics: function (e) {
@@ -258,7 +282,10 @@ Page({
       }
     })
   },
-  // 删除图片
+  /**
+   * deleteImg 删除上传图片
+   * @param e
+   */
   deleteImg: function (e) {
     let index = e.currentTarget.dataset.index;
     let imglist = this.data.imglist;
@@ -288,7 +315,7 @@ Page({
   toRelease: function () {
     this.setData({
       submitDisable: true
-    })
+    });
     // 必填项判空
     let items = this.data.items
     // 需要判空的数据
@@ -299,11 +326,11 @@ Page({
       owner_name: items[1].value,
       summary: this.data.summary_value,
       category: this.data.category_index
-    }
+    };
     if (app.judgeEmpty(data, this.data.tips_obj)) {
       this.setData({
         submitDisable: false
-      })
+      });
       return
     }
     // 图片列表判空
@@ -317,13 +344,13 @@ Page({
       return
     }
     //准备发布数据
-    data['category'] += 1 // 因为数据库id从1开始计数
     data['business_type'] = this.data.business_type
-    data['location'] = this.data.location
-    data['img_list'] = this.data.imglist
-    data['is_top'] = this.data.isTop ? 1 : 0
-    data['days'] = this.data.isTop ? this.data.top_days : 0
-    data['edit'] = 0 //标记是发布，匹配用
+    data['category'] = parseInt(data['category']) + 1; // 因为数据库id从1开始计数
+    data['location'] = this.data.location;
+    data['img_list'] = this.data.imglist;
+    data['is_top'] = this.data.isTop ? 1 : 0;
+    data['days'] = this.data.isTop ? this.data.top_days : 0;
+    data['edit'] = 0; //标记是发布，匹配用
     this.handleRelease(data)
   },
   /**
@@ -448,25 +475,14 @@ Page({
         header: app.getRequestHeader(1),
         method: 'post',
         data: {
-          'goods': data,
-          'openid': globalData.qrcodeOpenid
+          goods: data,
+          openid: globalData.qrcodeOpenid
         },
         complete: res => {
           //通知完毕
           app.qrcodeNotified()
         }
       })
-    }
-  },
-  /**
-   * @name releaseUnload
-   * onUnload 一旦退出页面就将扫码相关全局标记重置
-   * @see cancelQrcodeScan
-   */
-  onUnload: function () {
-    if (globalData.isScanQrcode) {
-      //清除扫码标记
-      app.cancelQrcodeScan()
     }
   },
   /**
@@ -592,23 +608,32 @@ Page({
    * @param id 结束创建的物品帖子ID
    */
   toEndCreate: function (id) {
-    let auther_id = this.data.auther_id;
-    let data = {}
-    if (auther_id) {
+    let info = this.data.info;
+    let notify_id = this.data.notify_id;
+    let data;
+    if (info) {
+      //寻物归还
       data = {
         id: id,
-        auther_id: auther_id,
         target_goods_id: this.data.info.id
       }
-    } else {
+    } else if (notify_id) {
+      //扫码归还
       data = {
-        id: id
+        id: id,
+        notify_id: notify_id  //归还的对象
+      }
+    } else {
+      //单纯发布失物招领和寻物启事
+      data = {
+        id: id,
+        business_type: this.data.business_type
       }
     }
-    data['notify_id'] = this.data.notify_id
     this.endCreate(data)
   },
   /**
+   * @name releaseEndCreate
    * endCreate 结束创建物品
    * @param data 结束创建参数
    */
@@ -621,32 +646,23 @@ Page({
       success: (res) => {
         let resp = res.data;
         if (resp['code'] !== 200) {
-          app.alert({'content': resp['msg']})
+          app.alert({'content': resp['msg']});
           this.setData({
             submitDisable: false
-          })
+          });
           return
         }
-        //获取新的推荐匹配列表
-        app.getNewRecommend()
-        //初始化本地数据和全局数据
+        if (data['business_type'] === 0) {
+          //对于发布了寻物启事，立刻获取新的推荐匹配列表
+          app.getNewRecommend();
+        }
+        //初始化表单数据
         this.setInitData();
         //用户提示
-        wx.showToast({
-          title: '提交成功',
-          icon: 'success',
-          duration: 2000,
-          success: res => {
-            setTimeout(() => {
-              wx.redirectTo({
-                url: '../../Find/Find?business_type=' + this.data.business_type,
-              })
-            }, 1500)
-          }
-        });
+        this.endCreateSuccess();
       },
       fail:  (res) => {
-        app.serverBusy()
+        app.serverBusy();
         this.setData({
           submitDisable: false
         })
@@ -657,6 +673,55 @@ Page({
         })
       }
     })
+  },
+  /**
+   * endCreateSuccess 创建成功后需要提示信息和跳转
+   * @link endCreate
+   */
+  endCreateSuccess: function(){
+    let msg;
+    let navigate;
+    if(this.data.business_type!==2){
+      //非归还帖
+      msg = "提交成功";
+      navigate = ()=>{wx.redirectTo({
+        url: '../../Find/Find?business_type='+ this.data.business_type,
+      })}
+    } else {
+      //归还帖
+      if(this.data.info){
+        //寻物归还
+        msg = "归还成功";
+        navigate = ()=>{
+          wx.navigateBack()
+        }
+      } else {
+        //扫码归还
+        msg = "扫码归还成功";
+        navigate = () => {
+          wx.redirectTo({
+            url: '/pages/Homepage/index'
+          })
+        }
+      }
+    }
+    this.showEndCreateToast(msg, navigate)
+  },
+  /**
+   * showEndCreateToast 通用的显示提示和跳转代码结构
+   * @link releaseEndCreate
+   * @param msg
+   * @param navigate
+   */
+  showEndCreateToast: function(msg = "", navigate=()=>{}){
+    wx.showToast({
+      title: msg,
+      icon: 'success',
+      duration: 2000,
+      success: res => {
+        setTimeout(navigate, 1500)
+      }
+    });
   },
   /**
    * 初始化页面表单{@see setFormInitData}和置顶组件数据{@see setTopAndBalanceUseInitData}
@@ -737,7 +802,6 @@ Page({
       tips_obj: tips_obj, //表单项填写提示
       info_owner_name: info ? info.owner_name : "", //归还帖自动填充归还物品的失主名
       location: info ? info.location : [], //归还帖自动填充归还物品的放置地址(就近放置)
-      notify_id: globalData.isScanQrcode ? globalData.qrcodeOpenid : ""  //记录通知ID，供最后把该帖子加到二维码码主的匹配推荐列表中去
     })
   },
   /**

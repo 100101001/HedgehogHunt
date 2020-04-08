@@ -23,34 +23,7 @@ const hasQrcode = function (cb_complete=()=>{}) {
       cb_complete(false)
     }
   })
-}
-
-/**
- * getNewRecommend 获取新消息计数
- * @param cb_complete
- */
-const getNewRecommend = function(cb_complete=(total_new=0)=>{}){
-  wx.request({
-    url: app.buildUrl('/member/get-new-recommend'),
-    header: app.getRequestHeader(),
-    success: (res) => {
-      let resp = res.data
-      if (resp['code'] !== 200) {
-        cb_complete(0)
-        return
-      }
-      let data = resp['data']
-      app.globalData.total_new = data.total_new;
-      app.globalData.recommend_new = data.recommend_new;
-      app.globalData.thanks_new = data.thanks_new;
-      app.globalData.recommend = data.recommend;
-      cb_complete(data.total_new)
-    },
-    fail: res => {
-      cb_complete(0)
-    }
-  })
-}
+};
 
 // pages/Homepage/index.js
 Page({
@@ -85,8 +58,8 @@ Page({
     isSelecteds['regFlag'] = app.globalData.regFlag
     hasQrcode((has_qrcode) => {
       isSelecteds['hasQrcode'] = has_qrcode
-      getNewRecommend((total_new = 0) => {
-        isSelecteds['total_new'] = total_new
+      util.getNewRecommend((data) => {
+        isSelecteds['total_new'] = data.total_new
         this.setData({
           isSelecteds: isSelecteds
         })

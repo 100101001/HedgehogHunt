@@ -9,6 +9,12 @@
 <navigator url="/mall/pages/my/order_list">[我的订单]</navigator>
 
 <navigator url="/mall/pages/my/index">[我的购物]</navigator>
+
+<navigator url="/pages/Record/index?op_status=0">[我的发布]</navigator>
+<navigator url="/pages/Record/index?op_status=1">[我的认领]</navigator>
+<navigator url="/pages/Record/index?op_status=2">[推荐我的]</navigator>
+<navigator url="/pages/Record/index?op_status=5">[归还我的]</navigator>
+<navigator url="/pages/Record/index?op_status=3">[我的答谢]</navigator>
 <!---二维码，余额--->
 
 <!--活动中心-->

@@ -99,7 +99,7 @@ Page({
       });
     } else {
       wx.navigateTo({
-        url: '/pages/Find/info/info?goods_id=' + id,
+        url: '/pages/Find/info/info?op_status=4&goods_id=' + id,
       })
     }
   },

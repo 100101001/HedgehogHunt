@@ -1,7 +1,7 @@
 const useBalance = require("../../template/use-balance/use-balance");
 const app = getApp();
 const globalData = app.globalData;
-const util = require("../../../utils/util")
+const util = require("../../../utils/util");
 
 
 /**
@@ -32,7 +32,7 @@ Array.prototype.equals = function (array) {
     }
   }
   return true;
-}
+};
 // Hide method from for-in loops
 Object.defineProperty(Array.prototype, "equals", {enumerable: false});
 
@@ -66,7 +66,7 @@ const topCharge = function (pay_price= globalData.goodsTopPrice, cb_success=()=>
       }
 
       //下单成功调起支付
-      let pay_data = resp['data']
+      let pay_data = resp['data'];
       wx.requestPayment({
         timeStamp: pay_data['timeStamp'],
         nonceStr: pay_data['nonceStr'],
@@ -85,13 +85,13 @@ const topCharge = function (pay_price= globalData.goodsTopPrice, cb_success=()=>
       })
     },
     fail: res => {
-      app.serverBusy()
+      app.serverBusy();
       that.setData({
         submitDisable: false
       })
     }
   })
-}
+};
 
 /**
  * changeUserBalance
@@ -102,7 +102,7 @@ const topCharge = function (pay_price= globalData.goodsTopPrice, cb_success=()=>
 const changeUserBalance = function (unit = 0, cb_success = () => {}) {
   wx.showLoading({
     title: "扣除余额中"
-  })
+  });
   wx.request({
     url: app.buildUrl("/member/balance/change"),
     header: app.getRequestHeader(),
@@ -117,7 +117,7 @@ const changeUserBalance = function (unit = 0, cb_success = () => {}) {
       wx.hideLoading()
     }
   })
-}
+};
 
 
 Page({
@@ -169,7 +169,7 @@ Page({
    * @param info
    */
   onLoadSetData: function(info) {
-    this.setEditFormInitData(info)
+    this.setEditFormInitData(info);
     //寻物启事且原来不是置顶帖需要的置顶信息
     if (!info.business_type && !info.top) {
       this.setTopAndBalanceUseInitData()
@@ -254,7 +254,7 @@ Page({
       top_price: globalData.goodsTopPrice,
       top_days: globalData.goodsTopDays,
       isTop: false  //默认置顶开关关闭
-    })
+    });
     //余额勾选框
     useBalance.initData(this, (total_balance)=>{
       //计算可用余额和折后价格
@@ -322,37 +322,37 @@ Page({
   },
   //表单提交
   formSubmit: function (e) {
-    this.setData({submitDisable: true})
-    let data = e.detail.value
-    data['category'] = this.data.category_index
+    this.setData({submitDisable: true});
+    let data = e.detail.value;
+    data['category'] = this.data.category_index;
     if (app.judgeEmpty(data, this.data.tips_obj)) {
-      this.setData({submitDisable: false})
+      this.setData({submitDisable: false});
       return
     }
-    let img_list = this.data.imglist
+    let img_list = this.data.imglist;
     if (img_list.length === 0) {
-      app.alert({'content': "至少要提交一张图片"})
-      this.setData({submitDisable: false})
+      app.alert({'content': "至少要提交一张图片"});
+      this.setData({submitDisable: false});
       return
     }
-    data['category'] += 1 // 因为数据库id从1开始计数
-    data['business_type'] = this.data.business_type
-    data['img_list'] = img_list
-    data['location'] = this.data.location
-    data['id'] = this.data.goods_id
+    data['category'] = parseInt(data['category']) + 1; // 因为数据库id从1开始计数
+    data['business_type'] = this.data.business_type;
+    data['img_list'] = img_list;
+    data['location'] = this.data.location;
+    data['id'] = this.data.goods_id;
     // 原来非置顶/置顶过期，编辑后置顶，才算置顶操作
-    data['is_top'] = this.data.isTop && !this.data.top ? 1 : 0
-    data['days'] = this.data.isTop && !this.data.top ? this.data.top_days : 0
+    data['is_top'] = this.data.isTop && !this.data.top ? 1 : 0;
+    data['days'] = this.data.isTop && !this.data.top ? this.data.top_days : 0;
 
     // 编辑操作是否更改了匹配信息
-    let origin_info = this.data.origin_info
+    let origin_info = this.data.origin_info;
     let kw_modified = (data['category'] != origin_info.category ||
       data['owner_name'] != origin_info.owner_name ||
-      data['goods_name'] != origin_info.goods_name)
+      data['goods_name'] != origin_info.goods_name);
     this.data.keyword_modified = kw_modified ? 1 : 0;
     let modified = this.data.keyword_modified || !origin_info.pics.equals(img_list)
       || !origin_info.location.equals(data['location']) || origin_info.summary != data['summary'];
-    this.data.modified = modified ? 1 : 0
+    this.data.modified = modified ? 1 : 0;
     this.toUploadData(data)
   },
   /**
@@ -395,7 +395,7 @@ Page({
    * @param data 发布数据
    */
   toTopCharge: function (data = {}) {
-    let pay_price = this.data.top_price
+    let pay_price = this.data.top_price;
     if (this.data.use_balance) {
       if (this.data.total_balance >= pay_price) {
         //扣除余额后发布
@@ -404,7 +404,7 @@ Page({
         })
       } else {
         //支付并扣除余额再发布
-        pay_price = util.toFixed(pay_price - this.data.balance, 2)
+        pay_price = util.toFixed(pay_price - this.data.balance, 2);
         topCharge(pay_price, ()=>{
           changeUserBalance(-this.data.balance, ()=>{
             this.uploadData(data)
@@ -428,15 +428,15 @@ Page({
       success: (res) => {
         let resp = res.data;
         if (resp['code'] !== 200) {
-          app.alert({content: resp['msg']})
-          this.setData({submitDisable: false})
+          app.alert({content: resp['msg']});
+          this.setData({submitDisable: false});
           return
         }
         //获取商品的id,之后用于提交图片
         this.uploadImage(resp['id'], data['img_list'], resp['img_list_status']);
       },
       fail: (res) => {
-        app.serverBusy()
+        app.serverBusy();
         this.setData({submitDisable: false})
       }
     })
@@ -444,7 +444,7 @@ Page({
   uploadImage: function(id, img_list, img_list_status) {
     this.setData({
       loadingHidden: false,
-    })
+    });
     for (let i = 1; i <= img_list.length; i++) {
       if (img_list_status[i - 1]) {
         //图片存在，则更新
@@ -458,7 +458,7 @@ Page({
   updateImage: function(id, img_list, i){
     this.setData({
       i: i
-    })
+    });
     wx.request({
       url: app.buildUrl('/goods/update-pics'),
       method: 'POST',
@@ -473,7 +473,7 @@ Page({
         }
       },
       fail: (res) => {
-        app.serverBusy()
+        app.serverBusy();
         this.setData({submitDisable: false, loadingHidden: true})
       }
     })
@@ -481,7 +481,7 @@ Page({
   addImage: function(id, img_list, i){
     this.setData({
       i: i
-    })
+    });
     wx.uploadFile({
       url: app.buildUrl('/goods/add-pics'), //接口地址
       header: app.getRequestHeader(),
@@ -496,7 +496,7 @@ Page({
         }
       },
       fail: (res) => {
-        app.serverBusy()
+        app.serverBusy();
         this.setData({submitDisable: false, loadingHidden: true})
       }
     })
@@ -516,8 +516,8 @@ Page({
       success: (res) => {
         let resp = res.data;
         if (resp['code'] !== 200) {
-          app.alert({content: resp['msg']})
-          this.setData({submitDisable: false})
+          app.alert({content: resp['msg']});
+          this.setData({submitDisable: false});
           return
         }
 
@@ -534,7 +534,7 @@ Page({
         })
       },
       fail: (res) => {
-        app.serverBusy()
+        app.serverBusy();
         this.setData({submitDisable: false})
       },
       complete: (res) => {
@@ -546,7 +546,7 @@ Page({
    * changSetTop 改变置顶开关
    */
   changSetTop: function () {
-    let isTop = this.data.isTop
+    let isTop = this.data.isTop;
     this.setData({
       isTop: !isTop,
       balance_use_disabled: isTop, //注意这里的isTop是改变开关前的置顶开关状态(原来开着代表现在用户关了所以禁用余额勾选框)
@@ -565,16 +565,16 @@ Page({
     })
   },
   bindCategoryChange: function (e) {
-    let index = e.detail.value
+    let index = e.detail.value;
     this.setData({
       category_index: index
-    })
-    let items = this.data.items
-    let default_goods = this.data.category_default_goods
-    let input_good_name = items[0].value
-    items[0].value = input_good_name && default_goods.indexOf(input_good_name) == -1 ? input_good_name : default_goods[index]
+    });
+    let items = this.data.items;
+    let default_goods = this.data.category_default_goods;
+    let input_good_name = items[0].value;
+    items[0].value = input_good_name && default_goods.indexOf(input_good_name) == -1 ? input_good_name : default_goods[index];
     this.setData({
       items: items
     })
   }
-})
+});

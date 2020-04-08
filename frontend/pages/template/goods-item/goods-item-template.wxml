@@ -19,8 +19,9 @@
       <image class="goods_image" src="{{main_image}}" mode="aspectFill"></image>
       <view class="summary_container">
         <view class="goods_message">
-          <text wx:if="{{business_type}}" style='color: #f7931e; font-size:20rpx'>#拾得#</text>
-          <text wx:if="{{!business_type}}" style='color: #f7931e; font-size:20rpx'>#丢失#</text>
+          <text wx:if="{{business_type ==1}}" style='color: #f7931e; font-size:20rpx'>#拾得#</text>
+          <text wx:if="{{business_type == 0}}" style='color: #f7931e; font-size:20rpx'>#丢失#</text>
+          <text wx:if="{{business_type == 2}}" style='color: #f7931e; font-size:20rpx'>#归还#</text>
           <view class="goods_owner">{{goods_name}}</view>
           <view class="goods_owner">{{owner_name}}</view>
         </view>
@@ -28,8 +29,9 @@
         <view class="horizon"></view>
         <view class="location_container">
           <image class="location_icon" src="/images/icons/locate.png"></image>
-          <text class="location_text" wx:if="{{business_type==1}}">失主认领之后可查看</text>
-          <text class="location_text" wx:if="{{business_type==0}}">拾物者可就近归还</text>
+          <text class="location_text" wx:if="{{business_type==1}}">{{location? location : '失主认领之后可查看'}}</text>
+          <text class="location_text" wx:if="{{business_type==0}}">{{location? location : '拾物者可就近归还'}}</text>
+          <text class="location_text" wx:if="{{business_type==2}}">{{location}}</text>
           <!--推荐记录中用于识别是否是未读记录的-->
           <view class="new_item" wx:if="{{new==0}}">NEW</view>
         </view>

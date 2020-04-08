@@ -241,6 +241,21 @@ swiper-item image {
   color:#fff;
   font-size: 34rpx;
 }
+
+.footer-box .return{
+  width: 200rpx;
+}
+
+
+.footer-box .grey{
+  background-color: #999;
+}
+
+.footer-box .light-grey{
+  background-color: #789;
+}
+
+
 .buy-num-box{
    display: flex;
    justify-content: space-between;

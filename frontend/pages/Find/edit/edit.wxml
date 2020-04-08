@@ -38,7 +38,7 @@
       </view>
       <!--归还帖可见放置提示-->
       <view class="location-name">
-        <input name="location" bindinput="lisentLocationInput" value="{{location[1]}}" placeholder="若获取的地址不够精确可手动输入完善"></input>
+        <input name="location" bindinput="lisentLocationInput" disabled="{{location.length==0}}" value="{{location[1]}}" placeholder="若获取的地址不够精确可手动输入完善"></input>
       </view>
       <view class="hrz"></view>
     </view>
