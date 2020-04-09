@@ -4,7 +4,7 @@ import datetime
 from decimal import Decimal
 
 from flask import request, jsonify, g
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 
 from application import db, app
 from common.libs.Helper import getCurrentDate
@@ -380,7 +380,7 @@ def isReg():
     req = request.values
     openid = req['openid'] if 'openid' in req else ''
     member_info = Member.query.filter_by(openid=openid).first()
-    if not member_info:
+    if member_info is None:
         resp['data']['is_reg'] = False
     else:
         resp['data']['is_reg'] = True
@@ -498,7 +498,7 @@ def getNewRecommend():
     # 获取所有会员的recommend_id列表中的物品,按状态：待,预,已分类
     recommend_status_2 = recommend_status_3 = recommend_status_1 = 0
     recommend_new = thanks_new = return_new = 0
-    recommends = Recommend.query.filter_by(status=0, member_id=member_info.id).all()
+    recommends = Recommend.query.filter_by(status=0, target_member_id=member_info.id).all()
     if recommends:
         query = Good.query.filter(Good.id.in_([r.id for r in recommends]))
         recommend_status_1 = len(query.filter_by(status=1).all())
@@ -512,13 +512,12 @@ def getNewRecommend():
     if thanks_list:
         thanks_new = len(thanks_list) if len(thanks_list) <= 99 else 99
 
-    # 会员待取回的归还记录
-    return_list = Good.query.filter(Good.business_type == 2,
-                                     Good.status == 1,
-                                     or_(Good.qr_code_openid == member_info.openid,
-                                         Good.return_goods_openid == member_info.openid)).all()
-    if return_list:
-        return_new = len(return_list) if len(return_list) <= 99 else 99
+    # 会员待取回的归还记录(待确认的寻物归还和待取回的二维码归还)
+    normal_return_new = len(Good.query.filter_by(business_type=2,
+                                                 status=1, return_goods_openid=member_info.openid).all())
+    scan_return_new = len(Good.query.filter_by(business_type=2, status=2, qr_code_openid=member_info.openid).all())
+    return_new = scan_return_new + normal_return_new
+    return_new = return_new if return_new < 99 else 99
 
     # 总数量,最多显示99+
     total_new = recommend_new + thanks_new + return_new
@@ -533,7 +532,11 @@ def getNewRecommend():
             'doing': recommend_status_2 if recommend_status_2 <= 99 else 99,  # 推荐的失物招领帖子，预领
             'done': recommend_status_3 if recommend_status_3 <= 99 else 99,  # 推荐的失物招领帖子，已领
         },
-        'return_new': return_new
+        'return_new': return_new,
+        'return': {
+            'wait': normal_return_new,
+            'doing': scan_return_new
+        }
     }
     return jsonify(resp)
 
@@ -555,7 +558,7 @@ def blockMemberSearch():
         return jsonify(resp)
 
     # 按status筛选用户
-    status = int(req['status']) if 'status' in req else "nonono"
+    status = int(req['status']) if 'status' in req else -1
     query = Member.query.filter_by(status=status)
 
     # 分页, 排序
@@ -564,7 +567,7 @@ def blockMemberSearch():
         p = 1
     page_size = 10
     offset = (p - 1) * page_size
-    member_list = query.order_by(Member.updated_time.desc()).offset(offset).limit(10).all()
+    member_list = query.order_by(Member.updated_time.desc()).offset(offset).limit(page_size).all()
 
     # models -> objects
     # 用户信息列表
@@ -581,7 +584,6 @@ def blockMemberSearch():
                 "auther_name": item.nickname + "#####@id:" + str(item.id),
                 "avatar": item.avatar,
             }
-            # 如果已经被处理过
             data_member_list.append(tmp_data)
 
     resp['data']['list'] = data_member_list

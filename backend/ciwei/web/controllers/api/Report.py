@@ -55,11 +55,7 @@ def reportGoodsSearch():
     data_goods_list = []
     if records_list:
         # 获取用户的信息
-        member_ids = selectFilterObj(reports_list, "member_id")
-        member_map = getDictFilterField(Member, Member.id, "id", member_ids)
-
         for item in records_list:
-            tmp_member_info = member_map[item.member_id]
             tmp_data = {
                 "id": item.id,
                 "goods_name": item.name,
@@ -68,8 +64,8 @@ def reportGoodsSearch():
                 "business_type": item.business_type,
                 "summary": item.summary,
                 "main_image": UrlManager.buildImageUrl(item.main_image),
-                "auther_name": tmp_member_info.nickname,
-                "avatar": tmp_member_info.avatar,
+                "auther_name": item.nickname,
+                "avatar": item.avatar,
                 "selected": False,
                 "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
             }
@@ -106,15 +102,6 @@ def reportThanksSearch():
     records_list = []
     if record_type == 1:
         record_query = Good.query.filter(Good.id.in_(record_ids))
-        # if owner_name:
-        #     rule = or_(Good.owner_name.ilike("%{0}%".format(owner_name)))
-        #     record_query = record_query.filter(rule)
-        # if mix_kw:
-        #     fil_str = "%{0}%".format(mix_kw[0])
-        #     for i in mix_kw[1:]:
-        #         fil_str = fil_str + "%{0}%".format(i)
-        #     rule = or_(Good.name.ilike("%{0}%".format(fil_str)), Good.member_id.ilike("%{0}%".format(mix_kw)))
-        #     record_query = record_query.filter(rule)
         records_list = record_query.order_by(Good.id.desc(), Good.view_count.desc()).offset(offset).limit(10).all()
     else:
         record_query = Thank.query.filter(Thank.id.in_(record_ids))
@@ -131,12 +118,7 @@ def reportThanksSearch():
 
     data_goods_list = []
     if records_list:
-        # 获取用户的信息
-        member_ids = selectFilterObj(reports_list, "member_id")
-        member_map = getDictFilterField(Member, Member.id, "id", member_ids)
-
         for item in records_list:
-            tmp_member_info = member_map[item.member_id]
             if record_type == 1:
                 tmp_data = {
                     "id": item.id,
@@ -146,8 +128,8 @@ def reportThanksSearch():
                     "business_type": item.business_type,
                     "summary": item.summary,
                     "main_image": UrlManager.buildImageUrl(item.main_image),
-                    "auther_name": tmp_member_info.nickname,
-                    "avatar": tmp_member_info.avatar,
+                    "auther_name": item.nickname,
+                    "avatar": item.avatar,
                     "selected": False,
                     "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
                 }
@@ -161,8 +143,8 @@ def reportThanksSearch():
                     "business_desc": item.business_desc,
                     "summary": item.summary,
                     "reward": "0.00",
-                    "auther_name": tmp_member_info.nickname,
-                    "avatar": tmp_member_info.avatar,
+                    "auther_name": item.nickname,
+                    "avatar": item.avatar,
                     "selected": False,
                 }
             data_goods_list.append(tmp_data)

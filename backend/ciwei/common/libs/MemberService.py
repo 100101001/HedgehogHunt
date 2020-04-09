@@ -117,15 +117,15 @@ class MemberService:
         :param goods_info:
         """
         from common.libs import SubscribeService
-
-        # 不能是同一个人发布的拾/失,物品有效
-        query = Good.query.filter(Good.status != 7, Good.status != 5)
-        query = query.filter(Good.member_id != goods_info.member_id)
+        app.logger.warn("推荐中")
+        # 不能是同一个人发布的拾/失
+        query = Good.query.filter(Good.member_id != goods_info.member_id)
         # 筛选物品类别
         query = query.filter(Good.category == goods_info.category)
 
         # 拓展搜索词
         search_words = MemberService.getSearchWords(goods_info.name)
+        app.logger.warn("推荐中")
         common_rule = or_(*[Good.name.like(name) for name in search_words])
         if goods_info.owner_name != "无":
             rule = or_(Good.owner_name == goods_info.owner_name, common_rule)
@@ -133,78 +133,59 @@ class MemberService:
         else:
             query = query.filter(common_rule)
 
-        # 互相匹配
+        # 互相匹配（假设予认领的人没有恶意）
         release_type = goods_info.business_type
-        goods_list = query.filter_by(business_type=1 - release_type).all()
+        goods_list = query.filter_by(business_type=1 - release_type, status=1).all()
         for good in goods_list:
-            member_id = good.member_id if release_type == 1 else g.member_info.id  # 获得寻物启示贴主id
-            new_recommend = MemberService.addRecommendGoods(member_id=member_id,
-                                                            goods_id=good.id, edit=edit)
+            target_member_id = good.member_id if release_type == 1 else g.member_info.id  # 获得寻物启示贴主id
+            lost_goods_id = good.id if release_type == 1 else goods_info.id
+            found_goods_id = good.id if release_type == 0 else goods_info.id  # 获取失物招领id
+            new_recommend = MemberService.addRecommendGoods(target_member_id=target_member_id,
+                                                            found_goods_id=found_goods_id,
+                                                            lost_goods_id=lost_goods_id,
+                                                            edit=edit)
             if new_recommend and release_type == 1:
+                # 是之前没推荐过的新物品给了寻物启示失主，才发通知
                 # 通知：有人可能捡到了你遗失的东西
                 SubscribeService.send_recommend_subscribe(goods_info=good)
+        app.logger.warn("推荐结束")
 
     @staticmethod
-    def addRecommendGoods(member_id=0, goods_id=0, edit=False):
+    def addRecommendGoods(target_member_id=0, found_goods_id=0, lost_goods_id=0, edit=False):
         """
         增加新的记录，进行防重
         归还和通知会加进推荐
         :param edit:
-        :param member_id:
-        :param goods_id:
+        :param target_member_id:
+        :param found_goods_id:
+        :param lost_goods_id: 只是用于记录一下（在查看推荐记录时好看一下，匹配的动因）
         :return:
         """
-        if not member_id or not goods_id:
+        if not target_member_id or not found_goods_id:
             return False
-        repeat_recommend = Recommend.query.filter_by(goods_id=goods_id, member_id=member_id).first()
-        if repeat_recommend:
-            if edit:
-                # 已阅推荐记录，但因为物品被编辑了就更新为未读
-                # 进来前未阅记录被置为物品已删，所以需要重新置为未读
-                repeat_recommend.status = 0
-                db.session.add(repeat_recommend)
-                db.session.commit()
-            return False
+        repeat_recommend = Recommend.query.filter_by(found_goods_id=found_goods_id,
+                                                     target_member_id=target_member_id,
+                                                     lost_goods_id=lost_goods_id).first()
+        # 有但修改了
+        if repeat_recommend and edit:
+            repeat_recommend.status = 0
+            db.session.add(repeat_recommend)
+        # 没有
         model_recommend = Recommend()
-        model_recommend.goods_id = goods_id
-        model_recommend.member_id = member_id
+        model_recommend.found_goods_id = found_goods_id
+        model_recommend.target_member_id = target_member_id
+        model_recommend.lost_goods_id = lost_goods_id
         db.session.add(model_recommend)
         db.session.commit()
-        return True
+        # 是新的推荐
+        return repeat_recommend is None
 
     @staticmethod
-    def filterRecommends(recommend_list=None, only_new=True):
-        """
-        对于只看新增的就过滤已经删除的物品
-        如果推荐的物品，已经被删除，将推荐的状态置为 -1
-        :param only_new: 只要新的有效的推荐记录
-        :param recommend_list: 推荐记录列表
-        :return:
-        """
-        if recommend_list is None:
-            # 默认赋值[]是可变的，不允许
-            recommend_list = []
-        recommend_dict = {}
-        for recommend in recommend_list:
-            good_id = recommend.goods_id
-            good = Good.query.filter_by(id=good_id).first()
-            if good is None or good.status in [7, 8]:
-                # 推荐的物品已被删除
-                recommend.status = -1
-                db.session.add(recommend)
-                db.session.commit()
-                if only_new:
-                    # 只要最新的，不要看被删除的
-                    continue
-            recommend_dict[good_id] = recommend.status
-        return recommend_dict
-
-    @staticmethod
-    def setRecommendStatus(member_id=0, goods_id=0, status=1):
-        recommend = Recommend.query.filter_by(goods_id=goods_id, member_id=member_id).first()
-        if recommend and recommend.status != status:
-            recommend.status = status
-            db.session.add(recommend)
+    def setRecommendStatus(member_id=0, goods_id=0, new_status=1, old_status=0):
+        # 假设第一点，一个用户不会发出大于一条的类似帖子，如果发了
+        # 假设第二点，用户知道自己正在找的东西，还删除了推荐记录，所以会将所有相关的都置无效（无论因为哪一条推给了用户）
+        Recommend.query.filter_by(found_goods_id=goods_id, target_member_id=member_id, status=old_status). \
+            update({'status': new_status}, synchronize_session=False)
 
     @staticmethod
     def setMemberBalanceChange(member_info=None, unit=0, note="答谢"):
@@ -260,29 +241,35 @@ class MemberService:
                 # 将被删除的记录状态初始化
                 repeat_mark.status = 0
                 db.session.add(repeat_mark)
-            return
+            return repeat_mark.status == 0
         pre_mark = Mark()
         pre_mark.goods_id = goods_id
         pre_mark.member_id = member_id
         db.session.add(pre_mark)
+        return True
 
     @staticmethod
-    def markGoods(member_id=0, goods_id=0):
+    def cancelPreMarkGoods(member_id=0, goods_id=0):
         """
-        认领
+        对预认领的帖子，取消预先认领
         :param member_id:
         :param goods_id:
-        :return: 认领失败/成功
+        :return:
         """
         if not member_id or not goods_id:
-            return False
-        pre_mark = Mark.query.filter_by(member_id=member_id, goods_id=goods_id).first()
-        if not pre_mark or pre_mark.status != 0:
-            # 不符合认领的条件
-            return False
-        pre_mark.status = 1
-        db.session.add(pre_mark)
-        return True
+            return
+        all_mark_query = Mark.query.filter(Mark.goods_id == goods_id, Mark.status != 7)
+        all_marks = all_mark_query.all()
+        pre_mark = all_mark_query.filter_by(member_id=member_id).first()
+        if pre_mark and pre_mark.status == 0:
+            # 前端会控制只对予认领的显示取消认领，这里判断status==0只是以防万一
+            pre_mark.status = 7
+            db.session.add(pre_mark)
+            # 表示最后一个预认领的人取消了，帖子状态需要变成待认领
+            return len(all_marks) == 1
+        # 这种情况基本不会发生（一个予认领贴一定会有有效的认领记录），只是以防万一
+        return len(all_marks) == 0
+
 
     @staticmethod
     def hasMarkGoods(member_id=0, goods_id=0):
@@ -302,21 +289,18 @@ class MemberService:
     @staticmethod
     def appealGoods(member_id=0, goods_id=0):
         """
-        创建申诉(认为已被他人取走的物品是自己的)
+        新的待处理Appeal
         :param member_id:
         :param goods_id:
         :return:
         """
         if not member_id or not goods_id:
-            return
-        repeat_appeal = Appeal.query.filter_by(member_id=member_id, goods_id=goods_id).first()
-        if repeat_appeal:
-            if repeat_appeal.status == 7:
-                # 将被删除的记录状态初始化
-                repeat_appeal.status = 0
-                db.session.add(repeat_appeal)
-            return
-        appeal = Appeal()
-        appeal.member_id = member_id
-        appeal.goods_id = goods_id
+            return False
+        appeal = Appeal.query.filter_by(member_id=member_id, goods_id=goods_id).first()
+        if appeal is None:
+            appeal = Appeal()
+            appeal.member_id = member_id
+            appeal.goods_id = goods_id
+        else:
+            appeal.status = 0
         db.session.add(appeal)

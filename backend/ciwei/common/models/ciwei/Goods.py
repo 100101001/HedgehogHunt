@@ -14,6 +14,8 @@ class Good(db.Model):
     user_id = db.Column(INTEGER(11, unsigned=True), nullable=False, default=0, comment="拉黑会员的管理员id")
     member_id = db.Column(INTEGER(11, unsigned=True), nullable=False, index=True, default=0, comment="发布消息的会员id")
     openid = db.Column(db.String(80), nullable=False, default='', comment="第三方id")
+    nickname = db.Column(db.String(100), nullable=False, default='', comment="发布消息的会员昵称")
+    avatar = db.Column(db.String(200), nullable=False, default='', comment="发布消息的会员头像")
     mobile = db.Column(db.String(20), nullable=False, default='', comment="会员手机号码")
     owner_id = db.Column(INTEGER(11, unsigned=True), nullable=False, default=0, comment="最终取回物品的会员id")
     name = db.Column(db.String(80), nullable=False, default='', comment="商品名称")
@@ -29,11 +31,13 @@ class Good(db.Model):
     return_goods_openid = db.Column(db.String(80), nullable=True, index=True, default='', comment="扫描上传信息的二维码id")
     status = db.Column(TINYINT(), index=True, nullable=False, default=7, comment="1:待, 2:预, "
                                                                                  "3:已, "
+                                                                                 "4:已答谢 "
                                                                                  "5:管理员删, "
                                                                                  "7:发布者创建中, "
                                                                                  "8:发布者被管理员拉黑"
                                                                                  "1: 待取回归还"
                                                                                  "2：已取回归还")
+    is_thanked = db.Column(TINYINT(), index=True, nullable=False, default=0, comment="0:未答谢, 1:已答谢")
     view_count = db.Column(INTEGER(11, unsigned=True), nullable=False, index=True,  default=0, comment="总浏览次数")
     top_expire_time = db.Column(db.DateTime, nullable=False, index=True, default=datetime.now,
                                 comment='置顶过期时间')
@@ -48,6 +52,10 @@ class Good(db.Model):
                                                                                    "10:其它")
     recommended_times = db.Column(INTEGER(11, unsigned=True), nullable=False, default=0, comment="总匹配过失/拾物次数")
     report_status = db.Column(TINYINT(), nullable=False, default=1, comment="被举报后的状态，用于存储举报的状态值")
+    confirm_time = db.Column(db.DateTime, nullable=True, default=datetime.now, comment="在线认领时间")
+    finish_time = db.Column(db.DateTime, nullable=True, default=datetime.now, comment="线下取回时间")
+    thank_time = db.Column(db.DateTime, nullable=True, default=datetime.now, comment="答谢时间")
+    appeal_time = db.Column(db.DateTime, nullable=True, default=datetime.now, comment="申诉时间")
     updated_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment="最后更新时间")
     created_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment="插入时间")
 
@@ -59,13 +67,23 @@ class Good(db.Model):
                 '2': '预认领',
                 '3': '已认领',
                 '4': '已答谢',
+                '5': '申诉中',
                 '7': '发布、修改储存未完成或者被发布者下架',
             }
-        else:
+        elif self.business_type == 0:
             status_mapping = {
                 '1': '待寻回',
                 '2': '预寻回',
                 '3': '已寻回',
+                '4': '已答谢',
+                '7': '已删除',
+            }
+        else:  # 归还贴子
+            status_mapping = {
+                '0': '已拒绝',
+                '1': '待确认',
+                '2': '待取回',
+                '3': '已取回',
                 '4': '已答谢',
                 '7': '发布、修改储存未完成或者被发布者下架',
             }
