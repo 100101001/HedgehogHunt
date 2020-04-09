@@ -4,6 +4,7 @@
 <view class="container">
   <!--搜索框、选项卡、编辑栏-->
 	<template is="search-bar-template" data="{{...infos, op_status}}" />
+
 	<view class="message_container">
 		<!--记录列表-->
 		<block wx:for="{{infos.list}}" wx:key="index">

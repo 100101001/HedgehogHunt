@@ -114,6 +114,11 @@
     font-size:32rpx;
     color:#ffffff;
 }
+
+.jiesuan-box .to-pay-btn .grey{
+  background-color: #789;
+}
+
 .jiesuan-box .to-pay-btn.no-select{
     background-color: #ccc;
 }
@@ -132,3 +137,14 @@
     padding-left: 90rpx;
     color:#000000;
 }
+
+.type-box-five{
+width: 150rpx;
+box-sizing: content-box;
+font-size: 24rpx;
+line-height: 64rpx;
+text-align: center;
+display: inline-block;
+overflow: hidden;
+}
+

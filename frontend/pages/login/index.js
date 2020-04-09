@@ -49,8 +49,8 @@ const checkReg = function (openid, cb_comp = (isReg) => {}) {
       'content-type': 'application/x-www-form-urlencoded',
     },
     success: (res) => {
-      let is_reg = res.data['data']['is_reg']
-      cb_comp(is_reg)
+      let is_reg = res.data['data']['is_reg'];
+      cb_comp(is_reg);
       if (is_reg) {
         //未登录的注册用户，直接登录
         app.login()

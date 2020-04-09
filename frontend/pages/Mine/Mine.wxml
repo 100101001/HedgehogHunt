@@ -18,10 +18,15 @@
   </block>
 
   <view class="fundation_message">记录</view>
+  <!--记录列表--->
   <block wx:for="{{items2}}" wx:key="index">
+    <!--捕捉用户点击-->
     <view class="userinfo_container" bindtap="{{item.act}}" data-op_status="{{item.op_status}}">
+      <!--记录名字-->
       <view class="title">{{item.label}}</view>
+      <!--新消息计数-->
       <view class="content" wx:if="{{item.value && item.value!=0}}">{{item.value}}</view>
+      <!--引导箭头-->
       <view class="next">
         <image class='next_img' src='{{item.icons}}'></image>
       </view>

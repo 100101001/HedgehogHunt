@@ -14,7 +14,8 @@
 <navigator url="/pages/Record/index?op_status=1">[我的认领]</navigator>
 <navigator url="/pages/Record/index?op_status=2">[推荐我的]</navigator>
 <navigator url="/pages/Record/index?op_status=5">[归还我的]</navigator>
-<navigator url="/pages/Record/index?op_status=3">[我的答谢]</navigator>
+<navigator url="/pages/Thanks/Record/index?op_status=3">[我的答谢]</navigator>
+<navigator url="/pages/Record/index?op_status=6">[我的申诉]</navigator>
 <!---二维码，余额--->
 
 <!--活动中心-->

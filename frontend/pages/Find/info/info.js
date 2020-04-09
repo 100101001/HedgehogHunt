@@ -1,13 +1,14 @@
 //index.js
 //获取应用实例
 const app = getApp();
-const globalData = app.globalData
+const globalData = app.globalData;
+const util = require('../../../utils/util');
 
 /**
  * doCancelReturnGoods  待确认时，取消归还{@link cancelReturnGoods}时，选择直接删除归还帖子
  * @param goods_id
  */
-const doCancelReturnGoods = function(goods_id = 0){
+const doCancelReturnGoods = function (goods_id = 0) {
   wx.request({
     url: app.buildUrl('/goods/return/cancel'),
     header: app.getRequestHeader(),
@@ -16,8 +17,8 @@ const doCancelReturnGoods = function(goods_id = 0){
     },
     success: res => {
       let resp = res.data
-      if(resp['code'] !== 200){
-        app.alert({content:resp['msg']})
+      if (resp['code'] !== 200) {
+        app.alert({content: resp['msg']})
         return
       }
       //直接回退
@@ -39,7 +40,7 @@ const doCancelReturnGoods = function(goods_id = 0){
  * @param goods_id
  * @param business_type
  */
-const doCleanReturnGoods = function (goods_id = 0, business_type=2) {
+const doCleanReturnGoods = function (goods_id = 0, business_type = 2) {
   wx.request({
     url: app.buildUrl('/goods/return/clean'),
     header: app.getRequestHeader(),
@@ -49,20 +50,20 @@ const doCleanReturnGoods = function (goods_id = 0, business_type=2) {
     },
     success: res => {
       let resp = res.data
-      if(resp['code'] !== 200){
-        app.alert({content:resp['msg']})
+      if (resp['code'] !== 200) {
+        app.alert({content: resp['msg']})
         return
       }
       //直接回退
       app.alert({
         title: '操作提示',
-        content: '归还贴已删除',
+        content: '删除成功',
         cb_confirm: () => {
           wx.navigateBack()
         }
       })
     },
-    fail: res =>{
+    fail: res => {
       app.serverBusy()
     }
   })
@@ -74,17 +75,18 @@ const doCleanReturnGoods = function (goods_id = 0, business_type=2) {
  * 或者被拒绝的归还去公开 {@link goReturnToFound}
  * @param goods_id
  */
-const returnToFoundGoods = function(goods_id=0){
+const returnToFoundGoods = function (goods_id = 0, status = 0) {
   wx.request({
     url: app.buildUrl('/goods/return/to/found'),
     header: app.getRequestHeader(),
     data: {
-      id: [goods_id]
+      id: [goods_id],
+      status: status //标识待确认的，还是已拒绝的
     },
     success: res => {
       let resp = res.data
-      if(resp['code'] !== 200){
-        app.alert({content:resp['msg']})
+      if (resp['code'] !== 200) {
+        app.alert({content: resp['msg']})
         return
       }
       //直接前往失物招领的发布页面
@@ -106,7 +108,8 @@ const returnToFoundGoods = function(goods_id=0){
  * fetchReturnGoodsInfo 在已寻回的帖子上操作进行答谢需要获取数据
  * @param goods_id
  */
-const fetchReturnGoodsInfo  = function (return_goods_id=0, cb_success=()=>{}){
+const fetchReturnGoodsInfo = function (return_goods_id = 0, cb_success = () => {
+}) {
   wx.request({
     url: app.buildUrl("/goods/pure/info"),
     header: app.getRequestHeader(),
@@ -129,6 +132,20 @@ const fetchReturnGoodsInfo  = function (return_goods_id=0, cb_success=()=>{}){
   })
 };
 
+
+/**
+ * hasReadGood
+ * @param goods_id
+ * @returns {boolean} 是否阅读过文章
+ */
+const hasReadGood = function (goods_id = 0) {
+  let bf = app.globalData.read_goods;
+  let read = bf.test(goods_id);
+  if (!read) {
+    bf.add(goods_id);
+  }
+  return read;
+};
 
 Page({
   data: {
@@ -176,6 +193,7 @@ Page({
       }
     }
   },
+
   onLoad: function (options) {
     let goods_id = options.goods_id * 1;
     let op_status = options.op_status;
@@ -187,11 +205,12 @@ Page({
   },
   onShow: function () {
     var regFlag = globalData.regFlag;
-    this.setData({regFlag: regFlag})
+    this.setData({regFlag: regFlag});
     if (this.data.op_status === 4) {
       this.getReportInfo(this.data.goods_id)
     } else {
-      this.getGoodsInfo(this.data.goods_id)
+      //一个用于普通阅读，另一个用于推荐操作
+      this.getGoodsInfo(this.data.goods_id, hasReadGood(this.data.goods_id), this.data.op_status)
     }
   },
   //打开位置导航
@@ -249,7 +268,7 @@ Page({
       },
     })
   },
-  getGoodsInfo: function (id) {
+  getGoodsInfo: function (id, read = false, op_status = 0) {
     var that = this;
     that.setData({
       loadingHidden: false
@@ -259,14 +278,15 @@ Page({
       header: app.getRequestHeader(),
       data: {
         id: id,
-        openid: app.getUserOpenId()
+        read: read ? 1 : 0,  // 阅读量计数
+        op_status: op_status  // 推荐已阅
       },
       success: function (res) {
         let resp = res.data;
         if (resp.code !== 200) {
           app.alert({
             content: resp.msg,
-            cb_confirm: ()=>{
+            cb_confirm: () => {
               wx.navigateBack()
             }
           });
@@ -410,22 +430,45 @@ Page({
       url: '../../Release/release/index?info=' + JSON.stringify(this.data.infos.info)
     })
   },
-  //归还按钮
+  /**
+   * 已取回的三类帖子，都可一键去答谢
+   * @param e
+   */
   goThanks: function (e) {
-    if(this.data.business_type == 0){
-      //先获取归还物品的信息
-      fetchReturnGoodsInfo(this.data.infos.info.return_goods_id,(goods_info) => {
+    let info = this.data.infos.info;
+    let business_type = info.business_type;
+    if (business_type == 0) {
+      //寻物启事不可能被申诉
+      fetchReturnGoodsInfo(info.return_goods_id, (goods_info) => {
         this.doGoThanks(goods_info)
       })
-    } else {
-      this.doGoThanks(this.data.infos.info)
+    } else if (business_type == 2) {
+      //归还贴也不会遭到申诉
+      this.doGoThanks(info)
+    } else if (business_type == 1) {
+      // 失物招领可能会遇到申诉
+      util.checkGoodsIsNotAppealed(this.data.goods_id, (is_appealed) => {
+        if (is_appealed) {
+          //被申诉了的帖子
+          app.alert({
+            title: '禁止操作',
+            content: '该申诉帖已被系统冻结，禁止任何操作，请您谅解！',
+            cb_confirm: () => {
+              wx.navigateBack()
+            }
+          });
+        } else {
+          //没有被申诉继续答谢
+          this.doGoThanks(info)
+        }
+      })
     }
   },
   /**
    *
    * @param info
    */
-  doGoThanks: function(info={}){
+  doGoThanks: function (info = {}) {
     let data = {
       "auther_id": info.auther_id,
       "goods_id": info.id,
@@ -443,24 +486,7 @@ Page({
   //申领的按钮
   toApplicate: function () {
     if (!app.loginTip()) {
-      return
-    }
-    if (this.data.infos.info.is_auth) {
-      app.alert({
-        'content': "发布者不可认领自己捡到的物品"
-      })
-      return
-    }
-    //防止重复申领（申领过可见地址，所以可见地址代表已申领过了）
-    if (this.data.infos.show_location) {
-      if (this.data.infos.info.business_type == 1) {
-        var content = "您已认领过物品,请到对应地址取回物品";
-      } else {
-        var content = "您已归还过物品,请勿重复操作";
-      }
-      app.alert({
-        'content': content
-      })
+      //必须登录再操作
       return
     }
     // 认领确认
@@ -471,55 +497,47 @@ Page({
         if (res.confirm) {
           this.setData({
             appLoadingHidden: false
-          })
+          });
           this.applyGoods()
         }
       },
     })
   },
-  applyGoods: function(){
+  applyGoods: function () {
     wx.request({
-      url: app.buildUrl("/goods/applicate"),
+      url: app.buildUrl("/goods/apply"),
       header: app.getRequestHeader(),
       data: {
-        id: this.data.infos.info.id,
+        id: this.data.goods_id,
+        status: this.data.infos.info.status,
       },
-      success:  (res) => {
+      success: (res) => {
         let resp = res.data;
-        if (resp.code !== 200) {
+        if (resp['code'] !== 200) {
+          app.alert({content: resp['msg']});
           return
         }
-        let infos = this.data.infos;
-        infos['show_location'] = resp.data.show_location;
-        infos.info.status_desc = resp.data.status_desc;
-        infos.info.status = resp.data.status;
-        this.setData({
-          infos: infos
-        });
+        this.getGoodsInfo(this.data.goods_id);
         app.alert({
           title: '取回提示',
           content: "在线认领成功，请尽快前往放置地点取回，确认取回后可获奖励积分！"
         })
       },
-      fail:  (res) => {
+      fail: (res) => {
         app.serverBusy();
       },
-      complete:  (res) => {
+      complete: (res) => {
         this.setData({
           appLoadingHidden: true
         })
       },
     })
   },
-  //已经取回的按钮
+  /**
+   * 登录后操作
+   */
   gotBack: function () {
     if (!app.loginTip()) {
-      return
-    }
-    if (this.data.infos.info.is_auth) {
-      app.alert({
-        'content': "发布者不可操作自己的记录"
-      });
       return
     }
     wx.showModal({
@@ -543,16 +561,10 @@ Page({
       success: (res) => {
         let resp = res.data;
         if (resp.code !== 200) {
+          app.alert({content: resp['msg']})
           return
         }
-
-        let infos = this.data.infos;
-        infos['show_location'] = true;
-        infos.info.status_desc = this.data.infos.info.business_type == 1? '已认领': '已取回';
-        infos.info.status = 3;
-        this.setData({
-          infos: infos
-        });
+        this.getGoodsInfo(this.data.goods_id)
         app.alert({
           title: '答谢提示',
           content: "积分+5，记得答谢发布者哦~"
@@ -579,11 +591,15 @@ Page({
    * @param e
    */
   goAppeal: function (e) {
+    if (!app.loginTip()) {
+      //登录后操作
+      return
+    }
     app.alert({
       title: '申诉提示',
       content: '确认是自己的物品被他人取走了？',
       showCancel: true,
-      cb_confirm: ()=>{
+      cb_confirm: () => {
         this.doAppeal()
       }
     })
@@ -596,24 +612,25 @@ Page({
       url: app.buildUrl('/goods/appeal'),
       header: app.getRequestHeader(),
       data: {
-        id: this.data.goods_id // 物品ID
+        id: this.data.goods_id, // 物品ID
+        status: this.data.infos.info.status //答谢帖还是已取回，如果其看见的状态与后端不符合，则不操作
       },
       success: res => {
-        let resp = res.data
-        if(resp['code']!==200){
+        let resp = res.data;
+        if (resp['code'] !== 200) {
           app.alert({content: resp['msg']});
           return
         }
         app.alert({
-          title:'申诉提示',
+          title: '申诉提示',
           content: '您的申诉已被接受，管理员将在一个工作日内与您取得联系，请保持联络方式畅通。',
-          cb_confirm: ()=>{
+          cb_confirm: () => {
             //处理前端视图
             this.getGoodsInfo(this.data.goods_id)
           }
         })
       },
-      fail: res=>{
+      fail: res => {
         app.serverBusy()
       }
     })
@@ -622,6 +639,10 @@ Page({
    * goMyRelease 待状态，作者可以去查看自己其它的所有帖子
    */
   goMyRelease: function () {
+    if (!app.loginTip()) {
+      //登录后操作
+      return
+    }
     wx.navigateTo({
       url: '/pages/Record/index?op_status=0'
     })
@@ -630,6 +651,10 @@ Page({
    * toSetTop 待状态的寻物启事，作者可以去一键置顶
    */
   toSetTop: function () {
+    if (!app.loginTip()) {
+      //登录后操作
+      return
+    }
     app.alert({
       title: '温馨提示',
       content: '置顶收费' + globalData.goodsTopPrice + '元，确认去置顶？',
@@ -649,7 +674,7 @@ Page({
       title: '拒绝提示',
       content: '归还将失效，确认不是您正在寻找的物品？',
       showCancel: true,
-      cb_confirm: res=>{
+      cb_confirm: res => {
         wx.request({
           url: app.buildUrl('/goods/return/reject'),
           header: app.getRequestHeader(),
@@ -658,19 +683,19 @@ Page({
           },
           success: res => {
             let resp = res.data;
-            if(resp['code'] !== 200) {
+            if (resp['code'] !== 200) {
               app.alert({content: resp['msg']});
               return
             }
             app.alert({
               title: '操作提示',
-              content:'已拒绝归还。望您早日寻回失物！',
-              cb_confirm: ()=>{
+              content: '已拒绝归还。望您早日寻回失物！',
+              cb_confirm: () => {
                 wx.navigateBack()
               }
             })
           },
-          fail: res=>{
+          fail: res => {
             app.serverBusy()
           }
         })
@@ -685,7 +710,7 @@ Page({
       title: '确认提示',
       content: '确定是你的物品？',
       showCancel: true,
-      cb_confirm: ()=>{
+      cb_confirm: () => {
         wx.request({
           url: app.buildUrl('/goods/return/confirm'),
           header: app.getRequestHeader(),
@@ -694,14 +719,14 @@ Page({
           },
           success: res => {
             let resp = res.data;
-            if(resp['code'] !== 200){
-              app.alert({content:resp['msg']});
+            if (resp['code'] !== 200) {
+              app.alert({content: resp['msg']});
               return
             }
             this.getGoodsInfo(this.data.goods_id);
-            app.alert({title: '操作提示', content:'归还已确认。请尽快前往放置点取回，确认后可得奖励积分！'})
+            app.alert({title: '操作提示', content: '归还已确认。请尽快前往放置点取回，确认后可得奖励积分！'})
           },
-          fail: res=>{
+          fail: res => {
             app.serverBusy()
           }
         })
@@ -712,29 +737,29 @@ Page({
    * cancelApply 取消预认领操作
    */
   goCancelApply: function () {
-    let id = this.data.goods_id
+    let id = this.data.goods_id;
     app.alert({
       title: '取消警示',
       content: '确认不是自己的？',
       showCancel: true,
-      cb_confirm: () =>{
+      cb_confirm: () => {
         //确认取消
         wx.request({
           url: app.buildUrl('/goods/cancel/apply'),
           header: app.getRequestHeader(),
           data: {
-            id: id
+            id: [id]
           },
           success: res => {
-            let resp = res.data
-            if(resp['code'] !== 200){
-              app.alert({title:'操作提示', content:resp['msg']})
+            let resp = res.data;
+            if (resp['code'] !== 200) {
+              app.alert({title: '操作提示', content: resp['msg']});
               return
             }
-            this.getGoodsInfo(id)
-            app.alert({'title':'取消成功', content: '系统将仍保留你的认领信息以查备。'})
+            this.getGoodsInfo(id);
+            app.alert({'title': '取消成功', content: '系统将仍保留你的认领信息以查备。'})
           },
-          fail: res=>{
+          fail: res => {
             app.serverBusy()
           }
         })
@@ -749,7 +774,7 @@ Page({
       title: '取消提示',
       content: '确认你捡到的不是他/她的物品？',
       showCancel: true,
-      cb_confirm: ()=>{
+      cb_confirm: () => {
         wx.showActionSheet({
           itemList: ['公开归还贴', '删除归还贴'],
           success: (res) => {
@@ -761,7 +786,7 @@ Page({
                 showCancel: true,
                 cb_confirm: res => {
                   //把链接的自己发布的归还贴转成失物招领
-                  returnToFoundGoods(this.data.infos.info.return_goods_id)
+                  returnToFoundGoods(this.data.infos.info.return_goods_id, 1)
                 }
               })
             } else {
@@ -770,7 +795,7 @@ Page({
                 title: '删除提示',
                 content: '确认删除？对方将无法查看归还贴',
                 showCancel: true,
-                cb_confirm: ()=>{
+                cb_confirm: () => {
                   //把自己发布的归还贴删除
                   doCancelReturnGoods(this.data.infos.info.return_goods_id)
                 }
@@ -815,7 +840,7 @@ Page({
       title: '操作提示',
       content: '恭喜取回物品，是否确认取回？',
       showCancel: true,
-      cb_confirm: ()=>{
+      cb_confirm: () => {
         this.doGotbackReturnGoods()
       }
     });
@@ -838,8 +863,8 @@ Page({
           app.alert({content: resp['msg']});
           return
         }
-        this.getGoodsInfo(this.data.goods_id)
-        app.alert({title:'答谢提示', content: '积分+5，记得答谢发布者哦~'})
+        this.getGoodsInfo(this.data.goods_id);
+        app.alert({title: '答谢提示', content: '积分+5，记得答谢发布者哦~'})
       }
     })
   },
@@ -861,7 +886,7 @@ Page({
       showCancel: true,
       cb_confirm: res => {
         //转成失物招领
-        returnToFoundGoods(this.data.goods_id)
+        returnToFoundGoods(this.data.goods_id, 0)
       }
     })
   },
@@ -869,18 +894,66 @@ Page({
    * goTips 状态描述区的点击提示语
    */
   goTips: function () {
-    let status = this.data.infos.info.status;
-    let business_type = this.data.infos.info.business_type;
-    if (business_type == 2 && status == 0) {
-      //被拒绝了的归还贴
-      app.alert({
-        content: '别灰心，您可继续将归还贴公开，让真正的失主找到它~'
-      })
-    } else if (business_type==2 && status == 3) {
-      if(this.data.infos.info.is_origin_deleted && !this.data.infos.info.is_thanked) {
+    let info = this.data.infos.info;
+    let status = info.status;
+    let business_type = info.business_type;
+    if (business_type == 2) {
+      if (status == 0) {
+        //被拒绝了的归还贴
         app.alert({
-          content: '别灰心，你的举手之劳帮失主找回了失物！系统已发放您奖励积分，可以兑换平台福利哟~'
+          content: '别灰心，您可继续将归还贴公开，让真正的失主找到它~'
         })
+      } else if (status == 3 || status == 4) {
+        if (info.is_origin_deleted && status == 3) {
+          //还未答谢就被删了帖的寻物启事
+          app.alert({
+            content: '别灰心，你的举手之劳帮失主找回了失物！系统已发放您奖励积分，可以兑换平台福利哟~'
+          })
+        }
+        if (!info.is_origin_deleted) {
+          //未删除帖子
+          app.alert({
+            title: '认领详情',
+            content: '失主于' + info.op_time + '线下取回了！'
+          })
+        }
+      } else if (status == 2) {
+        //
+        app.alert({
+          title: '认领详情',
+          content: '失主于' + info.op_time + '确认归还了！'
+        })
+      }
+    } else if (business_type == 1) {
+      if ((status == 2 || status == 3 || status == 4) && info.is_auth) {
+        // 预认领了失物招领查看认领时间
+        app.alert({
+          title: '认领详情',
+          content: '失主于' + info.op_time + (status == 2 ? '在线认领了！' : '线下取回了！')
+        })
+      }
+      if (status == 5) {
+        app.alert({
+          title: '申诉详情',
+          content: '我们于' + info.op_time + '收到申诉，正在处理中。帖子正被冻结，您暂时无法进行任何操作。'
+        })
+      }
+    } else if (business_type == 0) {
+      if (status == 2) {
+        //预归还和
+        if (!info.is_confirmed) {
+          //寻物贴主人可见
+          app.alert({
+            title: '归还详情',
+            content: '寻物于' + info.op_time + '被人拾到归还。'
+          })
+        }
+      } else if (status == 3) {
+        //归还者可见
+        app.alert({
+          title: '认领详情',
+          content: '失主于' + info.op_time + '线下取回了！';
+      })
       }
     }
   },
@@ -896,5 +969,11 @@ Page({
         doCleanReturnGoods(this.data.goods_id, this.data.infos.info.business_type)
       }
     })
+  },
+  /**
+   * 预认领
+   */
+  checkMarkDetail: function () {
+
   }
 });

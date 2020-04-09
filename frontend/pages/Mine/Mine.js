@@ -12,10 +12,13 @@ Page({
     })
   },
   onShow: function () {
-    this.setData({
-      recommend_new: app.globalData.recommend_new,
-      thanks_new: app.globalData.thanks_new,
-      return_new: app.globalData.return_new
+    util.getNewRecommend((data) => {
+      //新的推荐通知
+      this.setData({
+        recommend_new: data.recommend_new,
+        thanks_new: data.thanks_new,
+        return_new: data.return_new
+      });
     });
     this.setLoadData();
   },
@@ -70,7 +73,14 @@ Page({
         value: this.data.thanks_new,//value值是新推送的，未查看过的用户答谢数，按时间来划分
         act: "goThanksList",
         op_status: 3
-      }
+      },
+      {
+        label: "申诉记录",
+        icons: "/images/icons/next.png",
+        // value: this.data.appealed, //value值是待取回的归还
+        act: "goRecord",
+        op_status: 6 //记录
+      },
     ];
     this.setData({
       items1: items1,

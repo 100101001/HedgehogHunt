@@ -59,20 +59,18 @@ page {
 
 .type-box-four {
   width: 185rpx;
-  box-sizing: content-box;
-  font-size: 24rpx;
-  line-height: 64rpx;
-  text-align: center;
-  display: inline-block;
-  overflow: hidden;
+}
+
+.type-box-two{
+  width: 375rpx;
 }
 
 
 .status-box-two{
-    width: 375rpx
+    width: 375rpx;
 }
 
-.box-report{
+.type-box-five{
   width: 150rpx;
   box-sizing: content-box;
   font-size: 24rpx;

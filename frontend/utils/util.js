@@ -120,9 +120,9 @@ const getNewRecommend = function(cb_complete=(data={})=>{}){
     url: app.buildUrl('/member/get-new-recommend'),
     header: app.getRequestHeader(),
     success: (res) => {
-      let resp = res.data
+      let resp = res.data;
       if (resp['code'] !== 200) {
-        cb_complete({})
+        cb_complete({});
         return
       }
       let data = resp['data']
@@ -132,11 +132,31 @@ const getNewRecommend = function(cb_complete=(data={})=>{}){
       app.globalData.return_new = data.return_new;
       app.globalData.return = data.return;
       app.globalData.recommend = data.recommend;
-      cb_complete(data)
+      cb_complete(data);
+    },
+    fail: res => {
+      app.serverBusy();
+      cb_complete({});
+    }
+  })
+};
+
+const checkGoodsIsNotAppealed =  function (goods_id=0, cb_success=()=>{}){
+  wx.request({
+    url: app.buildUrl('/goods/status'),
+    data: {
+      id: goods_id
+    },
+    success: res => {
+      let resp = res.data
+      if (resp['code'] !== 200) {
+        app.alert({content: '操作失败，请刷新后重试'})
+        return;
+      }
+      cb_success(resp['data']['status'] == 5)
     },
     fail: res => {
       app.serverBusy()
-      cb_complete({})
     }
   })
 };
@@ -148,5 +168,6 @@ module.exports = {
   toFixed: toFixed,
   toFixedStr: toFixedStr,
   goToPoint: goToPoint,
-  getNewRecommend: getNewRecommend
+  getNewRecommend: getNewRecommend,
+  checkGoodsIsNotAppealed: checkGoodsIsNotAppealed
 }

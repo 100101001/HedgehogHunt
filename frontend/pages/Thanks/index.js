@@ -196,13 +196,15 @@ Page({
     }
   },
   toSendThanks: function (e) {
-    this.setData({canSendThank: false})
+    isG
+
+    this.setData({canSendThank: false});
     if (this.data.thanks_text == "") {
       app.alert({
         title: '温馨提示',
         content: '别忘了用文字传递感谢~'
-      })
-      this.setData({canSendThank: true})
+      });
+      this.setData({canSendThank: true});
       return
     }
     //取出答谢金额，可能是自定义金额或者指定金额

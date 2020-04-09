@@ -3,7 +3,7 @@
 <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
 <!--index.wxml-->
 <view class="container">
-  <template is="search-bar-template" data="{{...infos, op_status, business_type}}" />
+  <template is="search-bar-template" data="{{...infos, op_status, business_type, all_selected_disabled}}" />
 
   <!--只有发布记录不是归还的时候可以看见的悬浮球-->
   <import src="../template/floating-ball/floating-ball-template.wxml"></import>
@@ -12,7 +12,8 @@
   <view class="message_container">
     <block wx:for="{{infos.list}}" wx:key="index">
       <view class="item_message">
-        <radio class="radio" hidden="{{infos.saveHidden}}" data-index="{{index}}" bindtap="selectTap" checked="{{item.selected}}" />
+        <radio class="radio" hidden="{{infos.saveHidden}}" data-index="{{index}}" bindtap="selectTap" checked="{{item.selected}}"
+        disabled="{{item.unselectable}}"/>
         <template is="goodsItem" data="{{...item}}" />
       </view>
     </block>

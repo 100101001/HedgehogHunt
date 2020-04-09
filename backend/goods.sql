@@ -1,67 +1,18 @@
-/*
- Navicat Premium Data Transfer
-
- Source Server         : opencs
- Source Server Type    : MySQL
- Source Server Version : 50727
- Source Host           : 47.102.201.193:3306
- Source Schema         : ciwei_db_test
-
- Target Server Type    : MySQL
- Target Server Version : 50727
- File Encoding         : 65001
-
- Date: 07/04/2020 15:20:16
-*/
-
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
-
--- ----------------------------
--- Table structure for goods
--- ----------------------------
-DROP TABLE IF EXISTS `goods`;
-CREATE TABLE `goods`  (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拉黑会员的管理员id',
-  `member_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '发布消息的会员id',
-  `openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '第三方id',
-  `nickname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '发布消息的会员名',
-  `avatar` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '发布消息的会员头像',
-  `mobile` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员手机号码',
-  `owner_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '最终取回物品的会员id',
-  `name` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '商品名称',
-  `owner_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '物主姓名',
-  `location` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '物品放置地址',
-  `target_price` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '悬赏金额',
-  `main_image` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '主图',
-  `pics` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '组图',
-  `summary` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
-  `business_type` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 1：失物招领 0：寻物启事',
-  `qr_code_openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '扫码归还的码主的openid',
-  `return_goods_id` int(11) UNSIGNED NULL DEFAULT 0 COMMENT '归还的寻物启示ID',
-  `return_goods_openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '归还的寻物启示OPENID',
-  `status` tinyint(1) UNSIGNED NOT NULL DEFAULT 7 COMMENT '1:待, 2:预, 3:已, 5:管理员删, 7:发布者创建中, 8:发布者被管理员拉黑',
-  `is_thanked` tinyint(1) NOT NULL DEFAULT 0 COMMENT '状态 0：未答谢 1:已答谢',
-  `view_count` int(11) NOT NULL DEFAULT 0 COMMENT '总浏览次数',
-  `top_expire_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '置顶过期时间',
-  `category` tinyint(1) UNSIGNED NOT NULL DEFAULT 10 COMMENT '1:钱包 2：钥匙 3: 卡类/证照 4: 数码产品 5：手袋/挎包 6：衣服/鞋帽 7：首饰/挂饰 8：行李/包裹 9：书籍/文件 10：其它',
-  `recommended_times` int(11) NOT NULL DEFAULT 0 COMMENT '总匹配过失/拾物次数',
-  `report_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '被举报后的状态，用于存储举报的状态值',
-  `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
-  `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `ix_goods_member_id`(`member_id`) USING BTREE,
-  INDEX `ix_goods_status`(`status`) USING BTREE,
-  INDEX `ix_goods_top_expire_time`(`top_expire_time`) USING BTREE,
-  INDEX `ix_goods_view_count`(`view_count`) USING BTREE,
-  INDEX `ix_goods_category`(`category`) USING BTREE,
-  INDEX `ix_goods_owner_id`(`owner_id`) USING BTREE,
-  INDEX `ix_goods_qr_code_openid`(`qr_code_openid`) USING BTREE,
-  INDEX `ix_goods_return_goods_openid`(`return_goods_openid`) USING BTREE,
-  INDEX `ix_goods_business_type`(`business_type`) USING BTREE,
-  INDEX `ix_goods_is_thanked`(`is_thanked`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品表' ROW_FORMAT = Dynamic;
+INSERT INTO `goods` VALUES (1, 0, 100002, 'opLxO5Q3CloBEmwcarKrF_kSA574', 'L  yx', 'https://wx.qlogo.cn/mmopen/vi_32/SV42VibIREXs9x9LsPerNKSmtID351W69g7SAzfoWXYqbvBiaJtcPyUp4yAnedJlyWuiamGTnDAibdo4I4ibeiaeQaug/132', '高危非必填', 0, '钥匙', 'Test2', '上海市上海市徐汇区凌云路###梅陇十村(上海市徐汇区凌云路)###31.132328###121.42299', 0.00, '20200408/0e121bb15e9d4fdcba7cc1d46710b76c.png', '20200408/0e121bb15e9d4fdcba7cc1d46710b76c.png', 'test2', 0, '', 0, '', 1, 0, 2, '2020-04-08 17:02:56', 2, 0, 1, '2020-04-08 17:28:00', '2020-04-08 17:02:56');
+INSERT INTO `goods` VALUES (2, 0, 100002, 'opLxO5Q3CloBEmwcarKrF_kSA574', 'L  yx', 'https://wx.qlogo.cn/mmopen/vi_32/SV42VibIREXs9x9LsPerNKSmtID351W69g7SAzfoWXYqbvBiaJtcPyUp4yAnedJlyWuiamGTnDAibdo4I4ibeiaeQaug/132', '高危非必填', 0, '钱包', 'Test1', '上海市上海市徐汇区凌云路###梅陇十村(上海市徐汇区凌云路)###31.132328###121.42299', 0.00, '20200408/4726c18959474fb193b4313b0d5333c6.png', '20200408/4726c18959474fb193b4313b0d5333c6.png', 'test1', 0, '', 0, '', 1, 0, 0, '2020-04-08 17:02:57', 1, 0, 1, '2020-04-08 17:02:58', '2020-04-08 17:02:58');
+INSERT INTO `goods` VALUES (3, 0, 100002, 'opLxO5Q3CloBEmwcarKrF_kSA574', 'L  yx', 'https://wx.qlogo.cn/mmopen/vi_32/SV42VibIREXs9x9LsPerNKSmtID351W69g7SAzfoWXYqbvBiaJtcPyUp4yAnedJlyWuiamGTnDAibdo4I4ibeiaeQaug/132', '高危非必填', 0, '校园卡', 'Test3', '上海市上海市徐汇区上中西路###梅陇十村(北区)###31.132273###121.422935', 0.00, '20200408/708bc133068b4f7bba5a07a6cb06df08.jpg', '20200408/708bc133068b4f7bba5a07a6cb06df08.jpg', 'Test3', 1, '', 0, '', 1, 0, 1, '2020-04-08 17:05:17', 3, 0, 1, '2020-04-08 17:05:17', '2020-04-08 17:05:17');
+INSERT INTO `goods` VALUES (4, 0, 100002, 'opLxO5Q3CloBEmwcarKrF_kSA574', 'L  yx', 'https://wx.qlogo.cn/mmopen/vi_32/SV42VibIREXs9x9LsPerNKSmtID351W69g7SAzfoWXYqbvBiaJtcPyUp4yAnedJlyWuiamGTnDAibdo4I4ibeiaeQaug/132', '高危非必填', 0, '手机', 'Test4', '上海市上海市徐汇区凌云路###梅陇十村(上海市徐汇区凌云路)###31.132328###121.422966', 0.00, '20200408/44751a2832e7439ca1cba5aab49af806.jpg', '20200408/44751a2832e7439ca1cba5aab49af806.jpg', 'Test4', 1, '', 0, '', 1, 0, 0, '2020-04-08 17:06:25', 4, 0, 1, '2020-04-08 17:06:26', '2020-04-08 17:06:26');
+INSERT INTO `goods` VALUES (5, 0, 100002, 'opLxO5Q3CloBEmwcarKrF_kSA574', 'L  yx', 'https://wx.qlogo.cn/mmopen/vi_32/SV42VibIREXs9x9LsPerNKSmtID351W69g7SAzfoWXYqbvBiaJtcPyUp4yAnedJlyWuiamGTnDAibdo4I4ibeiaeQaug/132', '高危非必填', 0, '书包', 'Test5', '上海市上海市徐汇区上中西路###梅陇十村(北区)###31.132317###121.42296', 0.00, '20200408/2a572d9ae68743abade32a272e68b82d.png', '20200408/2a572d9ae68743abade32a272e68b82d.png', 'Test5', 0, '', 0, '', 1, 0, 0, '2020-04-08 17:07:22', 5, 0, 1, '2020-04-08 17:07:23', '2020-04-08 17:07:23');
+INSERT INTO `goods` VALUES (6, 0, 100002, 'opLxO5Q3CloBEmwcarKrF_kSA574', 'L  yx', 'https://wx.qlogo.cn/mmopen/vi_32/SV42VibIREXs9x9LsPerNKSmtID351W69g7SAzfoWXYqbvBiaJtcPyUp4yAnedJlyWuiamGTnDAibdo4I4ibeiaeQaug/132', '高危非必填', 0, '外套', 'Test6', '上海市上海市徐汇区凌云路###梅陇十村(上海市徐汇区凌云路)###31.132317###121.42295', 0.00, '20200408/fc84c967e5ab41668945dfc7a7828187.png', '20200408/fc84c967e5ab41668945dfc7a7828187.png', 'Test6', 0, '', 0, '', 1, 0, 0, '2020-04-08 17:09:27', 6, 0, 1, '2020-04-08 17:09:27', '2020-04-08 17:09:27');
+INSERT INTO `goods` VALUES (7, 0, 100002, 'opLxO5Q3CloBEmwcarKrF_kSA574', 'L  yx', 'https://wx.qlogo.cn/mmopen/vi_32/SV42VibIREXs9x9LsPerNKSmtID351W69g7SAzfoWXYqbvBiaJtcPyUp4yAnedJlyWuiamGTnDAibdo4I4ibeiaeQaug/132', '高危非必填', 0, '手链', 'Test7', '上海市上海市徐汇区凌云路###梅陇十村(上海市徐汇区凌云路)###31.132317###121.42295', 0.00, '20200408/e995b25e964f42eea3dd8fdb993d88fe.png', '20200408/e995b25e964f42eea3dd8fdb993d88fe.png', 'test7', 0, '', 0, '', 1, 0, 1, '2020-04-08 17:10:03', 7, 0, 1, '2020-04-08 17:10:03', '2020-04-08 17:10:03');
 
 
-SET FOREIGN_KEY_CHECKS = 1;
+INSERT INTO `goods` VALUES (1, 0, 100004, 'opLxO5cE7MXKPxj2ndOxnvxkoek0', 'lee', 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKeoQUBJZ40FDibYOQKAYJJGXxMWZ8FehDrNZ4gYw98qwMaCyPBwDd1kbLqa1Z3mUTOdAZjchIYcLw/132', '高危非必填', 0, '钥匙', 'Test2', '上海市上海市徐汇区凌云路###梅陇十村(上海市徐汇区凌云路)###31.132328###121.42299', 0.00, '20200408/0e121bb15e9d4fdcba7cc1d46710b76c.png', '20200408/0e121bb15e9d4fdcba7cc1d46710b76c.png', 'test2', 0, '', 0, '', 1, 0, 2, '2020-04-08 17:02:56', 2, 0, 1, '2020-04-08 17:28:00', '2020-04-08 17:02:56');
+INSERT INTO `goods` VALUES (2, 0, 100004, 'opLxO5cE7MXKPxj2ndOxnvxkoek0', 'lee', 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKeoQUBJZ40FDibYOQKAYJJGXxMWZ8FehDrNZ4gYw98qwMaCyPBwDd1kbLqa1Z3mUTOdAZjchIYcLw/132', '高危非必填', 0, '钱包', 'Test1', '上海市上海市徐汇区凌云路###梅陇十村(上海市徐汇区凌云路)###31.132328###121.42299', 0.00, '20200408/4726c18959474fb193b4313b0d5333c6.png', '20200408/4726c18959474fb193b4313b0d5333c6.png', 'test1', 0, '', 0, '', 1, 0, 0, '2020-04-08 17:02:57', 1, 0, 1, '2020-04-08 17:02:58', '2020-04-08 17:02:58');
+INSERT INTO `goods` VALUES (3, 0, 100004, 'opLxO5cE7MXKPxj2ndOxnvxkoek0', 'lee', 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKeoQUBJZ40FDibYOQKAYJJGXxMWZ8FehDrNZ4gYw98qwMaCyPBwDd1kbLqa1Z3mUTOdAZjchIYcLw/132', '高危非必填', 0, '校园卡', 'Test3', '上海市上海市徐汇区上中西路###梅陇十村(北区)###31.132273###121.422935', 0.00, '20200408/708bc133068b4f7bba5a07a6cb06df08.jpg', '20200408/708bc133068b4f7bba5a07a6cb06df08.jpg', 'Test3', 1, '', 0, '', 1, 0, 1, '2020-04-08 17:05:17', 3, 0, 1, '2020-04-08 17:05:17', '2020-04-08 17:05:17');
+INSERT INTO `goods` VALUES (4, 0, 100004, 'opLxO5cE7MXKPxj2ndOxnvxkoek0', 'lee', 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKeoQUBJZ40FDibYOQKAYJJGXxMWZ8FehDrNZ4gYw98qwMaCyPBwDd1kbLqa1Z3mUTOdAZjchIYcLw/132', '高危非必填', 0, '手机', 'Test4', '上海市上海市徐汇区凌云路###梅陇十村(上海市徐汇区凌云路)###31.132328###121.422966', 0.00, '20200408/44751a2832e7439ca1cba5aab49af806.jpg', '20200408/44751a2832e7439ca1cba5aab49af806.jpg', 'Test4', 1, '', 0, '', 1, 0, 0, '2020-04-08 17:06:25', 4, 0, 1, '2020-04-08 17:06:26', '2020-04-08 17:06:26');
+INSERT INTO `goods` VALUES (5, 0, 100002, 'opLxO5Q3CloBEmwcarKrF_kSA574', 'L  yx', 'https://wx.qlogo.cn/mmopen/vi_32/SV42VibIREXs9x9LsPerNKSmtID351W69g7SAzfoWXYqbvBiaJtcPyUp4yAnedJlyWuiamGTnDAibdo4I4ibeiaeQaug/132', '高危非必填', 0, '书包', 'Test5', '上海市上海市徐汇区上中西路###梅陇十村(北区)###31.132317###121.42296', 0.00, '20200408/2a572d9ae68743abade32a272e68b82d.png', '20200408/2a572d9ae68743abade32a272e68b82d.png', 'Test5', 0, '', 0, '', 1, 0, 0, '2020-04-08 17:07:22', 5, 0, 1, '2020-04-08 17:07:23', '2020-04-08 17:07:23');
+INSERT INTO `goods` VALUES (6, 0, 100002, 'opLxO5Q3CloBEmwcarKrF_kSA574', 'L  yx', 'https://wx.qlogo.cn/mmopen/vi_32/SV42VibIREXs9x9LsPerNKSmtID351W69g7SAzfoWXYqbvBiaJtcPyUp4yAnedJlyWuiamGTnDAibdo4I4ibeiaeQaug/132', '高危非必填', 0, '外套', 'Test6', '上海市上海市徐汇区凌云路###梅陇十村(上海市徐汇区凌云路)###31.132317###121.42295', 0.00, '20200408/fc84c967e5ab41668945dfc7a7828187.png', '20200408/fc84c967e5ab41668945dfc7a7828187.png', 'Test6', 0, '', 0, '', 1, 0, 0, '2020-04-08 17:09:27', 6, 0, 1, '2020-04-08 17:09:27', '2020-04-08 17:09:27');
+INSERT INTO `goods` VALUES (7, 0, 100002, 'opLxO5Q3CloBEmwcarKrF_kSA574', 'L  yx', 'https://wx.qlogo.cn/mmopen/vi_32/SV42VibIREXs9x9LsPerNKSmtID351W69g7SAzfoWXYqbvBiaJtcPyUp4yAnedJlyWuiamGTnDAibdo4I4ibeiaeQaug/132', '高危非必填', 0, '手链', 'Test7', '上海市上海市徐汇区凌云路###梅陇十村(上海市徐汇区凌云路)###31.132317###121.42295', 0.00, '20200408/e995b25e964f42eea3dd8fdb993d88fe.png', '20200408/e995b25e964f42eea3dd8fdb993d88fe.png', 'test7', 0, '', 0, '', 1, 0, 1, '2020-04-08 17:10:03', 7, 0, 1, '2020-04-08 17:10:03', '2020-04-08 17:10:03');
+INSERT INTO `goods` VALUES (8, 0, 100004, 'opLxO5cE7MXKPxj2ndOxnvxkoek0', 'lee', 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKeoQUBJZ40FDibYOQKAYJJGXxMWZ8FehDrNZ4gYw98qwMaCyPBwDd1kbLqa1Z3mUTOdAZjchIYcLw/132', '高危非必填', 0, '快递', 'TEST8', '上海市杨浦区四平路1239号###同济大学(四平路校区)###31.282628###121.50183', 0.00, '20200408/52fb03fb4bef4a4caa70755c469f4139.jpg', '20200408/52fb03fb4bef4a4caa70755c469f4139.jpg', 'TEST8', 1, '', 0, '', 1, 0, 3, '2020-04-08 21:46:28', 8, 0, 1, '2020-04-08 21:46:29', '2020-04-08 21:46:29');
+INSERT INTO `goods` VALUES (9, 0, 100002, 'opLxO5cE7MXKPxj2ndOxnvxkoek0', 'lee', 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKeoQUBJZ40FDibYOQKAYJJGXxMWZ8FehDrNZ4gYw98qwMaCyPBwDd1kbLqa1Z3mUTOdAZjchIYcLw/132', '高危非必填', 0, '文件夹', 'TEST9', '上海市杨浦区四平路1239号###同济大学(四平路校区)###31.282628###121.50183', 0.00, '20200408/35d3fb7529d1485499f13e5a487053d3.png', '20200408/35d3fb7529d1485499f13e5a487053d3.png', 'TEST9', 0, '', 0, '', 1, 0, 0, '2020-04-08 21:48:05', 9, 0, 1, '2020-04-08 21:48:05', '2020-04-08 21:48:05');

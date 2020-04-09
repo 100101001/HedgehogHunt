@@ -248,11 +248,11 @@ swiper-item image {
 
 
 .footer-box .grey{
-  background-color: #999;
+  background-color: #ccc;
 }
 
 .footer-box .light-grey{
-  background-color: #789;
+  background-color: #B0C4DE;
 }
 
 

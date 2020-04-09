@@ -1,4 +1,7 @@
 //app.js
+
+const BloomFilter = require('utils/bloomfilter').BloomFilter;
+
 App({
   globalData: {
     qrCodeDebug: false, //用于微信二维码获取无限个(false)的接口/有限个(true)的接口
@@ -12,10 +15,10 @@ App({
     regFlag: false, //用于判断用户已注册(和缓存中的token一起代表用户已经登录)
     shopName: "闪寻-失物招领",
     //domain: "http://127.0.0.1:8999/api",
-    domain: "http://192.168.1.116:8999/api",
+    domain: "http://192.168.0.116:8999/api",
     //domain: "https://ciwei.opencs.cn/api",
     static_file_domain: "https://ciwei.opencs.cn",
-    static_file_domain: "http://192.168.1.116:8999",
+    static_file_domain: "http://192.168.0.116:8999",
     member_status: 1, //用户状态
     op_status: 2,
     showHintQrcode: true, //导航栏上方的提示浮窗，标记是否显示浮窗，用户可关闭
@@ -63,6 +66,7 @@ App({
     campus_id: -1, //学校id
     campus_name: "", //学校名
     tutorial: true,
+    read_goods: new BloomFilter(32*256, 16) //用户查阅过的物品ID，用于阅读量计数
   },
   onLaunch: function () {
     // 获取后端二维码产品价格和产品ID
@@ -320,11 +324,11 @@ App({
       method: 'GET',
       data: {},
       success: (res) => {
-        let resp = res.data
+        let resp = res.data;
         if (resp['code'] !== 200) {
           return;
         }
-        let data = resp['data']
+        let data = resp['data'];
         this.globalData.total_new = data.total_new;
         this.globalData.recommend_new = data.recommend_new;
         this.globalData.thanks_new = data.thanks_new;
@@ -359,13 +363,13 @@ App({
    * @see qrCodeNavigate 扫码处理
    */
   doLogin: function(){
-    let isScanQrcode = this.globalData.isScanQrcode
+    let isScanQrcode = this.globalData.isScanQrcode;
     wx.login({
       success: (res) => {
-        let code = res.code
+        let code = res.code;
         if (!code) {
           //没有拿到登录用的code
-          app.alert({content: '网络开小差了，请稍后再试'})
+          this.alert({content: '网络开小差了，请稍后再试'});
           if (isScanQrcode) {
             //扫码失败
             this.cancelQrcodeScan()
@@ -383,7 +387,7 @@ App({
             code: code
           },
           success: (res) => {
-            let resp = res.data
+            let resp = res.data;
             if (resp['code'] !== 200) {
               //非注册用户
               if (resp['code'] == -2) {
@@ -397,7 +401,7 @@ App({
               return
             }
             //成功获取用户状态信息，进行全局缓存
-            this.onLoginSuccessSetData(res)
+            this.onLoginSuccessSetData(res);
             if (isScanQrcode) {
               //已注册用户(扫码时未登录，刚登录)扫码
               this.qrCodeNavigate()
@@ -413,6 +417,9 @@ App({
             }
           }
         })
+      },
+      fail: res => {
+        this.alert({content: '网络开小差了，请稍后再试'})
       }
     })
   },

@@ -11,7 +11,7 @@
       <image src="/images/icons/report.png"></image>
       <text>举报</text>
     </view>
-    <view class="report" catchtap="toEdit" data-id="{{id}}" wx:if="{{is_auth}}">
+    <view class="report" catchtap="toEdit" data-id="{{id}}" wx:if="{{is_auth && status==1}}">
       <image src="/images/icons/edit-red.png"></image>
       <text>编辑</text>
     </view>

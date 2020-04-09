@@ -20,21 +20,21 @@
   </form>
 
   <!--举报的选项卡-->
-  <view class="type-container" wx:if="{{check_cat.length==5}}">
-    <scroll-view class="type-navbar-check-report">
-      <view class="box-report" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="index">
-        <view id="{{cat.id}}" class="type-navbar-item {{check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="checkReportClick">
-          {{cat.name}}<view class="content_tip" wx:if="{{cat.value && cat.value!=0}}">{{cat.value}}</view>
-        </view>
-      </view>
-    </scroll-view>
-  </view>
+<!--  <view class="type-container" wx:if="{{op_status==4}}">-->
+<!--    <scroll-view class="type-navbar-check-report">-->
+<!--      <view class="type-box-five" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="index">-->
+<!--        <view id="{{cat.id}}" class="type-navbar-item {{check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="checkReportClick">-->
+<!--          {{cat.name}}<view class="content_tip" wx:if="{{cat.value && cat.value!=0}}">{{cat.value}}</view>-->
+<!--        </view>-->
+<!--      </view>-->
+<!--    </scroll-view>-->
+<!--  </view>-->
 
   <!--选项卡-->
-  <view class="type-container" wx:if="{{check_cat.length!=5}}">
+  <view class="type-container">
     <scroll-view class="type-navbar-check-report" scroll-x="true">
-      <view class="type-box" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="index">
-        <view id="{{cat.id}}" class="type-navbar-item {{check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="recordTypeClick">
+      <view class="type-box {{check_cat.length==2? 'type-box-two':''}}  {{check_cat.length==4? 'type-box-four':''}} {{check_cat.length==5? 'type-box-five':''}}" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="index">
+        <view id="{{cat.id}}" class="type-navbar-item {{check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="{{op_status==4? 'checkReportClick':'recordTypeClick'}}">
           {{cat.name}}<view class="content_tip" wx:if="{{cat.value && cat.value!=0}}">{{cat.value}}</view>
         </view>
       </view>
@@ -44,7 +44,7 @@
  <!--全选删除-->
   <view class="jiesuan-box" wx:if="{{ list.length }}" hidden="{{saveHidden}}">
     <view class="left-price">
-      <radio class="all_select" bindtap="bindAllSelect" checked="{{allSelect}}">全选</radio>
+      <radio class="all_select" bindtap="bindAllSelect" checked="{{allSelect}}" disabled="{{all_selected_disabled}}">全选</radio>
     </view>
 
     <!--发布的，匹配记录，答谢记录-->
@@ -68,11 +68,12 @@
 
     <!--认领记录-->
     <view wx:if="{{op_status==1}}">
+      <!--给了两个选项-->
       <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected"
-            wx:if="{{check_status_id==0 }}">取消认领
+            wx:if="{{check_status_id==0 }}">确认取回
       </view>
-      <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="confirmSelected"
-            wx:if="{{check_status_id==1}}">确认取回
+      <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected"
+            wx:if="{{check_status_id==1}}">删除
       </view>
       <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected"
             wx:if="{{check_status_id==2}}">删除
