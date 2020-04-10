@@ -51,6 +51,10 @@
   height: 40rpx;
 }
 
+.location {
+  margin-top: 30rpx;
+}
+
 .label {
   font-size: 30rpx;
   font-weight: 500;

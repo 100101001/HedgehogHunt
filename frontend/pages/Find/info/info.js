@@ -193,13 +193,13 @@ Page({
     let goods_id = options.goods_id * 1;
     let op_status = options.op_status;
     this.setData({
-      appLoadingHidden: true,
-      op_status: op_status,
+      appLoadingHidden: true, //申领中的加载loading图标
+      op_status: op_status, //我的记录进入查看详情，可以得知是从什么记录过来的
       goods_id: goods_id
     })
   },
   onShow: function () {
-    var regFlag = globalData.regFlag;
+    let regFlag = globalData.regFlag;
     this.setData({regFlag: regFlag});
     if (this.data.op_status === 4) {
       this.getReportInfo(this.data.goods_id)
@@ -210,7 +210,7 @@ Page({
   },
   //打开位置导航
   toNavigate: function () {
-    var location = this.data.infos.info.location;
+    let location = this.data.infos.info.location;
     wx.openLocation({ //​使用微信内置地图查看位置。
       latitude: location[2], //要去的纬度-地址
       longitude: location[3], //要去的经度-地址
@@ -263,6 +263,12 @@ Page({
       },
     })
   },
+  /**
+   * 获取物品详情
+   * @param id 物品id
+   * @param read 是否已读
+   * @param op_status 从归还通知，还是匹配推荐等记录栏过来的
+   */
   getGoodsInfo: function (id, read = false, op_status = 0) {
     var that = this;
     that.setData({
@@ -376,7 +382,7 @@ Page({
     });
   },
   /**
-   *
+   * doReportGoods
    * @param id
    */
   doReportGoods: function(id=0){
@@ -655,9 +661,19 @@ Page({
    * goMyRelease 待状态，作者可以去查看自己其它的所有帖子
    */
   goMyRelease: function () {
-    wx.navigateTo({
-      url: '/pages/Record/index?op_status=0'
-    })
+    let pages = getCurrentPages();
+    if (pages.length > 1) {
+      let page = pages[pages.length - 2];
+      if (page.route === 'pages/Record/index' && page.data.op_status == 0) {
+        //本来就从我发布的记录过来的
+        wx.navigateBack()
+      } else {
+        //去链接帖子
+        wx.navigateTo({
+          url: '/pages/Record/index?op_status=0'
+        })
+      }
+    }
   },
   /**
    * toSetTop 待状态的寻物启事，作者可以去一键置顶
@@ -957,17 +973,28 @@ Page({
           title: '认领详情',
           content: '失主于' + info.op_time + '确认归还了！'
         })
+      } else if (status == 1){
+        app.alert({
+          title: '等待提示',
+          content: '别着急，失主还没上线呢！'
+        })
       }
     } else if (business_type == 1) {
       //失物招领贴
-      if ((status == 2 || status == 3 || status == 4) && info.is_auth) {
+      if (status == 1){
+        app.alert({
+          title: '等待提示',
+          content: '别着急，失主还没发现自己丢了东西呢！'
+        })
+      }
+      else if ((status == 2 || status == 3 || status == 4) && info.is_auth) {
         // 预认领了失物招领查看认领时间
         app.alert({
           title: '认领详情',
           content: '失主于' + info.op_time + (status == 2 ? '在线认领了！' : '线下取回了！')
         })
       }
-      if (status == 5) {
+      else if (status == 5) {
         //所有人能可见申诉帖的人可见
         app.alert({
           title: '申诉详情',

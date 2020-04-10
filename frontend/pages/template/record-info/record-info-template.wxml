@@ -163,7 +163,7 @@
         <!--帖子状态很新鲜，没什么好展示的状态，去看看我发布过的其他帖子好了-->
         <view class="join-shop-cart" catchtap="goMyRelease">查看我发布的</view>
         <!--失物招领贴的状态操作区-->
-        <view class="now-buy">等待中</view>
+        <view class="now-buy" catchtap="goTips">等待中</view>
       </view>
 
       <!--待认领贴，预认领贴-->

@@ -794,33 +794,37 @@ Page({
         let id_list = this.getSelectedIdList();
         let op_status = this.data.op_status;
         let url;
+        let biz_type;
         if (op_status == 1) {
           url = '/goods/gotback'
+          biz_type = 1;
         } else if (op_status == 5) {
           url = '/goods/return/gotback'
+          biz_type = 2;
         }
-        this.doGotbackReturnGoods(url, id_list)
+        this.doGotbackReturnGoods(url, id_list, biz_type)
       }
     });
   },
   /**
    * doGotbackReturnGoods 确认取回归还帖
    */
-  doGotbackReturnGoods: function (url = "", id_list = []) {
+  doGotbackReturnGoods: function (url = "", id_list = [], biz_type = 1) {
     wx.request({
       url: app.buildUrl(url),
       header: app.getRequestHeader(),
       data: {
-        id: id_list
+        id: id_list,
+        biz_type: biz_type //给 /goods/return/back 判断传入的id是什么类型的物品
       },
       success: res => {
-        let resp = res.data
+        let resp = res.data;
         if (resp['code'] !== 200) {
           app.alert({content: resp['msg']});
           return
         }
-        this.editTap()
-        this.onPullDownRefresh()
+        this.editTap();
+        this.onPullDownRefresh();
         app.alert({title: '答谢提示', content: '积分+5，记得答谢发布者哦~'})
       },
       fail: res => {

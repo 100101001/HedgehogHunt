@@ -1,7 +1,6 @@
 //app.js
 
 const BloomFilter = require('./utils/bloomfilter').BloomFilter;
-const CryptoJS = require('crypto-js')
 App({
   globalData: {
     qrCodeDebug: false, //用于微信二维码获取无限个(false)的接口/有限个(true)的接口
@@ -102,17 +101,6 @@ App({
       }
     });
     // Encrypt
-    let ciphertext = CryptoJS.AES.encrypt('李依璇', '1111111111111111', {
-      padding: CryptoJS.AES
-    }).toString();
-    let ciphertext2 = CryptoJS.DES.encrypt('李依璇', '1111111111111111').toString();
-    console.log(ciphertext == ciphertext2)
-    console.log(ciphertext2)
-    console.log(ciphertext)
-    let bytes  = CryptoJS.AES.decrypt(ciphertext, '1111111111111111');
-    let originalText = bytes.toString(CryptoJS.enc.Utf8);
-
-    console.log(originalText); // 'my message'
   },
   /**
    * loginTip 用户点击了需要登录的功能按键时进入该函数

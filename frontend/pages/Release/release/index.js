@@ -315,6 +315,35 @@ Page({
       }
     }
   },
+  /**
+   * 必填信息的数据
+   * @param items
+   * @returns {*}
+   */
+  getEssentialData: function(items = []){
+    let data;
+    if (!globalData.isScanQrcode) {
+      //不在扫码
+      data = {
+        location: this.data.location.length ? this.data.location[1] : "",
+        goods_name: items[0].value,
+        mobile: items[2].value,
+        owner_name: items[1].value,
+        summary: this.data.summary_value,
+        category: this.data.category_index
+      };
+    } else {
+      //扫码发布可不填失主信息
+      data = {
+        location: this.data.location.length ? this.data.location[1] : "",
+        goods_name: items[0].value,
+        mobile: items[1].value,
+        summary: this.data.summary_value,
+        category: this.data.category_index
+      };
+    }
+    return data;
+  },
   /***
    * toRelease
    * 如果必填项为空，提示补上
@@ -326,17 +355,9 @@ Page({
     this.setData({
       submitDisable: true
     });
+    // 获得需要判空的数据
+    let data = this.getEssentialData(this.data.items);
     // 必填项判空
-    let items = this.data.items;
-    // 需要判空的数据
-    let data = {
-      location: this.data.location.length ? this.data.location[1] : "",
-      goods_name: items[0].value,
-      mobile: items[2].value,
-      owner_name: items[1].value,
-      summary: this.data.summary_value,
-      category: this.data.category_index
-    };
     if (app.judgeEmpty(data, this.data.tips_obj)) {
       this.setData({
         submitDisable: false
@@ -728,9 +749,7 @@ Page({
       if(this.data.info){
         //寻物归还
         msg = "归还成功";
-        navigate = ()=>{
-          wx.navigateBack()
-        }
+        navigate = wx.navigateBack
       } else {
         //扫码归还
         msg = "扫码归还成功";
@@ -818,9 +837,10 @@ Page({
         icons: "/images/icons/mobile.png",
       }
     ];
-    //如果正在扫码设置默认的失主姓名
     if (globalData.isScanQrcode) {
-      items[1].value = util.des3_decrypt(globalData.qrcodeName, globalData.qrcodeOpenid.slice(0,24));
+      //如果是扫码不需要失主姓名，后台自动填充
+      items.splice(1, 1);
+      delete tips_obj.owner_name
     }
     let summary_placeholder = "";
     //表单

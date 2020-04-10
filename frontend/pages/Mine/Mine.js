@@ -6,24 +6,14 @@ Page({
 
   },
   onLoad: function () {
-    var is_user = app.globalData.is_user;
     this.setData({
-      is_user: is_user
-    })
-  },
-  onShow: function () {
-    util.getNewRecommend((data) => {
-      //新的推荐通知
-      this.setData({
-        recommend_new: data.recommend_new,
-        thanks_new: data.thanks_new,
-        return_new: data.return_new
-      });
+      is_user: app.globalData.is_user  //管理员可见管理后台
     });
-    this.setLoadData();
+    this.setLoadData(); //所有入口entry的初始化
   },
   setLoadData: function () {
-    var items1 = [
+    //基本信息栏
+    let items1 = [
       {
         label: "个人信息",
         icons: "/images/icons/next.png",
@@ -40,7 +30,8 @@ Page({
         act: "goConnect",
       },
     ];
-    var items2 = [
+    //记录栏
+    let items2 = [
       {
         label: "发布记录",
         icons: "/images/icons/next.png",
@@ -86,6 +77,19 @@ Page({
       items1: items1,
       items2: items2,
     })
+  },
+  onShow: function () {
+    util.getNewRecommend((data) => {
+      //新的推荐通知
+      let items2 = this.data.items2;
+      //设置新消息计数
+      items2[2].value = data.return_new;
+      items2[3].value = data.recommend_new;
+      items2[4].value = data.thanks_new;
+      this.setData({
+        items2: items2
+      });
+    });
   },
   goControls: function () {
     wx.navigateTo({
