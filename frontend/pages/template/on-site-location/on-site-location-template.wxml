@@ -1,0 +1,23 @@
+<!--pages/template/on-site-location/on-site-location-template.wxml-->
+<template name="on-site-location">
+  <view class="tips-views" wx:if="{{business_type==0}}">你丢的位置，方便推荐筛选，不记得可留空。</view>
+  <view class="tips-views" wx:if="{{business_type==1 || business_type==2}}">你发现失物的位置，方便失主寻物，与放置地一致可留空。</view>
+  <view class="item-container">
+    <image src="/images/icons/location.png" mode="aspectFit"></image>
+    <view class="label" wx:if="{{business_type==1 || business_type == 2}}">发现位置</view>
+    <view class="label" wx:if="{{business_type==0}}">丢失位置</view>
+    <view class="get-location" data-loc="2" bindtap="getLocation">获取位置</view>
+  </view>
+
+
+  <view class="location-name" wx:if="{{business_type==0}}">
+    <input name="location" data-loc="2" bindinput="listenLocationInput" disabled="{{os_location.length==0}}"
+           value="{{os_location[1]}}" placeholder="我也不知道给丢哪了，就不填了"></input>
+  </view>
+
+  <view class="location-name" wx:if="{{business_type==1}}" id="on-site-location">
+    <input name="location" data-loc="2" bindinput="listenLocationInput" disabled="{{os_location.length==0}}"
+           value="{{os_location[1]}}" placeholder="和我放置的地点一样，就不填了"></input>
+  </view>
+  <view class="hrz"></view>
+</template>

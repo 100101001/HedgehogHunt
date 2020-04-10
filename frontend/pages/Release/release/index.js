@@ -132,7 +132,9 @@ Page({
     balance_use_disabled: true, //禁用勾选框
     balance: 0.00, //用户可垫付余额
     total_balance: 0.00,  //用户余额
-    category_arr: [] // 仅仅用于最后结束创建加入推荐列表，不用来进行通知(通知做防重处理)
+    category_arr: [], // 仅仅用于最后结束创建加入推荐列表，不用来进行通知(通知做防重处理)
+    location: [],
+    os_location: []
   },
   /**
    * 1、扫码发布(失物招领)
@@ -141,13 +143,12 @@ Page({
    * @param options
    */
   onLoad: function (options) {
-    let info = options.info
+    let info = options.info;
     if (globalData.isScanQrcode) {
       //扫码归还
       this.setData({
         notify_id: globalData.qrcodeOpenid,  //用于归还帖的链接
         business_type: 2, //归还贴
-        location: [],
         dataReady: true
       });
       this.setInitData()
@@ -157,7 +158,6 @@ Page({
         this.setData({
           info: JSON.parse(info),  //用于归还贴信息智能填充，以及归还贴与原寻物贴链接
           business_type: 2, //归还帖
-          location: [],
           dataReady: true
         });
         this.setInitData()
@@ -168,9 +168,8 @@ Page({
           success: res => {
             this.setData({
               business_type: res.tapIndex,
-              location: [],
               dataReady: true
-            })
+            });
             this.setInitData()
           },
           fail: (res) => {
@@ -193,6 +192,8 @@ Page({
   },
   //获取位置的方法
   getLocation: function (e) {
+    let loc_id = e.currentTarget.dataset.loc;
+    console.log(loc_id);
     let that = this;
     wx.getSetting({
       success(res) {
@@ -201,29 +202,37 @@ Page({
           wx.authorize({
             scope: 'scope.userLocation',
             success() {
-              that.chooseLocation();
+              that.chooseLocation(loc_id);
             },
             fail(errMsg) {
               wx.showToast({ title: JSON.stringify(errMsg), icon: 'none' })
             }
           })
         } else {
-          that.chooseLocation();
+          that.chooseLocation(loc_id);
         }
       }
     })
   },
-  chooseLocation: function () {
+  chooseLocation: function (loc_id = 1) {
     wx.chooseLocation({
-      success:  (res) => {
-        this.setData({
-          location: [
-            res.address,
-            res.name,
-            res.latitude,
-            res.longitude,
-          ]
-        })
+      success: (res) => {
+        let loc = [
+          res.address,
+          res.name,
+          res.latitude,
+          res.longitude,
+        ];
+        //判断设置的捡拾
+        if (loc_id == 1) {
+          this.setData({
+            location: loc
+          })
+        } else {
+          this.setData({
+            os_location: loc
+          })
+        }
       }
     })
   },
@@ -313,14 +322,15 @@ Page({
    * @see handleRelease
    */
   toRelease: function () {
+    //防止重复地点击
     this.setData({
       submitDisable: true
     });
     // 必填项判空
-    let items = this.data.items
+    let items = this.data.items;
     // 需要判空的数据
     let data = {
-      location: this.data.location.length? this.data.location[1] : "",
+      location: this.data.location.length ? this.data.location[1] : "",
       goods_name: items[0].value,
       mobile: items[2].value,
       owner_name: items[1].value,
@@ -340,11 +350,37 @@ Page({
       });
       this.setData({
         submitDisable: false
-      })
+      });
       return
     }
-    //准备发布数据
-    data['business_type'] = this.data.business_type
+    let os_location = this.data.os_location;
+    let business_type = this.data.business_type;
+    if (os_location.length === 0 && (business_type == 1)) {
+      //失物招领发帖时，再三询问是否真的一致，确保信息正确
+      app.alert({
+        title: '发布提示',
+        content: '发现地是很重要的寻物线索，确认发现地点与放置地点一致？',
+        cb_confirm: () => {
+          //准备发布数据
+          this.continueToRelease(data);
+        },
+        cb_cancel: () => {
+          //滚动到事发地点位置
+          setTimeout(() => {
+            util.goToPoint('#on-site-location')
+          }, 200)
+        }
+      })
+    } else {
+      this.continueToRelease(data);
+    }
+  },
+  /**
+   * 发布信息通过校验{@link toRelease}后继续发帖
+   */
+  continueToRelease: function(data={}){
+    data['os_location'] = this.data.os_location;
+    data['business_type'] = this.data.business_type;
     data['category'] = parseInt(data['category']) + 1; // 因为数据库id从1开始计数
     data['location'] = this.data.location;
     data['img_list'] = this.data.imglist;
@@ -728,7 +764,7 @@ Page({
    */
   setInitData: function () {
     //发布信息表单数据初始化
-    this.setFormInitData()
+    this.setFormInitData();
     //寻物启事需要的置顶信息
     if (!this.data.business_type) {
       this.setTopAndBalanceUseInitData()
@@ -766,13 +802,13 @@ Page({
       placeholder: "例:校园卡",
       label: tips_obj['goods_name'],
       icons: "/images/icons/goods_name.png",
-      value: business_type && info ? info.goods_name : "",  //归还帖自动填充归还的物品名
+      value: business_type ==2  && info ? info.goods_name : "",  //归还帖自动填充归还的物品名
     }, {
       name: "owner_name",
       placeholder: "例:可可",
       label: tips_obj['owner_name'],
       icons: "/images/icons/discount_price.png",
-      value: business_type && info ? info.owner_name : "" //归还帖自动填充归还物品的失主名
+      value: business_type == 2 && info ? info.owner_name : "" //归还帖自动填充归还物品的失主名
     },
       {
         name: "mobile",
@@ -782,6 +818,10 @@ Page({
         icons: "/images/icons/mobile.png",
       }
     ];
+    //如果正在扫码设置默认的失主姓名
+    if (globalData.isScanQrcode) {
+      items[1].value = util.des3_decrypt(globalData.qrcodeName, globalData.qrcodeOpenid.slice(0,24));
+    }
     let summary_placeholder = "";
     //表单
     if (business_type) {

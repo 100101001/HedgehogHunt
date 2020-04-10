@@ -8,7 +8,7 @@ const formatTime = date => {
   const second = date.getSeconds()
 
   return [year, month, day].map(formatNumber).join('/') + ' ' + [hour, minute, second].map(formatNumber).join(':')
-}
+};
 
 const formatNumber = n => {
   n = n.toString()
@@ -62,7 +62,7 @@ function onNavigateTap(id) {
 
 //检查电话号码
 function regexConfig() {
-  var reg = {
+  let reg = {
     email: /^(\w-*\.*)+@(\w-?)+(\.\w{2,})+$/,
     phone: /^1(3|4|5|6|7|8|9)\d{9}$/  //10,11,12开头电话分配给固定机构使用
   }
@@ -141,6 +141,11 @@ const getNewRecommend = function(cb_complete=(data={})=>{}){
   })
 };
 
+/**
+ * 检查物品是否被申诉了（去答谢之前，以及创建答谢时）
+ * @param goods_id
+ * @param cb_success
+ */
 const checkGoodsIsNotAppealed =  function (goods_id=0, cb_success=()=>{}){
   wx.request({
     url: app.buildUrl('/goods/status'),
@@ -161,6 +166,21 @@ const checkGoodsIsNotAppealed =  function (goods_id=0, cb_success=()=>{}){
   })
 };
 
+const DES3 = require("./DES3.js");
+const BASE64 = require("./Base64.js");
+/**
+ * @return {string}
+ */
+const DES3_Decrypt =function (data, key) {
+  let des3de = DES3.decrypt(key, BASE64.decoder(data));
+  return des3de;
+};
+
+const DES3_Encrypt = function (data,key) {
+  let des3en = BASE64.encoder(DES3.encrypt(key, data));
+  return des3en;
+}
+
 module.exports = {
   formatTime: formatTime,
   onNavigateTap: onNavigateTap,
@@ -169,5 +189,7 @@ module.exports = {
   toFixedStr: toFixedStr,
   goToPoint: goToPoint,
   getNewRecommend: getNewRecommend,
-  checkGoodsIsNotAppealed: checkGoodsIsNotAppealed
+  checkGoodsIsNotAppealed: checkGoodsIsNotAppealed,
+  des3_decrypt: DES3_Decrypt,
+  des3_encrypt: DES3_Encrypt
 }

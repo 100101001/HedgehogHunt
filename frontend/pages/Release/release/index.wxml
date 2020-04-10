@@ -23,26 +23,34 @@
           <image src="{{item.icons}}" mode="aspectFit"></image>
           <view class="label">{{item.label}}</view>
           <view class="inputbox">
-            <input name="{{item.name}}" bindfocus="{{item.act}}" placeholder="{{item.placeholder}}" value="{{item.value}}" type="{{item.kb_type}}" bindinput="listenerInput" data-id="{{idx}}"></input>
+            <!--当扫码时，失主姓名不可编辑-->
+            <input disabled="{{notify_id && idx==1}}" name="{{item.name}}" bindfocus="{{item.act}}" placeholder="{{item.placeholder}}" value="{{item.value}}" type="{{item.kb_type}}" bindinput="listenerInput" data-id="{{idx}}"></input>
           </view>
         </view>
       </block>
 
       <!--地址选择器和输入框-->
       <view class="hrz"></view>
+      <view class="tips-views" wx:if="{{business_type==0}}">你的常驻地址，方便拾者就近归还。</view>
+      <view class="tips-views" wx:if="{{business_type==1}}">你寄放失物的地址，方便失主前往认领。</view>
+      <view class="tips-views" wx:if="{{business_type == 2}}">建议将物品归还到 <text style="font-size:26rpx;font-weight:600;opacity:1;">{{info_owner_name}}</text> 所在的以下位置，若是放置到自己方便的位置请获取位置提交</view>
       <view class="item-container">
         <image src="/images/icons/location.png" mode="aspectFit"></image>
         <view class="label" wx:if="{{business_type==1 || business_type == 2}}">放置位置</view>
         <view class="label" wx:if="{{business_type==0}}">住址</view>
-        <view class="get-location" bindtap="getLocation">获取位置</view>
+        <view class="get-location" data-loc="1" bindtap="getLocation">获取位置</view>
       </view>
 
       <!--归还帖可见放置提示-->
-      <view class="tips-views" wx:if="{{auther_id}}">建议将物品归还到 <text style="font-size:26rpx;font-weight:600;opacity:1;">{{info_owner_name}}</text> 所在的以下位置，若是放置到自己方便的位置请获取位置提交</view>
       <view class="location-name">
-        <input name="location" bindinput="listenLocationInput" disabled="{{location.length==0}}" value="{{location[1]}}" placeholder="若获取的地址不够精确可手动输入完善"></input>
+        <input name="location" data-loc="1" bindinput="listenLocationInput" disabled="{{location.length==0}}" value="{{location[1]}}" placeholder="若获取的地址不够精确可手动输入完善"></input>
       </view>
       <view class="hrz"></view>
+
+      <!--事发位置，除了归还贴，其它帖子都需要填写-->
+      <import src="../../template/on-site-location/on-site-location-template.wxml"></import>
+      <template is="on-site-location" data="{{business_type, os_location}}" wx:if="{{business_type!=2}}"></template>
+
     </view>
 
     <!--图片-->

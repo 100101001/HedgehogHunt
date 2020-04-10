@@ -1,7 +1,7 @@
 //app.js
 
-const BloomFilter = require('utils/bloomfilter').BloomFilter;
-
+const BloomFilter = require('./utils/bloomfilter').BloomFilter;
+const CryptoJS = require('crypto-js')
 App({
   globalData: {
     qrCodeDebug: false, //用于微信二维码获取无限个(false)的接口/有限个(true)的接口
@@ -32,6 +32,7 @@ App({
     indexPage: null, //首页（扫码进入控制“逛一逛”按钮显示）
     isScanQrcode: false, //是否扫码进入
     qrcodeOpenid: "", //二维码用户ID
+    qrcodeName: "", //二维码用户名字
     unLoggedRelease: false, //扫码用户未注册仍继续发布
     unLoggedReleaseToken: {}, //扫码用户未注册仍继续发布使用的用户token
     qrcodePrice: 2, //闪寻码的价格
@@ -85,7 +86,7 @@ App({
         this.globalData.goodsTopDays = data['top'].days
         this.globalData.buyQrCodeFreeSmsTimes = data['free_sms'].times
       }
-    })
+    });
     // 获得类别列表
     wx.request({
       url: this.buildUrl('/goods/category/all'),
@@ -93,13 +94,25 @@ App({
         this.globalData.goodsCategories = res.data['data']['cat_list']
         this.globalData.categoryDefaultGoods = res.data['data']['cat_default']
       }
-    })
+    });
     // 获得屏幕的大小
     wx.getSystemInfo({
       success: (res) => {
         this.globalData.windowWidth = res.windowWidth
       }
-    })
+    });
+    // Encrypt
+    let ciphertext = CryptoJS.AES.encrypt('李依璇', '1111111111111111', {
+      padding: CryptoJS.AES
+    }).toString();
+    let ciphertext2 = CryptoJS.DES.encrypt('李依璇', '1111111111111111').toString();
+    console.log(ciphertext == ciphertext2)
+    console.log(ciphertext2)
+    console.log(ciphertext)
+    let bytes  = CryptoJS.AES.decrypt(ciphertext, '1111111111111111');
+    let originalText = bytes.toString(CryptoJS.enc.Utf8);
+
+    console.log(originalText); // 'my message'
   },
   /**
    * loginTip 用户点击了需要登录的功能按键时进入该函数
