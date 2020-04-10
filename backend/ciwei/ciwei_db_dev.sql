@@ -14,6 +14,8 @@
  Date: 03/03/2020 15:09:46
 */
 
+-- flask-sqlacodegen "mysql://root:wcx9517530@47.102.201.193/ciwei_db?charset=utf8" --tables member_sms_pkg  --outfile "common/models/ciwei/MemberSmsPkg.py"  --flask
+
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
