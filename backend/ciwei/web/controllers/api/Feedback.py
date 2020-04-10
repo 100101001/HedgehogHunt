@@ -92,7 +92,6 @@ def addFeedbackPics():
         resp['msg'] = '参数错误'
         return jsonify(resp)
 
-
     # 保存图片到数据库和文件系统
     # 在反馈的pics中加入图片路径: 日期/文件名
     ret = UploadService.uploadByFile(image)
@@ -150,7 +149,7 @@ def endFeedbackCreate():
 
 # 查询所有举报信息
 @route_api.route("/feedback/search", methods=['GET', 'POST'])
-def feedbacksSearch():
+def feedbackSearch():
     """
     按status获取一页反馈
     :return: 分页的反馈,是否还有更多页

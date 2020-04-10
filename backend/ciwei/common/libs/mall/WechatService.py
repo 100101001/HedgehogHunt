@@ -1,4 +1,11 @@
-# -*- coding: utf-8 -*-
+# encoding: utf-8
+"""
+@author: github/100101001
+@contact: 17702113437@163.com
+@time: 2020/2/12 下午2:32
+@file: WeChatService.py
+@desc:
+"""
 import hashlib
 import uuid
 import xml.etree.ElementTree as ET

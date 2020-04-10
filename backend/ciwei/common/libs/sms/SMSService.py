@@ -83,7 +83,7 @@ def send_verify_code(phone="", code=""):
     return resp and 'Code' in resp and resp['Code'] == 'OK'
 
 
-def send_lost_notify(phone="", goods_name="", location=""):
+def send_lost_notify(phone="", goods_name='', location=""):
     """
     发送失物通知
     :param phone:
@@ -128,7 +128,7 @@ def genBizUUid():
     return bid
 
 
-def addAcsSmsSendLog(sms_resp={}, phone="", temp_id="", temp_params="", sign_name=""):
+def addAcsSmsSendLog(sms_resp=None, phone="", temp_id="", temp_params=None, sign_name=""):
     sendLog = AcsSmsSendLog()
     sendLog.sign_name = sign_name
     sendLog.template_id = temp_id

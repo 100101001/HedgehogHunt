@@ -5,7 +5,8 @@ flask-debugtoolbar
 mysqlclient
 flask_script
 requests
-twilio
+# twilio
+# 阿里云短信通信
 aliyun-python-sdk-core-v3
 Flask-Caching
 bs4
@@ -13,9 +14,11 @@ lxml
 flask-migrate
 pycrypto
 uwsgi
+pybloom_live
+jieba
 # smart_open
 # synonyms
-jieba
 # 以下是测试依赖
 mock
 coverage
+

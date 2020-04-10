@@ -3,10 +3,12 @@ import decimal
 import json
 from decimal import Decimal
 
+import requests
 from flask import request, jsonify, g
 
 from application import app, db
 from common.libs import QrCodeService
+from common.libs.CryptService import AESCrypt
 from common.libs.UrlManager import UrlManager
 from common.libs.sms import SMSService
 from common.models.ciwei.AcsSmsSendLog import AcsSmsSendLog
@@ -115,7 +117,8 @@ def notifyQrcodeOwner():
         return ""
     target_member_info = Member.query.filter_by(openid=openid).first()
     if target_member_info:
-        send_ok = SMSService.send_lost_notify(phone=target_member_info.mobile, goods_name=data['goods_name'],
+        mobile = AESCrypt.decrypt(target_member_info.mobile)
+        send_ok = SMSService.send_lost_notify(phone=mobile, goods_name=data['goods_name'],
                                               location=data['location'][1] if len(data['location']) > 1 else '')
         if send_ok:
             if op_status == 0:
@@ -228,18 +231,23 @@ def checkVerifyCode():
             return jsonify(resp)
 
 
-# @route_api.route("/qrcode", methods=['GET', 'POST'])
-# def testUnlimitedQrcode():
-#     # 调API获取二维码
-#     resp = {}
-#     from common.libs.mall.WechatService import WeChatService
-#     member_info = Member.query.filter_by(id=100002).first()
-#     token = WeChatService.get_wx_token()
-#     wx_resp = requests.post(
-#             "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}".format(token),
-#             json={"scene": str(member_info.openid), "width": 280, "page": "pages/index/index"})
-#
-#     path = QrCodeService.save_wx_qr_code(member_info, wx_resp)
-#     resp['code'] = 200
-#     resp['data'] = {'qr_code_url': UrlManager.buildImageUrl(path, image_type='QR_CODE')}
-#     return jsonify(resp)
+@route_api.route("/qrcode", methods=['GET', 'POST'])
+def testUnlimitedQrcode():
+    # 调API获取二维码
+    resp = {}
+    from common.libs.mall.WechatService import WeChatService
+    member_info = Member.query.filter_by(id=100002).first()
+    token = WeChatService.get_wx_token()
+    # 二维码的编码信息
+    code_data = {
+        'openid': member_info.openid,
+        'name': member_info.name
+    }
+    wx_resp = requests.post(
+            "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}".format(token),
+            json={"scene": jsonify(code_data), "width": 280, "page": "pages/index/index"})
+
+    path = QrCodeService.save_wx_qr_code(member_info, wx_resp)
+    resp['code'] = 200
+    resp['data'] = {'qr_code_url': UrlManager.buildImageUrl(path, image_type='QR_CODE')}
+    return jsonify(resp)

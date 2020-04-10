@@ -1,49 +1,47 @@
-#!/usr/bin/python3.6.8
-#Editor weichaoxu
-
 # -*- coding:utf-8 -*-
 
+from flask import jsonify, g
+
 from common.models.ciwei.Feedback import Feedback
-from common.models.ciwei.Member import Member
 from common.models.ciwei.Goods import Good
+from common.models.ciwei.Member import Member
 from common.models.ciwei.Report import Report
 from web.controllers.api import route_api
-from flask import request,jsonify,g
-from application import app,db
+
 
 @route_api.route('/static/num', methods=['GET', 'POST'])
 def staticNumber():
-    resp={'code':200,'msg':'获取数据成功'}
+    resp = {'code': 200, 'msg': '获取数据成功'}
     member_info = g.member_info
     if not member_info:
         resp['code'] = -1
         resp['msg'] = "用户信息异常"
         return jsonify(resp)
 
-    #上架与下架的商品数量
-    find_num=len(Good.query.filter_by(business_type=1).all())
-    lost_num=len(Good.query.filter_by(business_type=0).all())
-    gotback_num=len(Good.query.filter_by(status=3).all())
-    thanks_num=len(Good.query.filter_by(status=4).all())
-    total_num=len(Good.query.all())
+    # 上架与下架的商品数量
+    find_num = len(Good.query.filter_by(business_type=1).all())
+    lost_num = len(Good.query.filter_by(business_type=0).all())
+    gotback_num = len(Good.query.filter_by(status=3).all())
+    thanks_num = len(Good.query.filter_by(status=4).all())
+    total_num = len(Good.query.all())
 
-    #总浏览量
-    total_view_count=0
-    total_goods=Good.query.all()
+    # 总浏览量
+    total_view_count = 0
+    total_goods = Good.query.all()
     for item in total_goods:
-        total_view_count=total_view_count+item.view_count
+        total_view_count = total_view_count + item.view_count
 
-    #举报数量
-    report_num=len(Report.query.all())
-    feedback_num=len(Feedback.query.all())
+    # 举报数量
+    report_num = len(Report.query.all())
+    feedback_num = len(Feedback.query.all())
 
-    #黑名单数量
-    block_member_num=len(Member.query.filter_by(status=0).all())
-    member_num=len(Member.query.all())
+    # 黑名单数量
+    block_member_num = len(Member.query.filter_by(status=0).all())
+    member_num = len(Member.query.all())
 
-    #总收入
-    total_count_in=0
-    items=[
+    # 总收入
+    total_count_in = 0
+    items = [
         {
             "label": "总浏览量",
             "num": total_view_count,
@@ -55,7 +53,7 @@ def staticNumber():
         {
             "label": "会员数",
             "num": member_num,
-        },{
+        }, {
             "label": "黑名单数",
             "num": block_member_num,
         },
@@ -89,7 +87,7 @@ def staticNumber():
         },
     ]
 
-    resp={'code':200,'data':{}}
-    resp['data']['items']=items
+    resp = {'code': 200, 'data': {}}
+    resp['data']['items'] = items
 
     return jsonify(resp)

@@ -4,9 +4,9 @@ import datetime
 from decimal import Decimal
 
 from flask import request, jsonify, g
-from sqlalchemy import or_, and_
 
 from application import db, app
+from common.libs.CryptService import AESCrypt
 from common.libs.Helper import getCurrentDate
 from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
@@ -246,7 +246,7 @@ def login():
     nickname = req['nickName'] if 'nickName' in req else ''
     sex = req['gender'] if 'gender' in req else 0
     avatar = req['avatarUrl'] if 'avatarUrl' in req else ''
-    mobile = req['mobile'] if 'mobile' in req and req['mobile'] else ''
+    encrypt_mobile = req['mobile'] if 'mobile' in req and req['mobile'] else ''
     '''
     判断是否已经注册过，注册了直接返回一些信息即可
     '''
@@ -258,7 +258,7 @@ def login():
         model_member.avatar = avatar
         model_member.updated_time = model_member.created_time = getCurrentDate()
         model_member.openid = openid
-        model_member.mobile = mobile
+        model_member.mobile = encrypt_mobile
         db.session.add(model_member)
         db.session.commit()
         member_info = model_member
@@ -272,8 +272,8 @@ def login():
         if not avatar:
             member_info.avatar = avatar
             db.session.add(member_info)
-        if not mobile:
-            member_info.mobile = mobile
+        if not encrypt_mobile:
+            member_info.mobile = encrypt_mobile
             db.session.add(member_info)
         db.session.commit()
 
@@ -423,6 +423,7 @@ def memberInfo():
         pkg_data_list.append(tmp_data)
 
     m_times = member_info.left_notify_times  # 计算按量购买的数量
+    cipher = AESCrypt()
     resp['data']['info'] = {
         'nickname': member_info.nickname,
         'avatar': member_info.avatar,
@@ -432,7 +433,7 @@ def memberInfo():
         "balance": str(member_info.balance),
         "has_qrcode": has_qrcode,
         "name": member_info.name,
-        "mobile": member_info.mobile,
+        "mobile": cipher.decrypt(text=member_info.mobile),
         "m_times": m_times,
         "total_times": p_times + m_times,
         "pkgs": pkg_data_list
@@ -678,8 +679,9 @@ def decryptPhone():
         return jsonify(resp)
     mobile = mobile_obj['phoneNumber']
     app.logger.info("手机号是：{}".format(mobile))
+    cipher = AESCrypt()
     resp['data'] = {
-        'mobile': mobile
+        'mobile': cipher.encrypt(mobile)
     }
     return jsonify(resp)
 

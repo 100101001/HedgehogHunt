@@ -1,22 +1,17 @@
-#!/usr/bin/python3.6.8
+# -*- coding:utf-8 -*-
 import datetime
 
 from flask import request, jsonify, g
-from sqlalchemy import or_, and_, func
+from sqlalchemy import or_, and_
 
 from application import db
-from common.libs import Helper
 from common.libs.Helper import getCurrentDate, getDictFilterField
-from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
 from common.models.ciwei.Appeal import Appeal
-from common.models.ciwei.Mark import Mark
-from common.models.ciwei.Member import Member
 from common.models.ciwei.Goods import Good
+from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Recommend import Recommend
 from common.models.ciwei.Report import Report
-# -*- coding:utf-8 -*-
-from common.models.ciwei.Thanks import Thank
 from common.models.ciwei.User import User
 from web.controllers.api import route_api
 
@@ -109,18 +104,19 @@ def recordSearch():
             return jsonify(resp)
 
     # 搜索框筛选
-    # 物主名 owner_name 或 发布者member_id 或 物品名name
+    # 物主名 owner_name 或 物品名name
     owner_name = req['owner_name'] if 'owner_name' in req else ''
     if owner_name:
-        rule = or_(Good.owner_name.ilike("%{0}%".format(owner_name)))
-        query = query.filter(rule)
+        fil_str = "%{0}%".format(owner_name[0])
+        for i in owner_name[1:]:
+            fil_str = fil_str + "%{0}%".format(i)
+        query = query.filter(Good.owner_name.ilike("%{0}%".format(fil_str)))
     mix_kw = str(req['mix_kw']) if 'mix_kw' in req else ''
     if mix_kw:
         fil_str = "%{0}%".format(mix_kw[0])
         for i in mix_kw[1:]:
             fil_str = fil_str + "%{0}%".format(i)
-        rule = or_(Good.name.ilike("%{0}%".format(fil_str)), Good.member_id.ilike("%{0}%".format(mix_kw)))
-        query = query.filter(rule)
+        query = query.filter(Good.name.ilike("%{0}%".format(fil_str)))
 
     # 分页排序
     p = int(req['p']) if ('p' in req and req['p']) else 1

@@ -1,4 +1,11 @@
-#!/usr/bin/python3.6.8
+# encoding: utf-8
+"""
+@author: github/100101001
+@contact: 17702113437@163.com
+@time: 2019/12/10 下午9:06
+@file: Goods.py
+@desc:
+"""
 import datetime
 import decimal
 from decimal import Decimal
@@ -159,9 +166,13 @@ def createGoods():
     model_goods.avatar = member_info.avatar
     model_goods.name = req["goods_name"]  # 物品名，前端发布已判空
     model_goods.target_price = Decimal(req['target_price']).quantize(Decimal('0.00')) if 'target_price' in req else 0.0
-    location = req["location"]  # 地址，前端发布已判空
-    model_goods.location = "###".join(location.split(","))
-    model_goods.owner_name = req['owner_name']  # 前端发布已判空
+    location = req["location"]  # 放置地址/住址，前端发布已判空
+    os_location = req['os_location']  # 丢失和发现地址
+    model_goods.location = "###".join(location.split(","))  # 放置地址/住址
+    # 如果是失物招領或者归还就是放置地点.否则就是留空
+    model_goods.os_location = "###".join(
+        os_location.split(",")) if os_location else model_goods.location if business_type in (1, 2) else ""
+    model_goods.owner_name = "闪寻码主" if business_type == 2 and 'owner_name' not in req else req['owner_name']  # 前端发布除了扫码归还皆已判空
     model_goods.summary = req['summary']  # 前端发布已判空
     model_goods.business_type = business_type  # 失物招领or寻物启示or归还
     model_goods.category = int(req['category']) if 'category' in req else 10  # 没有提供物品类别就默认属于其它
@@ -332,6 +343,7 @@ def endCreate():
                 # 寻物贴链接归还贴，状态置为预先寻回
                 target_goods_info.return_goods_id = goods_info.id
                 target_goods_info.return_goods_openid = goods_info.openid  # 用于判断是归还用户查看了帖子详情
+                target_goods_info.confirm_time = getCurrentDate()
                 target_goods_info.status = 2
                 db.session.add(target_goods_info)
             else:
@@ -388,6 +400,7 @@ def goodsSearch():
     2.页面 business_type
     3.选项卡 status
     4.搜索框 owner_name, 物名name, author_name, address
+    5.物品类别
     :return: 经分页排序后的搜索列表 list, 是否还有更多页 boolean
     """
     resp = {'code': -1, 'msg': 'search successfully(search)', 'data': {}}
@@ -417,45 +430,39 @@ def goodsSearch():
 
     # 维度2：选项卡
     # status
-    # -1 全部
     # 1 待（新发布）
     # 2 预 （失认领，拾系统匹配后认领，或者他人主动归还）
-    # TODO： 3 已 （最终状态）需要显示给所有人？？
-    if status == -1:
-        query = query.filter(Good.status != 4)
-        query = query.filter(Good.status != 5)
-        query = query.filter(Good.status != 6)
-    else:
-        query = query.filter_by(status=status)
+    # 3 已 需要显示给申诉，以及显示系统的成果
+    # 4 已答谢 需要显示给申诉，以及显示系统的成果
+    query = query.filter_by(status=status)
 
-    # 维度3：搜索框
-    # 加上按物主筛选
-    # 加上按物品名筛选
-    # 加上按发布者筛选
-    # 加上按地址筛选
+    # 维度3：物品分类
+    filter_category = int(req['filter_good_category']) if 'filter_good_category' in req else 0
+    if filter_category:
+        query = query.filter_by(category=filter_category)
+
+    # 维度4：搜索框
+    # 按物主筛选
+    # 按物品名筛选
+    # 按遗失/发现地址筛选
     owner_name = req['owner_name'] if 'owner_name' in req else ''
     if owner_name:
-        rule = or_(Good.owner_name.ilike("%{0}%".format(owner_name)))
-        query = query.filter(rule)
+        fil_str = "%{0}%".format(owner_name[0])
+        for i in owner_name[1:]:
+            fil_str = fil_str + "%{0}%".format(i)
+        query = query.filter(Good.owner_name.ilike("%{0}%".format(fil_str)))
     mix_kw = str(req['mix_kw']) if 'mix_kw' in req else ''
     if mix_kw:
         fil_str = "%{0}%".format(mix_kw[0])
         for i in mix_kw[1:]:
             fil_str = fil_str + "%{0}%".format(i)
-        rule = or_(Good.name.ilike("%{0}%".format(fil_str)), Good.member_id.ilike("%{0}%".format(mix_kw)))
-        query = query.filter(rule)
+        query = query.filter(Good.name.ilike("%{0}%".format(fil_str)))
     filter_address = str(req['filter_address']) if 'filter_address' in req else ''
     if filter_address:
         fil_str = "%{0}%".format(filter_address[0])
         for i in filter_address[1:]:
             fil_str = fil_str + "%{0}%".format(i)
-        rule = or_(Good.location.ilike(fil_str))
-        query = query.filter(rule)
-
-    # 物品分类
-    filter_category = int(req['filter_good_category']) if 'filter_good_category' in req else 0
-    if filter_category:
-        query = query.filter_by(category=filter_category)
+        query = query.filter(Good.os_location.ilike(fil_str))
 
     # 分页：获取第p页的所有物品
     # 排序：置顶贴和新发布的热门贴置于最前面
@@ -637,7 +644,7 @@ def returnGoodsToFoundInBatch():
     req = request.values
 
     goods_ids = req['id'][1:-1].split(',') if 'id' in req else None
-    status = req['status'] if 'status' in req else None
+    status = int(req['status']) if 'status' in req else None
     if goods_ids is None or status not in (0, 1):
         resp['code'] = -1
         resp['msg'] = "操作失败"
@@ -746,8 +753,8 @@ def returnGoodsConfirm():
     now = datetime.datetime.now()
     # 归还
     success = Good.query.filter_by(id=goods_id, status=1).with_for_update().update({'status': 2,
-                                                                  'confirm_time': now},
-                                                                 synchronize_session=False)
+                                                                                    'confirm_time': now},
+                                                                                   synchronize_session=False)
     if success == 0:
         resp['code'] = -1
         resp['msg'] = '操作失败，请检查后重试'
@@ -1082,24 +1089,28 @@ def goodsInfo():
     if not goods_id:
         resp['msg'] = '参数为空'
         return jsonify(resp)
-    # 这里加锁，为了防止两个人，一个人在状态操作，另一个人进入（可能进行状态操作）
     goods_info = Good.query.filter_by(id=goods_id).first()
     if not goods_info or goods_info.status == 7:
         resp['msg'] = '作者已删除'
         return jsonify(resp)
-
-    member_info = g.member_info
-
-    # 已阅推荐
-    op_status = int(req['op_status']) if 'op_status' in req else 0
-    if op_status == 2 and member_info:
-        MemberService.setRecommendStatus(member_id=member_info.id, goods_id=goods_id, new_status=1, old_status=0)
     # 浏览量
     read = int(req['read']) if 'read' in req else 1
     if not read:
         goods_info.view_count += 1
         db.session.add(goods_info)
+    # 已阅扫码归还
+    member_info = g.member_info
+    if member_info and goods_info.qr_code_openid == member_info.openid:
+        goods_info.owner_name = member_info.name
+        db.session.add(goods_info)
+    db.session.commit()
+
+    # 已阅推荐
+    op_status = int(req['op_status']) if 'op_status' in req else 0
+    if op_status == 2 and member_info:
+        MemberService.setRecommendStatus(member_id=member_info.id, goods_id=goods_id, new_status=1, old_status=0)
         db.session.commit()
+
     # 每个不同类型的帖子是否可看地址
     is_auth = member_info and (member_info.id == goods_info.member_id)
     business_type = goods_info.business_type
@@ -1147,7 +1158,9 @@ def goodsInfo():
         "is_thanked": goods_status == 4
     }
 
+
     if business_type == 1 and goods_status > 1:
+        # 失物招领的申诉或认领信息
         data.update({'is_owner': member_info and goods_info.owner_id == member_info.id})
         if goods_status == 5:
             # 申诉的时间
@@ -1178,7 +1191,7 @@ def goodsInfo():
         elif goods_status == 2:
             more_data = {'return_goods_id': goods_info.return_goods_id,
                          'op_time': goods_info.confirm_time.strftime("%Y-%m-%d %H:%M")}
-        if goods_status > 2:
+        elif goods_status > 2:
             lost_goods_status = Good.query.filter_by(id=goods_info.return_goods_id).with_entities(Good.status).first()
             is_origin_del = lost_goods_status[0] == 7
             more_data = {'return_goods_id': goods_info.return_goods_id,
