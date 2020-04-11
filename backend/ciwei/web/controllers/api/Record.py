@@ -88,7 +88,7 @@ def recordSearch():
                 with_entities(Recommend.found_goods_id, Recommend.status).all()
             # {物品id: 是否已阅读}
 
-            goods_id_recommend_status_map = {item[0]: item[1] for item in recommend_ids}
+            goods_id_recommend_status_map = {item.found_goods_id: item.status for item in recommend_ids}
         else:
             # 只要新推荐（推荐中不包含被删除的物品）
             recommend_ids = Recommend.query.filter(Recommend.target_member_id == member_info.id,
@@ -96,7 +96,7 @@ def recordSearch():
                 with_entities(Recommend.found_goods_id).all()
         if recommend_ids:
             query = query.filter(Good.status == status,
-                                 Good.id.in_([item[0] for item in recommend_ids]))
+                                 Good.id.in_([item.found_goods_id for item in recommend_ids]))
         else:
             resp['code'] = 200
             resp['data']['list'] = []

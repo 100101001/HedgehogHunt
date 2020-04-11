@@ -1,13 +1,13 @@
-#!/usr/bin/python3.6.8
-
-# -*- coding:utf-8 -*-
-
-from flask import g
-from flask import render_template
+# encoding: utf-8
+"""
+@author: github/100101001
+@contact: 17702113437@163.com
+@time: 2020/4/10 下午5:43
+@file: SynonymsService.py
+@desc:
+"""
 import datetime
 import uuid
-
-from common.models.ciwei.Member import Member
 
 
 def iPagination(params):
@@ -57,25 +57,12 @@ def iPagination(params):
     return ret
 
 
-'''
-统一渲染方法，用于包装一次渲染模板的方法，以实现传输g变量的功能
-如果某个方法需要写很多次，那说不定就是可以用再次包装的方式来进行统一部署，以实现一次编写
-'''
-
-
-def ops_render(template, context={}):
-    if 'current_user' in g:
-        context['current_user'] = g.current_user
-
-    return render_template(template, **context)
-
-
-'''
-统一的获取时间方法
-'''
-
-
 def getCurrentDate(date_format="%Y-%m-%d %H:%M:%S"):
+    """
+    统一的获取时间方法
+    :param date_format:
+    :return:
+    """
     return datetime.datetime.now().strftime(date_format)
 
 
@@ -259,28 +246,27 @@ def model_to_dict(model):  # 这段来自于参考资源
 
             value = getattr(model, col.name)
 
-        yield (col.name, value)
+        yield col.name, value
 
 
 def find_datetime(value):
     for v in value:
 
-        if (isinstance(value[v], cdatetime)):
+        if isinstance(value[v], cdatetime):
             value[v] = convert_datetime(value[v])  # 这里原理类似，修改的字典对象，不用返回即可修改
 
 
 def convert_datetime(value):
     if value:
-
-        if (isinstance(value, (cdatetime, DateTime))):
+        if isinstance(value, (cdatetime, DateTime)):
 
             return value.strftime("%Y-%m-%d %H:%M:%S")
 
-        elif (isinstance(value, (date, Date))):
+        elif isinstance(value, (date, Date)):
 
             return value.strftime("%Y-%m-%d")
 
-        elif (isinstance(value, (Time, time))):
+        elif isinstance(value, (Time, time)):
 
             return value.strftime("%H:%M:%S")
 

@@ -6,14 +6,14 @@ from flask_migrate import Migrate
 # from common.libs.UrlManager import UrlManager
 import os
 
-
 # 测试需要使用绝对路径无论从哪里调用都共用base_setting.py
+from common.tasks.main import FlaskCelery
+
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
 class Application(Flask):
-    def __init__(self, import_name, template_folder=None, static_folder=None, root_path=None,
-                 config_path=APP_ROOT + '/config/base_setting.py'):
+    def __init__(self, import_name, template_folder=None, static_folder=None, root_path=None):
         super(Application, self).__init__(import_name, template_folder=template_folder, static_folder=static_folder,
                                           root_path=root_path)
 
@@ -21,15 +21,19 @@ class Application(Flask):
         self.config.from_pyfile('config/production_setting.py')
         # if 'ops_config' in os.environ:
         #     self.config.from_pyfile('config\\%s_setting.py' % os.environ['ops_config'])
-        # 缓存wx服务端API的 access_token，如果过期再获取更新缓存
+        # 只用于缓存wx服务端API的 access_token，如果过期再获取更新缓存
         cache.init_app(self)
         db.init_app(self)
+        celery.init_app(self)
         # 强制时区是中国
         os.environ['TZ'] = 'Asia/Shanghai'
 
 
 db = SQLAlchemy()
 cache = Cache(config={'CACHE_TYPE': 'simple', 'CACHE_DEFAULT_TIMEOUT': 7200})
+# 异步和定时任务
+celery = FlaskCelery()
+# __name__ 就是 application
 app = Application(__name__, template_folder=APP_ROOT + '/web/templates', root_path=APP_ROOT,
                   static_folder=APP_ROOT + '/web/static')
 manager = Manager(app)

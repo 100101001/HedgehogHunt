@@ -109,76 +109,7 @@ class MemberService:
 
         return True
 
-    @staticmethod
-    def autoRecommendGoods(goods_info=None, edit=False):
-        """
-        自动匹配推荐
-        :param edit:
-        :param goods_info:
-        """
-        from common.libs import SubscribeService
-        app.logger.warn("推荐中")
-        # 不能是同一个人发布的拾/失
-        query = Good.query.filter(Good.member_id != goods_info.member_id)
-        # 筛选物品类别
-        query = query.filter(Good.category == goods_info.category)
 
-        # 拓展搜索词
-        search_words = MemberService.getSearchWords(goods_info.name)
-        app.logger.warn("推荐中")
-        common_rule = or_(*[Good.name.like(name) for name in search_words])
-        if goods_info.owner_name != "无":
-            rule = or_(Good.owner_name == goods_info.owner_name, common_rule)
-            query = query.filter(rule)
-        else:
-            query = query.filter(common_rule)
-
-        # 互相匹配（假设予认领的人没有恶意）
-        release_type = goods_info.business_type
-        goods_list = query.filter_by(business_type=1 - release_type, status=1).all()
-        for good in goods_list:
-            target_member_id = good.member_id if release_type == 1 else g.member_info.id  # 获得寻物启示贴主id
-            lost_goods_id = good.id if release_type == 1 else goods_info.id
-            found_goods_id = good.id if release_type == 0 else goods_info.id  # 获取失物招领id
-            new_recommend = MemberService.addRecommendGoods(target_member_id=target_member_id,
-                                                            found_goods_id=found_goods_id,
-                                                            lost_goods_id=lost_goods_id,
-                                                            edit=edit)
-            if new_recommend and release_type == 1:
-                # 是之前没推荐过的新物品给了寻物启示失主，才发通知
-                # 通知：有人可能捡到了你遗失的东西
-                SubscribeService.send_recommend_subscribe(goods_info=good)
-        app.logger.warn("推荐结束")
-
-    @staticmethod
-    def addRecommendGoods(target_member_id=0, found_goods_id=0, lost_goods_id=0, edit=False):
-        """
-        增加新的记录，进行防重
-        归还和通知会加进推荐
-        :param edit:
-        :param target_member_id:
-        :param found_goods_id:
-        :param lost_goods_id: 只是用于记录一下（在查看推荐记录时好看一下，匹配的动因）
-        :return:
-        """
-        if not target_member_id or not found_goods_id:
-            return False
-        repeat_recommend = Recommend.query.filter_by(found_goods_id=found_goods_id,
-                                                     target_member_id=target_member_id,
-                                                     lost_goods_id=lost_goods_id).first()
-        # 有但修改了
-        if repeat_recommend and edit:
-            repeat_recommend.status = 0
-            db.session.add(repeat_recommend)
-        # 没有
-        model_recommend = Recommend()
-        model_recommend.found_goods_id = found_goods_id
-        model_recommend.target_member_id = target_member_id
-        model_recommend.lost_goods_id = lost_goods_id
-        db.session.add(model_recommend)
-        db.session.commit()
-        # 是新的推荐
-        return repeat_recommend is None
 
     @staticmethod
     def setRecommendStatus(member_id=0, goods_id=0, new_status=1, old_status=0):
@@ -215,11 +146,6 @@ class MemberService:
         for k, _ in itertools.groupby(more):
             if k:
                 search_words.append('%' + k + '%')
-        # keyword = synonyms.seg(goods_info.name)[0][-1]
-        # # 获取近义词
-        # synonyms_good_names = synonyms.nearby(keyword)[0][:2]
-        # synonyms_good_names.extend([keyword])
-        # synonyms_good_names = ['%'+name+'%' for name in synonyms_good_names]
         # 一定非空
         # 寻物启示可精准，失物招领宜宽泛。
         # 寻物启示三思后发

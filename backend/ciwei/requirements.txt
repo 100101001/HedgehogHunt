@@ -21,4 +21,6 @@ jieba
 # 以下是测试依赖
 mock
 coverage
-
+# 异步任务依赖
+flask_celery
+flask-redis
