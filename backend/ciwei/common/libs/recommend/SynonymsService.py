@@ -23,7 +23,7 @@ class SynonymsService:
         :return:
         """
         key_words = self.processSearchWords(input_word)
-        synonyms = self.sym_dict.get(key_words, ['%' + '%'.join([ch for ch in key_words] + '%')])
+        synonyms = self.sym_dict.get(key_words, ['%' + ('%'.join([ch for ch in key_words]) + '%')])
         return list(synonyms)
 
     @classmethod

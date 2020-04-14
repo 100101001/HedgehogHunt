@@ -10,12 +10,14 @@ import datetime
 import decimal
 from decimal import Decimal
 
+import redis
 from flask import request, jsonify, g
 from sqlalchemy import or_, func
 
-from application import db, app
+from application import db, app, APP_CONSTANTS, cache
+from common.cahce import redis_pool, cas
 from common.libs import SubscribeService
-from common.libs.Helper import getCurrentDate, model_to_dict, queryToDict
+from common.libs.Helper import getCurrentDate, queryToDict
 from common.libs.MemberService import MemberService
 from common.libs.UploadService import UploadService
 from common.libs.UrlManager import UrlManager
@@ -28,7 +30,10 @@ from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Member import Member
 from common.models.ciwei.Report import Report
 from common.models.ciwei.Thanks import Thank
-from common.tasks.recommend import RecommendTask
+# 异步任务
+from common.tasks.recommend import RecommendTasks
+from common.tasks.sms import SmsTasks
+from common.tasks.sync.es import ESTasks
 from web.controllers.api import route_api
 
 
@@ -150,12 +155,13 @@ def createGoods():
         resp['msg'] = "发布失败"
         resp['data'] = req
         return jsonify(resp)
-    location = req["location"] if 'location' in req else []
     location = req.get("location", [])
     if not location:
         resp['msg'] = "地址为空"
         return jsonify(resp)
 
+    # 是否是扫码归还
+    is_scan_return = business_type == 2 and 'owner_name' not in req
     # 所有类型帖子的公共信息
     model_goods = Good()
     model_goods.member_id = member_info.id
@@ -170,9 +176,8 @@ def createGoods():
     # 如果是失物招領或者归还就是放置地点.否则就是留空
     model_goods.os_location = "###".join(
         os_location.split(",")) if os_location else model_goods.location if business_type in (1, 2) else ""
-    model_goods.owner_name = "闪寻码主" if business_type == 2 and 'owner_name' not in req else req[
-        'owner_name']  # 前端发布除了扫码归还皆已判空
-    model_goods.summary = req.get('summary', '发布者没有给出描述')  # 前端发布已判空
+    model_goods.owner_name = "闪寻码主" if is_scan_return else req.get('owner_name')  # 前端发布除了扫码归还皆已判空
+    model_goods.summary = req.get('summary')  # 前端发布已判空
     model_goods.business_type = business_type  # 失物招领or寻物启示or归还
     model_goods.category = int(req.get('category', 10))  # 没有提供物品类别就默认属于其它
     model_goods.status = 7  # 创建未完成
@@ -329,7 +334,7 @@ def endCreate():
     if goods_info.business_type == 2:
         # 归还贴(扫码或直接归还)
         target_goods_id = int(req.get('target_goods_id', -1))  # 寻物归还
-        notify_id = req.get('target_goods_id', None)  # 扫码归还
+        notify_id = req.get('notify_id', '')  # 扫码归还
         if target_goods_id != -1:
             # 寻物归还
             target_goods_info = Good.query.filter_by(id=target_goods_id,
@@ -347,22 +352,37 @@ def endCreate():
                 db.session.add(target_goods_info)
             else:
                 goods_info.business_type = 1
-        elif notify_id is not None:
+        elif notify_id:
             # 扫码归还
-            # 链接归还的对象，直接就是对方的物品
+            # 异步通知失主的任务
+            params = {
+                'location': goods_info.location,
+                'goods_name': goods_info.name,
+                'rcv_openid': notify_id,
+                'trig_openid': goods_info.openid,
+                'trig_member_id': goods_info.member_id
+            }
+            SmsTasks.notifyQrcodeOwner.delay(params=params)
+            # 链接归还的对象，直接就是对方的物品(如若不是可举报)
             goods_info.qr_code_openid = notify_id
             goods_info.status = 2
         else:
             resp['msg'] = "发布失败"
             jsonify(resp)
     else:
+        is_edit = int(req.get('edit', 0))
         # 非归还贴 (可能是编辑或者新的发布),进行匹配推荐
         edit_info = {
             'need_recommend': int(req.get('keyword_modified', 0)),
             'modified': int(req.get('modified', 0))
-        } if int(req.get('edit', 0)) else None
+        } if is_edit else None
         # Celery异步任务
-        RecommendTask.autoRecommendGoods(goods_id=goods_id, edit_info=edit_info, goods_info=queryToDict(goods_info))
+        serializable_goods_info = queryToDict(goods_info)
+        RecommendTasks.autoRecommendGoods.delay(edit_info=edit_info, goods_info=serializable_goods_info)
+        if is_edit:
+            ESTasks.on_update_goods_info.delay(goods_info=serializable_goods_info)
+        else:
+            ESTasks.on_insert_goods_info.delay(goods_info=serializable_goods_info)
 
         # if int(req.get('edit', 0)):
         #     # 编辑
@@ -391,6 +411,16 @@ def endCreate():
 
 @route_api.route('/index', methods=['GET'])
 def goodsTestNetwork():
+    # goods_info = Good.query.filter_by(business_type=2, status=2).first()
+    # params = {
+    #     'location': "1###2###3###4",
+    #     'goods_name': "shouji",
+    #     'rcv_openid': 'opLxO5Q3CloBEmwcarKrF_kSA574',
+    #     'trig_openid': goods_info.openid,
+    #     'trig_member_id': goods_info.member_id
+    # }
+    # SmsTasks.notifyQrcodeOwner.delay(params=params)
+
     return jsonify({'lyx': 1})
 
 
@@ -479,6 +509,11 @@ def goodsSearch():
         # 所有发布者 id -> Member
         now = datetime.datetime.now()
         for item in goods_list:
+            # 只返回符合用户期待的状态的物品
+            item_id = item.id
+            item_status = item.status
+            if not cas.exec(item_id, item_status, item_status) or not cas.exec(item_id, 'nil', item_status):
+                continue
             tmp_data = {
                 "id": item.id,
                 "goods_name": item.name,
@@ -524,6 +559,9 @@ def goodsApply():
     if not goods_id or status not in (1, 2):
         resp['msg'] = '认领失败'
         return jsonify(resp)
+
+    
+
     # 公开信息的状态操作加锁，且加入对其状态(可变)的预期
     now = datetime.datetime.now()
     success1 = Good.query.filter_by(id=goods_id, status=status).with_for_update().update({'status': 2,
@@ -564,7 +602,7 @@ def goodsCancelApplyInBatch():
     if goods_ids is None:
         resp['msg'] = '操作失败'
         return jsonify(resp)
-
+    goods_ids = [int(goods_id) for goods_id in goods_ids]
     # 取消认领
     success = Mark.query.filter(Mark.member_id == member_info.id,
                                 Mark.goods_id.in_(goods_ids),
@@ -604,12 +642,12 @@ def returnGoodsCancelInBatch():
     """
     resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
-    goods_id_list = req['ids'][1:-1].split(',') if 'ids' in req else None
-    if goods_id_list is None:
+    goods_ids = req['ids'][1:-1].split(',') if 'ids' in req else None
+    if goods_ids is None:
         resp['msg'] = '删除失败'
         return jsonify(resp)
-
-    lost_goods_ids = Good.query.filter(Good.id.in_(goods_id_list)).with_entities(Good.return_goods_id).distinct().all()
+    goods_ids = [int(goods_id) for goods_id in goods_ids]
+    lost_goods_ids = Good.query.filter(Good.id.in_(goods_ids)).with_entities(Good.return_goods_id).distinct().all()
 
     # 寻物启示
     success1 = Good.query.filter(Good.id.in_(lost_goods_ids), Good.status == 2).with_for_update().update({'status': 1,
@@ -617,11 +655,11 @@ def returnGoodsCancelInBatch():
                                                                                                           'return_goods_openid': ''},
                                                                                                          synchronize_session=False)
     # 归还贴
-    success2 = Good.query.filter(Good.id.in_(goods_id_list), Good.status == 1).with_for_update().update({'status': 7,
-                                                                                                         'return_goods_id': 0,
-                                                                                                         'return_goods_openid': ''},
-                                                                                                        synchronize_session=False)
-    total_goods_num = len(goods_id_list)
+    success2 = Good.query.filter(Good.id.in_(goods_ids), Good.status == 1).with_for_update().update({'status': 7,
+                                                                                                     'return_goods_id': 0,
+                                                                                                     'return_goods_openid': ''},
+                                                                                                    synchronize_session=False)
+    total_goods_num = len(goods_ids)
     if success2 != total_goods_num or success1 != total_goods_num:
         resp['msg'] = '操作失败，请刷新重试'
         return jsonify(resp)
@@ -647,6 +685,7 @@ def returnGoodsToFoundInBatch():
         resp['msg'] = "操作失败"
         return jsonify(resp)
 
+    goods_ids = [int(goods_id) for goods_id in goods_ids]
     if status == 0:
         # 公开已拒绝的归还贴（只有作者能操作）
         Good.query.filter(Good.id.in_(goods_ids),
@@ -705,6 +744,7 @@ def returnGoodsRejectInBatch():
         resp['msg'] = "请先登录"
         return jsonify(resp)
 
+    goods_ids = [int(goods_id) for goods_id in goods_ids]
     lost_goods_ids = Good.query.filter(Good.id.in_(goods_ids)).with_entities(Good.return_goods_id).all()
     # 寻物启示
     success1 = Good.query.filter(Good.id.in_(lost_goods_ids), Good.status == 2).with_for_update().update({'status': 1,
@@ -734,8 +774,8 @@ def returnGoodsConfirm():
     """
     resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
-    goods_id = req['id'] if 'id' in req else 0
-    if not goods_id:
+    goods_id = int(req.get('id', -1))
+    if goods_id == -1:
         resp['msg'] = "操作失败"
         return jsonify(resp)
     # 检查登陆
@@ -768,12 +808,13 @@ def returnLinkLostDelInBatch():
     """
     resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
-    return_goods_ids = req['id'] if 'id' in req else None
-    status = int(req['status']) if 'status' in req else None
+    return_goods_ids = req.get('id', None)
+    status = int(req.get('status', 0))
     if return_goods_ids is None or status not in (3, 4):
         resp['msg'] = "智能清除失败，请手动删除"
         return jsonify(resp)
 
+    return_goods_ids = [int(goods_id) for goods_id in return_goods_ids]
     lost_goods_ids = Good.query.filter(Good.id.in_(return_goods_ids)).with_entities(Good.return_goods_id).all()
     # 寻物启事
     Good.query.filter(Good.id.in_(lost_goods_ids), Good.status == status).update({'status': 7},
@@ -794,11 +835,12 @@ def returnLinkReturnDelInBatch():
     """
     resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
-    lost_goods_ids = req['id'] if 'id' in req else None
+    lost_goods_ids = req.get('id', None)
     if lost_goods_ids is None:
         resp['msg'] = "智能清除失败，请手动删除"
         return jsonify(resp)
 
+    lost_goods_ids = [int(goods_id) for goods_id in lost_goods_ids]
     return_goods_ids = Good.query.filter(Good.id.in_(lost_goods_ids)).with_entities(Good.return_goods_id).all()
     # 归还
     Good.query.filter(Good.id.in_(return_goods_ids), or_(Good.status == 3, Good.status == 4)).update(
@@ -832,7 +874,7 @@ def returnGoodsGotbackInBatch():
     if goods_ids is None or business_type is None or business_type not in (0, 2):
         resp['msg'] = '操作失败'
         return jsonify(resp)
-
+    goods_ids = [int(goods_id) for goods_id in goods_ids]
     total_goods_num = len(goods_ids)
 
     now = datetime.datetime.now()
@@ -889,25 +931,26 @@ def returnGoodsCleanInBatch():
     # 检查参数物品id, 物品的发布者存在
     resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
-    goods_id_list = req['ids'][1:-1].split(",") if 'ids' in req else None
+    goods_ids = req['ids'][1:-1].split(",") if 'ids' in req else None
     business_type = int(req['biz_type']) if 'biz_type' in req else None
-    if goods_id_list is None or business_type is None or business_type not in (0, 2):
+    if goods_ids is None or business_type is None or business_type not in (0, 2):
         resp['msg'] = '删除失败'
         return jsonify(resp)
 
-    total_goods_num = len(goods_id_list)
+    goods_ids = [int(goods_id) for goods_id in goods_ids]
+    total_goods_num = len(goods_ids)
     if business_type == 2:
         # 删除归还贴需要注意，同时置空通知链接
-        success = Good.query.filter(Good.id.in_(goods_id_list)).with_for_update().update({'status': 7,
-                                                                                          'return_goods_openid': ''},
-                                                                                         synchronize_session=False)
+        success = Good.query.filter(Good.id.in_(goods_ids)).with_for_update().update({'status': 7,
+                                                                                      'return_goods_openid': ''},
+                                                                                     synchronize_session=False)
         if success < total_goods_num:
             resp['msg'] = '操作失败，请检查后重试'
             return jsonify(resp)
     elif business_type == 0:
         # 删除寻物贴就是普通的删除
-        success = Good.query.filter(Good.id.in_(goods_id_list)).with_for_update().update({'status': 7},
-                                                                                         synchronize_session=False)
+        success = Good.query.filter(Good.id.in_(goods_ids)).with_for_update().update({'status': 7},
+                                                                                     synchronize_session=False)
         if success < total_goods_num:
             resp['msg'] = '操作失败，请检查后重试'
             return jsonify(resp)
@@ -941,6 +984,7 @@ def goodsGotbackInBatch():
     # 失物招领贴的认领事务
     # 私有的认领
     member_id = member_info.id
+    goods_ids = [int(goods_id) for goods_id in goods_ids]
     total_goods_num = len(goods_ids)
     # 加锁，保证排队认领
     # 失物招领
@@ -980,6 +1024,8 @@ def goodsAppeal():
     resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
 
+
+
     # 检查登陆
     # 检查参数物品id, 物品的发布者存在
     member_info = g.member_info
@@ -1009,65 +1055,6 @@ def goodsAppeal():
 
     resp['code'] = 200
     return jsonify(resp)
-
-
-@route_api.route('/goods/test')
-def test():
-    # goods = Good.query.filter_by(id=1).with_entities(Good.status).first()
-    # Good.query.filter_by(id=1).update({'summary': 'sss', 'view_count': 1}, synchronize_session=False)
-    # good = Good.query.filter_by(id=1).first()
-    # db.session.commit()
-    # good = Good.query.filter_by(id=1).first()
-    # goods = Good.query.filter(Good.id.in_(['1','2'])).all()
-    # app.logger.info("hhh")
-    # goods = Good.query.filter(Good.id=='1').first()
-    # goods2 = Good.query.filter_by(id='1').first()
-    # from sqlalchemy import func
-    # from common.models.ciwei.Mark import Mark
-    # count = db.session.query(func.count(Mark.id)).scalar()
-    # goods = Good.query.filter(Good.id.in_(['1', '2', '3'])).with_entities(Good.business_type).distinct().all()
-    # a = Good.query.filter(Good.id.in_(goods))
-    # Good.query.filter_by(id=1).update({'view_count': Good.view_count + 100}, synchronize_session=False)
-    # db.session.commit()
-    # status = Good.query.filter_by(id=1).with_entities(Good.status).first()
-    # return jsonify({'s':status[0]})
-    # cnt = db.session.query(func.count(Mark.id)).filter(Mark.status == 7).scalar()
-    # Mark.query.update({'status': 7}, synchronize_session=False)
-    # cnt = db.session.query(func.count(Mark.id)).filter(Mark.status == 7).scalar()
-    # Good.query.filter(Good.id == 1).with_for_update().first()
-    # a = Good.query.filter(Good.id == 1, Good.view_count == 4).with_for_update().update({'view_count': 5},
-    #                                                                                    synchronize_session=False)
-    # if a == 0:
-    #     v = Good.query.filter(Good.id == 1, Good.view_count == 4).with_for_update().update({'view_count': 5},
-    #                                                                                        synchronize_session=False)
-    #     return "v: " + str(v)
-    # a = Good.query.filter(Good.id == 1).with_for_update().update({'summary': 21}, synchronize_session='fetch')
-    # a = Good.query.filter(Good.id == 1).first()
-    # db.session.commit()
-    # return a.summary
-    # a = db.session.query(func.count(Mark.id)).filter(Mark.status != 7).with_for_update().scalar()
-    # db.session.commit()
-    goods_info = Good.query.filter_by(id=1).with_entities(Good.id, Good.member_id).first()
-    print("h")
-    RecommendTask.add_together.delay(goods_info=queryToDict(goods_info), abc=3)
-    return "quick return"
-
-
-@route_api.route('/goods/test/2')
-def test2():
-    pass
-    # a = Good.query.filter(Good.id == 1).first()
-    # db.session.commit()
-    # return a.summary
-    # a = Good.query.filter(Good.id == 1, Good.view_count == 4).with_for_update().update({'view_count': 5},
-    #                                                                                    synchronize_session=False)
-    # a = Good.query.filter(Good.id == 1).first()
-    # b = a.summary
-    # c = a.summary
-    # return b + ',' + c
-    a = db.session.query(func.count(Mark.id)).filter(Mark.status != 7).with_for_update().scalar()
-    return str(a)
-    # pass
 
 
 @route_api.route('/goods/info')
@@ -1103,9 +1090,10 @@ def goodsInfo():
         db.session.add(goods_info)
     db.session.commit()
 
-    # 已阅推荐
+    # 更新为已阅推荐
     op_status = int(req.get('op_status', 0))
-    if op_status == 2 and member_info:
+    if op_status == 2 and not read:
+        # 从推荐记录进入详情,代表用户一定已经登陆了
         MemberService.setRecommendStatus(member_id=member_info.id, goods_id=goods_id, new_status=1, old_status=0)
         db.session.commit()
 
@@ -1218,8 +1206,8 @@ def fetchGoodsInfoForThanks():
     req = request.values
 
     # 检查参数：物品id,物品的发布者存在
-    goods_id = int(req['id']) if 'id' in req else None
-    if not goods_id:
+    goods_id = int(req.get('id', -1))
+    if goods_id == -1:
         resp['msg'] = '答谢失败'
         return jsonify(resp)
     goods_info = Good.query.filter_by(id=goods_id, status=3).first()
@@ -1257,14 +1245,14 @@ def goodsReport():
     if not member_info:
         resp['msg'] = '没有用户信息，无法完成举报！请授权登录'
         return jsonify(resp)
-    record_id = req['id'] if 'id' in req else None
-    if not record_id:
-        resp['msg'] = "参数为空"
+    record_id = int(req.get('id', -1))
+    if record_id == -1:
+        resp['msg'] = "举报失败"
         resp['req'] = req
         return jsonify(resp)
-    record_type = int(req['record_type']) if 'record_type' in req else None
-    if record_type != 0 and record_type != 1:
-        resp['msg'] = '参数错误/缺失'
+    record_type = int(req.get('record_type', -1))
+    if record_type not in (1, 0):
+        resp['msg'] = '举报失败'
         return jsonify(resp)
     report_info = Report.query.filter_by(record_id=record_id, record_type=record_type).first()
     if report_info:
@@ -1320,8 +1308,8 @@ def editGoods():
     if not member_info:
         resp['msg'] = '用户信息异常'
         return jsonify(resp)
-    goods_id = req['id'] if 'id' in req else None
-    if not goods_id:
+    goods_id = int(req.get('id', -1))
+    if goods_id == -1:
         resp['msg'] = "数据上传失败"
         resp['data'] = req
         return jsonify(resp)
@@ -1330,7 +1318,7 @@ def editGoods():
         resp['msg'] = "数据上传失败"
         resp['data'] = req
         return jsonify(resp)
-    name = req["goods_name"] if 'goods_name' in req else None
+    name = req.get("goods_name", '')
     if not name:
         resp['msg'] = "数据上传失败"
         return jsonify(resp)
@@ -1345,7 +1333,7 @@ def editGoods():
     goods_info.main_image = ""
     goods_info.target_price = Decimal(req['target_price']).quantize(Decimal('0.00')) if 'target_price' in req else 0.00
     goods_info.name = name
-    goods_info.category = int(req['category']) if 'category' in req else 10  # 没有提供物品类别就默认属于其它
+    goods_info.category = int(req.get('category', 10))  # 没有提供物品类别就默认属于其它
     goods_info.owner_name = req['owner_name']
     goods_info.summary = req['summary']
     location = req['location'].split(",")
@@ -1354,7 +1342,7 @@ def editGoods():
     goods_info.business_type = business_type
     goods_info.mobile = req['mobile']
     # 修改成置顶贴子
-    if int(req['is_top'] if 'is_top' in req else 0):
+    if int(req.get('is_top', 0)):
         goods_info.top_expire_time = (datetime.datetime.now() + datetime.timedelta(days=int(req['days']))) \
             .strftime("%Y-%m-%d %H:%M:%S")
     goods_info.updated_time = getCurrentDate()
@@ -1376,11 +1364,107 @@ def goodsStatus():
     resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
 
-    goods_id = req['id'] if 'id' in req else None
-    if not goods_id:
+    goods_id = int(req.get('id', -1))
+    if goods_id == -1:
         resp['msg'] = '操作失败，稍后重试'
         return jsonify(resp)
     status = Good.query.filter_by(id=goods_id).with_entities(Good.status).with_for_update().first()[0]
     resp['data']['status'] = status
     resp['code'] = 200
     return jsonify(resp)
+
+
+@route_api.route('/goods/found/to/sys', methods=['GET', 'POST'])
+def unmarkGoodsToSysInBatch():
+    resp = {'code': -1, 'msg': '', 'data': {}}
+    req = request.values
+    goods_ids = req.get('id', None)
+    if goods_ids is None:
+        resp['msg'] = ''
+        return jsonify(resp)
+    # '[1,2]' -> '1,2' -> [1,2]
+    goods_ids = [int(goods_id) for goods_id in goods_ids[1:-1].split(',')]
+    Good.query.filter(Good.status == 1, Good.id.in_(goods_ids)).with_for_update() \
+        .update({'member_id': APP_CONSTANTS['sys_author']['member_id'],
+                 'openid': APP_CONSTANTS['sys_author']['openid'],
+                 'nickname': APP_CONSTANTS['sys_author']['nickname'],
+                 'avatar': APP_CONSTANTS['sys_author']['avatar']}, synchronize_session=False)
+
+    db.session.commit()
+    resp['code'] = 200
+    return jsonify(resp)
+
+
+@route_api.route('/goods/test')
+def test():
+    # goods = Good.query.filter_by(id=1).with_entities(Good.status).first()
+    # Good.query.filter_by(id=1).update({'summary': 'sss', 'view_count': 1}, synchronize_session=False)
+    # good = Good.query.filter_by(id=1).first()
+    # db.session.commit()
+    # good = Good.query.filter_by(id=1).first()
+    # goods = Good.query.filter(Good.id.in_(['1','2'])).all()
+    # app.logger.info("hhh")
+    # goods = Good.query.filter(Good.id=='1').first()
+    # goods2 = Good.query.filter_by(id='1').first()
+    # from sqlalchemy import func
+    # from common.models.ciwei.Mark import Mark
+    # count = db.session.query(func.count(Mark.id)).scalar()
+    # goods = Good.query.filter(Good.id.in_(['1', '2', '3'])).with_entities(Good.business_type).distinct().all()
+    # a = Good.query.filter(Good.id.in_(goods))
+    # Good.query.filter_by(id=1).update({'view_count': Good.view_count + 100}, synchronize_session=False)
+    # db.session.commit()
+    # status = Good.query.filter_by(id=1).with_entities(Good.status).first()
+    # return jsonify({'s':status[0]})
+    # cnt = db.session.query(func.count(Mark.id)).filter(Mark.status == 7).scalar()
+    # Mark.query.update({'status': 7}, synchronize_session=False)
+    # cnt = db.session.query(func.count(Mark.id)).filter(Mark.status == 7).scalar()
+    # Good.query.filter(Good.id == 1).with_for_update().first()
+    # a = Good.query.filter(Good.id == 1, Good.view_count == 4).with_for_update().update({'view_count': 5},
+    #                                                                                    synchronize_session=False)
+    # if a == 0:
+    #     v = Good.query.filter(Good.id == 1, Good.view_count == 4).with_for_update().update({'view_count': 5},
+    #                                                                                        synchronize_session=False)
+    #     return "v: " + str(v)
+    # a = Good.query.filter(Good.id == 1).with_for_update().update({'summary': 21}, synchronize_session='fetch')
+    # a = Good.query.filter(Good.id == 1).first()
+    # db.session.commit()
+    # return a.summary
+    # a = db.session.query(func.count(Mark.id)).filter(Mark.status != 7).with_for_update().scalar()
+    # db.session.commit()
+    from common.models.ciwei.Recommend import Recommend
+    a = Recommend.query.update({'status': 7}, synchronize_session=False)
+    goods_info = Good.query.filter_by(id=1).with_entities(Good.id, Good.member_id).first()
+    # print("h")
+    RecommendTasks.add_together.delay(goods_info=queryToDict(goods_info), abc=3)
+    return "quick return"
+
+
+@route_api.route('/goods/test/2')
+def test2():
+    # a = Good.query.filter(Good.id == 1).first()
+    # db.session.commit()
+    # return a.summary
+    # a = Good.query.filter(Good.id == 1, Good.view_count == 4).with_for_update().update({'view_count': 5},
+    #                                                                                    synchronize_session=False)
+    # a = Good.query.filter(Good.id == 1).first()
+    # b = a.summary
+    # c = a.summary
+    # return b + ',' + c
+    cache.set('token', "hhhh")
+    a = cache.get('token')
+    # a = db.session.query(func.count(Mark.id)).filter(Mark.status != 7).with_for_update().scalar()
+    return str(a)
+    # pass
+
+
+@route_api.route('/goods/test/3')
+def test3():
+    from application import es
+    result = es.get(index='test', id=1)
+    return jsonify(result.get('_source'))
+
+
+@route_api.route('/goods/test/4')
+def test4():
+    a = cas.exec('test', 'nil', 2)
+    return 'test cas'

@@ -1,4 +1,12 @@
-# coding: utf-8
+# encoding: utf-8
+"""
+@author: github/100101001
+@contact: 17702113437@163.com
+@time: 2020/3/21 下午2:15
+@file: AcsSmsSendLog.py
+@desc:
+"""
+
 from datetime import datetime
 
 from sqlalchemy.dialects.mysql import INTEGER
@@ -12,6 +20,10 @@ class AcsSmsSendLog(db.Model):
 
     id = db.Column(INTEGER(11, unsigned=True), primary_key=True, autoincrement=True)
     biz_uuid = db.Column(db.String(50), nullable=False, unique=True, comment='本地业务ID')
+    trig_member_id = db.Column(INTEGER(11, unsigned=True), nullable=False, default=0, comment='触发发送短信的会员id')
+    trig_openid = db.Column(db.String(32), nullable=False, default='', comment='触发发送短信的会员的第三方id')
+    rcv_member_id = db.Column(INTEGER(11, unsigned=True), index=True, nullable=False, default=0, comment='收短信的会员id')
+    rcv_openid = db.Column(db.String(32), nullable=False, index=True, default='', comment='收短信的会员的第三方id')
     phone_number = db.Column(db.String(20), nullable=False, index=True, comment='手机号')
     sign_name = db.Column(db.String(20), nullable=False, default="", comment='阿里云签名名称')
     template_id = db.Column(db.String(32), nullable=False, index=True, server_default=db.FetchedValue(), comment='阿里云模板id')

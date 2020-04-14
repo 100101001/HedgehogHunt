@@ -1,17 +1,18 @@
-#!/usr/bin/python3.6.8
-
-# -*- coding:utf-8 -*-
+# encoding: utf-8
+"""
+@author: github/100101001
+@contact: 17702113437@163.com
+@time: 2020/3/10 下午11:03
+@file: MemberService.py
+@desc:
+"""
 
 import hashlib
 import json
 import random
 import string
 
-import itertools
-import jieba
 import requests
-from flask import g
-from sqlalchemy import or_
 
 from application import app, db
 from common.libs.Helper import getCurrentDate
@@ -19,7 +20,6 @@ from common.models.ciwei.Appeal import Appeal
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Member import Member
-from common.models.ciwei.MemberBalanceChangeLog import MemberBalanceChangeLog
 from common.models.ciwei.Recommend import Recommend
 
 
@@ -109,47 +109,12 @@ class MemberService:
 
         return True
 
-
-
     @staticmethod
     def setRecommendStatus(member_id=0, goods_id=0, new_status=1, old_status=0):
         # 假设第一点，一个用户不会发出大于一条的类似帖子，如果发了
         # 假设第二点，用户知道自己正在找的东西，还删除了推荐记录，所以会将所有相关的都置无效（无论因为哪一条推给了用户）
         Recommend.query.filter_by(found_goods_id=goods_id, target_member_id=member_id, status=old_status). \
             update({'status': new_status}, synchronize_session=False)
-
-    @staticmethod
-    def setMemberBalanceChange(member_info=None, unit=0, note="答谢"):
-        """
-        记录会员账户余额变化
-        :param member_info:
-        :param unit:
-        :param note:
-        :return:
-        """
-        balance_change_model = MemberBalanceChangeLog()
-        balance_change_model.member_id = member_info.id
-        balance_change_model.openid = member_info.openid
-        balance_change_model.unit = unit
-        balance_change_model.total_balance = member_info.balance
-        balance_change_model.note = note
-        balance_change_model.created_time = getCurrentDate()
-        db.session.add(balance_change_model)
-
-    @staticmethod
-    def getSearchWords(name):
-        search_words = list(jieba.cut_for_search(name))
-        tag = search_words[-1]
-        more = [tag.replace(item, '') for item in search_words[:-1]]
-        more.extend([tag, name] if tag != name else [tag])
-        search_words = []
-        for k, _ in itertools.groupby(more):
-            if k:
-                search_words.append('%' + k + '%')
-        # 一定非空
-        # 寻物启示可精准，失物招领宜宽泛。
-        # 寻物启示三思后发
-        return search_words
 
     @staticmethod
     def preMarkGoods(member_id=0, goods_id=0):

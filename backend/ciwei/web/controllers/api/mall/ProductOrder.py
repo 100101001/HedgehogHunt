@@ -6,7 +6,6 @@ from flask import request, jsonify, g
 
 from application import db, app
 from common.libs.Helper import getCurrentDate
-from common.libs.MemberService import MemberService
 from common.libs.mall.WechatService import WeChatService
 from common.libs.mall.CartService import CartService
 from common.libs.UrlManager import UrlManager
@@ -20,14 +19,18 @@ from web.controllers.api import route_api
 
 @route_api.route("/order/express/status/set", methods=['POST', 'GET'])
 def setOrderStatus():
+    """
+    设置订单的物流状态
+    :return:
+    """
     resp = {'code': 200, 'msg': '', 'data': {}}
     req = request.values
-    status = req['status'] if 'status' in req else None
+    status = req.get('status', None)
     if status is None:
         resp['code'] = -1
         resp['msg'] = "操作失败，请重试"
         return jsonify(resp)
-    order_sn = req['order_sn'] if 'order_sn' in req else ''
+    order_sn = req.get('order_sn', '')
     if not order_sn:
         resp['code'] = -1
         resp['msg'] = "操作失败，订单不存在"
@@ -46,9 +49,13 @@ def setOrderStatus():
 
 @route_api.route("/order/info", methods=["POST"])
 def orderInfo():
+    """
+    核对订单产品列表和价格
+    :return:
+    """
     resp = {'code': 200, 'msg': '操作成功~', 'data': {}}
     req = request.values
-    params_goods = req['goods'] if 'goods' in req else None
+    params_goods = req.get('goods', None)
     member_info = g.member_info
     params_goods_list = []
     if params_goods:
@@ -96,15 +103,18 @@ def orderInfo():
 
 @route_api.route("/order/create", methods=["POST"])
 def orderCreate():
+    """
+
+    :return:
+    """
     resp = {'code': 200, 'msg': '操作成功~', 'data': {}}
     req = request.values
-    src_type = req['type'] if 'type' in req else ''
-    note = req['note'] if 'note' in req else ''
-    express_address_id = int(req['express_address_id']) if 'express_address_id' in req and req[
-        'express_address_id'] else 0
-    params_goods = req['goods'] if 'goods' in req else None
-    discount_price = req['discount_price'] if 'discount_price' in req else 0
-    discount_type = req['discount_type'] if 'discount_type' in req else ""
+    src_type = req.get('type', '')
+    note = req.get('note', '')
+    express_address_id = int(req.get('express_address_id', 0))
+    params_goods = req.get('goods', None)
+    discount_price = req.get('discount_price', 0)
+    discount_type = req.get('discount_type', '')
 
     items = []
     if params_goods:
@@ -152,8 +162,12 @@ def orderOps():
     resp = {'code': 200, 'msg': '操作成功~', 'data': {}}
     req = request.values
     member_info = g.member_info
-    order_sn = req['order_sn'] if 'order_sn' in req else ''
-    act = req['act'] if 'act' in req else ''
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = '请先登录'
+        return jsonify(resp)
+    order_sn = req.get('order_sn', '')
+    act = req.get('act', '')
     order_info = Order.query.filter_by(order_sn=order_sn, member_id=member_info.id).first()
     if not order_info:
         resp['code'] = -1
@@ -162,7 +176,7 @@ def orderOps():
 
     if act == "cancel":
         target_pay = PayService()
-        ret = target_pay.closeOrder(pay_order_id=order_info.id)
+        ret = target_pay.closeOrder(order_id=order_info.id)
         if not ret:
             resp['code'] = -1
             resp['msg'] = "系统繁忙。请稍后再试~~"
@@ -185,7 +199,11 @@ def orderPay():
     resp = {'code': 200, 'msg': '操作成功~', 'data': {}}
     member_info = g.member_info
     req = request.values
-    order_sn = req['order_sn'] if 'order_sn' in req else ''
+    order_sn = req.get('order_sn', '')
+    if not order_sn:
+        resp['code'] = -1
+        resp['msg'] = "系统繁忙。请稍后再试~~"
+        return jsonify(resp)
     order_info = Order.query.filter_by(order_sn=order_sn, member_id=member_info.id).first()
     if not order_info:
         resp['code'] = -1
@@ -231,7 +249,7 @@ def orderCallback():
     callback_data = target_wechat.xml_to_dict(request.data)
     app.logger.info(callback_data)
 
-    # 检查签名和订单金额
+    # 检查签名
     sign = callback_data['sign']
     callback_data.pop('sign')
     gene_sign = target_wechat.create_sign(callback_data)
@@ -242,43 +260,49 @@ def orderCallback():
     if callback_data['result_code'] != 'SUCCESS':
         result_data['return_code'] = result_data['return_msg'] = 'FAIL'
         return target_wechat.dict_to_xml(result_data), header
-
+    # 核对支付金额
     order_sn = callback_data['out_trade_no']
-    pay_order_info = Order.query.filter_by(order_sn=order_sn).first()
-    if not pay_order_info:
+    order_info = Order.query.filter_by(order_sn=order_sn).first()
+    if not order_info:
         result_data['return_code'] = result_data['return_msg'] = 'FAIL'
         return target_wechat.dict_to_xml(result_data), header
 
-    if int(pay_order_info.total_price * 100) != int(callback_data['total_fee']):
+    if int(order_info.total_price * 100) != int(callback_data['total_fee']):
         result_data['return_code'] = result_data['return_msg'] = 'FAIL'
         return target_wechat.dict_to_xml(result_data), header
 
-    # 更新订单的支付/物流状态, 记录日志
-    if pay_order_info.status == 1:
+    # 更新订单的支付和物流状态, 记录销售日志
+    if order_info.status == 1:
         return target_wechat.dict_to_xml(result_data), header
 
     target_pay = PayService()
-    target_pay.orderSuccess(pay_order_id=pay_order_info.id, params={"pay_sn": callback_data['transaction_id']})
-    target_pay.addPayCallbackData(pay_order_id=pay_order_info.id, data=request.data)
+    target_pay.orderSuccess(order_id=order_info.id, params={"pay_sn": callback_data['transaction_id']})
+    target_pay.addPayCallbackData(pay_order_id=order_info.id, data=request.data)
     return target_wechat.dict_to_xml(result_data), header
 
 
 @route_api.route('/order/sp/has', methods=['GET', 'POST'])
 def hasSpOrder():
+    """
+    是否有未支付的特殊商品订单
+    :return:
+    """
     resp = {'has': False, 'code': 200}
     member_info = g.member_info
     if not member_info:
         resp['code'] = -1
         return jsonify(resp)
     req = request.values
-    product_id = req['product_id'] if 'product_id' in req else None
+    product_id = req.get('product_id', None)
     if product_id is None:
         resp['code'] = -1
         return jsonify(resp)
 
+    # 当前用户的待支付订单
     order_list = Order.query.filter(Order.member_id == member_info.id,
                                     Order.status == -8,
                                     Order.created_time > datetime.datetime.now() - datetime.timedelta(minutes=25)).all()
+    # 检查待支付订单中的产品是否包含特殊商品
     for order in order_list:
         target_product = OrderProduct.query.filter(OrderProduct.product_id == product_id,
                                                  OrderProduct.order_id == order.id).first()

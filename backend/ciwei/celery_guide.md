@@ -1,11 +1,10 @@
 ## Celery异步任务
 
-### 依赖添加
-    # 异步任务依赖
-    flask_celery
-    flask-redis
 
 #### RMQ的安装与使用
+* RabbitMQ作异步任务的消息队列中间件
+
+
     # 安装
     sudo apt-get install rabbitmq-server
     # 直接查看状态
@@ -33,7 +32,9 @@
     Setting permissions for user "root" in vhost "ciwei"
     ellen@ubuntu:/etc/rabbitmq$ sudo rabbitmqctl  change_password root  'qweasd123'
     Changing password for user "root"
-    
+    ellen@ubuntu:/etc/rabbitmq$ sudo rabbitmqctl set_user_tags root administrator
+    Setting tags for user "root" to [administrator]
+
     # 修改配置文件 /etc/rabbitmq/rabbitmq.config 目配置可远程登录
     ellen@ubuntu:/etc/rabbitmq$ ll
     total 28
@@ -60,6 +61,9 @@
     
 
 ### Redis的安装与使用
+* redis 作异步任务结果存储
+
+
     # 安装
     ellen@ubuntu:/etc/rabbitmq$ sudo apt-get install redis-server
     # 命令行界面
@@ -70,6 +74,9 @@
 
 
 ### Flask_Celery的安装与使用
+
+* Flask_Celery在应用程序中向消息队列放任务，起Worker从消息队列中取任务后台异步运行，任务执行结果存到redis，也可将异步任务结果从redis取回到应用程序
+
 在依赖文件中
 
     # 异步任务插件依赖(发送消息到消息队列,起后台worker,写结果,获取结果等)
@@ -122,9 +129,10 @@
     # 在Application的构造__init__函数中加入,加载celery配置
     celery.init_app(self)
 
-起worker的命令
+起worker和beat的命令
    
-    celery -A your_application.celery worker
+    celery -A application.celery worker -Q recommend_queue,subscribe_queue,sms_queue
+    celery -A application.celery beat
 
 参考资料
 

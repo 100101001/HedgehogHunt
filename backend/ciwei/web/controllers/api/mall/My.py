@@ -1,11 +1,10 @@
 import datetime
 import json
-import os
 import time
 
 from flask import g, request, jsonify
 
-from application import app, db
+from application import db
 from common.libs.Helper import selectFilterObj, getDictFilterField, seconds2str, getCurrentDate
 from common.libs.UrlManager import UrlManager
 from common.libs.mall.PayService import PayService
@@ -39,7 +38,7 @@ def myOrderList():
         query = query.filter(Order.status == 1, Order.express_status == 1, Order.comment_status == 0)
     elif status == 1:  # 已完成
         query = query.filter(Order.status == 1, Order.express_status == 1, Order.comment_status == 1)
-    else:
+    else:  # 已关闭
         query = query.filter(Order.status == 0)
 
     # 按时间先后获取每个订单的产品列表信息
@@ -58,6 +57,7 @@ def myOrderList():
         product_ids = selectFilterObj(order_item_list, "product_id")
         product_map = getDictFilterField(Product, Product.id, "id", product_ids)
         order_item_map = {}
+        # 获取订单包含的特殊商品的数量
         order_sp_cnt_map = {}
         if order_item_list:
             for item in order_item_list:
@@ -102,8 +102,9 @@ def myOrderList():
             # 如果只有非周边商品则付完款，前端自动发货
             tmp_data['only_special'] = len(order_item_map[item.id]) == \
                                        (1 if tmp_data['sms_num'] else 0 +
-                                        1 if tmp_data['sms_package_num'] else 0 +
-                                        1 if tmp_data['qr_code_num'] else 0)
+                                                                      1 if tmp_data['sms_package_num'] else 0 +
+                                                                                                            1 if
+                                       tmp_data['qr_code_num'] else 0)
 
             data_order_list.append(tmp_data)
     resp['data']['pay_order_list'] = data_order_list
@@ -120,31 +121,31 @@ def myOrderInfo():
     member_info = g.member_info
     req = request.values
     order_sn = req['order_sn'] if 'order_sn' in req else ''
-    pay_order_info = Order.query.filter_by(member_id=member_info.id, order_sn=order_sn).first()
-    if not pay_order_info:
+    order_info = Order.query.filter_by(member_id=member_info.id, order_sn=order_sn).first()
+    if not order_info:
         resp['code'] = -1
         resp['msg'] = "系统繁忙，请稍后再试~~"
         return jsonify(resp)
 
     express_info = {}
-    if pay_order_info.express_info:
-        express_info = json.loads(pay_order_info.express_info)
+    if order_info.express_info:
+        express_info = json.loads(order_info.express_info)
 
-    tmp_deadline = pay_order_info.created_time + datetime.timedelta(minutes=30)
+    tmp_deadline = order_info.created_time + datetime.timedelta(minutes=30)
     info = {
-        "order_sn": pay_order_info.order_sn,
-        "status": pay_order_info.pay_status,
-        "status_desc": pay_order_info.status_desc,
-        "pay_price": str(pay_order_info.pay_price),
-        "yun_price": str(pay_order_info.yun_price),
-        "discount_price": str(pay_order_info.discount_price),
-        "total_price": str(pay_order_info.total_price),
+        "order_sn": order_info.order_sn,
+        "status": order_info.pay_status,
+        "status_desc": order_info.status_desc,
+        "pay_price": str(order_info.pay_price),
+        "yun_price": str(order_info.yun_price),
+        "discount_price": str(order_info.discount_price),
+        "total_price": str(order_info.total_price),
         "address": express_info,
         "goods": [],
-        "deadline": tmp_deadline.strftime("%Y-%m-%d %H:%M")
+        "deadline": tmp_deadline.strftime("%Y-%m-%d %H:%M")  # 支付的时限
     }
 
-    order_items = OrderProduct.query.filter_by(order_id=pay_order_info.id).all()
+    order_items = OrderProduct.query.filter_by(order_id=order_info.id).all()
     if order_items:
         product_ids = selectFilterObj(order_items, "product_id")
         product_map = getDictFilterField(Product, Product.id, "id", product_ids)

@@ -1,12 +1,11 @@
 # coding: utf-8
 import decimal
+from datetime import datetime
 
-from sqlalchemy import BigInteger, Column, DateTime, Index, Integer, Numeric, String, Text
 from sqlalchemy.dialects.mssql import TINYINT
 from sqlalchemy.dialects.mysql import INTEGER
-from flask_sqlalchemy import SQLAlchemy
-from application import db, app
-from datetime import datetime
+
+from application import db
 
 
 class Order(db.Model):

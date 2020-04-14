@@ -6,7 +6,8 @@ from decimal import Decimal
 from flask import request, jsonify, g
 
 from application import db, app
-from common.libs.CryptService import AESCrypt
+from common.libs import LogService
+from common.libs.CryptService import Cipher
 from common.libs.Helper import getCurrentDate
 from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
@@ -209,8 +210,8 @@ def balanceChange():
         resp['msg'] = "请先登录"
         return jsonify(resp)
 
+    LogService.setMemberBalanceChange(member_info=member_info, unit=unit, old_balance=member_info.balance, note=req.get('note',''))
     member_info.balance += unit
-    MemberService.setMemberBalanceChange(member_info=member_info, unit=unit, note=req['note'] if 'note' in req else '')
     db.session.add(member_info)
     db.session.commit()
     return jsonify(resp)
@@ -423,7 +424,6 @@ def memberInfo():
         pkg_data_list.append(tmp_data)
 
     m_times = member_info.left_notify_times  # 计算按量购买的数量
-    cipher = AESCrypt()
     resp['data']['info'] = {
         'nickname': member_info.nickname,
         'avatar': member_info.avatar,
@@ -433,7 +433,7 @@ def memberInfo():
         "balance": str(member_info.balance),
         "has_qrcode": has_qrcode,
         "name": member_info.name,
-        "mobile": cipher.decrypt(text=member_info.mobile),
+        "mobile": Cipher.decrypt(text=member_info.mobile),
         "m_times": m_times,
         "total_times": p_times + m_times,
         "pkgs": pkg_data_list
@@ -679,9 +679,8 @@ def decryptPhone():
         return jsonify(resp)
     mobile = mobile_obj['phoneNumber']
     app.logger.info("手机号是：{}".format(mobile))
-    cipher = AESCrypt()
     resp['data'] = {
-        'mobile': cipher.encrypt(mobile)
+        'mobile': Cipher.encrypt(mobile)
     }
     return jsonify(resp)
 

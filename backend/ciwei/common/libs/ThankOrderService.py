@@ -5,9 +5,8 @@ import random
 from application import app, db
 from common.libs import Helper
 from common.libs.Helper import getCurrentDate
-from common.models.ciwei.MemberBalanceChangeLog import MemberBalanceChangeLog
 from common.models.ciwei.ThankOrder import ThankOrder
-from common.models.ciwei.ThankOrderCallbackData import ThankOrderCallbackData
+from common.models.ciwei.logs.thirdservice.ThankOrderCallbackData import ThankOrderCallbackData
 from common.models.ciwei.mall.Order import Order
 
 
@@ -84,7 +83,6 @@ def place_wx_prepay_order(openid, order, resp):
     """
 
     import requests
-    from common.libs.UrlManager import UrlManager
     url = "https://api.mch.weixin.qq.com/pay/unifiedorder"
     data = {
         "appid": app.config['OPENCS_APP']['appid'],

@@ -1,10 +1,12 @@
 # -*- coding:utf-8 -*-
 import datetime
 
+import redis
 from flask import request, jsonify, g
 from sqlalchemy import or_, and_
 
 from application import db
+from common.cahce import redis_pool, cas
 from common.libs.Helper import getCurrentDate, getDictFilterField
 from common.libs.UrlManager import UrlManager
 from common.models.ciwei.Appeal import Appeal
@@ -132,11 +134,16 @@ def recordSearch():
     if goods_list:
         now = datetime.datetime.now()
         for item in goods_list:
+            # 只返回用户符合期待的状态的物品
+            item_id = item.id
+            item_status = item.status
+            if op_status in (0, 1, 5):
+                if not cas.exec(item_id, item_status, item_status) or not cas.exec(item_id, 'nil', item_status):
+                    continue
             tmp_data = {
                 "id": item.id,  # 供前端用户点击查看详情用的
                 "new": 1 if op_status != 2 else (
-                    0 if only_new else (
-                        goods_id_recommend_status_map[item.id] if item.id in goods_id_recommend_status_map else 1)),
+                    0 if only_new else goods_id_recommend_status_map.get(item.id, 1)),
                 # 不存在时置不是new记录
                 "goods_name": item.name,
                 "owner_name": item.owner_name,
@@ -146,7 +153,7 @@ def recordSearch():
                 "main_image": UrlManager.buildImageUrl(item.main_image),
                 "auther_name": item.nickname,
                 "avatar": item.avatar,
-                "unselectable": item.status == 5 or (item.status != 2 and status == 0 and op_status == 1),
+                "unselectable": item.status == 5 or (item.status != 2 and status == 0 and op_status == 1),  # 前端编辑禁止选中
                 "selected": False,  # 供前端选中删除记录用的属性
                 "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
                 "top": item.top_expire_time > now,  # 是否为置顶记录
@@ -189,22 +196,34 @@ def recordDelete():
     """
     op_status = int(req['op_status']) if 'op_status' in req else ''
     id_list = req['id_list'][1:-1].split(',')
-    status = req['status']
+    id_list = [int(goods_id) for goods_id in id_list]
+    status = int(req.get('status', -7))
+    if status == -7 and op_status in (0, 1, 5):
+        # 发布记录,认领记录,归还通知删除需要确保物品的状态
+        resp['msg'] = '操作失败'
+        return jsonify(resp)
     if op_status == 0:
         # 删除发布
-        Good.query.filter(Good.id.in_(id_list)).update({'status': 7}, synchronize_session=False)
+        Good.query.filter(Good.id.in_(id_list), Good.status == status).with_for_update().update({'status': 7},
+                                                                                                synchronize_session=False)
     elif op_status == 1:
         # 删除认领记录（已取回，已答谢）
         Mark.query.filter(Mark.member_id == member_info.id,
+                          Mark.status == status,
                           Mark.goods_id.in_(id_list)).update({'status': 7}, synchronize_session=False)
     elif op_status == 5:
         # 删除记录 ！= 删帖子（不是作者），只需解除人的链接即可
-        Good.query.filter(Good.id.in_(id_list)).update({'return_goods_openid': '',
-                                                        'qr_code_openid': ''}, synchronize_session=False)
+        Good.query.filter(Good.id.in_(id_list), Good.status == status).with_for_update() \
+            .update({'return_goods_openid': '',
+                     'qr_code_openid': ''}, synchronize_session=False)
     elif op_status == 2:
         # 推荐删除（更新为7）
+        lost_goods_ids = Recommend.query.filter(Recommend.target_member_id == member_info.id,
+                                                Recommend.found_goods_id.in_(id_list)).with_entities(Recommend.lost_goods_id).all()
         Recommend.query.filter(Recommend.target_member_id == member_info.id,
                                Recommend.found_goods_id.in_(id_list)).update({'status': 7}, synchronize_session=False)
+        # 允许新增订阅消息
+        Good.query.filter(Good.id.in_(lost_goods_ids), Good.status == 1).update({'recommended_times': 1}, synchronize_session=False)
     elif op_status == 6:
         # 申诉只能删除已处理完毕的记录
         Appeal.query.filter(Appeal.member_id == member_info.id,

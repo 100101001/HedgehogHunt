@@ -6,15 +6,12 @@ from flask import request, jsonify, g
 from sqlalchemy import or_
 
 from application import app, db
-
-from common.libs import ThankOrderService
+from common.libs import LogService
 from common.libs.Helper import getCurrentDate, selectFilterObj, getDictFilterField
-from common.libs.MemberService import MemberService
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Member import Member
 from common.models.ciwei.Report import Report
-from common.models.ciwei.ThankOrder import ThankOrder
 from common.models.ciwei.Thanks import Thank
 from common.models.ciwei.User import User
 from web.controllers.api import route_api
@@ -39,7 +36,7 @@ def thanksCreate():
         target_member_id = int(req['auther_id']) if 'auther_id' in req else 0
         thanks_model.target_member_id = target_member_id
         business_type = int(req['business_type'])
-        # TODO/??
+
         thanks_model.business_desc = "拾到" if business_type == 1 else "丢失"
         goods_id = int(req['goods_id']) if 'goods_id' in req else 0
         goods_name = req['goods_name'] if 'goods_name' in req else '你捡到的东西'
@@ -52,9 +49,10 @@ def thanksCreate():
             # 金额转入目标用户余额
             thanks_model.order_sn = req['order_sn']
             target_member_info = Member.query.filter_by(id=target_member_id).first()
+            LogService.setMemberBalanceChange(member_info=target_member_info, unit=target_price,
+                                              old_balance=member_info.balance,
+                                              note='答谢收款')
             target_member_info.balance += target_price
-            MemberService.setMemberBalanceChange(member_info=target_member_info, unit=target_price,
-                                                 note="答谢收款")
             db.session.add(target_member_info)
 
         thanks_model.summary = req['thanks_text']  # 前端已判空

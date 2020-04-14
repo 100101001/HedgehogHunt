@@ -1,10 +1,17 @@
-# coding: utf-8
+# encoding: utf-8
+"""
+@author: github/100101001
+@contact: 17702113437@163.com
+@time: 2020/1/10 下午8:09
+@file: Address.py
+@desc:
+"""
+
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Index, Integer, String
 from sqlalchemy.dialects.mssql import TINYINT
 from sqlalchemy.dialects.mysql import INTEGER
-from flask_sqlalchemy import SQLAlchemy
+
 from application import db
 
 

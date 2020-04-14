@@ -11,6 +11,8 @@ import math
 
 import numpy as np
 
+from application import app
+
 
 class DistanceService:
     def __init__(self):
@@ -23,9 +25,7 @@ class DistanceService:
         res = np.polyfit(x, y, 5)
         self.cos = np.poly1d(res)
 
-
     def calSimplifyDistance(self, lng1, lat1, lng2, lat2):
-
         """
         计算GPS间米制距离
         :param lng1:
@@ -52,18 +52,24 @@ class DistanceService:
         return math.sqrt(lx * lx + ly * ly)
 
     # 上海市黄浦区南京西路399号###上海明天广场JW万豪酒店###31.23038###121.4697
-    def filterNearbyGoods(self, goods_list=None, os_location=None):
+    def filterNearbyGoods(self, goods_list=None, found_location=None):
         """
         从匹配的列表中筛选出距离500m内的
         :param goods_list: (1, )
-        :param os_location:
+        :param found_location:
         :return: [] 符合距离条件的物品
         """
-        os_location = os_location.split("###")[-2:]
+        found_location = found_location.split("###")[-2:]
         ret_list = []
         for item in goods_list:
-            location = item.location.split("###")[-2:]
-            if self.calSimplifyDistance(lng1=os_location[1], lat1=os_location[0],
-                                        lng2=location[1], lat2=location[0]) < 500:
+            lost_location = item.os_location.split("###")[-2:]
+            if len(lost_location) < 2:
+                # 失主不知道丢哪里,不计算发现位置和丢失位置的距离,直接推荐
+                ret_list.append(item)
+                continue
+            distance = self.calSimplifyDistance(lng1=eval(found_location[1]), lat1=eval(found_location[0]),
+                                                lng2=eval(lost_location[1]), lat2=eval(lost_location[0]))
+            app.logger.warn('物品' + str(item.id) + '距离捡到的物品距离为: ' + str(distance))
+            if distance < 300:
                 ret_list.append(item)
         return ret_list

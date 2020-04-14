@@ -9,25 +9,24 @@
 
 import random
 
+from common.libs import LogService
 from common.libs.sms.aliyunsdkdysmsapi.request.v20170525 import SendSmsRequest
 import json
-from common.libs.sms.aliyunsdkdysmsapi.request.v20170525 import QuerySendDetailsRequest
 from aliyunsdkcore.client import AcsClient
 import uuid
 from aliyunsdkcore.profile import region_provider
 from aliyunsdkcore.http import method_type as MT
-from aliyunsdkcore.http import format_type as FT
 from application import app, db
-from common.models.ciwei.AcsSmsSendLog import AcsSmsSendLog
+from common.models.ciwei.logs.thirdservice.AcsSmsSendLog import AcsSmsSendLog
 
 
 # 注意：不要更改
 REGION = "cn-hangzhou"
 PRODUCT_NAME = "Dysmsapi"
 DOMAIN = "dysmsapi.aliyuncs.com"
-acs_const = app.config['ACS_SMS']
+ACS_CONSTANTS = app.config['ACS_SMS']
 
-acs_client = AcsClient(acs_const['ACCESS_KEY_ID'], acs_const['ACCESS_KEY_SECRET'], REGION)
+acs_client = AcsClient(ACS_CONSTANTS['ACCESS_KEY_ID'], ACS_CONSTANTS['ACCESS_KEY_SECRET'], REGION)
 region_provider.add_endpoint(PRODUCT_NAME, REGION, DOMAIN)
 
 
@@ -58,14 +57,14 @@ def send_sms(business_id=None, phone_numbers='', sign_name='', template_code='',
     # 调用短信发送接口，返回json
     smsResponse = acs_client.do_action_with_exception(smsRequest)
 
-    # TODO 业务处理
     app.logger.info(smsResponse)
     return json.loads(smsResponse)
 
 
-def send_verify_code(phone="", code=""):
+def send_verify_code(phone="", code="", trig_rcv_info=None):
     """
     发送短信，返回响应数据
+    :param trig_rcv_info:
     :param phone:
     :param code:
     :return:
@@ -74,18 +73,20 @@ def send_verify_code(phone="", code=""):
         return False
     _business_id = genBizUUid()
     params = {"code": code}
-    temp_id = acs_const['TEMP_IDS']['VERIFY']
-    sign_name = acs_const['SIGN_NAMES']['VERIFY']
+    temp_id = ACS_CONSTANTS['TEMP_IDS']['VERIFY']
+    sign_name = ACS_CONSTANTS['SIGN_NAMES']['VERIFY']
     resp = send_sms(business_id=_business_id, phone_numbers=phone, sign_name=sign_name,
                     template_code=temp_id, template_param=params)
     resp['business_sn'] = _business_id
-    addAcsSmsSendLog(sms_resp=resp, phone=phone, temp_id=temp_id, temp_params=params, sign_name=sign_name)
+    # TODO 如果能够保证消息队列处理的可靠可以异步
+    LogService.addAcsSmsSendLog(sms_resp=resp, phone=phone, temp_id=temp_id, temp_params=params, sign_name=sign_name, trig_rcv_info=trig_rcv_info)
     return resp and 'Code' in resp and resp['Code'] == 'OK'
 
 
-def send_lost_notify(phone="", goods_name='', location=""):
+def send_lost_notify(phone='', goods_name='', location=None, trig_rcv_info=None):
     """
     发送失物通知
+    :param trig_rcv_info:
     :param phone:
     :param goods_name:
     :param location:
@@ -99,12 +100,13 @@ def send_lost_notify(phone="", goods_name='', location=""):
         'goods_name': goods_name,
         'location': location
     }
-    temp_id = acs_const['TEMP_IDS']['NOTIFY']
-    sign_name = acs_const['SIGN_NAMES']['NOTIFY']
+    temp_id = ACS_CONSTANTS['TEMP_IDS']['NOTIFY']
+    sign_name = ACS_CONSTANTS['SIGN_NAMES']['NOTIFY']
     resp = send_sms(business_id=_business_id, phone_numbers=phone, sign_name=sign_name,
                     template_code=temp_id, template_param=params)
     resp['business_sn'] = str(_business_id)
-    addAcsSmsSendLog(sms_resp=resp, phone=phone, temp_id=temp_id, temp_params=params, sign_name=sign_name)
+    # TODO 如果能够保证消息队列处理的可靠可以异步
+    LogService.addAcsSmsSendLog(sms_resp=resp, phone=phone, temp_id=temp_id, temp_params=params, sign_name=sign_name, trig_rcv_info=trig_rcv_info)
     return resp and 'Code' in resp and resp['Code'] == 'OK'
 
 
@@ -127,20 +129,4 @@ def genBizUUid():
             break
     return bid
 
-
-def addAcsSmsSendLog(sms_resp=None, phone="", temp_id="", temp_params=None, sign_name=""):
-    sendLog = AcsSmsSendLog()
-    sendLog.sign_name = sign_name
-    sendLog.template_id = temp_id
-    sendLog.params = str(temp_params).replace("'", '"')
-    sendLog.phone_number = phone
-    sendLog.biz_uuid = sms_resp['business_sn']
-    sendLog.acs_request_id = sms_resp['RequestId']
-    sendLog.acs_biz_id = sms_resp['BizId'] if 'BizId' in sms_resp else ''
-    sendLog.acs_code = sms_resp['Code']
-    sendLog.acs_product_name = PRODUCT_NAME
-    sms_resp.pop('business_sn')
-    sendLog.acs_resp_data = str(sms_resp).replace("'", '"')
-    db.session.add(sendLog)
-    db.session.commit()
 

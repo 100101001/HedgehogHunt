@@ -1,4 +1,12 @@
-# coding: utf-8
+# encoding: utf-8
+"""
+@author: github/100101001
+@contact: 17702113437@163.com
+@time: 2020/1/10 下午8:09
+@file: Campus.py
+@desc:
+"""
+
 from sqlalchemy import Column, DateTime, Integer, String
 from sqlalchemy.dialects.mysql import INTEGER
 from flask_sqlalchemy import SQLAlchemy

@@ -2,13 +2,10 @@
 import decimal
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Integer, String
 from sqlalchemy.dialects.mssql import TINYINT
 from sqlalchemy.dialects.mysql import INTEGER
-from sqlalchemy.dialects.mysql import INTEGER
-from flask_sqlalchemy import SQLAlchemy
+
 from application import db
-from common.libs import Helper
 
 
 class Member(db.Model):
@@ -21,7 +18,7 @@ class Member(db.Model):
     salt = db.Column(db.String(255), nullable=False, default='', comment="加密生成的字符串")
     credits = db.Column(INTEGER(11), nullable=False, default=0, comment="会员积分")
     balance = db.Column(db.Numeric(10, 2), nullable=False, default=decimal.Decimal(0.00), comment="用户账户余额")
-    mobile = db.Column(db.String(20), nullable=False, default='', comment="会员手机号码")
+    mobile = db.Column(db.String(32), nullable=False, default='', comment="会员手机号码")
     name = db.Column(db.String(20), nullable=False, default='', comment="注册会员的姓名，用于后期做匹配")
     location = db.Column(db.String(255), nullable=False, default='', comment="会员收货地址")
     sex = db.Column(TINYINT(), nullable=False, default=0, comment="性别 1：男 2：女")

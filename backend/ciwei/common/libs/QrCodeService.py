@@ -1,4 +1,11 @@
-from decimal import Decimal
+# encoding: utf-8
+"""
+@author: github/100101001
+@contact: 17702113437@163.com
+@time: 2019/12/05 下午8:43
+@file: QrCodeService.py
+@desc:
+"""
 
 from application import db, app
 

@@ -8,19 +8,24 @@ requests
 # twilio
 # 阿里云短信通信
 aliyun-python-sdk-core-v3
+# 缓存
 Flask-Caching
+# 解析xml文件
 bs4
 lxml
 flask-migrate
+# 密码安全模块
 pycrypto
 uwsgi
+# 布隆过滤器
 pybloom_live
+# 提取用户输入的关键词
 jieba
-# smart_open
-# synonyms
 # 以下是测试依赖
 mock
 coverage
 # 异步任务依赖
 flask_celery
 flask-redis
+# 搜索服务
+elasticsearch

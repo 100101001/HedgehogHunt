@@ -1,12 +1,11 @@
 # coding: utf-8
 import decimal
+from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Integer, Numeric, String
 from sqlalchemy.dialects.mssql import TINYINT
 from sqlalchemy.dialects.mysql import INTEGER
-from flask_sqlalchemy import SQLAlchemy
+
 from application import db
-from datetime import datetime
 
 
 class ThankOrder(db.Model):

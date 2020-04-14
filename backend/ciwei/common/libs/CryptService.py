@@ -72,8 +72,8 @@ class AESCrypt:
             par += b'\x00'
         return par
 
-    def padding_pkcs5(self, value):
-        return str.encode(value + (BS - len(value) % BS) * chr(BS - len(value) % BS))
+    # def padding_pkcs5(self, value):
+    #     return str.encode(value + (BS - len(value) % BS) * chr(BS - len(value) % BS))
 
     def encrypt(self, text=""):
         text = self.add_16(text)
@@ -86,13 +86,14 @@ class AESCrypt:
         return self.decrypt_text.decode(self.encode_).strip('\0')
 
 
-if __name__ == '__main__':
-    #pass
-    # pr = AESCrypt('secretkey123', 'ECB', '', 'gbk')
-    # en_text = pr.encrypt('李依璇')
-    # print('密文:', en_text)
-    # print('明文:', pr.decrypt(en_text))
-    pr = AESCrypt('xunhui', 'ECB', '', 'utf8')
-    en_text = pr.encrypt('李依璇')
-    print('密文:', en_text)
-    print('明文:', pr.decrypt(en_text))
+Cipher = AESCrypt()
+
+# if __name__ == '__main__':
+#     # pr = AESCrypt('secretkey123', 'ECB', '', 'gbk')
+#     # en_text = pr.encrypt('李依璇')
+#     # print('密文:', en_text)
+#     # print('明文:', pr.decrypt(en_text))
+#     pr = AESCrypt('xunhui', 'ECB', '', 'utf8')
+#     en_text = pr.encrypt('18964779230')
+#     print('密文:', en_text)
+#     print('明文:', pr.decrypt(en_text))
