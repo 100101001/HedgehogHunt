@@ -1,6 +1,36 @@
 //app.js
 
 const BloomFilter = require('./utils/bloomfilter').BloomFilter;
+
+/**
+ * 在扫码引导前判断扫码合理性
+ * @param qrcode_openid
+ * @param that
+ * @param cb_success
+ */
+const judgeScanFrequency = function (qrcode_openid="", that=undefined, cb_success=()=>{}) {
+  wx.request({
+    url: that.buildUrl('/qrcode/before/nav'),
+    header: that.getRequestHeader(),
+    data: {
+      openid: qrcode_openid
+    },
+    success: res => {
+      let resp = res.data;
+      if (resp['code'] !== 200) {
+        that.alert({content: resp['msg']});
+        that.cancelQrcodeScan();
+        return;
+      }
+      cb_success(resp['data'])
+    },
+    fail: res => {
+      that.serverBusy();
+      that.cancelQrcodeScan();
+    }
+  })
+};
+
 App({
   globalData: {
     qrCodeDebug: false, //用于微信二维码获取无限个(false)的接口/有限个(true)的接口
@@ -30,6 +60,7 @@ App({
     ],
     indexPage: null, //首页（扫码进入控制“逛一逛”按钮显示）
     isScanQrcode: false, //是否扫码进入
+    isFreqScanQrcode: false, //他人是否涉嫌频繁扫码
     qrcodeOpenid: "", //二维码用户ID
     qrcodeName: "", //二维码用户名字
     unLoggedRelease: false, //扫码用户未注册仍继续发布
@@ -84,6 +115,9 @@ App({
         this.globalData.goodsTopPrice = data['top'].price
         this.globalData.goodsTopDays = data['top'].days
         this.globalData.buyQrCodeFreeSmsTimes = data['free_sms'].times
+      },
+      fail: res => {
+        this.serverBusy()
       }
     });
     // 获得类别列表
@@ -92,12 +126,18 @@ App({
       success: (res) => {
         this.globalData.goodsCategories = res.data['data']['cat_list']
         this.globalData.categoryDefaultGoods = res.data['data']['cat_default']
+      },
+      fail: res => {
+        this.serverBusy()
       }
     });
     // 获得屏幕的大小
     wx.getSystemInfo({
       success: (res) => {
         this.globalData.windowWidth = res.windowWidth
+      },
+      fail: res => {
+        this.serverBusy()
       }
     });
     // Encrypt
@@ -432,15 +472,15 @@ App({
    * @see doRegister 调用者
    */
   onLoginSuccessSetData: function (res) {
-    let data = res.data.data
-    this.setCache("token", data.token)
-    this.globalData.is_adm = data.is_adm
-    this.globalData.is_user = data.is_user
-    this.globalData.has_qrcode = data.has_qrcode
-    this.globalData.member_status = data.member_status
-    this.globalData.id = data.id
-    this.globalData.openid = data.token.split("#")[0]
-    this.globalData.regFlag = true
+    let data = res.data.data;
+    this.setCache("token", data.token);
+    this.globalData.is_adm = data.is_adm;
+    this.globalData.is_user = data.is_user;
+    this.globalData.has_qrcode = data.has_qrcode;
+    this.globalData.member_status = data.member_status;
+    this.globalData.id = data.id;
+    this.globalData.openid = data.token.split("#")[0];
+    this.globalData.regFlag = true;
   },
   /**
    * onLoginSuccessShowToast 向非扫码登录的用户显示登陆成功的提示信息
@@ -547,14 +587,15 @@ App({
       //显示首页的逛一逛按钮
       this.globalData.indexPage.setData({
         isScanQrcode: false
-      })
-      this.globalData.indexPage = null
+      });
+      this.globalData.indexPage = null;
     }
     //标记清空
-    this.globalData.isScanQrcode = false
-    this.globalData.qrcodeOpenid = ""
-    this.globalData.unLoggedRelease = false
-    this.globalData.unLoggedReleaseToken = {}
+    this.globalData.isScanQrcode = false;
+    this.globalData.isFreqScanQrcode = false;
+    this.globalData.qrcodeOpenid = "";
+    this.globalData.unLoggedRelease = false;
+    this.globalData.unLoggedReleaseToken = {};
   },
   /**
    * qrcodeNotified 防止重复通知，通知一次后，就将通知对象置空
@@ -567,16 +608,56 @@ App({
    * qrCodeNavigate
    * 根据扫码解析的二维码主OPENID和扫码者的OPENID判断是否是同一人
    * @link doLogin 调用者
+   * @see judgeScanFrequency 判断扫码合理性
    * @see selfScanQrcode 自己扫码
    * @see otherScanQrcode 其他用户扫码
    */
   qrCodeNavigate: function () {
-    if (this.globalData.qrcodeOpenid == this.globalData.openid) {
-      //自己扫码
-      this.selfScanQrcode()
+    let is_self_scan = this.globalData.qrcodeOpenid === this.globalData.openid;
+    judgeScanFrequency(this.globalData.qrcodeOpenid, this, (data) => {
+      if (data) {
+        if (is_self_scan) {
+          //自己扫码提示不能更换手机
+          this.alert({
+            title: '扫码提示',
+            content: '您在' + data['phone_change_time'] + '更绑过手机，一个月内只能更换一次手机号！',
+            cb_confirm: this.cancelQrcodeScan
+          })
+        } else {
+          //别人扫码提示扫码归还是否重复
+          this.globalData.isFreqScanQrcode = true;
+          this.alert({
+            title: '防恶意扫码提示',
+            content: '贴有本二维码的' + data['goods_name'] + '在' + data['found_time'] + '被拾到后扫码归还！如果你归还的物品重复请取消，否则确定继续。',
+            showCancel: true,
+            cb_confirm: this.freqOtherScanQrcode, //必须注册，操作留痕
+            cb_cancel: this.cancelQrcodeScan
+          })
+        }
+      } else {
+        //走原来的流程
+        if (is_self_scan) {
+          //自己扫码
+          this.selfScanQrcode()
+        } else {
+          //别人扫码
+          this.otherScanQrcode()
+        }
+      }
+    });
+  },
+  /**
+   * freqOtherScanQrcode 别人涉嫌频繁扫码
+   * @see cancelQrcodeScan
+   * @see regScanQrcode
+   */
+  freqOtherScanQrcode: function(){
+    if (!this.globalData.regFlag) {
+      //扫码用户未注册
+      this.unRegFreqScanQrcode()
     } else {
-      //别人扫码
-      this.otherScanQrcode()
+      //扫码用户已注册
+      this.regScanQrcode()
     }
   },
   /**
@@ -585,7 +666,6 @@ App({
    * @see cancelQrcodeScan
    */
   selfScanQrcode: function () {
-    let page = this.globalData.indexPage
     wx.showActionSheet({
       itemList: ['绑定手机号', '随便扫扫'],
       success: (res) => {
@@ -648,20 +728,32 @@ App({
    * @see toConfirmUnRegRelease 选择不注册
    */
   unRegScanQrcode: function () {
-    wx.showModal({
+    this.alert({
       title: '是否注册?',
       content: '注册用户可得失主的答谢金',
-      success: res => {
-        if (res.confirm) {
-          //前往注册
-          wx.navigateTo({
-            url: '/pages/login/index',
-          })
-        } else if (res.cancel) {
-          //确认不注册发布
-          this.toConfirmUnRegRelease()
-        }
-      }
+      cb_confirm: ()=>{
+        //前往注册
+        wx.navigateTo({
+          url: '/pages/login/index',
+        })
+      },
+      cb_cancel: this.toConfirmUnRegRelease
+    })
+  },
+  /**
+   * unRegFreqScanQrcode 非注册用户涉嫌过度频繁扫码
+   */
+  unRegFreqScanQrcode: function () {
+    this.alert({
+      title: '注册提示',
+      content: '您必须注册后才能继续扫码归还，确定继续，取消终止归还。',
+      showCancel: true,
+      cb_confirm: () => {
+        wx.navigateTo({
+          url: '/pages/login/index',
+        })
+      },
+      cb_cancel: this.cancelQrcodeScan
     })
   },
   /**
@@ -682,7 +774,7 @@ App({
           'content-type': 'application/x-www-form-urlencoded',
           'Authorization': 'opLxO5fubMUl7GdPFgZOUaDHUik8#100001'
         }
-        this.globalData.unLoggedRelease = true
+        this.globalData.unLoggedRelease = true;
         wx.navigateTo({
           url: "/pages/Release/release/index"
         })
@@ -730,7 +822,7 @@ App({
    * @returns {null|*}
    */
   getUserMemberId: function () {
-    let id = this.globalData.id
+    let id = this.globalData.id;
     if (id) {
       return id;
     } else {
@@ -738,4 +830,4 @@ App({
       return token ? token.split('#')[1] : "";
     }
   }
-})
+});

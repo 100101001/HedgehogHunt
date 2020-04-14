@@ -28,7 +28,7 @@ const getSubscribeTmpIds = function (business_type=0) {
     ]
   }
   return tmpIds
-}
+};
 
 /**
  * topCharge
@@ -46,21 +46,21 @@ const topCharge = function (pay_price=globalData.goodsTopPrice, cb_success=()=>{
     },
     method: 'POST',
     success: res => {
-      let resp = res.data
+      let resp = res.data;
 
       //下单失败提示后返回
       if (resp['code'] !== 200) {
         app.alert({
           content: resp['msg']
-        })
+        });
         that.setData({
           submitDisable: false
-        })
+        });
         return
       }
 
       //下单成功调起支付
-      let pay_data = resp['data']
+      let pay_data = resp['data'];
       wx.requestPayment({
         timeStamp: pay_data['timeStamp'],
         nonceStr: pay_data['nonceStr'],
@@ -72,7 +72,7 @@ const topCharge = function (pay_price=globalData.goodsTopPrice, cb_success=()=>{
           cb_success()
         },
         fail: res => {
-          app.alert({title: '支付失败', content: '重新发布或取消置顶'})
+          app.alert({title: '支付失败', content: '重新发布或取消置顶'});
           that.setData({
             submitDisable: false
           })
@@ -80,13 +80,13 @@ const topCharge = function (pay_price=globalData.goodsTopPrice, cb_success=()=>{
       })
     },
     fail: res => {
-      app.serverBusy()
+      app.serverBusy();
       that.setData({
         submitDisable: false
       })
     }
   })
-}
+};
 
 
 /**
@@ -99,7 +99,7 @@ const topCharge = function (pay_price=globalData.goodsTopPrice, cb_success=()=>{
 const changeUserBalance = function (unit = 0, cb_success = () => {}, cb_fail=()=>{}) {
   wx.showLoading({
     title: "扣除余额中"
-  })
+  });
   wx.request({
     url: app.buildUrl("/member/balance/change"),
     header: app.getRequestHeader(),
@@ -117,8 +117,24 @@ const changeUserBalance = function (unit = 0, cb_success = () => {}, cb_fail=()=
       wx.hideLoading()
     }
   })
-}
+};
 
+/**
+ * onFailContactTech 置顶付款后，扣除余额失败
+ * @param title
+ * @param content
+ */
+const onFailContactTech = function (title = "跳转提示", content = '服务出错了，为避免您的利益损失，将跳转联系技术支持') {
+  app.alert({
+    title: title,
+    content: content,
+    cb_confirm: () => {
+      wx.navigateTo({
+        url: '/pages/Mine/connect/index?only_tech_contact='+ 1
+      })
+    }
+  })
+};
 
 Page({
   data: {
@@ -196,21 +212,25 @@ Page({
     console.log(loc_id);
     let that = this;
     wx.getSetting({
-      success(res) {
-        // 获取定位授权
+      success: (res) => {
         if (!res.authSetting['scope.userLocation']) {
+          // 获取定位授权
           wx.authorize({
             scope: 'scope.userLocation',
             success() {
-              that.chooseLocation(loc_id);
+              this.chooseLocation(loc_id);
             },
             fail(errMsg) {
-              wx.showToast({ title: JSON.stringify(errMsg), icon: 'none' })
+              app.alert({content: '授权失败，将无法成功发布信息'})
             }
           })
         } else {
-          that.chooseLocation(loc_id);
+          //已经获取了授权，直接选择地址
+          this.chooseLocation(loc_id);
         }
+      },
+      fail: (res) => {
+        app.alert({content: '网络开小差了，请稍后再试'})
       }
     })
   },
@@ -422,26 +442,26 @@ Page({
   handleRelease: function (data) {
     if (globalData.unLoggedRelease) {
       //无登录发布
-      this.notifyAndRelease(data)
+      this.releaseGoods(data)
     } else {
       //根据是否勾选置顶继续订阅和发布
       if (data['is_top'] === 1) {
         //询问置顶，置顶收费并继续，取消置顶则不收费继续
-        this.confirmTopAndSubNoteRelease(data)
+        this.confirmTopAndSubRelease(data)
       } else {
         //未置顶
-        this.subscribeMsgAndNotifyRelease(data)
+        this.subscribeMsgAndRelease(data)
       }
     }
   },
   /**
-   * confirmTopAndSubNoteRelease
+   * confirmTopAndSubRelease
    * 询问置顶
    * 如果取消重置置顶开关和余额勾选框状态以及解禁提交按钮
    * 否则就根据勾选框情况进行收费
    * @see toTopCharge
    */
-  confirmTopAndSubNoteRelease: function(data){
+  confirmTopAndSubRelease: function(data){
     app.alert({
       title : '温馨提示',
       content: '置顶收费' + this.data.top_price + '元，确认置顶？',
@@ -472,75 +492,48 @@ Page({
       if (this.data.total_balance >= pay_price) {
         //扣除余额后发布
         changeUserBalance(-pay_price, ()=>{
-          this.subscribeMsgAndNotifyRelease(data)
-        })
+          this.subscribeMsgAndRelease(data)
+        }, onFailContactTech)
       } else {
         //支付并扣除余额再发布
         pay_price = util.toFixed(pay_price - this.data.balance, 2)
         topCharge(pay_price, ()=>{
           changeUserBalance(-this.data.balance, ()=>{
-            this.subscribeMsgAndNotifyRelease(data)
-          })
+            this.subscribeMsgAndRelease(data)
+          }, onFailContactTech)
         }, this)
       }
     } else {
       //支付后发布
       topCharge(pay_price, ()=>{
-        this.subscribeMsgAndNotifyRelease(data)
+        this.subscribeMsgAndRelease(data)
       }, this)
     }
   },
   /**
-   * subscribeMsgAndNotifyRelease
+   * subscribeMsgAndRelease
    * 先让用户订阅消息后，再继续通知失主和发布物品贴
    * @param data
    * @see getSubscribeTmpIds
    */
-  subscribeMsgAndNotifyRelease: function (data) {
+  subscribeMsgAndRelease: function (data) {
     wx.requestSubscribeMessage({
       tmplIds: getSubscribeTmpIds(this.data.business_type),
       complete: (res) => {
-        this.notifyAndRelease(data)
+        console.log(res)
+        this.releaseGoods(data)
       }
     })
   },
   /**
-   * notifyAndRelease
-   * 如果有通知用户的openid，就先通知
-   * 然后继续发布物品
+   * releaseGoods
+   * 继续发布物品
    * @param data 发布数据
-   * @see sendNotification
    * @see uploadData
    */
-  notifyAndRelease: function(data){
-    //通知失主
-    if (globalData.isScanQrcode) {
-      this.sendNotification(data)
-    }
+  releaseGoods: function(data){
     //上传数据
     this.uploadData(data)
-  },
-  /**
-   * sendNotification 通知失主
-   * @param data 失物数据
-   * @see qrcodeNotified
-   */
-  sendNotification: function (data) {
-    if (globalData.qrcodeOpenid) {
-      wx.request({
-        url: app.buildUrl('/qrcode/notify'),
-        header: app.getRequestHeader(1),
-        method: 'post',
-        data: {
-          goods: data,
-          openid: globalData.qrcodeOpenid
-        },
-        complete: res => {
-          //通知完毕
-          app.qrcodeNotified()
-        }
-      })
-    }
   },
   /**
    * uploadData 创建帖子(填充除图片外的数据)
@@ -708,10 +701,6 @@ Page({
             submitDisable: false
           });
           return
-        }
-        if (data['business_type'] === 0) {
-          //对于发布了寻物启事，立刻获取新的推荐匹配列表
-          app.getNewRecommend();
         }
         //初始化表单数据
         this.setInitData();

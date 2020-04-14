@@ -24,12 +24,16 @@ DROP TABLE IF EXISTS `acs_sms_send_log`;
 CREATE TABLE `acs_sms_send_log`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `biz_uuid` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '本地业务ID',
+  `trig_member_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '触发发送短信的会员id',
+  `trig_openid` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '触发发送短信的会员的第三方id',
+  `rcv_member_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '收短信的会员id',
+  `rcv_openid` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '收短信的会员的第三方id',
   `phone_number` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '手机号',
   `sign_name` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0' COMMENT '阿里云签名名称',
   `template_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0' COMMENT '阿里云模板id',
   `params` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '模板消息参数',
-  `acs_resp_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '调用数据',
   `acs_product_name` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '阿里云产品名',
+  `acs_resp_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '调用相应数据体',
   `acs_request_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '调用请求ID',
   `acs_biz_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '调用业务ID',
   `acs_code` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '调用结果代码',
@@ -38,7 +42,9 @@ CREATE TABLE `acs_sms_send_log`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `ix_acs_sms_send_log_uuid`(`biz_uuid`) USING BTREE,
   INDEX `ix_acs_sms_send_log_tmp_id`(`template_id`) USING BTREE COMMENT '模板ID，区分是否是验证码短信',
-  INDEX `ix_acs_sms_send_log_phone_number`(`phone_number`) USING BTREE COMMENT '手机号'
+  INDEX `ix_acs_sms_send_log_phone_number`(`phone_numer`) USING BTREE COMMENT '手机号',
+  INDEX `ix_acs_sms_send_log_rcv_member_id`(`rcv_member_id`) USING BTREE COMMENT '收短信的会员id',
+  INDEX `ix_acs_sms_send_log_rcv_openid`(`rcv_openid`) USING BTREE COMMENT '收短信的会员第三方id',
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '阿里云服务短信发送调用日志' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -379,7 +385,7 @@ CREATE TABLE `member`  (
   `salt` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '加密生成的字符串',
   `balance` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '用户账户余额',
   `credits` int(11) NOT NULL DEFAULT 0 COMMENT '会员积分',
-  `mobile` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员手机号码',
+  `mobile` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员手机号码',
   `name` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '注册会员的姓名，用于后期做匹配',
   `location` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员收货地址',
   `sex` tinyint(1) NOT NULL DEFAULT 0 COMMENT '性别 1：男 2：女',
@@ -410,6 +416,56 @@ CREATE TABLE `member_balance_change_log`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_member_balance_change_log_member_id`(`member_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员账户余额变更表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for member_phone_change_log
+-- ----------------------------
+DROP TABLE IF EXISTS `member_phone_change_log`;
+CREATE TABLE `member_phone_change_log`  (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `member_id` int(11) UNSIGNED NOT NULL COMMENT '会员id',
+  `openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '第三方id',
+  `old_mobile` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员手机号码',
+  `new_mobile` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员手机号码',
+  `note` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '备注字段',
+  `created_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `ix_member_phone_change_log_member_id`(`member_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员手机变更表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for member_notify_time_change_log
+-- ----------------------------
+DROP TABLE IF EXISTS `member_notify_time_change_log`;
+CREATE TABLE `member_notify_time_change_log`  (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `member_id` int(11) UNSIGNED NOT NULL COMMENT '会员id',
+  `openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '第三方id',
+  `unit` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '通知次数变更多少',
+  `notify_times` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '通知次数变更之前的总量',
+  `note` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '备注字段',
+  `created_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `ix_member_notify_time_change_log_member_id`(`member_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员通知次数变更表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for member_sms_pkg_change_log
+-- ----------------------------
+DROP TABLE IF EXISTS `member_sms_pkg_change_log`;
+CREATE TABLE `member_sms_pkg_change_log`  (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `member_id` int(11) UNSIGNED NOT NULL COMMENT '会员id',
+  `openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '第三方id',
+  `pkg_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '会员的短信包id',
+  `unit` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '短信包余量变更多少',
+  `notify_times` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '短信包内变更前的总量',
+  `note` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '备注字段',
+  `created_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `ix_member_sms_pkg_change_log_member_id`(`member_id`) USING BTREE,
+  INDEX `ix_member_sms_pkg_change_log_pkg_id`(`pkg_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员短信包通知次数变更表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for member_sms_pkg
@@ -743,5 +799,20 @@ CREATE TABLE `user`  (
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`uid`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '管理员表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for wechat_server_api_log
+-- ----------------------------
+DROP TABLE IF EXISTS `wechat_server_api_log`;
+CREATE TABLE `wechat_server_api_log`  (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `url` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '请求地址',
+  `token` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '请求令牌',
+  `req_data` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '请求数据',
+  `resp_data` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '响应数据',
+  `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `ix_wechat_server_api_url`(`url`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '微信服务端API调用日志' ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;

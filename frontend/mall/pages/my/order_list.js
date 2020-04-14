@@ -235,7 +235,7 @@ const onFailContactTech = function (title = "跳转提示", content = '服务出
       })
     }
   })
-}
+};
 
 /**
  * onOrderCancelSuccess 取消订单成功的回调函数

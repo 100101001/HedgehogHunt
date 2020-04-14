@@ -1,7 +1,7 @@
 //index.js
-var app = getApp();
-const navigate = require("../template/navigate-bar1/navigate-bar1-template.js")
-const utils = require("../../utils/util.js")
+const app = getApp();
+const navigate = require("../template/navigate-bar1/navigate-bar1-template.js");
+const utils = require("../../utils/util.js");
 Page({
     data: {
         dataReady: false,
@@ -11,7 +11,7 @@ Page({
     },
     onLoad: function () {
         //设置底部导航栏
-        var [isSelecteds, urls] = utils.onNavigateTap(1);
+        let [isSelecteds, urls] = utils.onNavigateTap(1);
         this.setData({
             isSelecteds: isSelecteds
         })
@@ -21,13 +21,13 @@ Page({
             dataReady: false,
             p: 1,
             list: []
-        })
+        });
         this.getCartList();
     },
     //每项前面的选中框
     selectTap: function (e) {
-        var index = e.currentTarget.dataset.index;
-        var list = this.data.list;
+        let index = e.currentTarget.dataset.index;
+        let list = this.data.list;
         if (index !== "" && index != null) {
             list[parseInt(index)].active = !list[parseInt(index)].active;
             this.setPageData(this.getSaveHide(), this.totalPrice(), this.allSelect(), this.noSelect(), list);

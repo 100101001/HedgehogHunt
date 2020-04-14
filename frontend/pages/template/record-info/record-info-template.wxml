@@ -109,14 +109,18 @@
         <view class="join-shop-cart" catchtap="goCheckReturnGoods" data-id="{{info.return_goods_id}}" wx:if="{{info.is_returner}}">查看归还贴</view>
         <view class="join-shop-cart" catchtap="goCheckReturnGoods" data-id="{{info.return_goods_id}}" wx:if="{{info.is_auth}}">{{ info.is_confirmed? '查看归还贴': '去确认归还' }}</view>
         <!--状态操作区-->
-        <!--还未确认归还的是否是自己的，归还者则可取消-->
+        <!--还未确认归还的是否是自己的-->
         <view wx:if="{{!info.is_confirmed}}">
-          <view class="now-buy" wx:if="{{info.is_auth}}">归还待确认</view>
+          <!--向寻物者提示归还时间--->
+          <view class="now-buy" catchtap="goTips" wx:if="{{info.is_auth}}">归还待确认</view>
+          <!--归还者可取消-->
           <view class="now-buy grey" catchtap="cancelReturnGoods" wx:if="{{info.is_returner}}">取消归还</view>
         </view>
         <!--已经确认归还的是自己的，作者可以点击取回了-->
         <view wx:if="{{info.is_confirmed}}">
+          <!--寻物者确认取回--->
           <view class="now-buy" catchtap="gotBackReturnGoods" wx:if="{{info.is_auth}}">我已取回</view>
+          <!--向归还者提示确认时间--->
           <view class="now-buy" catchtap="goTips" wx:if="{{info.is_returner}}">待取回</view>
         </view>
       </view>
@@ -140,7 +144,7 @@
         <view wx:if="{{!info.is_origin_deleted}}">
           <view class="now-buy" catchtap="goThanks" wx:if="{{info.is_auth && !info.is_thanked}}">去答谢</view>
           <view class="now-buy" wx:if="{{info.is_auth && info.is_thanked}}">已答谢</view>
-          <view class="now-buy" wx:if="{{info.is_returner}}">{{info.is_thanked? '已答谢': '待答谢'}}</view>
+          <view class="now-buy" catchtap="goTips" wx:if="{{info.is_returner}}">{{info.is_thanked? '已答谢': '待答谢'}}</view>
         </view>
         <!--原贴已被删除，只能看到答谢状态，不能再操作--->
         <view wx:if="{{info.is_origin_deleted}}">
@@ -176,6 +180,10 @@
         <!--帖子状态很新鲜，没什么好展示的状态，用作去发布信息快捷键算了-->
         <view class="join-shop-cart" catchtap="goRelease">去发布信息</view>
         <!--失物招领贴的状态操作区-->
+        <!--推荐进入可看，否认删除推荐的同时，可以获取新的订阅次数-->
+        <view class="now-buy grey" catchtap="goRejectRecommend" wx:if="{{op_status==2}}">
+          <text>不是我的</text>
+        </view>
         <view class="now-buy" catchtap="toApplicate">
           <text>认领</text>
         </view>

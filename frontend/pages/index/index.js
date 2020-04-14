@@ -1,6 +1,7 @@
 //login.js
 //获取应用实例
-var app = getApp();
+const app = getApp();
+
 Page({
   data: {
     remind: '加载中',
@@ -43,26 +44,26 @@ Page({
   onLoad: function (options) {
     wx.setNavigationBarTitle({
       title: app.globalData.shopName
-    })
+    });
     /***********扫二维码开始******************/
-    let openid = this.getOpenId(options)
+    let openid = this.getOpenId(options);
     if (!openid) {
       this.setData({
         isScanQrcode: false
-      })
-      app.globalData.isScanQrcode = false
-      app.globalData.qrcodeOpenid = ""
+      });
+      app.globalData.isScanQrcode = false;
+      app.globalData.qrcodeOpenid = "";
     } else {
       //有二维码
       this.setData({
         isScanQrcode: true
-      })
-      app.globalData.indexPage = this
-      app.globalData.isScanQrcode = true
-      app.globalData.qrcodeOpenid = openid
+      });
+      app.globalData.indexPage = this;
+      app.globalData.isScanQrcode = true;
+      app.globalData.qrcodeOpenid = openid;
     }
-    app.login()
-    app.getNewRecommend()
+    app.login();
+    app.getNewRecommend();
     /****************扫二维码结束******************/
   },
   getOpenId: function (options) {

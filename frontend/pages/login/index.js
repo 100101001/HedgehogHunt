@@ -57,7 +57,7 @@ const checkReg = function (openid, cb_comp = (isReg) => {}) {
       }
     }
   })
-}
+};
 
 Page({
   data: {
@@ -107,8 +107,13 @@ Page({
   onUnload: function() {
     if (!globalData.regFlag && globalData.isScanQrcode && this.data.getPhone) {
       //如果扫码后选择先注册再发布，但因为注册失败而中途退出了注册的第一个页面
-      //算扫码失败
-      app.toConfirmUnRegRelease()
+      if (!globalData.isFreqScanQrcode) {
+        //非频繁扫码，支持发布
+        app.toConfirmUnRegRelease()
+      } else {
+        //算扫码失败，涉嫌频繁扫码
+        app.cancelQrcodeScan()
+      }
     }
   },
   //微信用户授权后,获取公开用户信息

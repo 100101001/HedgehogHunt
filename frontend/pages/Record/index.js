@@ -1017,7 +1017,7 @@ Page({
                 //公开归还贴
                 app.alert({
                   title: '转送提示',
-                  content: '被认领后，答谢金将留在系统，确认转送？',
+                  content: '确认转送？',
                   showCancel: true,
                   cb_confirm: res => {
                     //送给系统
