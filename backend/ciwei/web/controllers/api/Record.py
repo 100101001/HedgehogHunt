@@ -125,8 +125,7 @@ def recordSearch():
         p = 1
     page_size = 10
     offset = (p - 1) * page_size
-    query = query.order_by(Good.id.desc()).offset(offset)
-    goods_list = query.limit(page_size).all()
+    goods_list = query.order_by(Good.id.desc()).offset(offset).limit(page_size).all()
 
     # 将对应的用户信息取出来，组合之后返回
     data_goods_list = []
@@ -165,7 +164,7 @@ def recordSearch():
 
     resp['code'] = 200
     resp['data']['list'] = data_goods_list
-    resp['data']['has_more'] = 0 if len(query.all()) <= page_size else 1
+    resp['data']['has_more'] = len(goods_list) >= page_size
     return jsonify(resp)
 
 

@@ -14,6 +14,7 @@ from application import app
 class CasLua:
     def __init__(self, flask_redis):
         self.r = flask_redis
+        # 单个值
         self._lua1 = self.r.register_script("""
         local val = redis.call('get', KEYS[1])
         local ok1 = ARGV[1] == 'nil' and not val
@@ -26,6 +27,7 @@ class CasLua:
             return 0
         end
                 """)
+        # 多个可能的值
         self._lua2 = self.r.register_script("""
         local val = redis.call('get', KEYS[1])
         local len = #ARGV
@@ -48,7 +50,12 @@ class CasLua:
 
 
 # 基于redis的乐观锁
-redis_pool = redis.ConnectionPool(host=app.config['REDIS']['CACHE_REDIS_HOST'],
-                                  port=app.config['REDIS']['CACHE_REDIS_PORT'], db=2, max_connections=10)
-redis_conn = redis.Redis(connection_pool=redis_pool)
-cas = CasLua(flask_redis=redis_conn)
+redis_pool_db_2 = redis.ConnectionPool(host=app.config['REDIS']['CACHE_REDIS_HOST'],
+                                       port=app.config['REDIS']['CACHE_REDIS_PORT'], db=2, max_connections=10, decode_responses=True)
+redis_conn_private = redis.StrictRedis(connection_pool=redis_pool_db_2)
+cas = CasLua(flask_redis=redis_conn_private)
+
+# 由于数据库设计的非冗余导致的频繁数据库查询
+redis_pool_db_1 = redis.ConnectionPool(host=app.config['REDIS']['CACHE_REDIS_HOST'],
+                                       port=app.config['REDIS']['CACHE_REDIS_PORT'], db=1, max_connections=10, decode_responses=True)
+redis_conn_db_1 = redis.StrictRedis(connection_pool=redis_pool_db_1)

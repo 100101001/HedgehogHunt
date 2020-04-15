@@ -30,8 +30,7 @@ def cartIndex():
     page_size = 5
     offset = (p - 1) * page_size
 
-    query = Cart.query.filter_by(member_id=member_info.id).offset(offset)
-    cart_product_list = query.limit(page_size).all()
+    cart_product_list = Cart.query.filter_by(member_id=member_info.id).offset(offset).limit(page_size).all()
     data_cart_list = []
     if cart_product_list:
         # 购物车记录了product_id,生成 id->product的映射
@@ -53,7 +52,7 @@ def cartIndex():
             data_cart_list.append(tmp_data)
 
     resp['data']['list'] = data_cart_list
-    resp['data']['has_more'] = len(query.all()) > page_size
+    resp['data']['has_more'] = len(data_cart_list) >= page_size
     return jsonify(resp)
 
 

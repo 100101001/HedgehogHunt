@@ -14,7 +14,7 @@ from flask import request, jsonify, g
 from sqlalchemy import func
 
 from application import db, app, APP_CONSTANTS, cache
-from common.cahce import cas
+from common.cahce import cas, redis_conn_db_1
 from common.libs import SubscribeService
 from common.libs.Helper import getCurrentDate, queryToDict, param_getter
 from common.libs.MemberService import MemberService
@@ -533,7 +533,7 @@ def goodsSearch():
     # 失/拾 一页信息 是否已加载到底
     resp['code'] = 200
     resp['data']['list'] = data_goods_list
-    resp['data']['has_more'] = 0 if len(data_goods_list) < page_size else 1
+    resp['data']['has_more'] = len(data_goods_list) >= page_size
     resp['business_type'] = business_type
     return jsonify(resp)
 
@@ -563,7 +563,7 @@ def goodsApply():
         return jsonify(resp)
 
     # 公开信息的状态操作加锁，且加入对其状态(可变)的预期
-    if status ==1:
+    if status == 1:
         now = datetime.datetime.now()
         Good.query.filter_by(id=goods_id, status=status).update({'status': 2,
                                                              'confirm_time': now},
@@ -600,24 +600,27 @@ def goodsCancelApplyInBatch():
         return jsonify(resp)
 
     # 取消认领
-    Mark.query.filter(Mark.member_id == member_info.id,
+    member_id = member_info.id
+    Mark.query.filter(Mark.member_id == member_id,
                                 Mark.goods_id.in_(founds_ids),
                                 Mark.status == 0).update({'status': 7}, synchronize_session=False)
+    mark_keys = [('mark_'+str(fid), fid) for fid in founds_ids]
+
+    for m_key, _ in mark_keys:
+        redis_conn_db_1.srem(m_key, member_id)
 
     if status == 2:
-        # 异步后台运行
-        no_one_mark_goods = []
-        for found_id in founds_ids:
-            cnt = db.session.query(func.count(Mark.id)).filter(Mark.goods_id == found_id,
-                                                               Mark.status != 7).scalar()
-            if cnt == 0:
-                if cas.exec_wrap(found_id, ['nil', 2], 1):
-                    no_one_mark_goods.append(found_id)
-        total_no_mark_num = len(no_one_mark_goods)
-        if total_no_mark_num > 0:
+        # 对于于认领的物品，状态可能发生变更
+        no_marks = []
+        for m_key, found_id in mark_keys:
+            marks = redis_conn_db_1.smembers(m_key)
+            if not marks and cas.exec(found_id, 2, 1):
+                no_marks.append(found_id)
+        no_mark_num = len(no_marks)
+        if no_mark_num > 0:
             # 公开信息操作加锁，状态预期和加锁
             # 失物招领状态更新
-            Good.query.filter(Good.status == 2, Good.id.in_(no_one_mark_goods)).update(
+            Good.query.filter(Good.id.in_(no_marks), Good.status == status).update(
                 {'status': 1},
                 synchronize_session=False)
 
@@ -1060,26 +1063,18 @@ def goodsGotbackInBatch():
             return jsonify(resp)
 
     Good.query.filter(Good.id.in_(goods_ids), Good.status == status).update({'status': 3,
-                                                                        'owner_id': member_id,
-                                                                        'finish_time': datetime.datetime.now()},
-                                                                       synchronize_session=False)
+                                                                            'owner_id': member_id,
+                                                                            'finish_time': datetime.datetime.now()},
+                                                                           synchronize_session=False)
     # 不加锁是因为，不影响goods的认领计数，且是一个人的操作
     Mark.query.filter(Mark.member_id == member_id,
                       Mark.goods_id.in_(goods_ids),
                       Mark.status == 0).update({'status': 1}, synchronize_session=False)
     db.session.commit()
 
-    # TODO 异步方式循环给发送订阅消息
-    for goods_id in goods_ids:
-        goods_info = Good.query.filter_by(id=goods_id).first()
-        auther_info = Member.query.filter_by(id=goods_info.member_id).first()
-        auther_info.credits += 5
-        db.session.add(auther_info)
-        db.session.commit()
-        SubscribeService.send_finished_subscribe(goods_info)
+    # 异步发送消息
+    SubscribeTasks.send_found_finish_msg_in_batch.delay(gotback_founds=goods_ids)
 
-    # 拿回者可见地址
-    # 通知前端状态更新
     resp['code'] = 200
     return jsonify(resp)
 
@@ -1158,31 +1153,30 @@ def goodsInfo():
         db.session.add(goods_info)
     # 已阅扫码归还
     member_info = g.member_info
-    if member_info and goods_info.qr_code_openid == member_info.openid:
+    is_login = member_info is not None
+    if is_login and goods_info.qr_code_openid == member_info.openid:
         goods_info.owner_name = member_info.name
         db.session.add(goods_info)
-    db.session.commit()
 
     # 更新为已阅推荐
     op_status = int(req.get('op_status', 0))
     if op_status == 2 and not read:
         # 从推荐记录进入详情,代表用户一定已经登陆了
         MemberService.setRecommendStatus(member_id=member_info.id, goods_id=goods_id, new_status=1, old_status=0)
-        db.session.commit()
 
     # 每个不同类型的帖子是否可看地址
-    is_auth = member_info and (member_info.id == goods_info.member_id)
+    is_auth = is_login and (member_info.id == goods_info.member_id)
     business_type = goods_info.business_type
     show_location = False
     if business_type == 1:
         # 失物招领只有(预)认领者和作者自己能看地址
-        show_location = MemberService.hasMarkGoods(member_id=member_info.id, goods_id=goods_id) or is_auth
+        show_location = is_login and (MemberService.hasMarkGoods(member_id=member_info.id, goods_id=goods_id) or is_auth)
     elif business_type == 2:
         # 能进入归还贴子的用户，都是能看的
-        show_location = True
+        show_location = is_login
     elif business_type == 0:
         # 寻物启示只有归还者和作者自己能看地址
-        show_location = (goods_info.return_goods_openid == member_info.openid) or is_auth
+        show_location = is_login and (goods_info.return_goods_openid == member_info.openid or is_auth)
 
     # 例：上海市徐汇区肇嘉浜路1111号###美罗城###31.192948153###121.439673735
     location_list = goods_info.location.split("###")
@@ -1191,7 +1185,7 @@ def goodsInfo():
 
     data = {
         # 物品帖子数据信息
-        "id": goods_info.id,
+        "id": goods_id,
         "business_type": goods_info.business_type,  # 寻物启示 or 失物招领
         "top": goods_info.top_expire_time > datetime.datetime.now(),
         "category": goods_info.category,  # 物品是哪个大类的
@@ -1218,7 +1212,7 @@ def goodsInfo():
 
     if business_type == 1 and goods_status > 1:
         # 失物招领的申诉或认领信息
-        data.update({'is_owner': member_info and goods_info.owner_id == member_info.id})
+        data.update({'is_owner': is_login and goods_info.owner_id == member_info.id})
         if goods_status == 5:
             # 申诉的时间
             data.update({'op_time': goods_info.appeal_time.strftime("%Y-%m-%d %H:%M")})
@@ -1228,7 +1222,7 @@ def goodsInfo():
             data.update({'op_time': op_time.strftime("%Y-%m-%d %H:%M")})
     elif business_type == 0 and goods_status > 1:
         # 归还贴需要的寻物贴ID，和被归还过的寻物启示帖子需要归还贴ID
-        is_returner = member_info and goods_info.return_goods_openid == member_info.openid
+        is_returner = is_login and goods_info.return_goods_openid == member_info.openid
         more_data = {'is_returner': is_returner}
         if is_auth or is_returner:
             # 需要判断予寻回的帖子是否已经确认过归还，已取回，对方有没有删除帖子
@@ -1267,6 +1261,7 @@ def goodsInfo():
                          'is_no_thanks': not goods_info.return_goods_openid and is_origin_del,
                          'op_time': goods_info.finish_time.strftime("%Y-%m-%d %H:%M")}
             data.update(more_data)
+    db.session.commit()
     resp['code'] = 200
     resp['data']['info'] = data
     resp['data']['show_location'] = show_location
@@ -1452,7 +1447,6 @@ def goodsStatus():
         resp['msg'] = '操作失败，稍后重试'
         return jsonify(resp)
 
-    # status = Good.query.filter_by(id=goods_id).with_entities(Good.status).first()[0]
     if not cas.exec(goods_id, status, status):
         resp['msg'] = '操作冲突，请稍后重试'
         return jsonify(resp)
@@ -1580,13 +1574,22 @@ def test5():
     b = {}
     goods_ids = param_getter['ids'](n.get('id', None))
     goods_ids2 = param_getter['ids'](b.get('id', None))
+    from sqlalchemy import exists
 
     import time
     s = time.time()
-    Good.query.filter(Good.id.in_([7, 8, 8, 9, 10, 21, 31, 18])).update({
-        'return_goods_id': 0,
-        'return_goods_openid': ''},
-        synchronize_session=False)
+    from sqlalchemy import and_
+    from sqlalchemy import or_
+    # rule = or_(and_(Good.status == 1, Good.return_goods_openid == "opLxO5Q3CloBEmwcarKrF_kSA574#100002"),
+    #            and_(Good.status == 2, Good.qr_code_openid == "opLxO5Q3CloBEmwcarKrF_kSA574#100002"))
+    # goods_list = Good.query.filter(Good.business_type == 2, rule).all()
+    # f1 = filter(lambda item: item.status == 1, goods_list)
+    # f2 = filter(lambda item: item.status == 2, goods_list)
+    f1 = Good.query.filter_by(business_type = 2, status = 1, return_goods_openid = "opLxO5Q3CloBEmwcarKrF_kSA574#100002").all()
+    f2 = Good.query.filter_by(business_type = 2, status = 2, qr_code_openid = "opLxO5Q3CloBEmwcarKrF_kSA574#100002").all()
+    end = time.time() - s
+
+
     # for i in [2]:
     #     og = Good.query.filter_by(id=i).first()
     #     og.summary = '2dadsaa'
@@ -1607,8 +1610,14 @@ def test5():
     #     if not cas.exec_wrap(i, [i, 'nil'], i):
     #         print(i)
     # Good.query.filter(Good.id.in_([8, 1, 2, 3, 4,5,6,7])).update({'qr_code_openid': ''}, synchronize_session=False)
-    e = time.time() - s
+    #a = db.session.query(exists().where(Good.id == 8)).scalar()
+    good = Good.query.filter(Good.id == 19).first()
+    a = good is not None
+
+    c = set(i for i in [1,2,2,3,3,3,4,4,5,6])
+    d = 1 in c
+    e = 8 in c
 
     # a = redis_conn.get('abs')
     # Good.query.filter(Good.id.in_([1,2,3,4,5,6,7,8,9]))
-    return str(e)
+    return str(end)

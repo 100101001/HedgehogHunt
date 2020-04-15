@@ -194,7 +194,7 @@ def feedbackSearch():
     # 所有反馈,是否还有更多
     resp['code'] = 200
     resp['data']['list'] = data_feedback_list
-    resp['data']['has_more'] = 0 if len(data_feedback_list) < page_size else 1
+    resp['data']['has_more'] = len(data_feedback_list) >= page_size
     return jsonify(resp)
 
 

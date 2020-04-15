@@ -4,6 +4,7 @@ import datetime
 from decimal import Decimal
 
 from flask import request, jsonify, g
+from sqlalchemy import and_, or_
 
 from application import db, app
 from common.libs import LogService
@@ -210,7 +211,8 @@ def balanceChange():
         resp['msg'] = "请先登录"
         return jsonify(resp)
 
-    LogService.setMemberBalanceChange(member_info=member_info, unit=unit, old_balance=member_info.balance, note=req.get('note',''))
+    LogService.setMemberBalanceChange(member_info=member_info, unit=unit, old_balance=member_info.balance,
+                                      note=req.get('note', ''))
     member_info.balance += unit
     db.session.add(member_info)
     db.session.commit()
@@ -379,12 +381,9 @@ def checkReg():
 def isReg():
     resp = {'code': 200, 'msg': '', 'data': {}}
     req = request.values
-    openid = req['openid'] if 'openid' in req else ''
+    openid = req.get('openid', '')
     member_info = Member.query.filter_by(openid=openid).first()
-    if member_info is None:
-        resp['data']['is_reg'] = False
-    else:
-        resp['data']['is_reg'] = True
+    resp['data']['is_reg'] = member_info is not None
     return jsonify(resp)
 
 
@@ -496,42 +495,52 @@ def getNewRecommend():
         resp['msg'] = "没有相关用户信息"
         return jsonify(resp)
 
-    # 获取所有会员的recommend_id列表中的物品,按状态：待,预,已分类
-    recommend_status_2 = recommend_status_3 = recommend_status_1 = 0
-    recommend_new = thanks_new = return_new = 0
+    # 获取所有会员的recommend_id列表中的物品,按状态：待,预,已分类，总数量最多显示99+
+
+    # 推荐规则
     recommends = Recommend.query.filter_by(status=0, target_member_id=member_info.id).all()
-    if recommends:
-        query = Good.query.filter(Good.id.in_([r.id for r in recommends]))
-        recommend_status_1 = len(query.filter_by(status=1).all())
-        recommend_status_2 = len(query.filter_by(status=2).all())
-        recommend_status_3 = len(query.filter_by(status=3).all())
-        recommend_new = len(recommends) if len(recommends) <= 99 else 99
+    recommend_rule = and_(Good.id.in_([r.id for r in recommends]), Good.status.in_([1, 2, 3]))
+    # 归还规则
+    member_openid = member_info.openid
+    return_rule = and_(Good.business_type == 2,
+                       or_(and_(Good.status == 1, Good.return_goods_openid == member_openid),
+                           and_(Good.status == 2, Good.qr_code_openid == member_openid)))
+    # 一次性查询推荐和归还
+    goods_list = Good.query.filter(or_(recommend_rule, return_rule)).all()
+    # 分割推荐与归还
+    recommend_goods = filter(lambda item: item.business_type == 1, goods_list)
+    return_goods = filter(lambda item: item.business_type == 2, goods_list)
+
+    # 推荐状态细分
+    recommend_new = min(len(list(recommend_goods)), 99)
+    recommend_status_1 = min(len(list(filter(lambda item: item.status == 1, recommend_goods))), 99)
+    recommend_status_2 = min(len(list(filter(lambda item: item.status == 2, recommend_goods))), 99)
+    recommend_status_3 = min(len(list(filter(lambda item: item.status == 3, recommend_goods))), 99)
+    # 归还状态细分
+    return_new = len(list(return_goods))
+    # 会员待取回的归还记录(待确认的寻物归还和待取回的二维码归还)
+    normal_return_new = len(list(filter(lambda item: item.status == 1, return_goods)))
+    scan_return_new = min(return_new - normal_return_new, 99)
+    normal_return_new = min(normal_return_new, 99)
+    return_new = min(return_new, 99)
 
     # 获取会员未读的答谢记录
-    thanks_query = Thank.query.filter_by(target_member_id=member_info.id)
-    thanks_list = thanks_query.filter_by(status=0).all()
+    thanks_list = Thank.query.filter_by(target_member_id=member_info.id, status=0).all()
+    thanks_new = 0
     if thanks_list:
-        thanks_new = len(thanks_list) if len(thanks_list) <= 99 else 99
-
-    # 会员待取回的归还记录(待确认的寻物归还和待取回的二维码归还)
-    normal_return_new = len(Good.query.filter_by(business_type=2,
-                                                 status=1, return_goods_openid=member_info.openid).all())
-    scan_return_new = len(Good.query.filter_by(business_type=2, status=2, qr_code_openid=member_info.openid).all())
-    return_new = scan_return_new + normal_return_new
-    return_new = return_new if return_new < 99 else 99
+        thanks_new = min(len(thanks_list), 99)
 
     # 总数量,最多显示99+
-    total_new = recommend_new + thanks_new + return_new
-    total_new = total_new if total_new <= 99 else 99
+    total_new = min(recommend_new + thanks_new + return_new, 99)
 
     resp['data'] = {
         'total_new': total_new,
         'recommend_new': recommend_new,
         'thanks_new': thanks_new,
         'recommend': {
-            'wait': recommend_status_1 if recommend_status_1 <= 99 else 99,  # 推荐的失物招领帖子，待领
-            'doing': recommend_status_2 if recommend_status_2 <= 99 else 99,  # 推荐的失物招领帖子，预领
-            'done': recommend_status_3 if recommend_status_3 <= 99 else 99,  # 推荐的失物招领帖子，已领
+            'wait': recommend_status_1,  # 推荐的失物招领帖子，待领
+            'doing': recommend_status_2,  # 推荐的失物招领帖子，预领
+            'done': recommend_status_3,  # 推荐的失物招领帖子，已领
         },
         'return_new': return_new,
         'return': {
@@ -588,7 +597,7 @@ def blockMemberSearch():
             data_member_list.append(tmp_data)
 
     resp['data']['list'] = data_member_list
-    resp['data']['has_more'] = 0 if len(data_member_list) < page_size else 1
+    resp['data']['has_more'] = len(data_member_list) >= page_size
     return jsonify(resp)
 
 
@@ -645,26 +654,23 @@ def memberShare():
 
 @route_api.route("/member/phone/decrypt", methods=['POST', 'GET'])
 def decryptPhone():
-    resp = {'code': 200, 'msg': '已获取手机号', 'data': {}}
+    resp = {'code': -1, 'msg': '已获取手机号', 'data': {}}
     from common.libs.mall.WechatService import WXBizDataCrypt
     req = request.get_json()
     app.logger.info(req)
     # 获取加密手机号
     encrypted_data = req['encrypted_data'] if 'encrypted_data' in req and req['encrypted_data'] else ''
     if not encrypted_data:
-        resp['code'] = -1
         resp['msg'] = "手机号获取失败"
         return jsonify(resp)
     # 获取加密向量
     iv = req['iv'] if 'iv' in req and req['iv'] else ''
     if not iv:
-        resp['code'] = -1
         resp['msg'] = "手机号获取失败"
         return jsonify(resp)
     # 获取session_key
     session_key = req['session_key'] if 'session_key' in req and req['session_key'] else ''
     if not session_key:
-        resp['code'] = -1
         resp['msg'] = "手机号获取失败"
         return jsonify(resp)
     appId = app.config['OPENCS_APP']['appid']
@@ -674,7 +680,6 @@ def decryptPhone():
         mobile_obj = pc.decrypt(encrypted_data, iv)
     except Exception as e:
         app.logger.warn(e)
-        resp['code'] = -1
         resp['msg'] = "手机号获取失败，请确保从后台完全关闭小程序后重试"
         return jsonify(resp)
     mobile = mobile_obj['phoneNumber']
@@ -682,6 +687,7 @@ def decryptPhone():
     resp['data'] = {
         'mobile': Cipher.encrypt(mobile)
     }
+    resp['code'] = 200
     return jsonify(resp)
 
 

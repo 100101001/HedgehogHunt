@@ -15,6 +15,7 @@ import string
 import requests
 
 from application import app, db
+from common.cahce import redis_conn_db_1
 from common.libs.Helper import getCurrentDate
 from common.models.ciwei.Appeal import Appeal
 from common.models.ciwei.Goods import Good
@@ -127,12 +128,17 @@ class MemberService:
         if not member_id or not goods_id:
             return
         repeat_mark = Mark.query.filter_by(member_id=member_id, goods_id=goods_id).first()
+        mark_key = 'mark_' + str(goods_id)
         if repeat_mark:
             if repeat_mark.status == 7:
                 # 将被删除的记录状态初始化
+                redis_conn_db_1.sadd(mark_key, member_id)
+                redis_conn_db_1.expire(mark_key, 3600)
                 repeat_mark.status = 0
                 db.session.add(repeat_mark)
             return repeat_mark.status == 0
+        redis_conn_db_1.sadd(mark_key, member_id)
+        redis_conn_db_1.expire(mark_key, 3600)
         pre_mark = Mark()
         pre_mark.goods_id = goods_id
         pre_mark.member_id = member_id
@@ -161,7 +167,6 @@ class MemberService:
         # 这种情况基本不会发生（一个予认领贴一定会有有效的认领记录），只是以防万一
         return len(all_marks) == 0
 
-
     @staticmethod
     def hasMarkGoods(member_id=0, goods_id=0):
         """
@@ -172,10 +177,21 @@ class MemberService:
         """
         if not member_id or not goods_id:
             return False
-        mark = Mark.query.filter(Mark.member_id == member_id,
-                                 Mark.goods_id == goods_id,
-                                 Mark.status != 7).first()
-        return mark is not None
+        mark_key = "mark_" + str(goods_id)
+        mark_member_ids = redis_conn_db_1.smembers(mark_key)
+        if not mark_member_ids:
+            # 从数据库获取一个物品的所有认领人的id
+            marks = Mark.query.filter(Mark.goods_id == goods_id,
+                                      Mark.status != 7).all()
+            if marks:
+                mark_member_ids = set(i.member_id for i in marks)
+                for m_id in mark_member_ids:
+                    redis_conn_db_1.sadd(mark_key, m_id)
+            else:
+                # 用不存在的用户ID做集合占位符
+                redis_conn_db_1.sadd(mark_key, -1)
+        redis_conn_db_1.expire(mark_key, 3600)
+        return bool(str(member_id) in mark_member_ids)
 
     @staticmethod
     def appealGoods(member_id=0, goods_id=0):

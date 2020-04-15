@@ -164,7 +164,7 @@ def thanksSearch():
             data_goods_list.append(tmp_data)
 
     resp['data']['list'] = data_goods_list
-    resp['data']['has_more'] = 0 if len(data_goods_list) < page_size else 1
+    resp['data']['has_more'] = len(data_goods_list) >= page_size
     return jsonify(resp)
 
 
@@ -267,7 +267,7 @@ def thanksReportSearch():
             data_goods_list.append(tmp_data)
 
     resp['data']['list'] = data_goods_list
-    resp['data']['has_more'] = 0 if len(data_goods_list) < page_size else 1
+    resp['data']['has_more'] = len(data_goods_list) >= page_size
     return jsonify(resp)
 
 

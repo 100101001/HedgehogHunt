@@ -8,29 +8,71 @@
 """
 import requests
 
-from application import celery, app, APP_CONSTANTS
+from application import celery, app, APP_CONSTANTS, db
 from common.libs.mall.WechatService import WeChatService
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Member import Member
 from common.tasks.log import LogTasks
 
+SUB_DATE_FORMAT = APP_CONSTANTS['sub_time_format']
+
+
+@celery.task(name='subscribe.return_finish_batch')
+def send_found_finish_msg_in_batch(gotback_founds=None):
+    if gotback_founds is None:
+        return False
+
+    found_infos = Good.query.filter(Good.id.in_(gotback_founds)).with_entities(Good.openid, Good.name,
+                                                                               Good.owner_id, Good.finish_time).all()
+    Member.query.filter(Member.id.in_([item.openid for item in found_infos])).update({'credits': Member.credits + 5},
+                                                                                     synchronize_session=False)
+    losers = Member.query.filter(Member.id.in_([item.owner_id for item in found_infos])).with_entities(Member.id,
+                                                                                                       Member.nickname).all()
+    loser_map = {item.id: item.nickname for item in losers}
+
+    for info in found_infos:
+        # 失物认领成功通知
+        """
+        物品名 Wilson篮球
+        认领者 爱丢东西的TJer
+        认领时间 2019年10月21日 14：05
+        """
+        found_finish = {
+            'thing1': {'value': info.name},
+            'thing2': {'value': loser_map[info.owner_id]},
+            'date3': {'value': info.finish_time.strftime(SUB_DATE_FORMAT)}
+        }
+        send_subscribe(openid=info.openid, template='finish', data=found_finish)
+    db.session.commit()
+    return True
+
 
 @celery.task(name='subscribe.return_finish_batch')
 def send_return_finish_msg_in_batch(gotback_returns=None):
-    # 发送对象，物品名，失主，取回时间
+
     if gotback_returns is None:
         return False
-    returns = Good.query.filter(Good.id.in_(gotback_returns)).with_entities(Good.openid, Good.owner_id, Good.name, Good.finish_time).all()
+    returns = Good.query.filter(Good.id.in_(gotback_returns)).with_entities(Good.openid, Good.owner_id, Good.name,  # 发送对象，物品名，失主，取回时间
+                                                                            Good.finish_time).all()
+    Member.query.filter(Member.id.in_([item.openid for item in returns])).update({'credits': Member.credits + 5},
+                                                                                 synchronize_session=False)
     losers = Member.query.filter(Member.id.in_([item.owner_id for item in returns])).with_entities(Member.id,
                                                                                                    Member.nickname).all()
     losers_map = {loser.id: loser.nickname for loser in losers}
     for gotback_info in returns:
-        return_finish = {  # 物品名，失主名，时间
+        # 归还成功通知
+        """
+        物品名 Wilson篮球
+        失主名 爱丢东西的TJer
+        取回时间 2019年10月21日 14：05
+        """
+        return_finish = {
             "thing1": {"value": gotback_info.name},
             "thing2": {"value": losers_map[gotback_info.owner_id].nickname},
-            "time3": {"value": gotback_info.finish_time.strftime(APP_CONSTANTS['sub_time_format'])},
+            "date3": {"value": gotback_info.finish_time.strftime(SUB_DATE_FORMAT)},
         }
         send_subscribe(openid=gotback_info.openid, template="return", data=return_finish)
+    db.session.commit()
     return True
 
 
@@ -56,6 +98,7 @@ def send_recommend_subscribe_in_batch(lost_goods_list=None, found_goods=None):
     return True
 
 
+@celery.task(name='subscribe.do_send')
 def send_subscribe(openid='', template='', data=None):
     """
     向微信用户发送订阅消息的异步任务

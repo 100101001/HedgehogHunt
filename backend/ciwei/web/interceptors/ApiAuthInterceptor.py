@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
+import json
+
 from application import app
 from flask import request, g, jsonify
 
+from common.cahce import redis_conn_db_1
+from common.libs.Helper import queryToDict
 from common.models.ciwei.Member import Member
 import re
 
@@ -50,7 +54,15 @@ def check_member_login():
         return False
 
     try:
-        member_info = Member.query.filter_by(id=auth_info[1]).first()
+        member_id = auth_info[1]
+        mem_key = 'member_{0}'.format(str(member_id))
+        member_str = redis_conn_db_1.get(mem_key)
+        if not member_str:
+            member_info = Member.query.filter_by(id=member_id).first()
+            redis_conn_db_1.set(mem_key, json.dumps(queryToDict(member_info)))
+        else:
+            member_info = Member()
+            member_info.__dict__ = json.loads(member_str)
     except Exception:
         return False
 
