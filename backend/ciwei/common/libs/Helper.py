@@ -3,11 +3,16 @@
 @author: github/100101001
 @contact: 17702113437@163.com
 @time: 2020/4/10 下午5:43
-@file: SynonymsService.py
+@file: Helper.py
 @desc:
 """
 import datetime
 import uuid
+
+param_getter = {
+    'ids2': lambda str_list: [int(i) for i in str_list],
+    'ids': lambda ids_str: [eval(i) for i in ids_str[1:-1].split(',')] if ids_str else None
+}
 
 
 def iPagination(params):

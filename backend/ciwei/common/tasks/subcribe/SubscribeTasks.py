@@ -7,11 +7,31 @@
 @desc: 
 """
 import requests
-from pybloom_live import ScalableBloomFilter
 
-from application import celery, app
+from application import celery, app, APP_CONSTANTS
 from common.libs.mall.WechatService import WeChatService
+from common.models.ciwei.Goods import Good
+from common.models.ciwei.Member import Member
 from common.tasks.log import LogTasks
+
+
+@celery.task(name='subscribe.return_finish_batch')
+def send_return_finish_msg_in_batch(gotback_returns=None):
+    # 发送对象，物品名，失主，取回时间
+    if gotback_returns is None:
+        return False
+    returns = Good.query.filter(Good.id.in_(gotback_returns)).with_entities(Good.openid, Good.owner_id, Good.name, Good.finish_time).all()
+    losers = Member.query.filter(Member.id.in_([item.owner_id for item in returns])).with_entities(Member.id,
+                                                                                                   Member.nickname).all()
+    losers_map = {loser.id: loser.nickname for loser in losers}
+    for gotback_info in returns:
+        return_finish = {  # 物品名，失主名，时间
+            "thing1": {"value": gotback_info.name},
+            "thing2": {"value": losers_map[gotback_info.owner_id].nickname},
+            "time3": {"value": gotback_info.finish_time.strftime(APP_CONSTANTS['sub_time_format'])},
+        }
+        send_subscribe(openid=gotback_info.openid, template="return", data=return_finish)
+    return True
 
 
 @celery.task(name='subscribe.recommend_batch')
@@ -27,7 +47,7 @@ def send_recommend_subscribe_in_batch(lost_goods_list=None, found_goods=None):
     found_goods_put_loc = found_goods.get('location').split('###')[1]
     recommend_data = {
         "thing1": {"value": found_goods_name},
-        "time2": {"value": found_goods_time},
+        "time2": {"value": found_goods_time.strftime(APP_CONSTANTS['sub_time_format'])},
         "thing3": {"value": found_goods_put_loc},
     }
 

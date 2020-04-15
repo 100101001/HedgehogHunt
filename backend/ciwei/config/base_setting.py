@@ -95,7 +95,7 @@ CELERY_ROUTES = {
     'log.wechat.subscribe': {
         'queue': 'log',
         'routing_key': 'for_log',
-        'delivery_mode': 'transient'  # 丢失也无所谓
+        'delivery_mode': 'transient'  # 丢失也无所谓，关闭默认的消息持久化，提升速度
     },
     'sync.*': {
         'queue': 'sync_queue',
@@ -168,8 +168,9 @@ SUBSCRIBE_TEMPLATES = {
     'recommend': 'zSCF_j0kTfRvPe8optyb5sx8F25S3Xc9yCvvObXFCh4',  # 给寻物启事发帖者发送匹配通知
     'finished': {
         'found': '_dAjVN6DHEewP_z01WhKXlZ7xY9nfs_OEtVbnBC88MU',  # 各失物招领发布者发送被取回的通知
-        'lost': 'bHZTF62ciS-03u8MmGe0cA7YMVHdGpwH-bY9wrmfDfY'  # 给寻物启事发布者发送物品被归还通知
+        'return': ''
     },
+    'lost': 'bHZTF62ciS-03u8MmGe0cA7YMVHdGpwH-bY9wrmfDfY',  # 给寻物启事发布者发送物品被归还通知
     'thanks': 'gBSM-RF5b3L_PoT3f1u8ibxZMz-qzAsNSZy2LSBPsG8'  # 给失物招领发帖者发送答谢通知
 }
 
@@ -200,6 +201,7 @@ ACS_SMS = {
 CONSTANTS = {
     'time_format_short': '%Y-%m-%d %H:%M',
     'time_format_long': '%Y-%m-%d %H:%M:%S',
+    'sub_time_format': '%Y年%m月%d日 %H:%M',
     'sys_author': {
         'member_id': '100001',
         'openid': 'bPk3u33u+sqUiuxJ/+ubfQ==',

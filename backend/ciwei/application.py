@@ -1,4 +1,3 @@
-import redis
 from flask import Flask
 from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
@@ -8,7 +7,6 @@ from flask_migrate import Migrate
 import os
 from common.libs.search import FlaskEs
 from common.tasks import FlaskCelery
-from common.cahce import CasLua
 # 测试需要使用绝对路径无论从哪里调用都共用base_setting.py
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 

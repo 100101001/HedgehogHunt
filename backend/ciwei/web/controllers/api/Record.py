@@ -1,12 +1,11 @@
 # -*- coding:utf-8 -*-
 import datetime
 
-import redis
 from flask import request, jsonify, g
 from sqlalchemy import or_, and_
 
 from application import db
-from common.cahce import redis_pool, cas
+from common.cahce import cas
 from common.libs.Helper import getCurrentDate, getDictFilterField
 from common.libs.UrlManager import UrlManager
 from common.models.ciwei.Appeal import Appeal
@@ -134,12 +133,15 @@ def recordSearch():
     if goods_list:
         now = datetime.datetime.now()
         for item in goods_list:
-            # 只返回用户符合期待的状态的物品
+            # 只返回状态没有被并发改变的物品
             item_id = item.id
             item_status = item.status
-            if op_status in (0, 1, 5):
-                if not cas.exec(item_id, item_status, item_status) or not cas.exec(item_id, 'nil', item_status):
-                    continue
+            if not cas.exec_wrap(item_id, [item_status, 'nil'], item_status):
+                continue
+            is_pre_mark_fail = item.status != 2 and status == 0 and op_status == 1
+            is_appealed = item.status == 5
+            # 说明要么还没看过
+            unknown_returned_lost = item.business_type == 0 and op_status == 0 and item.status == 2 and not cas.exec(item.return_goods_id, 2, 2)
             tmp_data = {
                 "id": item.id,  # 供前端用户点击查看详情用的
                 "new": 1 if op_status != 2 else (
@@ -153,7 +155,7 @@ def recordSearch():
                 "main_image": UrlManager.buildImageUrl(item.main_image),
                 "auther_name": item.nickname,
                 "avatar": item.avatar,
-                "unselectable": item.status == 5 or (item.status != 2 and status == 0 and op_status == 1),  # 前端编辑禁止选中
+                "unselectable": is_appealed or is_pre_mark_fail or unknown_returned_lost,  # 前端编辑禁止选中
                 "selected": False,  # 供前端选中删除记录用的属性
                 "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
                 "top": item.top_expire_time > now,  # 是否为置顶记录
@@ -204,8 +206,11 @@ def recordDelete():
         return jsonify(resp)
     if op_status == 0:
         # 删除发布
-        Good.query.filter(Good.id.in_(id_list), Good.status == status).with_for_update().update({'status': 7},
-                                                                                                synchronize_session=False)
+        ok_ids = []
+        for item_id in id_list:
+            if cas.exec(item_id, status, 7):
+                ok_ids.add(item_id)
+        Good.query.filter(Good.id.in_(ok_ids), Good.status == status).update({'status': 7}, synchronize_session=False)
     elif op_status == 1:
         # 删除认领记录（已取回，已答谢）
         Mark.query.filter(Mark.member_id == member_info.id,
@@ -213,8 +218,8 @@ def recordDelete():
                           Mark.goods_id.in_(id_list)).update({'status': 7}, synchronize_session=False)
     elif op_status == 5:
         # 删除记录 ！= 删帖子（不是作者），只需解除人的链接即可
-        Good.query.filter(Good.id.in_(id_list), Good.status == status).with_for_update() \
-            .update({'return_goods_openid': '',
+        Good.query.filter(Good.id.in_(id_list), Good.status == status). \
+            update({'return_goods_openid': '',
                      'qr_code_openid': ''}, synchronize_session=False)
     elif op_status == 2:
         # 推荐删除（更新为7）
