@@ -9,22 +9,22 @@ const globalData = app.globalData;
  * @param business_type
  * @returns {[]}
  */
-const getSubscribeTmpIds = function (business_type=0) {
+const getSubscribeTmpIds = function (business_type = 0) {
   let tmpIds = [];
-  if (business_type == globalData.business_type.found){ //失物招领
+  if (business_type == globalData.business_type.found) { //失物招领
     tmpIds = [
-      globalData.subscribe.thanks,
-      globalData.subscribe.finished.found
+      globalData.subscribe.finished.found,
+      globalData.subscribe.thanks
     ]
-  } else if (business_type == globalData.business_type.lost){  // 寻物启事
+  } else if (business_type == globalData.business_type.lost) {  // 寻物启事
     tmpIds = [
       globalData.subscribe.recommend,
-      globalData.subscribe.finished.lost
+      globalData.subscribe.return
     ]
   } else { //归还贴和扫码归还
     tmpIds = [
-      globalData.subscribe.thanks,
-      globalData.subscribe.finished.found
+      globalData.subscribe.finished.return,
+      globalData.subscribe.thanks
     ]
   }
   return tmpIds

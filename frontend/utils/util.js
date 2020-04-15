@@ -146,22 +146,23 @@ const getNewRecommend = function(cb_complete=(data={})=>{}){
  * @param goods_id
  * @param cb_success
  */
-const checkGoodsIsNotAppealed =  function (goods_id=0, cb_success=()=>{}){
+const checkGoodsStatus =  function (goods_id=0, status=0, cb_success=()=>{}){
   wx.request({
     url: app.buildUrl('/goods/status'),
     data: {
-      id: goods_id
+      id: goods_id,
+      status: status
     },
     success: res => {
-      let resp = res.data
+      let resp = res.data;
       if (resp['code'] !== 200) {
-        app.alert({content: '操作失败，请刷新后重试'})
+        app.alert({content: resp['msg']});
         return;
       }
-      cb_success(resp['data']['status'] == 5)
+      cb_success();
     },
     fail: res => {
-      app.serverBusy()
+      app.serverBusy();
     }
   })
 };
@@ -189,7 +190,7 @@ module.exports = {
   toFixedStr: toFixedStr,
   goToPoint: goToPoint,
   getNewRecommend: getNewRecommend,
-  checkGoodsIsNotAppealed: checkGoodsIsNotAppealed,
+  checkGoodsStatus: checkGoodsStatus,
   des3_decrypt: DES3_Decrypt,
   des3_encrypt: DES3_Encrypt
 }

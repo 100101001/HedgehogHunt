@@ -52,12 +52,13 @@ const deleteLinkReturnGoods = function (id_list = []) {
  * doCancelReturnGoods  取消归还{@link toDeleteMyReleaseReturn}时，选择直接删除归还帖子
  * @param goods_ids
  */
-const doCancelReturnGoods = function (goods_ids = [], that) {
+const doCancelReturnGoods = function (goods_ids = [], status, that) {
   wx.request({
     url: app.buildUrl('/goods/return/cancel'),
     header: app.getRequestHeader(),
     data: {
-      ids: goods_ids
+      ids: goods_ids,
+      status: status
     },
     success: res => {
       let resp = res.data
@@ -83,13 +84,14 @@ const doCancelReturnGoods = function (goods_ids = [], that) {
  * 只是删除自己发布的归还贴
  * @param goods_id
  */
-const doCleanReleasedReturnGoods = function (goods_ids = [], that) {
+const doCleanReleasedReturnGoods = function (goods_ids = [], status=3, that) {
   wx.request({
     url: app.buildUrl('/goods/return/clean'),
     header: app.getRequestHeader(),
     data: {
-      ids: goods_ids,
-      biz_type: that.data.business_type
+      ids: goods_ids,  //选中删除的id
+      biz_type: that.data.business_type,
+      status: status  //当前选中状态页
     },
     success: res => {
       let resp = res.data
@@ -153,12 +155,13 @@ const returnToFoundGoodsInBatch = function (goods_ids = [], status=0) {
  * @param goods_ids
  * @param that
  */
-const giveUnmarkedFoundToSystem = function (goods_ids = [], that) {
+const giveUnmarkedFoundToSystem = function (goods_ids = [], status=1, that) {
   wx.request({
     url: app.buildUrl('/goods/found/to/sys'),
     header: app.getRequestHeader(),
     data: {
-      id: goods_ids
+      ids: goods_ids,
+      status: status
     },
     success: res => {
       let resp = res.data;
@@ -179,14 +182,16 @@ const giveUnmarkedFoundToSystem = function (goods_ids = [], that) {
 /**
  * gotbackPremarkGoods
  * @param goods_ids
+ * @param status
  * @param that
  */
-const gotbackPremarkGoods = function (goods_ids = [], that) {
+const gotbackPremarkGoods = function (goods_ids = [], status= 2, that) {
   wx.request({
     url: app.buildUrl('/goods/gotback'),
     header: app.getRequestHeader(),
     data: {
-      id: goods_ids
+      ids: goods_ids,
+      status: status
     },
     success: res => {
       let resp = res.data;
@@ -752,21 +757,7 @@ Page({
    */
   toDeleteMyMark: function (id_list=[]) {
     let status = this.data.check_status_id;
-    if (status == 0) {
-      //待取回[预认领了的物品]，批量确认取回
-      app.alert({
-        title: '操作提示',
-        content: '恭喜，确认已经取回了失物？',
-        showCancel: true,
-        cb_confirm: () => {
-          //设置
-          gotbackPremarkGoods(id_list, this);
-        },
-        cb_cancel: () => {
-          this.editTap();
-        }
-      })
-    } else if (status == 1 || status == 2) {
+    if (status == 1 || status == 2) {
       //删除已取回和已答谢的物品
       app.alert({
         title: '删除提示',
@@ -782,6 +773,7 @@ Page({
     }
   },
   /**
+   * op_status==0 && check_status_id == 2 || op_status==5 && check_status_id == 2
    * confirmSelected 批量确认已取回
    */
   confirmSelected: function () {
@@ -790,32 +782,34 @@ Page({
       title: '操作提示',
       content: '恭喜取回物品，是否确认取回？',
       showCancel: true,
+      cb_cancel: this.editTap,
       cb_confirm: () => {
         let id_list = this.getSelectedIdList();
         let op_status = this.data.op_status;
         let url;
         let biz_type;
         if (op_status == 1) {
-          url = '/goods/gotback'
-          biz_type = 1;
-        } else if (op_status == 5) {
-          url = '/goods/return/gotback'
-          biz_type = 2;
+          url = '/goods/gotback';
+          biz_type = 1; //认领记录
+        } else if (op_status == 5 || op_status == 0) {
+          url = '/goods/return/gotback';
+          biz_type = this.data.business_type;  //0对应发布记录的寻物启事[该页的全选可能会禁掉]或者2对应
         }
-        this.doGotbackReturnGoods(url, id_list, biz_type)
+        this.doGotbackReturnGoods(url, id_list, biz_type, this.data.check_status_id)
       }
     });
   },
   /**
    * doGotbackReturnGoods 确认取回归还帖
    */
-  doGotbackReturnGoods: function (url = "", id_list = [], biz_type = 1) {
+  doGotbackReturnGoods: function (url = "", id_list = [], biz_type = 1, status=2) {
     wx.request({
       url: app.buildUrl(url),
       header: app.getRequestHeader(),
       data: {
-        id: id_list,
-        biz_type: biz_type //给 /goods/return/back 判断传入的id是什么类型的物品
+        ids: id_list,
+        biz_type: biz_type, //给 /goods/return/back 判断传入的id是什么类型的物品
+        status: status
       },
       success: res => {
         let resp = res.data;
@@ -840,7 +834,7 @@ Page({
     let cnt = id_list.length
     if (status == 1) {
       //待确认的归还，删除代表拒绝
-      this.toRejectReturnGoods("确认" + (cnt > 1 ? '都' : '') + '不是你丢的东西？', id_list)
+      this.toRejectReturnGoods("确认" + (cnt > 1 ? '都' : '') + '不是你丢的东西？', id_list, status)
     } else if (status == 3) {
       //已取回的归还，
       this.toDeleteGotbackReturnGoods(id_list)
@@ -850,7 +844,7 @@ Page({
    * toRejectReturnGoods 批量删除归还通知代表拒绝归还（不是自己的）
    * @param msg
    */
-  toRejectReturnGoods: function (msg = "", id_list = []) {
+  toRejectReturnGoods: function (msg = "", id_list = [], status=1) {
     app.alert({
       title: '删除提示',
       content: msg,
@@ -860,7 +854,8 @@ Page({
           url: app.buildUrl('/goods/return/reject'),
           header: app.getRequestHeader(),
           data: {
-            id: id_list
+            ids: id_list,
+            status: status
           },
           success: res => {
             let resp = res.data;
@@ -924,6 +919,7 @@ Page({
     }
   },
   /**
+   * biz_type == 2 && op_status==0
    * toDeleteMyReleaseReturn 删除我发布的归还帖
    * 已答谢
    */
@@ -936,7 +932,7 @@ Page({
         content: (status == 3 ? '失主还未答谢，' : '') + '确认删除？',
         showCancel: true,
         cb_confirm: () => {
-          doCleanReleasedReturnGoods(id_list, this)
+          doCleanReleasedReturnGoods(id_list, status, this)
         },
         cb_cancel: () => {
           //收起编辑板
@@ -947,7 +943,8 @@ Page({
       // 待取回时不允许操作
       app.alert({
         title: '删除警示',
-        content: '对方还已确认，还未取回，现在不能进行任何操作！'
+        content: '对方还已确认，还未取回，现在不能进行任何操作！',
+        cb_confirm: this.editTap
       })
     } else if (status == 1) {
       //删除待确认的归还贴
@@ -969,10 +966,7 @@ Page({
                     //转成失物招领
                     returnToFoundGoodsInBatch(id_list, status)
                   },
-                  cb_cancel: () => {
-                    //收起编辑板
-                    this.editTap()
-                  }
+                  cb_cancel: this.editTap
                 })
               } else {
                 //删除归还帖子
@@ -981,21 +975,29 @@ Page({
                   content: '确认删除？对方将无法查看归还贴',
                   showCancel: true,
                   cb_confirm: () => {
-                    doCancelReturnGoods(id_list, this)
+                    doCancelReturnGoods(id_list, status, this)
                   },
-                  cb_cancel: () => {
-                    //收起编辑板
-                    this.editTap()
-                  }
+                  cb_cancel: this.editTap
                 })
               }
             }
           })
         }
       })
+    } else if (status == 0) {
+      app.alert({
+        title: '公开提示',
+        content: '确认转成公开的失物招领？',
+        showCancel: true,
+        cb_confirm: res => {
+          //转成失物招领
+          returnToFoundGoodsInBatch(id_list, status)
+        }
+      })
     }
   },
   /**
+   * biz_type == 1 && op_status==0
    * toDeleteMyFound 删除我发布的失物招领帖子
    * 待取回的不能操作
    * 待认领，已取回，已答谢的可直接单纯删除{@see doDeleteSelected}
@@ -1009,9 +1011,13 @@ Page({
         title: '删除提示',
         content: '好心捡到的东西，还没有人认领呢，不再等等？',
         showCancel: true,
+        cb_cancel: this.editTap,
         cb_confirm: () => {
           wx.showActionSheet({
             itemList: ['送给系统', '狠心删除'],
+            fail: (res)=>{
+              this.editTap()
+            },
             success: (res) => {
               if (res.tapIndex == 0) {
                 //公开归还贴
@@ -1021,11 +1027,9 @@ Page({
                   showCancel: true,
                   cb_confirm: res => {
                     //送给系统
-                    giveUnmarkedFoundToSystem(id_list, this)
-                  }, cb_cancel: () => {
-                    //收起编辑板
-                    this.editTap()
-                  }
+                    giveUnmarkedFoundToSystem(id_list, status, this)
+                  },
+                  cb_cancel: this.editTap
                 })
               } else {
                 //删除归还帖子
@@ -1036,44 +1040,36 @@ Page({
                   cb_confirm: () => {
                     this.doDeleteSelected(id_list)
                   },
-                  cb_cancel: () => {
-                    //收起编辑板
-                    this.editTap()
-                  }
+                  cb_cancel: this.editTap
                 })
               }
             }
           })
-        },
-        cb_cancel: () => {
-          //收起编辑板
-          this.editTap()
         }
       })
     } else if (status == 2) {
       // 待取回时不允许操作
       app.alert({
         title: '操作警示',
-        content: '对方已确认，还未取回，现在不能进行任何操作！'
+        content: '对方已确认，还未取回，现在不能进行任何操作！',
+        cb_confirm: this.editTap
       })
     } else if (status == 3 || status == 4) {
       // 已取回和已答谢允许删除操作
       app.alert({
         title: '删除提示',
-        content: (status == 3 ? '还未答谢，' : '') + '确认删除？',
+        content: (status == 3 ? '失主还未答谢，' : '') + '确认删除？',
         showCancel: true,
         cb_confirm: () => {
           this.doDeleteSelected(id_list);
         },
-        cb_cancel: () => {
-          //收起编辑板
-          this.editTap()
-        }
+        cb_cancel: this.editTap
       })
     } else if (status == 5) {
       app.alert({
         title: '操作警示',
-        content: '系统收到申诉，正在处理中，帖子已被系统冻结，您无法进行任何操作，请您谅解！'
+        content: '系统收到申诉，正在处理中，帖子已被系统冻结，您无法进行任何操作，请您谅解！',
+        cb_confirm: this.editTap
       })
     }
   },
@@ -1095,10 +1091,7 @@ Page({
           //批量删除
           this.doDeleteSelected(id_list)
         },
-        cb_cancel: () => {
-          //收起编辑板
-          this.editTap()
-        }
+        cb_cancel: this.editTap
       })
     } else if (status == 3 || status == 4) {
       //已取回和已答谢的
@@ -1121,10 +1114,7 @@ Page({
             }
           })
         },
-        cb_cancel: () => {
-          //收起编辑板
-          this.editTap()
-        }
+        cb_cancel: this.editTap
       })
     }
   },

@@ -76,7 +76,7 @@ Page({
    * @param options 页面参数
    */
   onLoad: function (options) {
-    let phone = options.phone
+    let phone = options.phone;
     if (phone == undefined) {
       //刚进入获取手机页面，检查是否已注册过，已注册过就回退
       //已注册未登录的还会自动登录

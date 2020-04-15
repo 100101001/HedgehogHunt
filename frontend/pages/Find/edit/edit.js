@@ -335,6 +335,7 @@ Page({
       this.setData({submitDisable: false});
       return
     }
+    data['status'] = this.data.info.status
     data['category'] = parseInt(data['category']) + 1; // 因为数据库id从1开始计数
     data['business_type'] = this.data.business_type;
     data['img_list'] = img_list;

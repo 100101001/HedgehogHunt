@@ -78,8 +78,9 @@ App({
       recommend: 'eT6wS62k3KzRNagqnZOd_Fuui0As0GBX7fYfpUSyi0Y', //给寻物启事发帖者发送匹配通知
       finished: {
         found: '_dAjVN6DHEewP_z01WhKXlZ7xY9nfs_OEtVbnBC88MU',  //各失物招领发布者发送被取回的通知
-        lost: 'bHZTF62ciS-03u8MmGe0cA7YMVHdGpwH-bY9wrmfDfY'  //给寻物启事发布者发送物品被归还通知
+        return: ''
       },
+      return: 'bHZTF62ciS-03u8MmGe0cA7YMVHdGpwH-bY9wrmfDfY',
       thanks: 'MxeBoTL5FcGb8DGtQtsoesFS5VmEd67KlRtMAQj8hoI'  //给失物招领发帖者发送答谢通知
     },
     business_type: { //失物招领与寻物启事的标记

@@ -47,9 +47,28 @@
       <radio class="all_select" bindtap="bindAllSelect" checked="{{allSelect}}" disabled="{{all_selected_disabled}}">全选</radio>
     </view>
 
-    <!--发布的，匹配记录，答谢记录-->
-    <view wx:if="{{op_status==0 || op_status==3 || op_status==2}}">
+    <!--匹配记录，答谢记录-->
+    <view wx:if="{{ op_status==3 || op_status==2}}">
       <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected">删除</view>
+    </view>
+
+    <!--发布记录，答谢记录-->
+    <view wx:if="{{op_status==0 && business_type==0}}">
+      <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected" wx:if="{{check_status_id!=2}}">删除</view>
+      <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="confirmSelected"  wx:if="{{check_status_id==2}}">确认取回</view>
+    </view>
+
+    <view wx:if="{{op_status==0 && business_type==1}}">
+      <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected" wx:if="{{check_status_id!=2 && check_status_id!=5}}">删除</view>
+      <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected" wx:if="{{check_status_id==2 || check_status_id==5}}">禁止操作</view>
+    </view>
+
+    <view wx:if="{{op_status==0 && business_type==2}}">
+      <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected" wx:if="{{check_status_id==0}}">公开</view>
+      <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected" wx:if="{{check_status_id==1}}">取消归还</view>
+      <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected" wx:if="{{check_status_id==2}}">禁止操作</view>
+      <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected" wx:if="{{check_status_id==3}}">删除</view>
+      <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected" wx:if="{{check_status_id==4}}">删除</view>
     </view>
 
 
@@ -69,7 +88,7 @@
     <!--认领记录-->
     <view wx:if="{{op_status==1}}">
       <!--给了两个选项-->
-      <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected"
+      <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="confirmSelected"
             wx:if="{{check_status_id==0 }}">确认取回
       </view>
       <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected"

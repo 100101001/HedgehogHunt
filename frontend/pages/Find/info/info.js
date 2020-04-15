@@ -8,12 +8,13 @@ const util = require('../../../utils/util');
  * doCancelReturnGoods  待确认时，取消归还{@link cancelReturnGoods}时，选择直接删除归还帖子
  * @param goods_id
  */
-const doCancelReturnGoods = function (goods_id = 0) {
+const doCancelReturnGoods = function (goods_id = 0, status= 2) {
   wx.request({
     url: app.buildUrl('/goods/return/cancel'),
     header: app.getRequestHeader(),
     data: {
-      ids: [goods_id]
+      ids: [goods_id],
+      status: status
     },
     success: res => {
       let resp = res.data
@@ -38,13 +39,14 @@ const doCancelReturnGoods = function (goods_id = 0) {
  * @param goods_id
  * @param business_type
  */
-const doCleanReturnGoods = function (goods_id = 0, business_type = 2) {
+const doCleanReturnGoods = function (goods_id = 0, status=3, business_type = 2) {
   wx.request({
     url: app.buildUrl('/goods/return/clean'),
     header: app.getRequestHeader(),
     data: {
       ids: [goods_id],
-      biz_type: business_type
+      biz_type: business_type,
+      status: status
     },
     success: res => {
       let resp = res.data
@@ -71,12 +73,13 @@ const doCleanReturnGoods = function (goods_id = 0, business_type = 2) {
  * 或者被拒绝的归还去公开 {@link goReturnToFound}
  * @param goods_id
  */
-const returnToFoundGoods = function (goods_id = 0, status = 0) {
+const returnToFoundGoods = function (goods_id = 0, status = 0, biz_type=0) {
   wx.request({
     url: app.buildUrl('/goods/return/to/found'),
     header: app.getRequestHeader(),
     data: {
       id: [goods_id],
+      biz_type: biz_type,
       status: status //标识待确认的，还是已拒绝的
     },
     success: res => {
@@ -102,10 +105,10 @@ const returnToFoundGoods = function (goods_id = 0, status = 0) {
 
 /**
  * fetchReturnGoodsInfo 在已寻回的帖子上操作进行答谢需要获取数据
- * @param goods_id
+ * @param return_goods_id
+ * @param cb_success
  */
-const fetchReturnGoodsInfo = function (return_goods_id = 0, cb_success = () => {
-}) {
+const fetchReturnGoodsInfo = function (return_goods_id = 0, cb_success = () => {}) {
   wx.request({
     url: app.buildUrl("/goods/pure/info"),
     header: app.getRequestHeader(),
@@ -461,18 +464,8 @@ Page({
       this.doGoThanks(info)
     } else if (business_type == 1) {
       // 失物招领可能会遇到申诉
-      util.checkGoodsIsNotAppealed(this.data.goods_id, (is_appealed) => {
-        if (is_appealed) {
-          //被申诉了的帖子
-          app.alert({
-            title: '禁止操作',
-            content: '该申诉帖已被系统冻结，禁止任何操作，请您谅解！',
-            cb_confirm: wx.navigateBack
-          });
-        } else {
-          //没有被申诉继续答谢
-          this.doGoThanks(info)
-        }
+      util.checkGoodsStatus(this.data.goods_id, info.status,() => {
+        this.doGoThanks(info);
       })
     }
   },
@@ -563,7 +556,7 @@ Page({
       showCancel: true,
       success: (res) => {
         if (res.confirm) {
-          this.doGotBack(this.data.goods_id)
+          this.doGotBack(this.data.goods_id, this.data.infos.info.status)
         }
       },
     })
@@ -572,12 +565,13 @@ Page({
    * 确认取回认领的物品 {@link gotBack}
    * @param id
    */
-  doGotBack: function (id = 0) {
+  doGotBack: function (id = 0, status=2) {
     wx.request({
       url: app.buildUrl("/goods/gotback"),
       header: app.getRequestHeader(),
       data: {
-        id: [id],
+        ids: [id],
+        status: status
       },
       success: (res) => {
         let resp = res.data;
@@ -603,9 +597,11 @@ Page({
     })
   },
   toEdit: function (event) {
-    wx.navigateTo({
-      url: '../edit/edit?info=' + JSON.stringify(this.data.infos.info),
-    })
+    util.checkGoodsStatus(this.data.goods_id,  this.data.infos.info.status, (status) => {
+      wx.navigateTo({
+        url: '../edit/edit?info=' + JSON.stringify(this.data.infos.info),
+      });
+    });
   },
   /**
    * goAppeal 觉得他人拿错自己的失物，
@@ -701,7 +697,7 @@ Page({
       content: '归还将失效，确认不是您正在寻找的物品？',
       showCancel: true,
       cb_confirm: res => {
-        this.doRejectReturnGoods(this.data.goods_id)
+        this.doRejectReturnGoods(this.data.goods_id, this.data.infos.info.status)
       }
     })
   },
@@ -709,12 +705,13 @@ Page({
    * 确认不是自己的东西 {@link goRejectReturnGoods}
    * @param id
    */
-  doRejectReturnGoods: function (id = 0) {
+  doRejectReturnGoods: function (id = 0, status=1) {
     wx.request({
       url: app.buildUrl('/goods/return/reject'),
       header: app.getRequestHeader(),
       data: {
-        id: [id]
+        ids: [id],
+        status: status
       },
       success: res => {
         let resp = res.data;
@@ -742,7 +739,7 @@ Page({
       content: '确定是你的物品？',
       showCancel: true,
       cb_confirm: () => {
-        this.doConfirmReturnGoods(this.data.goods_id)
+        this.doConfirmReturnGoods(this.data.goods_id, this.data.infos.info.status)
       },
     })
   },
@@ -750,12 +747,13 @@ Page({
    * doConfirmReturnGoods 确认归还的是自己的{@link goConfirmReturnGoods}
    * @param id
    */
-  doConfirmReturnGoods: function (id = 0) {
+  doConfirmReturnGoods: function (id = 0, status=1) {
     wx.request({
       url: app.buildUrl('/goods/return/confirm'),
       header: app.getRequestHeader(),
       data: {
-        id: id
+        id: id,
+        status: status
       },
       success: res => {
         let resp = res.data;
@@ -781,7 +779,7 @@ Page({
       showCancel: true,
       cb_confirm: () => {
         //确认取消
-        this.doCancelApply(this.data.goods_id);
+        this.doCancelApply(this.data.goods_id, this.data.infos.info.status);
       }
     })
   },
@@ -789,12 +787,13 @@ Page({
    * doCancelApply 取消认领{@link goCancelApply}
    * @param id
    */
-  doCancelApply: function (id = 0) {
+  doCancelApply: function (id = 0, status= 0) {
     wx.request({
       url: app.buildUrl('/goods/cancel/apply'),
       header: app.getRequestHeader(),
       data: {
-        id: [id]
+        ids: [id],
+        status: status
       },
       success: res => {
         let resp = res.data;
@@ -817,6 +816,7 @@ Page({
    * 可公开{@see returnToFoundGoods}
    */
   cancelReturnGoods: function () {
+    let info = this.data.infos.info;
     app.alert({
       title: '取消提示',
       content: '确认你捡到的不是他/她的物品？',
@@ -833,7 +833,7 @@ Page({
                 showCancel: true,
                 cb_confirm: () => {
                   //把链接的自己发布的归还贴转成失物招领
-                  returnToFoundGoods(this.data.infos.info.return_goods_id, 1)
+                  returnToFoundGoods(info.return_goods_id, 1) //这里不能用info.status因为，info是寻物启事
                 }
               })
             } else {
@@ -844,7 +844,7 @@ Page({
                 showCancel: true,
                 cb_confirm: () => {
                   //把自己发布的归还贴删除
-                  doCancelReturnGoods(this.data.infos.info.return_goods_id)
+                  doCancelReturnGoods(info.return_goods_id, info.status)
                 }
               })
             }
@@ -859,7 +859,7 @@ Page({
       content: '是否也删除本帖？',
       showCancel: true,
       cb_confirm: () => {
-        doCleanReturnGoods(this.data.goods_id, this.data.infos.info.business_type)
+        doCleanReturnGoods(this.data.goods_id, this.data.infos.info.status, this.data.infos.info.business_type)
       }
     })
   },
@@ -890,7 +890,7 @@ Page({
       content: '恭喜取回物品，是否确认取回？',
       showCancel: true,
       cb_confirm: () => {
-        this.doGotbackReturnGoods(this.data.goods_id, this.data.infos.info.business_type)
+        this.doGotbackReturnGoods(this.data.goods_id, this.data.infos.info.status, this.data.infos.info.business_type)
       }
     });
   },
@@ -899,14 +899,15 @@ Page({
    * @param id 归还/寻物ID
    * @param biz_type 帖子类型：寻物或归还贴
    */
-  doGotbackReturnGoods: function (id = 0, biz_type = 2) {
+  doGotbackReturnGoods: function (id = 0, status=2, biz_type = 2) {
     // 统一传入归还物品的ID
     wx.request({
       url: app.buildUrl('/goods/return/gotback'),
       header: app.getRequestHeader(),
       data: {
-        id: [id],
-        biz_type: biz_type
+        ids: [id],
+        biz_type: biz_type,
+        status: status
       },
       success: (res) => {
         let resp = res.data;
@@ -916,6 +917,9 @@ Page({
         }
         this.getGoodsInfo(this.data.goods_id);
         app.alert({title: '答谢提示', content: '积分+5，记得答谢发布者哦~'})
+      },
+      fail: (res) =>{
+        app.serverBusy();
       }
     })
   },
