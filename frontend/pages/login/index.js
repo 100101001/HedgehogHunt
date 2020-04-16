@@ -1,34 +1,40 @@
 /**@module **/
 
-const app = getApp()
-const globalData = app.globalData
+const app = getApp();
+const globalData = app.globalData;
 
 //TODO cb_fail
 const getNewSessionKey = function (cb_success=(session_key)=>{}) {
   wx.login({
     success: res => {
-      let code = res.code
-      if (code) {
-        //成功拿到code
-        wx.request({
-          method: 'POST',
-          url: app.buildUrl('/member/login/wx'),
-          header: {
-            'content-type': 'application/json',
-          },
-          data: {code: code},
-          success: res => {
-            let resp = res.data
-            if(resp['code'] !== 200){
-              return
-            }
-            //成功拿到新的session_key
-            let info = resp['data']
-            cb_success(info['session_key'])
-            app.setCache("loginInfo", info)
-          }
-        })
+      let code = res.code;
+      if (!code) {
+        app.alert({content: '网络开小差了，请稍后重试'});
+        return
       }
+      //成功拿到code
+      wx.request({
+        method: 'POST',
+        url: app.buildUrl('/member/login/wx'),
+        header: {
+          'content-type': 'application/json',
+        },
+        data: {code: code},
+        success: res => {
+          let resp = res.data;
+          if(resp['code'] !== 200){
+            app.alert({content: resp['msg']});
+            return
+          }
+          //成功拿到新的session_key
+          let info = resp['data'];
+          cb_success(info['session_key']);
+          app.setCache("loginInfo", info);
+        }
+      })
+    },
+    fail: (res) =>{
+      app.alert({content: '网络开小差了，请稍后重试'})
     }
   })
 };
@@ -186,12 +192,12 @@ Page({
         iv: iv
       },
       success:  (res) => {
-        let resp = res.data
+        let resp = res.data;
         if (resp['code'] !== 200) {
-          app.alert({content: resp['msg']})
+          app.alert({content: resp['msg']});
           return
         }
-        let mobile = resp['data'].mobile
+        let mobile = resp['data'].mobile;
         //未获得用户授权信息，进入按钮弹窗授权
         wx.navigateTo({
           url: '/pages/login/index?phone=' + mobile

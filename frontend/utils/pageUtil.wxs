@@ -1,0 +1,19 @@
+/**
+ * 可以直接在视图中使用的函数（让视图中不用充斥表达式）
+ * @param val
+ * @returns {string|*}
+ */
+var sub = function(val) {
+  if (val === undefined || val.length === 0) {
+    return;
+  }
+  if (val.length > 17) {
+    return val.substring(0, 15) + "...";
+  } else {
+    return val;
+  }
+};
+
+module.exports = {
+  sub : sub
+};

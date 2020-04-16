@@ -1128,13 +1128,14 @@ Page({
       data: {
         op_status: this.data.op_status,
         id_list: id_list,
-        status: this.data.check_status_id
+        status: this.data.check_status_id,
+        biz_type: this.data.business_type
       },
       success: (res) => {
-        var resp = res.data;
-        if (resp.code !== 200) {
+        let resp = res.data;
+        if (resp['code'] !== 200) {
           app.alert({
-            'content': resp.msg
+            'content': resp['msg']
           });
           return
         }

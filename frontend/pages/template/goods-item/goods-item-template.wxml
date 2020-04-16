@@ -31,7 +31,8 @@
           <image class="location_icon" src="/images/icons/locate.png"></image>
           <text class="location_text" wx:if="{{business_type==1}}">{{location? location : '失主认领之后可查看'}}</text>
           <text class="location_text" wx:if="{{business_type==0}}">{{location? location : '拾物者可就近归还'}}</text>
-          <text class="location_text" wx:if="{{business_type==2}}">{{location}}</text>
+          <wxs src="../../../utils/pageUtil.wxs" module="tools"></wxs>
+          <text class="location_text" wx:if="{{business_type==2}}">{{tools.sub(location)}}</text>
           <!--推荐记录中用于识别是否是未读记录的-->
           <view class="new_item" wx:if="{{new==0}}">NEW</view>
         </view>
