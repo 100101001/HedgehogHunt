@@ -250,6 +250,7 @@ CREATE TABLE `recommend`  (
   `found_goods_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拾物id',
   `lost_goods_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '寻物id',
   `target_member_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '看到此推荐记录的用户id',
+  `rel_score` float(8,4) UNSIGNED NOT NULL DEFAULT 1 COMMENT '匹配的相似度',
   `status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '状态 0:未读, 1:已读, -1: 已删除',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
@@ -257,7 +258,8 @@ CREATE TABLE `recommend`  (
   INDEX `ix_recommend_found_goods_id`(`found_goods_id`) USING BTREE,
   INDEX `ix_recommend_lost_goods_id`(`lost_goods_id`) USING BTREE,
   INDEX `ix_recommend_target_member_id`(`target_member_id`) USING BTREE,
-  INDEX `ix_recommend_status`(`status`) USING BTREE
+  INDEX `ix_recommend_status`(`status`) USING BTREE,
+  INDEX `ix_recommend_rel_score`(`rel_score`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '推荐表' ROW_FORMAT = Dynamic;
 
 
