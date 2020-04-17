@@ -15,8 +15,8 @@ import string
 import requests
 
 from application import app, db
-from common.cahce import redis_conn_db_1
-from common.libs.Helper import getCurrentDate
+from common.cahce import redis_conn_db_1, CacheKeyGetter
+from common.libs.Helper import getCurrentDate, queryToDict
 from common.models.ciwei.Appeal import Appeal
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
@@ -62,13 +62,15 @@ class MemberService:
             return openid
 
     @staticmethod
-    def updateCredits(member_info):
+    def updateCredits(member_id):
         # 发布成功，用户积分涨5
+        member_info = Member.query.filter_by(id=member_id).first()
         member_info.credits += 5
-        member_info.updated_time = getCurrentDate()
+        mem_key = "member_"+str(member_id)
+        redis_conn_db_1.set(mem_key, json.dumps(queryToDict(member_info)))
+        redis_conn_db_1.expire(mem_key, 3600)
         db.session.add(member_info)
-        db.session.commit()
-        return True
+
 
     @staticmethod
     def blockMember(select_member_id):
@@ -128,7 +130,7 @@ class MemberService:
         if not member_id or not goods_id:
             return
         repeat_mark = Mark.query.filter_by(member_id=member_id, goods_id=goods_id).first()
-        mark_key = 'mark_' + str(goods_id)
+        mark_key = CacheKeyGetter.markKey(goods_id)
         if repeat_mark:
             if repeat_mark.status == 7:
                 # 将被删除的记录状态初始化
@@ -146,28 +148,6 @@ class MemberService:
         return True
 
     @staticmethod
-    def cancelPreMarkGoods(member_id=0, goods_id=0):
-        """
-        对预认领的帖子，取消预先认领
-        :param member_id:
-        :param goods_id:
-        :return:
-        """
-        if not member_id or not goods_id:
-            return
-        all_mark_query = Mark.query.filter(Mark.goods_id == goods_id, Mark.status != 7)
-        all_marks = all_mark_query.all()
-        pre_mark = all_mark_query.filter_by(member_id=member_id).first()
-        if pre_mark and pre_mark.status == 0:
-            # 前端会控制只对予认领的显示取消认领，这里判断status==0只是以防万一
-            pre_mark.status = 7
-            db.session.add(pre_mark)
-            # 表示最后一个预认领的人取消了，帖子状态需要变成待认领
-            return len(all_marks) == 1
-        # 这种情况基本不会发生（一个予认领贴一定会有有效的认领记录），只是以防万一
-        return len(all_marks) == 0
-
-    @staticmethod
     def hasMarkGoods(member_id=0, goods_id=0):
         """
         是否预认领/认领了该物品(详情可否见放置地址)
@@ -177,21 +157,33 @@ class MemberService:
         """
         if not member_id or not goods_id:
             return False
-        mark_key = "mark_" + str(goods_id)
+        mark_key = CacheKeyGetter.markKey(goods_id)
         mark_member_ids = redis_conn_db_1.smembers(mark_key)
         if not mark_member_ids:
             # 从数据库获取一个物品的所有认领人的id
             marks = Mark.query.filter(Mark.goods_id == goods_id,
                                       Mark.status != 7).all()
-            if marks:
-                mark_member_ids = set(i.member_id for i in marks)
-                for m_id in mark_member_ids:
-                    redis_conn_db_1.sadd(mark_key, m_id)
-            else:
-                # 用不存在的用户ID做集合占位符
-                redis_conn_db_1.sadd(mark_key, -1)
+            redis_conn_db_1.sadd(mark_key, -1)  # 占位符可以用来判断缓存中有
+            mark_member_ids = set(i.member_id for i in marks)
+            for m_id in mark_member_ids:
+                redis_conn_db_1.sadd(mark_key, m_id)
         redis_conn_db_1.expire(mark_key, 3600)
         return bool(str(member_id) in mark_member_ids)
+
+    @staticmethod
+    def cancelPremark(found_ids=None, member_id=0):
+        """
+        :param found_ids:
+        :param member_id:
+        :return: 外面修改Goods状态还要用的mark_key
+        """
+        Mark.query.filter(Mark.member_id == member_id,
+                          Mark.goods_id.in_(found_ids),
+                          Mark.status == 0).update({'status': 7}, synchronize_session=False)
+        mark_keys = [(CacheKeyGetter.markKey(fid), fid) for fid in found_ids]
+        for m_key, _ in mark_keys:
+            redis_conn_db_1.srem(m_key, member_id)
+        return mark_keys
 
     @staticmethod
     def appealGoods(member_id=0, goods_id=0):

@@ -39,21 +39,11 @@ class Good(db.Model):
                                                                                  "8:发布者被管理员拉黑"
                                                                                  "1: 待取回归还"
                                                                                  "2：已取回归还")
-    is_thanked = db.Column(TINYINT(), index=True, nullable=False, default=0, comment="0:未答谢, 1:已答谢")
     view_count = db.Column(INTEGER(11, unsigned=True), nullable=False, index=True,  default=0, comment="总浏览次数")
     top_expire_time = db.Column(db.DateTime, nullable=False, index=True, default=datetime.now,
                                 comment='置顶过期时间')
-    category = db.Column(TINYINT(), index=True, nullable=False, default=10, comment="1:钱包, 2:钥匙, "
-                                                                                   "3: 卡类/证照"
-                                                                                   "4: 数码产品"
-                                                                                   "5:手袋/挎包"
-                                                                                   "6:衣服/鞋帽"
-                                                                                   "7:首饰/挂饰"
-                                                                                   "8:行李/包裹"
-                                                                                   "9:书籍/文件"
-                                                                                   "10:其它")
-    recommended_times = db.Column(INTEGER(11, unsigned=True), nullable=False, default=0, comment="总匹配过失/拾物次数")
-    report_status = db.Column(TINYINT(), nullable=False, default=1, comment="被举报后的状态，用于存储举报的状态值")
+    recommended_times = db.Column(INTEGER(11, unsigned=True), nullable=False, default=1, comment="有未读推荐")
+    report_status = db.Column(TINYINT(), nullable=False, default=0, comment="被举报后的状态，用于存储举报的状态值")
     confirm_time = db.Column(db.DateTime, nullable=True, default=datetime.now, comment="在线认领时间")
     finish_time = db.Column(db.DateTime, nullable=True, default=datetime.now, comment="线下取回时间")
     thank_time = db.Column(db.DateTime, nullable=True, default=datetime.now, comment="答谢时间")
@@ -70,7 +60,7 @@ class Good(db.Model):
                 '3': '已认领',
                 '4': '已答谢',
                 '5': '申诉中',
-                '7': '发布、修改储存未完成或者被发布者下架',
+                '7': '已删除',
             }
         elif self.business_type == 0:
             status_mapping = {
@@ -87,7 +77,7 @@ class Good(db.Model):
                 '2': '待取回',
                 '3': '已取回',
                 '4': '已答谢',
-                '7': '发布、修改储存未完成或者被发布者下架',
+                '7': '已删除',
             }
         return status_mapping[str(self.status)]
 

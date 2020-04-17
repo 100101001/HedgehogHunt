@@ -4,7 +4,7 @@ import json
 from application import app
 from flask import request, g, jsonify
 
-from common.cahce import redis_conn_db_1
+from common.cahce import redis_conn_db_1, CacheKeyGetter
 from common.libs.Helper import queryToDict
 from common.models.ciwei.Member import Member
 import re
@@ -55,11 +55,12 @@ def check_member_login():
 
     try:
         member_id = auth_info[1]
-        mem_key = 'member_{0}'.format(str(member_id))
+        mem_key = CacheKeyGetter.memberKey(member_id)
         member_str = redis_conn_db_1.get(mem_key)
         if not member_str:
             member_info = Member.query.filter_by(id=member_id).first()
             redis_conn_db_1.set(mem_key, json.dumps(queryToDict(member_info)))
+            redis_conn_db_1.expire(mem_key, 3600)
         else:
             member_info = Member()
             member_info.__dict__ = json.loads(member_str)

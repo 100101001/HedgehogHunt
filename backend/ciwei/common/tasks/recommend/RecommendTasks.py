@@ -9,7 +9,7 @@
 
 from sqlalchemy import or_
 
-from application import celery, db, app
+from application import celery, db, app, es
 from common.libs.recommend.DistanceService import DistanceService
 from common.libs.recommend.SynonymsService import SynonymsService
 from common.models.ciwei.Goods import Good
@@ -40,7 +40,7 @@ def send_mail(words):
     return "can i be used by other celery task?"
 
 
-@celery.task(name='recommend.auto_recommend_goods', ignore_result=True)
+@celery.task(name='recommend.auto_recommend_goods', property=1, ignore_result=True)
 def autoRecommendGoods(edit_info=None, goods_info=None):
     """
     根据编辑或者新帖子进行推荐匹配
@@ -48,6 +48,10 @@ def autoRecommendGoods(edit_info=None, goods_info=None):
     :param goods_info:
     :return:
     """
+    # 字典转成ORM模型
+    info = Good()
+    info.__dict__ = goods_info
+
     if edit_info is not None:
         # 编辑
         # 未被用户删除的推荐
@@ -59,7 +63,7 @@ def autoRecommendGoods(edit_info=None, goods_info=None):
             # 匹配关键字被修改了，可能有些不再匹配，等于帖子被作者删除了
             origin_recommends.update({'status': 7}, synchronize_session=False)
             db.session.commit()
-            doAutoRecommendGoods(goods_info=goods_info, edit=True)
+            doAutoRecommendGoods(goods_info=info, edit=True)
         else:
             modified = int(edit_info.get('modified', 0))  # 编辑了非核心信息通知用户去看看
             if modified:
@@ -68,7 +72,7 @@ def autoRecommendGoods(edit_info=None, goods_info=None):
                 db.session.commit()
     else:
         # 发布
-        doAutoRecommendGoods(goods_info=goods_info, edit=False)
+        doAutoRecommendGoods(goods_info=info, edit=False)
 
 
 def doAutoRecommendGoods(goods_info=None, edit=False):
@@ -80,23 +84,23 @@ def doAutoRecommendGoods(goods_info=None, edit=False):
     app.logger.warn("推荐中")
 
     # 互相匹配（假设予认领的人没有恶意）
-    release_type = goods_info.get('business_type', -1)
+    release_type = goods_info.business_type
     if release_type not in (0, 1):
         return
     query = Good.query.filter_by(business_type=1 - release_type, status=1)
     # 筛选物品类别(没有就置-1没有)
-    query = query.filter_by(category=goods_info.get('category', -1))
+    query = query.filter_by(category=goods_info.category)
     # 不能是同一个人发布的拾/失
-    query = query.filter(Good.member_id != goods_info.get('member_id', 0))
+    query = query.filter(Good.member_id != goods_info.member_id)
 
     # 拓展搜索词
-    search_words = synonyms.getSearchWords(input_word=goods_info.get('name', ''))
+    search_words = synonyms.getSearchWords(input_word=goods_info.name)
     app.logger.warn("推荐中")
     common_rule = or_(*[Good.name.like(name) for name in search_words])
     # 如果失主姓名是无还匹配，就会匹配上所有无的
     # 如果有失主姓名但是假设寻物启事比失物招领晚发，或者物品名稍有偏差，就匹配不上了
     # 匹配核心用户群：先发了寻物启示，后来了失物招领
-    goods_owner_name = goods_info.get('owner_name')
+    goods_owner_name = goods_info.owner_name
     if goods_owner_name != "无":
         rule = or_(Good.owner_name == goods_owner_name, common_rule)
         query = query.filter(rule)
@@ -108,15 +112,15 @@ def doAutoRecommendGoods(goods_info=None, edit=False):
                                      # openid和recommend_times用于决定和发送订阅消息
                                      Good.openid, Good.recommended_times).all()
     # 筛选距离最近的
-    goods_list = distance.filterNearbyGoods(goods_list=goods_list, found_location=goods_info.get('os_location'))
+    goods_list = distance.filterNearbyGoods(goods_list=goods_list, found_location=goods_info.os_location)
 
     # 记录需要发送订阅消息的lost_goods
     # 新增推荐记录
     need_notification = []
     for good in goods_list:
-        target_member_id = good.member_id if release_type == 1 else goods_info.get('member_id')  # 获得寻物启示贴主id
-        lost_goods_id = good.id if release_type == 1 else goods_info.get('id')
-        found_goods_id = good.id if release_type == 0 else goods_info.get('id')  # 获取失物招领id
+        target_member_id = good.member_id if release_type == 1 else goods_info.member_id  # 获得寻物启示贴主id
+        lost_goods_id = good.id if release_type == 1 else goods_info.id
+        found_goods_id = good.id if release_type == 0 else goods_info.id  # 获取失物招领id
         new_recommend = addRecommendGoods(target_member_id=target_member_id,
                                           found_goods_id=found_goods_id,
                                           lost_goods_id=lost_goods_id,

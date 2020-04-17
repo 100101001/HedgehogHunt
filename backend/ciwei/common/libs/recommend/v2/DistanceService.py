@@ -2,7 +2,7 @@
 """
 @author: github/100101001
 @contact: 17702113437@163.com
-@time: 2020/4/12 上午1:36
+@time: 2020/4/16 上午3:06
 @file: DistanceService.py
 @desc: 
 """
@@ -51,30 +51,7 @@ class DistanceService:
         # 3) 用平面的矩形对角距离公式计算总距离
         return math.sqrt(lx * lx + ly * ly)
 
-    # 上海市黄浦区南京西路399号###上海明天广场JW万豪酒店###31.23038###121.4697
-    def filterNearbyGoods(self, goods_list=None, found_location=None):
-        """
-        从匹配的列表中筛选出距离500m内的
-        :param goods_list: (1, )
-        :param found_location:
-        :return: [] 符合距离条件的物品
-        """
-        found_location = found_location.split("###")[-2:]
-        ret_list = []
-        for item in goods_list:
-            lost_location = item.os_location.split("###")[-2:]
-            if len(lost_location) < 2:
-                # 失主不知道丢哪里,不计算发现位置和丢失位置的距离,直接推荐
-                ret_list.append(item)
-                continue
-            distance = self.calSimplifyDistance(lng1=eval(found_location[1]), lat1=eval(found_location[0]),
-                                                lng2=eval(lost_location[1]), lat2=eval(lost_location[0]))
-            app.logger.warn('物品' + str(item.id) + '距离捡到的物品距离为: ' + str(distance))
-            if distance < 300:
-                ret_list.append(item)
-        return ret_list
-
-    def filterNearbyGoods_V2(self, goods_list=None, found_location=""):
+    def filterNearbyGoods(self, goods_list=None, found_location=""):
         """
         从匹配的列表中筛选出距离500m内的
         :param goods_list: [{id, lng, lat}, {id,lng,lat}]
@@ -84,16 +61,20 @@ class DistanceService:
         found_gps = found_location.split("###")[-2:]
         ret_list = []
         for item in goods_list:
-            lng2 = item.get('lng', None)
-            lat2 = item.get('lat', None)
+            lng2 = item.get('lng')
+            lat2 = item.get('lat')
             if not lng2 or not lat2:
                 # 失主不知道丢哪里了
                 ret_list.append(item)
                 continue
             distance = self.calSimplifyDistance(lng1=eval(found_gps[1]), lat1=eval(found_gps[0]),
                                                 lng2=eval(str(lng2)), lat2=eval(str(lat2)))
-            app.logger.warn('物品' + str(item.id) + '距离捡到的物品距离为: ' + str(distance))
+            app.logger.warn('物品' + str(item.get('id')) + '距离捡到的物品距离为: ' + str(distance))
             if distance < 300:
                 # 直线距离300m内的才算数
                 ret_list.append(item)
-        return ret_list
+        return list(set(ret_list))
+
+
+if __name__ == "__main__":
+    pass

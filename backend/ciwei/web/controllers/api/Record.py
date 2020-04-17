@@ -6,14 +6,16 @@ from sqlalchemy import or_, and_
 
 from application import db
 from common.cahce import cas
-from common.libs.Helper import getCurrentDate, getDictFilterField
+from common.libs.Helper import getCurrentDate, getDictFilterField, param_getter
 from common.libs.UrlManager import UrlManager
+from common.libs.recommend.v2 import SyncService
 from common.models.ciwei.Appeal import Appeal
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Recommend import Recommend
 from common.models.ciwei.Report import Report
 from common.models.ciwei.User import User
+from common.tasks.sync import SyncTasks
 from web.controllers.api import route_api
 
 
@@ -50,59 +52,32 @@ def recordSearch():
     # 2 系统推荐的
     goods_id_recommend_status_map = {}
     only_new = False
-    op_status = int(req['op_status']) if 'op_status' in req else ''
+    op_status = int(req.get('op_status', -1))
     if op_status == 0:
         query = query.filter_by(member_id=member_info.id, status=status, business_type=int(req['business_type']))
     elif op_status == 1:
         # 非已经答谢
         # 认领列表，找出状态为status{0[待取回],1[已取回],2[已答谢]}的
-        mark_goods_ids = Mark.query.filter(Mark.member_id == member_info.id,
-                                           Mark.status == status).with_entities(Mark.goods_id).distinct().all()
-        if mark_goods_ids:
-            # 如果有后面筛选条件有用
-            query = query.filter(Good.id.in_(mark_goods_ids))
-        else:
-            # 如果没有不浪费时间，直接回去
-            resp['code'] = 200
-            resp['data']['list'] = []
-            resp['data']['has_more'] = 0
-            return jsonify(resp)
+        query = query.join(Mark, Good.id == Mark.goods_id).filter(Mark.member_id == member_info.id,
+                                           Mark.status == status)
     elif op_status == 5:
         # 归还列表，找出状态为status{1[待取回]，2[已取回],3[已答谢]}的
+        member_openid = member_info.openid
         query = query.filter(and_(Good.business_type == 2,
                                   Good.status == status,
                                   # 两类归还都要
-                                  or_(Good.return_goods_openid == member_info.openid,
-                                      Good.qr_code_openid == member_info.openid)))
+                                  or_(Good.return_goods_openid == member_openid,
+                                      Good.qr_code_openid == member_openid)))
     elif op_status == 6:
         # 获取处理状态为status的申诉物品
-        appeal_goods_ids = Appeal.query.filter(Appeal.member_id == member_info.id,
-                                               Appeal.status == status).with_entities(Appeal.goods_id).all()
-        query = query.filter(Good.id.in_(appeal_goods_ids))
+        query = query.join(Appeal, Good.id == Appeal.goods_id).filter(Appeal.member_id == member_info.id,
+                                               Appeal.status == status)
     elif op_status == 2:
-        # 推荐列表，找出recommend状态only_new的，和其中goods状态status的
-        only_new = req['only_new'] == 'true'
-        if not only_new:
-            # 新推荐和历史推荐（推荐中可能包含被删除的物品）
-            recommend_ids = Recommend.query.filter(Recommend.target_member_id == member_info.id,
-                                                   Recommend.status != 7). \
-                with_entities(Recommend.found_goods_id, Recommend.status).all()
-            # {物品id: 是否已阅读}
-
-            goods_id_recommend_status_map = {item.found_goods_id: item.status for item in recommend_ids}
-        else:
-            # 只要新推荐（推荐中不包含被删除的物品）
-            recommend_ids = Recommend.query.filter(Recommend.target_member_id == member_info.id,
-                                                   Recommend.status == 0). \
-                with_entities(Recommend.found_goods_id).all()
-        if recommend_ids:
-            query = query.filter(Good.status == status,
-                                 Good.id.in_([item.found_goods_id for item in recommend_ids]))
-        else:
-            resp['code'] = 200
-            resp['data']['list'] = []
-            resp['data']['has_more'] = 0
-            return jsonify(resp)
+        # 推荐列表
+        only_new = req.get('only_new', '') == 'true'
+        rule = and_(Recommend.target_member_id == member_info.id,
+                    Recommend.status == 0 if only_new else Recommend.status != 7)
+        query = query.join(Recommend, Recommend.found_goods_id == Good.id).filter(rule)
 
     # 搜索框筛选
     # 物主名 owner_name 或 物品名name
@@ -125,7 +100,8 @@ def recordSearch():
         p = 1
     page_size = 10
     offset = (p - 1) * page_size
-    goods_list = query.order_by(Good.id.desc()).offset(offset).limit(page_size).all()
+    order_rule = Recommend.rel_score.desc() if op_status == 2 else Good.id.desc()
+    goods_list = query.order_by(order_rule).offset(offset).limit(page_size).all()
 
     # 将对应的用户信息取出来，组合之后返回
     data_goods_list = []
@@ -140,7 +116,8 @@ def recordSearch():
             is_pre_mark_fail = item.status != 2 and status == 0 and op_status == 1
             is_appealed = item.status == 5
             # 说明要么还没看过
-            unknown_returned_lost = item.business_type == 0 and op_status == 0 and item.status == 2 and not cas.exec(item.return_goods_id, 2, 2)
+            unknown_returned_lost = item.business_type == 0 and op_status == 0 and item.status == 2 and not cas.exec(
+                item.return_goods_id, 2, 2)
             tmp_data = {
                 "id": item.id,  # 供前端用户点击查看详情用的
                 "new": 1 if op_status != 2 else (
@@ -195,9 +172,8 @@ def recordDelete():
     op_status=2,用户的推荐列表
     op_status=4,管理员的举报列表
     """
-    op_status = int(req['op_status']) if 'op_status' in req else ''
-    id_list = req['id_list'][1:-1].split(',')
-    id_list = [int(goods_id) for goods_id in id_list]
+    op_status = int(req.get('op_status', -1))
+    id_list = param_getter['ids'](req.get('id_list', None))
     status = int(req.get('status', -7))
     if status == -7 and op_status in (0, 1, 5):
         # 发布记录,认领记录,归还通知删除需要确保物品的状态
@@ -208,8 +184,11 @@ def recordDelete():
         ok_ids = []
         for item_id in id_list:
             if cas.exec(item_id, status, 7):
-                ok_ids.add(item_id)
+                ok_ids.append(item_id)
         Good.query.filter(Good.id.in_(ok_ids), Good.status == status).update({'status': 7}, synchronize_session=False)
+        # 异步同步数据
+        SyncService.syncDeleteGoodsToESBulk(goods_ids=ok_ids)
+        SyncTasks.syncDelGoodsToRedis.delay(goods_ids=ok_ids, business_type=int(req.get('biz_type')))
     elif op_status == 1:
         # 删除认领记录（已取回，已答谢）
         Mark.query.filter(Mark.member_id == member_info.id,
@@ -219,15 +198,17 @@ def recordDelete():
         # 删除记录 ！= 删帖子（不是作者），只需解除人的链接即可
         Good.query.filter(Good.id.in_(id_list), Good.status == status). \
             update({'return_goods_openid': '',
-                     'qr_code_openid': ''}, synchronize_session=False)
+                    'qr_code_openid': ''}, synchronize_session=False)
     elif op_status == 2:
         # 推荐删除（更新为7）
         lost_goods_ids = Recommend.query.filter(Recommend.target_member_id == member_info.id,
-                                                Recommend.found_goods_id.in_(id_list)).with_entities(Recommend.lost_goods_id).all()
+                                                Recommend.found_goods_id.in_(id_list)).with_entities(
+            Recommend.lost_goods_id).all()
         Recommend.query.filter(Recommend.target_member_id == member_info.id,
                                Recommend.found_goods_id.in_(id_list)).update({'status': 7}, synchronize_session=False)
         # 允许新增订阅消息
-        Good.query.filter(Good.id.in_(lost_goods_ids), Good.status == 1).update({'recommended_times': 1}, synchronize_session=False)
+        Good.query.filter(Good.id.in_(lost_goods_ids), Good.status == 1).update({'recommended_times': 1},
+                                                                                synchronize_session=False)
     elif op_status == 6:
         # 申诉只能删除已处理完毕的记录
         Appeal.query.filter(Appeal.member_id == member_info.id,

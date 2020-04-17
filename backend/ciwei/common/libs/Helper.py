@@ -265,7 +265,7 @@ def convert_datetime(value):
     if value:
         if isinstance(value, (cdatetime, DateTime)):
 
-            return value.strftime("%Y-%m-%d %H:%M:%S")
+            return value.strftime("%Y-%m-%d %H:%M")
 
         elif isinstance(value, (date, Date)):
 

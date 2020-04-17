@@ -28,7 +28,7 @@ class SynonymsService:
 
     @classmethod
     def processSearchWords(cls, search_words):
-        key_words = jieba.analyse.extract_tags(search_words, topK=2)
+        key_words = jieba.analyse.extract_tags(search_words)
         return key_words[0] if key_words else search_words
 
 

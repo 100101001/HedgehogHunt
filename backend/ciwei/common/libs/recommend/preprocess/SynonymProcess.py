@@ -90,6 +90,33 @@ class SynonymsProcess:
             pickle.dump(res_dict_search, f)
 
     @staticmethod
+    def file2dic_for_redis():
+        import pickle
+        filename = "HIT-IRLab-utf-8.txt"
+        # A0123 =  ‘皮夹’, ‘腰包’, ‘钱包’  <==>  0 -> ‘皮夹’, ‘腰包’, ‘钱包’
+        # A0124 =  ‘人’, ‘成年’, ‘男人’  <==>  1 -> ‘人’, ‘成年’, ‘男人’
+
+        word_cls_map = {}
+        # ‘钱包’ -> [0]
+        # ‘人’ -> [1, 655]
+        with open(filename, 'r', encoding="utf-8") as f:
+            for row in f:
+                row = row.replace('\n', '')
+                items = row.split(' ')
+                cls = items[0]
+                line_words = items[1:]
+                # 同义词
+                if cls[-1] in ('=', '@'):
+                    for w in line_words:
+                        if w not in word_cls_map:
+                            word_cls_map[w] = [cls[:-1]]
+                        else:
+                            word_cls_map[w].append(cls[:-1])
+        output = "synonyms_dict_for_redis_search.pk"
+        with open(output, 'wb') as f:
+            pickle.dump(word_cls_map, f)
+
+    @staticmethod
     def loadSymDict():
         """
 
@@ -102,11 +129,31 @@ class SynonymsProcess:
             synonym_dict = pickle.load(f)
         return synonym_dict
 
+    @staticmethod
+    def loadSymDictV2():
+        """
+
+        :return:
+        """
+        import pickle
+        from application import APP_ROOT
+        pickle_input1 = APP_ROOT + "/common/libs/recommend/preprocess/synonyms_dict_for_redis_search.pk"
+        pickle_input2 = APP_ROOT + "/common/libs/recommend/preprocess/synonyms_dict.pk"
+        with open(pickle_input1, 'rb') as f:
+            synonym_key = pickle.load(f)
+        with open(pickle_input2, 'rb') as f:
+            synonym_dict = pickle.load(f)
+        return synonym_key, synonym_dict
+
 
 if __name__ == "__main__":
-    pass
-    sym_words = SynonymsProcess.loadSymDict()
-    #SynonymsProcess.file2dic()
+
+    #pass
+    #SynonymsProcess.file2dic_for_redis()
+    #sym_words = SynonymsProcess.loadSymDict()
+    #a,b  =SynonymsProcess.loadSymDictV2()
+    #c = a.get('外套')
+    print("")
     # if '钱包' in sym_words:
     #     print(sym_dict.get('钱包', ''))
     # else:

@@ -89,7 +89,7 @@ def send_recommend_subscribe_in_batch(lost_goods_list=None, found_goods=None):
     found_goods_put_loc = found_goods.get('location').split('###')[1]
     recommend_data = {
         "thing1": {"value": found_goods_name},
-        "time2": {"value": found_goods_time.strftime(APP_CONSTANTS['sub_time_format'])},
+        "time2": {"value": found_goods_time},
         "thing3": {"value": found_goods_put_loc},
     }
 

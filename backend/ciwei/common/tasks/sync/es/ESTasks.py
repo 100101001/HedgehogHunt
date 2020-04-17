@@ -54,24 +54,6 @@ def on_update_goods_info(goods_info=None):
     es.update(index='goods_recommend', doc_type=business_type, id=goods_id, body=getGoodsInfoBody(body_type='recommend', goods_info=goods_info))
 
 
-@celery.task(name='sync.es.on_insert_goods_info')
-def on_insert_goods_info(goods_info=None):
-    """
-    为了搜索和匹配推荐插入ES
-    :param goods_info:
-    :return:
-    """
-    if not goods_info:
-        return "NO INFO TO INSERT"
-    business_type = goods_info.get('business_type')
-    goods_id = goods_info.get('id')
-    res1 = es.create(index='goods_search', doc_type=business_type, id=goods_id, body=getGoodsInfoBody(body_type='search', goods_info=goods_info))
-    app.logger.info("搜索数据插入: " + str(res1))
-    res2 = es.create(index='goods_recommend', doc_type=business_type, id=goods_id, body=getGoodsInfoBody(body_type='recommend', goods_info=goods_info))
-    app.logger.info("推荐数据插入: " + str(res2))
-    return "INSERT SUCCESS"
-
-
 # @celery.task(name='sync.es.on_insert_goods_info')
 # def on_insert_goods_info(goods_info=None):
 #     """
@@ -83,34 +65,45 @@ def on_insert_goods_info(goods_info=None):
 #         return "NO INFO TO INSERT"
 #     business_type = goods_info.get('business_type')
 #     goods_id = goods_info.get('id')
-#     # 通用数据
-#     body_common = {
-#         'id': goods_id,
-#         'goods_name': goods_info.get('name'),
-#         'owner_name': goods_info.get('owner_name'),
-#         'business_type': business_type,
-#         'summary': goods_info.get('summary'),
-#         'status': goods_info.get('status'),
-#     }
-#     # 搜索数据
-#     body_search = {
-#         'updated_time': goods_info.get('updated_time').strftime(APP_CONSTANTS['time_format_long']),
-#         'main_image': goods_info.get('main_image'),
-#         'auther_name': goods_info.get('nickname'),
-#         'avatar': goods_info.get('avatar'),
-#         'top_expire': goods_info.get('top_expire_time'),
-#         'location': goods_info.get('location')  # 放置地点
-#     }.update(body_common)
-#     res1 = es.create(index='goods_search', doc_type=business_type, id=goods_id, body=body_search)
+#     res1 = es.create(index='goods_search', doc_type=business_type, id=goods_id, body=getGoodsInfoBody(body_type='search', goods_info=goods_info))
 #     app.logger.info("搜索数据插入: " + str(res1))
-#     # 推荐数据
-#     body_recommend = {
-#         'auther_id': goods_info.get('member_id'),  # 作者ID, 用于筛选不是自己和自己配对上
-#         'os_location': goods_info.get('os_location')  # 实际捡拾和丢失地点, 用于距离筛选
-#     }.update(body_common)
-#     res2 = es.create(index='goods_recommend', doc_type=business_type, id=goods_id, body=body_recommend)
+#     res2 = es.create(index='goods_recommend', doc_type=business_type, id=goods_id, body=getGoodsInfoBody(body_type='recommend', goods_info=goods_info))
 #     app.logger.info("推荐数据插入: " + str(res2))
 #     return "INSERT SUCCESS"
+
+
+@celery.task(name='sync.es.on_insert_goods_info')
+def on_insert_goods_info(goods_info=None):
+    """
+    为了搜索和匹配推荐插入ES
+    :param goods_info:
+    :return:
+    """
+    if not goods_info:
+        return "NO INFO TO INSERT"
+    business_type = goods_info.get('business_type')
+    goods_id = goods_info.get('id')
+    # 通用数据
+    body_common = {
+        'id': goods_id,
+        'goods_name': goods_info.get('name'),
+        'owner_name': goods_info.get('owner_name'),
+        'business_type': business_type,
+        'summary': goods_info.get('summary'),
+        'status': goods_info.get('status'),
+    }
+    # 搜索数据
+    body_search = {
+        'updated_time': goods_info.get('updated_time').strftime(APP_CONSTANTS['time_format_long']),
+        'main_image': goods_info.get('main_image'),
+        'auther_name': goods_info.get('nickname'),
+        'avatar': goods_info.get('avatar'),
+        'top_expire': goods_info.get('top_expire_time'),
+        'location': goods_info.get('location')  # 放置地点
+    }.update(body_common)
+    res1 = es.create(index='goods_info', doc_type='search', id=goods_id, body=body_search)
+    app.logger.info("搜索数据插入: " + str(res1))
+    return "INSERT SUCCESS"
 
 
 def getGoodsInfoBody(body_type='recommend', goods_info=None):

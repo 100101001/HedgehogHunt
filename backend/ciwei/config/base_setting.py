@@ -47,31 +47,31 @@ CELERY_QUEUES = {
         'exchange': 'mall_queue',
         'exchange_type': 'direct',
         'routing_key': 'for_mall',
-        'x-priority': 5
+        'consumer_arguments': {'x-priority': 5}
     },
     'sms_queue': {
         'exchange': 'sms_queue',
         'exchange_type': 'direct',
         'routing_key': 'for_sms',
-        'x-priority': 2
+        'consumer_arguments': {'x-priority': 5}
     },
     'recommend_queue': {
         'exchange': 'recommend_queue',
         'exchange_type': 'direct',
         'routing_key': 'for_recommend',
-        'x-priority': 1
+        'consumer_arguments': {'x-priority': 1}
     },
     'subscribe_queue': {
         'exchange': 'subscribe_queue',
         'exchange_type': 'direct',
         'routing_key': 'for_subscribe',
-        'x-priority': 1
+        'consumer_arguments': {'x-priority': 1}
     },
     'sync_queue': {
         'exchange': 'sync_queue',
         'exchange_type': 'direct',
         'routing_key': 'for_sync',
-        'x-priority': 10
+        'consumer_arguments': {'x-priority': 10}
     }
 }
 # celery任务路由
@@ -115,7 +115,9 @@ REDIS = {
 
 # elastic search 的配置
 ES = {
-    'URL': 'http://localhost:9200'
+    'URL': 'http://localhost:9200',
+    'DOC_TYPE': 'search_recommend',
+    'INDEX': 'goods'
 }
 
 # 过滤url，登录页面本身的url要跳过
@@ -140,7 +142,6 @@ OPENCS_APP = {
     # 济人济市APPID
     'appid': 'wx3a7bac4ab0184c76',
     'appkey': 'bd8a906e46adc59dd0e7e3110e90c46c',
-    # TODO: 开通微信支付后,填写商户ID,商户签名密钥
     'mch_id': '1578527401',
     'mch_key': '01e1856cee125886ad9b3314e52dbc87',
     'callback_url': '/api/order/callback'
@@ -207,5 +208,6 @@ CONSTANTS = {
         'openid': 'bPk3u33u+sqUiuxJ/+ubfQ==',
         'avatar': 'https://wx.qlogo.cn/mmopen/vi_32/7jCR4QflwchksTBcyakicSepWVQdfbHIQL2glRrkY7ic52iaXqfuBb2tlQ8ELlaGWZDXFgKM4zAMeQZSiaaJtibI3gQ/132',
         'nickname': '鲟回-管理员'
-    }
+    },
+    'default_lost_loc': '不知道###不知道###0###0'
 }

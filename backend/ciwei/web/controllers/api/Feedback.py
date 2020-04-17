@@ -53,7 +53,7 @@ def createFeedback():
     db.session.add(model_feedback)
 
     # 反馈成功，用户积分涨5
-    MemberService.updateCredits(member_info)
+    MemberService.updateCredits(member_id=member_info.id)
 
     resp['code'] = 200
     resp['data']['id'] = model_feedback.id
