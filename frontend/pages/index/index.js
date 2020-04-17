@@ -63,7 +63,6 @@ Page({
       app.globalData.qrcodeOpenid = openid;
     }
     app.login();
-    app.getNewRecommend();
     /****************扫二维码结束******************/
   },
   getOpenId: function (options) {

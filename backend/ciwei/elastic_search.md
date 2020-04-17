@@ -217,4 +217,8 @@ curl 操作
 
     # 删除所有记录
     curl -XPOST localhost:9200/goods/_delete_by_query -H "Content-Type:application/json" -d '{"query":{"match_all":{}}}'
-    
+    # 删除拾物   
+    curl -XPOST localhost:9200/goods/_delete_by_query -H "Content-Type:application/json" -d '{"query":{"match":{"business_type":1}}}'
+    # 删除寻物
+    curl -XPOST localhost:9200/goods/_delete_by_query -H "Content-Type:application/json" -d '{"query":{"match":{"business_type":0}}}'
+      

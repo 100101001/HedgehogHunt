@@ -81,7 +81,7 @@ Page({
   },
   /**
    * onDetailTap 点击信息卡查看详情
-   * @param event
+   * @param e
    */
   onDetailTap: function (e) {
     wx.navigateTo({
