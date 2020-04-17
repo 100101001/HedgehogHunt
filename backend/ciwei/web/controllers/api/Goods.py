@@ -14,7 +14,7 @@ from flask import request, jsonify, g
 from sqlalchemy import func
 
 from application import db, app, APP_CONSTANTS, cache, es
-from common.cahce import cas, redis_conn_db_1, CacheKeyGetter
+from common.cahce import cas, redis_conn_db_1, CacheKeyGetter, CacheOpService
 from common.libs import GoodsService
 from common.libs.Helper import getCurrentDate, param_getter
 from common.libs.MemberService import MemberService
@@ -592,21 +592,30 @@ def goodsApply():
     if goods_id == -1 or status not in (1, 2):
         resp['msg'] = '认领失败'
         return jsonify(resp)
+
     if not cas.exec(goods_id, status, 7):
+        # 取消认领会 2——> 1，所以设置 7
         resp['msg'] = '操作冲突，请稍后重试'
         return jsonify(resp)
 
-    # 公开信息的状态操作加锁，且加入对其状态(可变)的预期
+    # 预认领事务
+    member_id = member_info.id
+    MemberService.preMarkGoods(member_id=member_id, goods_id=goods_id)
+
     if status == 1:
         updated = {'status': 2, 'confirm_time': datetime.datetime.now()}
         Good.query.filter_by(id=goods_id, status=status).update(updated, synchronize_session=False)
+        db.session.commit()
+        # ES, REDIS 同步
         SyncService.syncUpdatedGoodsToES(goods_id=goods_id, updated=updated)
-        # 状态 1 ——> 2
         SyncTasks.syncDelGoodsToRedis.delay(goods_ids=[goods_id], business_type=1)
+    else:
+        db.session.commit()
 
-    # 预认领事务
-    MemberService.preMarkGoods(member_id=member_info.id, goods_id=goods_id)
-    db.session.commit()
+    # 认领缓存
+    CacheOpService.addPreMarkCache(goods_id=goods_id, member_id=member_id)
+
+    # CAS 解锁
     cas.exec(goods_id, 7, 2)
     resp['code'] = 200
     return jsonify(resp)
@@ -636,22 +645,25 @@ def goodsCancelApplyInBatch():
 
     # 取消认领
     member_id = member_info.id
-    mark_keys = MemberService.cancelPremark(found_ids=found_ids, member_id=member_id)
+    MemberService.cancelPremark(found_ids=found_ids, member_id=member_id)
 
     if status == 2:
         # 对于于认领的物品，状态可能发生变更
-        no_marks = GoodsService.getNoMarksAfterDelPremark(mark_keys)
+        no_marks = GoodsService.getNoMarksAfterDelPremark(found_ids=found_ids)
         no_mark_num = len(no_marks)
         if no_mark_num > 0:
             # 公开信息操作加锁，状态预期和加锁
             # 失物招领状态更新
             Good.query.filter(Good.id.in_(no_marks), Good.status == status).update(
                 {'status': 1}, synchronize_session=False)
+            db.session.commit()
             SyncService.syncUpdatedGoodsToESBulk(goods_ids=no_marks, updated={'status': 1})
             # 异步进匹配库
             SyncTasks.synRecoverGoodsToRedis.delay(goods_ids=no_marks)
+    else:
+        db.session.commit()
 
-    db.session.commit()
+    CacheOpService.removePreMarkCache(found_ids=found_ids, member_id=member_id)
     resp['code'] = 200
     return jsonify(resp)
 
@@ -883,8 +895,7 @@ def returnLinkLostDelInBatch():
             ok_lost_ids.append(item[0])
 
     # 寻物启事
-    lost_updated = {'status': 7}
-    Good.query.filter(Good.id.in_(ok_lost_ids), Good.status == status).update(lost_updated,
+    Good.query.filter(Good.id.in_(ok_lost_ids), Good.status == status).update({'status': 7},
                                                                               synchronize_session=False)
     db.session.commit()
     SyncService.syncDeleteGoodsToESBulk(goods_ids=ok_lost_ids)
@@ -972,6 +983,7 @@ def returnGoodsGotbackInBatch():
         Good.query.filter(Good.id.in_(lost_ids), Good.status == 2).update(lost_updated, synchronize_session=False)
         # 归还
         Good.query.filter(Good.id.in_(goods_ids), Good.status == 2).update(return_updated, synchronize_session=False)
+        db.session.commit()
         # 同步ES
         SyncService.syncUpdatedGoodsToESBulk(goods_ids=lost_ids, updated=lost_updated)
         SyncService.syncUpdatedGoodsToESBulk(goods_ids=goods_ids, updated=return_updated)
@@ -1001,12 +1013,13 @@ def returnGoodsGotbackInBatch():
         Good.query.filter(Good.id.in_(return_ids), Good.status == 2).update(return_updated, synchronize_session=False)
         # 寻物启事
         Good.query.filter(Good.id.in_(goods_ids), Good.status == 2).update(lost_updated, synchronize_session=False)
+        db.session.commit()
         # 同步ES
         SyncService.syncUpdatedGoodsToESBulk(goods_ids=goods_ids, updated=lost_updated)
         SyncService.syncUpdatedGoodsToESBulk(goods_ids=return_ids, updated=return_updated)
         # 异步发送订阅消息
         SubscribeTasks.send_return_finish_msg_in_batch.delay(gotback_returns=[item[0] for item in return_ids])
-    db.session.commit()
+
     resp['code'] = 200
     return jsonify(resp)
 
@@ -1287,7 +1300,7 @@ def goodsInfo():
                          'is_no_thanks': not goods_info.return_goods_openid and is_origin_del,
                          'op_time': goods_info.finish_time.strftime("%Y-%m-%d %H:%M")}
             data.update(more_data)
-    db.session.commit()
+    db.session.commit()  # 浏览量
     resp['code'] = 200
     resp['data']['info'] = data
     resp['data']['show_location'] = show_location

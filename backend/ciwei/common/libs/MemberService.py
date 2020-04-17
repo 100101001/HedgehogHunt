@@ -15,7 +15,7 @@ import string
 import requests
 
 from application import app, db
-from common.cahce import redis_conn_db_1, CacheKeyGetter
+from common.cahce import redis_conn_db_1, CacheKeyGetter, CacheOpService, CacheQueryService
 from common.libs.Helper import getCurrentDate, queryToDict
 from common.models.ciwei.Appeal import Appeal
 from common.models.ciwei.Goods import Good
@@ -66,9 +66,7 @@ class MemberService:
         # 发布成功，用户积分涨5
         member_info = Member.query.filter_by(id=member_id).first()
         member_info.credits += 5
-        mem_key = "member_"+str(member_id)
-        redis_conn_db_1.set(mem_key, json.dumps(queryToDict(member_info)))
-        redis_conn_db_1.expire(mem_key, 3600)
+        CacheOpService.setMemberCache(member_info=member_info)
         db.session.add(member_info)
 
 
@@ -128,19 +126,14 @@ class MemberService:
         :return:
         """
         if not member_id or not goods_id:
-            return
+            return False
         repeat_mark = Mark.query.filter_by(member_id=member_id, goods_id=goods_id).first()
-        mark_key = CacheKeyGetter.markKey(goods_id)
         if repeat_mark:
             if repeat_mark.status == 7:
                 # 将被删除的记录状态初始化
-                redis_conn_db_1.sadd(mark_key, member_id)
-                redis_conn_db_1.expire(mark_key, 3600)
                 repeat_mark.status = 0
                 db.session.add(repeat_mark)
             return repeat_mark.status == 0
-        redis_conn_db_1.sadd(mark_key, member_id)
-        redis_conn_db_1.expire(mark_key, 3600)
         pre_mark = Mark()
         pre_mark.goods_id = goods_id
         pre_mark.member_id = member_id
@@ -157,17 +150,13 @@ class MemberService:
         """
         if not member_id or not goods_id:
             return False
-        mark_key = CacheKeyGetter.markKey(goods_id)
-        mark_member_ids = redis_conn_db_1.smembers(mark_key)
+        # 缓存中获取goods_id 对应的 member_id 集合
+        mark_member_ids = CacheQueryService.getMarkCache(goods_id=goods_id)
         if not mark_member_ids:
-            # 从数据库获取一个物品的所有认领人的id
+            # 缓存不命中, 从数据库获取一个物品的所有认领人的id
             marks = Mark.query.filter(Mark.goods_id == goods_id,
                                       Mark.status != 7).all()
-            redis_conn_db_1.sadd(mark_key, -1)  # 占位符可以用来判断缓存中有
-            mark_member_ids = set(i.member_id for i in marks)
-            for m_id in mark_member_ids:
-                redis_conn_db_1.sadd(mark_key, m_id)
-        redis_conn_db_1.expire(mark_key, 3600)
+            mark_member_ids = CacheOpService.setMarkCache(goods_id=goods_id, marks=marks)
         return bool(str(member_id) in mark_member_ids)
 
     @staticmethod
@@ -180,10 +169,6 @@ class MemberService:
         Mark.query.filter(Mark.member_id == member_id,
                           Mark.goods_id.in_(found_ids),
                           Mark.status == 0).update({'status': 7}, synchronize_session=False)
-        mark_keys = [(CacheKeyGetter.markKey(fid), fid) for fid in found_ids]
-        for m_key, _ in mark_keys:
-            redis_conn_db_1.srem(m_key, member_id)
-        return mark_keys
 
     @staticmethod
     def appealGoods(member_id=0, goods_id=0):

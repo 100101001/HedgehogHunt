@@ -6,20 +6,16 @@
 @file: CacheQueryService.py
 @desc: 
 """
-from application import cache
-from common.models.ciwei.Member import Member
+from common.cahce import redis_conn_db_1, CacheKeyGetter
 
 
-@cache.memoize()
-def getMemberById(member_id=0):
-    return Member.query.filter_by(id=member_id).first()
-
-
-@cache.memoize()
-def getMemberByOpenid(openid=''):
-    return Member.query.filter_by(openid=openid).first()
-
-
-@cache.memoize()
-def getLostNotifyByMemberMobile(member_id):
-    pass
+def getMarkCache(goods_id=0):
+    """
+    获取缓存中的认领member_id set
+    :param goods_id:
+    :return:
+    """
+    mark_key = CacheKeyGetter.markKey(goods_id)
+    marks = redis_conn_db_1.smembers(mark_key)
+    redis_conn_db_1.expire(mark_key, 3600)
+    return marks

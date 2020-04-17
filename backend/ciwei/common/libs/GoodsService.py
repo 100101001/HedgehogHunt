@@ -93,18 +93,21 @@ def releaseGoodsSuccess(goods_info=None, edit_info=None):
     db.session.commit()
 
 
-def getNoMarksAfterDelPremark(cancel_mark_tuples=None):
+def getNoMarksAfterDelPremark(found_ids=None):
     """
     取消认领后,可能没有人人领
-    :param cancel_mark_tuples: [(mark_key, found_id)]
+    :param: found_ids
     :return:
     """
     no_marks = []
-    for m_key, found_id in cancel_mark_tuples:
-        marks = redis_conn_db_1.smembers(m_key)
+    for found_id in found_ids:
+        m_key = CacheKeyGetter.markKey(found_id)
+        marks = redis_conn_db_1.smembers(m_key)  # found_id 对应认领的member_id的集合
         if marks:
-            no_mark = len(marks) == 1 and marks[0] == '-1'
+            # 缓存命中
+            no_mark = len(marks) == 1 and '-1' in marks
         else:
+            # 缓存不命中
             cnt = db.session.query(func.count(Mark.id)).filter(Mark.goods_id == found_id, Mark.status != 7).scalar()
             no_mark = cnt == 0
         if no_mark and cas.exec(found_id, 2, 1):
