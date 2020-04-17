@@ -499,7 +499,7 @@ def getNewRecommend():
 
     # 推荐规则
     recommends = Recommend.query.filter_by(status=0, target_member_id=member_info.id).all()
-    recommend_rule = and_(Good.id.in_([r.id for r in recommends]), Good.status.in_([1, 2, 3]))
+    recommend_rule = and_(Good.id.in_([r.found_goods_id for r in recommends]), Good.status.in_([1, 2, 3]))
     # 归还规则
     member_openid = member_info.openid
     return_rule = and_(Good.business_type == 2,

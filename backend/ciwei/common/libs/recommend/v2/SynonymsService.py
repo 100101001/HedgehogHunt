@@ -9,6 +9,7 @@
 import jieba.analyse
 
 from common.libs.recommend.preprocess.SynonymProcess import SynonymsProcess
+from common.loggin.decorators import time_log
 
 
 class SynonymsService:
@@ -16,6 +17,7 @@ class SynonymsService:
     def __init__(self):
         self.sym_key, self.sym_dict = SynonymsProcess.loadSymDictV2()
 
+    @time_log
     def getWordClasses(self, input_word):
         key_words = self.extractKeywords(input_word)
         noun = key_words[0]
@@ -29,11 +31,12 @@ class SynonymsService:
                 ret_dict['adj'].extend(vec)
         return ret_dict
 
+    @time_log
     def getSearchWords(self, input_word):
         key_words = self.extractKeywords(input_word)
         noun = key_words[0]
         ret_dict = {
-            'noun': self.sym_dict.get(noun, noun),  # ['长裙', '长纱'...]
+            'noun': self.sym_dict.get(noun, [noun]),  # ['长裙', '长纱'...]
             'adj': []  # [淡黄', '嫩黄'..., '蓝色', '青色'...]
         }
         for kw in key_words[1:]:
@@ -42,6 +45,7 @@ class SynonymsService:
                 ret_dict['adj'].extend(vec)
         return ret_dict
 
+    @time_log
     @classmethod
     def extractKeywords(cls, search_words):
         key_words = jieba.analyse.extract_tags(search_words)

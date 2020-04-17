@@ -10,7 +10,7 @@
 import datetime
 from decimal import Decimal
 
-from application import celery, db, app
+from application import celery, db
 from common.libs import LogService
 from common.libs.CryptService import Cipher
 from common.libs.sms import SMSService

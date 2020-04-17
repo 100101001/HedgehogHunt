@@ -73,7 +73,7 @@ class DistanceService:
             if distance < 300:
                 # 直线距离300m内的才算数
                 ret_list.append(item)
-        return list(set(ret_list))
+        return ret_list
 
 
 if __name__ == "__main__":

@@ -73,27 +73,24 @@ def scanReturnSuccess(scan_goods=None, notify_id=''):
 
 
 def releaseGoodsSuccess(goods_info=None, edit_info=None):
+    # goods 状态的变更
     is_edit = edit_info is not None
-    if is_edit:
-        goods_id = goods_info.id
-        edit_key = CacheKeyGetter.goodsEditKey(goods_id)
-        status = redis_conn_db_1.get(edit_key)
-        goods_info.status = int(status)
-        cas.exec(goods_id, 7, status)
-        redis_conn_db_1.delete(edit_key)
-    else:
+    if not is_edit:
         goods_info.status = 1
 
+    goods_status = goods_info.status
     db.session.add(goods_info)
-    MemberService.updateCredits(member_id=goods_info.member_id)
-    db.session.commit()
+    if not is_edit:
+        MemberService.updateCredits(member_id=goods_info.member_id)
     # ES同步
     SyncService.syncGoodsToES(goods_info=goods_info, edit=is_edit)
     # RS同步
     serializable_goods_info = queryToDict(goods_info)
-    SyncTasks.syncNewGoodsToRedis.delay(goods_info=serializable_goods_info)
+    if goods_status == 1:
+        SyncTasks.syncNewGoodsToRedis.delay(goods_info=serializable_goods_info)
     # 匹配
-    RecommendTasks.autoRecommendGoods(edit_info=edit_info, goods_info=serializable_goods_info)
+    RecommendTasks.autoRecommendGoods.delay(edit_info=edit_info, goods_info=serializable_goods_info)
+    db.session.commit()
 
 
 def getNoMarksAfterDelPremark(cancel_mark_tuples=None):

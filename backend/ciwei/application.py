@@ -7,6 +7,7 @@ from flask_migrate import Migrate
 import os
 from common.libs.search import FlaskEs
 from common.tasks import FlaskCelery
+from common.loggin import getLoggingHandler
 # 测试需要使用绝对路径无论从哪里调用都共用base_setting.py
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -26,6 +27,9 @@ class Application(Flask):
         celery.init_app(self)
         # 强制时区是中国
         os.environ['TZ'] = 'Asia/Shanghai'
+        # 日志
+        handler = getLoggingHandler()
+        self.logger.addHandler(handler)
 
 
 db = SQLAlchemy()

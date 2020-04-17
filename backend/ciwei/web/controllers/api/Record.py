@@ -188,7 +188,9 @@ def recordDelete():
         Good.query.filter(Good.id.in_(ok_ids), Good.status == status).update({'status': 7}, synchronize_session=False)
         # 异步同步数据
         SyncService.syncDeleteGoodsToESBulk(goods_ids=ok_ids)
-        SyncTasks.syncDelGoodsToRedis.delay(goods_ids=ok_ids, business_type=int(req.get('biz_type')))
+        biz_type = int(req.get('biz_type', 2))
+        if status == 1 and biz_type != 2:
+            SyncTasks.syncDelGoodsToRedis.delay(goods_ids=ok_ids, business_type=biz_type)
     elif op_status == 1:
         # 删除认领记录（已取回，已答谢）
         Mark.query.filter(Mark.member_id == member_info.id,
@@ -206,9 +208,6 @@ def recordDelete():
             Recommend.lost_goods_id).all()
         Recommend.query.filter(Recommend.target_member_id == member_info.id,
                                Recommend.found_goods_id.in_(id_list)).update({'status': 7}, synchronize_session=False)
-        # 允许新增订阅消息
-        Good.query.filter(Good.id.in_(lost_goods_ids), Good.status == 1).update({'recommended_times': 1},
-                                                                                synchronize_session=False)
     elif op_status == 6:
         # 申诉只能删除已处理完毕的记录
         Appeal.query.filter(Appeal.member_id == member_info.id,

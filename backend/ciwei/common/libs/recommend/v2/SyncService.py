@@ -146,7 +146,6 @@ def syncUpdatedGoodsToESBulk(goods_ids=None, updated=None):
     for goods_id in goods_ids:
         action = {
             '_index': ES_CONSTANTS['INDEX'],
-            '_type': ES_CONSTANTS['DOC_TYPE'],
             '_id': goods_id,
             '_source': updated
         }

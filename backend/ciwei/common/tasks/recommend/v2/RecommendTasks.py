@@ -22,7 +22,7 @@ synonyms = SynonymsService()
 distance = DistanceService()
 
 
-# @celery.task(name='recommend.auto_recommend_goods', property=1)
+@celery.task(name='recommend.auto_recommend_goods', property=1)
 def autoRecommendGoods(edit_info=None, goods_info=None):
     """
     根据编辑或者新帖子进行推荐匹配
@@ -72,7 +72,7 @@ def doAutoRecommendGoods(goods_info=None, edit=False):
     need_notification = []
     for good in goods_list:
         good_id = good.get('id')
-        target_member_id = good.get('author_id') if release_type == 1 else goods_info.member_id  # 获得寻物启示贴主id
+        target_member_id = good.get('member_id') if release_type == 1 else goods_info.member_id  # 获得寻物启示贴主id
         lost_goods_id = good_id if release_type == 1 else goods_info.id
         found_goods_id = good_id if release_type == 0 else goods_info.id  # 获取失物招领id
         new_recommend = addRecommendGoods(target_member_id=target_member_id,
@@ -80,16 +80,16 @@ def doAutoRecommendGoods(goods_info=None, edit=False):
                                           lost_goods_id=lost_goods_id,
                                           edit=edit)
 
-        if new_recommend and release_type == 1 and good.recommended_times > 0:
+        if new_recommend and release_type == 1:
             # 是之前没推荐过的新物品给了寻物启示失主，且该寻物启事还剩寻物消息才发通知
             # 通知：有人可能捡到了你遗失的东西
             need_notification.append(good)
 
-    # 批量更新寻物剩余的匹配通知次数
-    if release_type == 1 and len(need_notification) > 0:
-        Good.query.filter(Good.business_type == 0, Good.id.in_([item.get('id') for item in need_notification])). \
-            update({'recommended_times': 0}, synchronize_session=False)
-        db.session.commit()
+    # # 批量更新寻物剩余的匹配通知次数
+    # if release_type == 1 and len(need_notification) > 0:
+    #     notified_goods = [item.get('member_id') for item in need_notification]
+    #
+    #     db.session.commit()
     app.logger.warn("推荐结束")
 
     # 异步批量的发送订阅消息[分发给专门负责订阅消息的worker处理]
@@ -167,36 +167,26 @@ def doFilterPossibleGoods_Redis(goods_info=None, cls_dict=None):
 
     # 权重
     adj_keys = cls_dict['adj']
-    adj_list = []
-    part = len(adj_keys)
-    total_score = part / 2 * (part + 1)
-    for k in adj_keys:
-        relatives = redis_conn.hvals(k)  # ["{id, lng, lat, author_id}", "{}"]
-        rel_score = part / total_score
-        for i in range(len(relatives)):
-            data = json.loads(relatives[i])
-            data['score'] = rel_score
-            relatives[i] = data
-        part -= 1
-        adj_list.extend(relatives)
+    if adj_keys:
+        part = len(adj_keys)
+        total_score = part / 2 * (part + 1) + 1   # 只有1个形容词
+        relatives = {}
+        for k in adj_keys:
+            relative = redis_conn.hvals(k)  # ["{id, lng, lat, author_id}", "{}"]
+            rel_score = part / total_score
+            for i in range(len(relative)):
+                data = json.loads(relative[i])
+                goods_id = data['id']   # https://blog.csdn.net/jinnajinna/article/details/100373407
+                if goods_id not in relatives:
+                    relatives[goods_id] = rel_score
+                else:
+                    relatives[goods_id] += rel_score
+            part -= 1
 
-    relatives = weightedCounter(adj_list)  # https://blog.csdn.net/jinnajinna/article/details/100373407
-
-    for item in possibles:
-        item['score'] += relatives.get(item['id'], 0)
+        for item in possibles:
+            item['score'] += relatives.get(item['id'], 0)
 
     return possibles
-
-
-def weightedCounter(adj_list):
-    relatives = {}
-    for item in adj_list:
-        goods_id = item['id']
-        if goods_id not in relatives:
-            relatives[goods_id] = item['score']
-        else:
-            relatives[goods_id] += item['score']
-    return relatives
 
 
 def doFilterPossibleGoods_ES(goods_info=None):
@@ -227,7 +217,7 @@ def doFilterPossibleGoods_ES(goods_info=None):
     }
 
     possibles = []
-    for noun in must_syms:
+    for noun in must_syms:  # must_syms中只有名词自己
         must[0]['match']['name'] = noun
         res = es.search(index='goods_info', doc_type='recommend', body=body)
         for item in res['hits']['hits']:

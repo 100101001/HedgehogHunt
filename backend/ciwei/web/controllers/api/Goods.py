@@ -157,7 +157,6 @@ def createGoods():
     model_goods.nickname = member_info.nickname
     model_goods.avatar = member_info.avatar
     model_goods.name = req["goods_name"]  # 物品名，前端发布已判空
-    model_goods.target_price = Decimal(req['target_price']).quantize(Decimal('0.00')) if 'target_price' in req else 0.0
     location = req["location"]  # 放置地址/住址，前端发布已判空
     os_location = req['os_location']  # 丢失和发现地址
     model_goods.location = "###".join(location.split(","))  # 放置地址/住址
@@ -171,8 +170,8 @@ def createGoods():
     model_goods.status = 7  # 创建未完成
     model_goods.mobile = req['mobile']  # 前端发布已判空
     # 置顶的物品7天后置顶过期，非置顶物品创建时就置顶过期
-    model_goods.top_expire_time = getCurrentDate() if not int(req['is_top'] if 'is_top' in req else 0) \
-        else (datetime.datetime.now() + datetime.timedelta(days=int(req['days']))).strftime("%Y-%m-%d %H:%M:%S")
+    now = datetime.datetime.now()
+    model_goods.top_expire_time = now if not int(req.get('is_top', 0)) else now + datetime.timedelta(days=int(req['days']))
     db.session.add(model_goods)
     db.session.commit()
 
@@ -438,7 +437,7 @@ def goodsSearchV2():
             item = item.get('_source')
             item_id = item.get('id')
             item_status = item.get('status')
-            if not cas.exec(item_id, item_status, item_status) and not cas.exec(item_id, 'nil', item_status):
+            if not cas.exec_wrap(item_id, [item_status, 'nil'], item_status):
                 continue
             tmp_data = {
                 "id": item_id,
@@ -459,7 +458,7 @@ def goodsSearchV2():
     # 失/拾 一页信息 是否已加载到底
     resp['code'] = 200
     resp['data']['list'] = data_goods_list
-    resp['data']['has_more'] = len(data_goods_list) >= 10
+    resp['data']['has_more'] = len(data_goods_list) >= page_size
     resp['business_type'] = business_type
     return jsonify(resp)
 
@@ -1412,20 +1411,16 @@ def editGoods():
     # 检查参数：物品id, 物品类型business_type,物品名字goods_name,
     member_info = g.member_info
     if not member_info:
-        resp['msg'] = '用户信息异常'
+        resp['msg'] = '请先登录'
         return jsonify(resp)
     goods_id = int(req.get('id', -1))
     if goods_id == -1:
         resp['msg'] = "数据上传失败"
-        resp['data'] = req
         return jsonify(resp)
     status = int(req.get('status', -1))
     if not cas.exec(goods_id, status, 7):
         resp['msg'] = "操作冲突，请稍后重试"
         return jsonify(resp)
-    edit_key = CacheKeyGetter.goodsEditKey(goods_id)
-    redis_conn_db_1.set(edit_key, status)
-    redis_conn_db_1.expire(edit_key, 100)
     goods_info = Good.query.filter_by(id=goods_id).first()
     if not goods_info:
         resp['msg'] = "数据上传失败"
@@ -1434,8 +1429,7 @@ def editGoods():
 
     goods_info.pics = ""
     goods_info.main_image = ""
-    goods_info.target_price = Decimal(req['target_price']).quantize(Decimal('0.00')) if 'target_price' in req else 0.00
-    goods_info.name = req.get('goods_name')
+    goods_info.name = req['goods_name']
     goods_info.owner_name = req['owner_name']
     goods_info.summary = req['summary']
     location = req['location'].split(",")
@@ -1445,16 +1439,14 @@ def editGoods():
     goods_info.mobile = req['mobile']
     # 修改成置顶贴子
     if int(req.get('is_top', 0)):
-        goods_info.top_expire_time = (datetime.datetime.now() + datetime.timedelta(days=int(req['days']))) \
-            .strftime("%Y-%m-%d %H:%M:%S")
-    goods_info.updated_time = getCurrentDate()
+        goods_info.top_expire_time = datetime.datetime.now() + datetime.timedelta(days=int(req['days']))
+    goods_info.updated_time = datetime.datetime.now()
     db.session.add(goods_info)
 
     db.session.commit()
-
+    cas.exec(goods_id, 7, status)
     # 异步推荐存储同步
     SyncService.syncDeleteGoodsToESBulk(goods_ids=[goods_id])
-    SyncTasks.syncDelGoodsToRedis.delay(goods_ids=[goods_id], business_type=goods_info.business_type)
 
     # 通过链接发送之后的图片是逗号连起来的字符串
     img_list = req['img_list']
@@ -1480,6 +1472,7 @@ def goodsStatus():
         return jsonify(resp)
 
     if not cas.exec(goods_id, status, status):
+        # 已经进入详情页面了
         resp['msg'] = '操作冲突，请稍后重试'
         return jsonify(resp)
 
