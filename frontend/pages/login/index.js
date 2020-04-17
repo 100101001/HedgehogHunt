@@ -41,7 +41,7 @@ const getNewSessionKey = function (cb_success=(session_key)=>{}) {
 
 
 const checkReg = function (openid, cb_comp = (isReg) => {}) {
-  if (app.regFlag && this.getCache("token")) {
+  if (app.regFlag && app.getCache("token")) {
     //已注册且已登录
     app.alert({title:'登录提示', content:'已登录过，勿重复登录！', cb_confirm: ()=>{wx.navigateBack()}});
     cb_comp(true)
@@ -56,11 +56,11 @@ const checkReg = function (openid, cb_comp = (isReg) => {}) {
     },
     success: (res) => {
       let is_reg = res.data['data']['is_reg'];
-      cb_comp(is_reg);
       if (is_reg) {
         //未登录的注册用户，直接登录
-        app.login()
+        app.login();
       }
+      cb_comp(is_reg);
     }
   })
 };

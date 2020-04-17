@@ -180,20 +180,9 @@ Page({
    * @param info
    */
   setEditFormInitData(info={}) {
-    //获取物品类别数据
-    wx.request({
-      url: app.buildUrl('/goods/category/all'),
-      success: (res) => {
-        this.setData({
-          category_arr: res.data['data']['cat_list'],
-          category_default_goods: res.data['data']['cat_default']
-        });
-      }
-    });
     // 输入框，地址选择，图片上传框数据
     let business_type = info.business_type;
     let tips_obj = {
-      "category": "物品类别",
       "goods_name": "物品名称",
       "owner_name": business_type ? "失主姓名" : "姓名",
       "location": business_type ? "物品放置位置" : "居住地址",
@@ -230,7 +219,6 @@ Page({
       summary_placeholder = "添加寻物描述：物品丢失大致时间、地点，记号等...";
     }
     this.setData({
-      category_index: info.category - 1, //物品分类的序列号，数据库ID从1开始，数组从0开始，所以减一转换
       imglist: info.pics.slice(),  ///为了比对编辑是否修改了内容，slice使得副本修改不影响原info
       loadingHidden: true,
       business_type: business_type,
@@ -243,7 +231,6 @@ Page({
       top: info.top, //原来是否置顶
       submitDisable: false
     });
-
   },
   /**
    * setTopAndBalanceUseInitData 置顶组件数据初始化
@@ -324,19 +311,17 @@ Page({
   formSubmit: function (e) {
     this.setData({submitDisable: true});
     let data = e.detail.value;
-    data['category'] = this.data.category_index;
     if (app.judgeEmpty(data, this.data.tips_obj)) {
       this.setData({submitDisable: false});
-      return
+      return;
     }
     let img_list = this.data.imglist;
     if (img_list.length === 0) {
       app.alert({'content': "至少要提交一张图片"});
       this.setData({submitDisable: false});
-      return
+      return;
     }
-    data['status'] = this.data.info.status
-    data['category'] = parseInt(data['category']) + 1; // 因为数据库id从1开始计数
+    data['status'] = this.data.info.status;
     data['business_type'] = this.data.business_type;
     data['img_list'] = img_list;
     data['location'] = this.data.location;
@@ -347,8 +332,7 @@ Page({
 
     // 编辑操作是否更改了匹配信息
     let origin_info = this.data.origin_info;
-    let kw_modified = (data['category'] != origin_info.category ||
-      data['owner_name'] != origin_info.owner_name ||
+    let kw_modified = (data['owner_name'] != origin_info.owner_name ||
       data['goods_name'] != origin_info.goods_name);
     this.data.keyword_modified = kw_modified ? 1 : 0;
     let modified = this.data.keyword_modified || !origin_info.pics.equals(img_list)
@@ -563,19 +547,6 @@ Page({
       this.setData({
         use_balance: e.detail.value.length == 1
       })
-    })
-  },
-  bindCategoryChange: function (e) {
-    let index = e.detail.value;
-    this.setData({
-      category_index: index
-    });
-    let items = this.data.items;
-    let default_goods = this.data.category_default_goods;
-    let input_good_name = items[0].value;
-    items[0].value = input_good_name && default_goods.indexOf(input_good_name) == -1 ? input_good_name : default_goods[index];
-    this.setData({
-      items: items
     })
   }
 });

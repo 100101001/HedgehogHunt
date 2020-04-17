@@ -5,11 +5,19 @@
   <image src="{{info.avatar}}"></image>
 </view>
 
+<!--快速导航-->
+<view class="pin-cards-container" wx:for="{{navigators}}">
+  <view class="pin-card">
+    <view class="pin-card-text">
+      {{item.label}}
+    </view>
+  </view>
+</view>
+
+
 
 <navigator url="/mall/pages/my/order_list">[我的订单]</navigator>
-
 <navigator url="/mall/pages/my/index">[我的购物]</navigator>
-
 <navigator url="/pages/Record/index?op_status=0">[我的发布]</navigator>
 <navigator url="/pages/Record/index?op_status=1">[我的认领]</navigator>
 <navigator url="/pages/Record/index?op_status=2">[推荐我的]</navigator>

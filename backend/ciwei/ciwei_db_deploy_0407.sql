@@ -266,11 +266,9 @@ CREATE TABLE `goods`  (
   `return_goods_id` int(11) UNSIGNED NULL DEFAULT 0 COMMENT '归还的寻物启示ID',
   `return_goods_openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '归还的寻物启示OPENID',
   `status` tinyint(1) UNSIGNED NOT NULL DEFAULT 7 COMMENT '1:待, 2:预, 3:已, 5:管理员删, 7:发布者创建中, 8:发布者被管理员拉黑',
-  `is_thanked` tinyint(1) NOT NULL DEFAULT 0 COMMENT '状态 0：未答谢 1:已答谢',
   `view_count` int(11) NOT NULL DEFAULT 0 COMMENT '总浏览次数',
   `top_expire_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '置顶过期时间',
-  `category` tinyint(1) UNSIGNED NOT NULL DEFAULT 10 COMMENT '1:钱包 2：钥匙 3: 卡类/证照 4: 数码产品 5：手袋/挎包 6：衣服/鞋帽 7：首饰/挂饰 8：行李/包裹 9：书籍/文件 10：其它',
-  `recommended_times` int(11) NOT NULL DEFAULT 0 COMMENT '总匹配过失/拾物次数',
+  `recommended_times` int(11) NOT NULL DEFAULT 1 COMMENT '总匹配过失/拾物次数',
   `report_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '被举报后的状态，用于存储举报的状态值',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
@@ -279,38 +277,12 @@ CREATE TABLE `goods`  (
   INDEX `ix_goods_status`(`status`) USING BTREE,
   INDEX `ix_goods_top_expire_time`(`top_expire_time`) USING BTREE,
   INDEX `ix_goods_view_count`(`view_count`) USING BTREE,
-  INDEX `ix_goods_category`(`category`) USING BTREE,
   INDEX `ix_goods_owner_id`(`owner_id`) USING BTREE,
   INDEX `ix_goods_qr_code_openid`(`qr_code_openid`) USING BTREE,
   INDEX `ix_goods_return_goods_openid`(`return_goods_openid`) USING BTREE,
-  INDEX `ix_goods_business_type`(`business_type`) USING BTREE,
-  INDEX `ix_goods_is_thanked`(`is_thanked`) USING BTREE
+  INDEX `ix_goods_business_type`(`business_type`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品表' ROW_FORMAT = Dynamic;
 
--- ----------------------------
--- Table structure for goods_category
--- ----------------------------
-DROP TABLE IF EXISTS `goods_category`;
-CREATE TABLE `goods_category`  (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `tag` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '类别标签',
-  `default_goods` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '类别默认失物',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物品类别表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Records of goods_category
--- ----------------------------
-INSERT INTO `goods_category` VALUES (1, '钱包', '钱包');
-INSERT INTO `goods_category` VALUES (2, '钥匙', '钥匙');
-INSERT INTO `goods_category` VALUES (3, '卡类/证照', '校园卡');
-INSERT INTO `goods_category` VALUES (4, '数码产品', '手机');
-INSERT INTO `goods_category` VALUES (5, '手袋/挎包', '书包');
-INSERT INTO `goods_category` VALUES (6, '衣服/鞋帽', '外套');
-INSERT INTO `goods_category` VALUES (7, '首饰/挂饰', '手链');
-INSERT INTO `goods_category` VALUES (8, '行李/包裹', '快递');
-INSERT INTO `goods_category` VALUES (9, '书籍/文件', '文件夹');
-INSERT INTO `goods_category` VALUES (10, '其它', '');
 
 -- ----------------------------
 -- Table structure for goods_top_order

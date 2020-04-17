@@ -1,21 +1,21 @@
-const navigate = require("../template/navigate-bar/navigate-bar-template.js")
-const util = require("../../utils/util.js")
-const app = getApp()
+const navigate = require("../template/navigate-bar/navigate-bar-template.js");
+const util = require("../../utils/util.js");
+const app = getApp();
 
 
 
 /**
  * hasQrcode 用户是否有二维码
- * @param cb_success
+ * @param cb_complete
  */
 const hasQrcode = function (cb_complete=()=>{}) {
   wx.request({
     url: app.buildUrl("/member/has-qrcode"),
     header: app.getRequestHeader(),
     success: res => {
-      let resp = res.data
+      let resp = res.data;
       if (resp['code'] !== 200) {
-        cb_complete(false)
+        cb_complete(false);
         return
       }
       cb_complete(resp['data']['has_qr_code'])
@@ -32,7 +32,24 @@ Page({
    * 页面的初始数据
    */
   data: {
-
+    navigators : [
+      {
+        label: '我的发布',
+        url: '/pages/Record/index?op_status=0'
+      },
+      {
+        label: '我的认领',
+        url: '/pages/Record/index?op_status=1'
+      },
+      {
+        label: '推荐我的',
+        url: '/pages/Record/index?op_status=2'
+      },
+      {
+        label: '归还我的',
+        url: '/pages/Record/index?op_status=5'
+      }
+    ]
   },
 
   /**
@@ -53,13 +70,13 @@ Page({
    * 生命周期函数--监听页面显示
    */
   onShow: function () {
-    let [isSelecteds, urls] = util.onNavigateTap()  //不传值代表没有页被选中
-    isSelecteds['showHintQrcode'] = app.globalData.showHintQrcode
-    isSelecteds['regFlag'] = app.globalData.regFlag
+    let [isSelecteds, urls] = util.onNavigateTap();  //不传值代表没有页被选中
+    isSelecteds['showHintQrcode'] = app.globalData.showHintQrcode;
+    isSelecteds['regFlag'] = app.globalData.regFlag;
     hasQrcode((has_qrcode) => {
-      isSelecteds['hasQrcode'] = has_qrcode
+      isSelecteds['hasQrcode'] = has_qrcode;
       util.getNewRecommend((data) => {
-        isSelecteds['total_new'] = data.total_new
+        isSelecteds['total_new'] = data.total_new;
         this.setData({
           isSelecteds: isSelecteds
         })

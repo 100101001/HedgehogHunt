@@ -1,40 +1,15 @@
 <import src="../template/goods-item/goods-item-template.wxml" />
 
 
-<!--右滑的教程指示，每次打开小程序，首次进入该页都会进行指引-->
-<view class="hide{{tutorial?'show':''}}" bindtouchstart="closeTutorial">
-  <!--遮罩层  -->
-  <view class="shade">
-    <image class="finger" src="/images/icons/finger.png" ></image>
-  </view>
-</view>
 
 <!--教程之外的内容(侧边栏和视图)-->
 <view>
-  <!--侧边栏-->
-  <view class="school_select_area {{open ? 'on' : ''}}">
-    <view class="school_select_content">
-      <block wx:for="{{goods_category}}" wx:key="index">
-        <view class="campus" bindtap="selectGoodsCat" data-name="{{item}}" wx:if="{{open}}">
-          <text>{{item}}</text>
-        </view>
-      </block>
-    </view>
-  </view>
-
   <!--整个页面-->
-  <view bindtouchmove="tapDrag" bindtouchend="tapEnd" bindtouchstart="tapStart"
-        class="all_container {{open ? 'fold' : ''}}">
+  <view class="all_container">
     <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
     
     <import src="../template/floating-ball/floating-ball-template.wxml"></import>
     <template is="floating-ball" data="{{business_type}}"></template>
-<!--    &lt;!&ndash;悬浮球&ndash;&gt;-->
-<!--    <view class="ball {{business_type? '': 'ball-extra'}}" catch:touchstart="businessTypeClick">-->
-<!--      <view class="business_type">-->
-<!--        {{business_type? '寻': '失'}}-->
-<!--      </view>-->
-<!--    </view>-->
 
     <form bindsubmit="formSubmit">
       <view class="search_container">

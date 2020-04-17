@@ -208,29 +208,35 @@ Page({
   },
   //获取位置的方法
   getLocation: function (e) {
+    wx.showLoading({
+      title: '正在获取位置'
+    });
     let loc_id = e.currentTarget.dataset.loc;
-    console.log(loc_id);
-    let that = this;
     wx.getSetting({
       success: (res) => {
         if (!res.authSetting['scope.userLocation']) {
           // 获取定位授权
           wx.authorize({
             scope: 'scope.userLocation',
-            success() {
+            success: (res)=> {
               this.chooseLocation(loc_id);
             },
-            fail(errMsg) {
+            fail: (errMsg) => {
               app.alert({content: '授权失败，将无法成功发布信息'})
+            },
+            complete: (res)=> {
+              wx.hideLoading()
             }
           })
         } else {
           //已经获取了授权，直接选择地址
+          wx.hideLoading();
           this.chooseLocation(loc_id);
         }
       },
       fail: (res) => {
-        app.alert({content: '网络开小差了，请稍后再试'})
+        wx.hideLoading();
+        app.alert({content: '网络开小差了，请稍后再试'});
       }
     })
   },
@@ -349,8 +355,7 @@ Page({
         goods_name: items[0].value,
         mobile: items[2].value,
         owner_name: items[1].value,
-        summary: this.data.summary_value,
-        category: this.data.category_index
+        summary: this.data.summary_value
       };
     } else {
       //扫码发布可不填失主信息
@@ -358,8 +363,7 @@ Page({
         location: this.data.location.length ? this.data.location[1] : "",
         goods_name: items[0].value,
         mobile: items[1].value,
-        summary: this.data.summary_value,
-        category: this.data.category_index
+        summary: this.data.summary_value
       };
     }
     return data;
@@ -422,7 +426,6 @@ Page({
   continueToRelease: function(data={}){
     data['os_location'] = this.data.os_location;
     data['business_type'] = this.data.business_type;
-    data['category'] = parseInt(data['category']) + 1; // 因为数据库id从1开始计数
     data['location'] = this.data.location;
     data['img_list'] = this.data.imglist;
     data['is_top'] = this.data.isTop ? 1 : 0;
@@ -520,7 +523,6 @@ Page({
     wx.requestSubscribeMessage({
       tmplIds: getSubscribeTmpIds(this.data.business_type),
       complete: (res) => {
-        console.log(res)
         this.releaseGoods(data)
       }
     })
@@ -550,10 +552,10 @@ Page({
         if (resp['code'] !== 200) {
           app.alert({
             'content': resp['msg']
-          })
+          });
           this.setData({
             submitDisable: false
-          })
+          });
           return
         }
         //获取商品的id,之后用于提交图片
@@ -579,7 +581,7 @@ Page({
   uploadImage: function (id, img_list, img_list_status) {
     this.setData({
       loadingHidden: false
-    })
+    });
     for (let i = 1; i <= img_list.length; i++) {
       this.setData({
         i: i
@@ -782,22 +784,11 @@ Page({
    * setFormInitData 在初始化页面数据{@link setInitData}时，置空表单数据
    */
   setFormInitData() {
-    //获取物品类别数据
-    wx.request({
-      url: app.buildUrl('/goods/category/all'),
-      success: (res) => {
-        this.setData({
-          category_arr: res.data['data']['cat_list'],  //可选物品所属类别的列表
-          category_default_goods: res.data['data']['cat_default']  //各物品类别下的默认填充物品名
-        });
-      }
-    });
     // 输入框，地址选择，图片上传框数据
     let info = this.data.info;  //如果因点击归还寻物而进入发布页，info就是原寻物启事的表单数据(用于初始化发布页表单)，否则是undefined
     let business_type = this.data.business_type;
     //发布前data内需要判空的属性，对应属性缺失时，向用户显示的属性的提示语。比如data的category为空，就弹出提示“物品类别为空”
     let tips_obj = {
-      "category": "物品类别",
       "goods_name": "物品名称",
       "owner_name": business_type ? "失主姓名" : "姓名",
       "location": business_type ? "物品放置位置" : "居住地址",
@@ -839,7 +830,6 @@ Page({
       summary_placeholder = "添加寻物描述：物品丢失大致时间、地点，记号等..."
     }
     this.setData({
-      category_index: info ? info.category - 1 : null, //数据库的物品id是从1开始计数的，所以这里需要-1符合数组下表索引从0开始
       imglist: business_type ? [] : ['/images/icons/wanted.png'],  //寻物启事有一张默认的寻物图(图片列表)
       count: 1 - business_type,  //失物招领时business_type==1，图片为0。寻物启事时business_type==0，图片为1。图片数量
       pic_status: true,  //是否可以继续加图
@@ -920,20 +910,6 @@ Page({
       this.setData({
         use_balance: e.detail.value.length == 1
       })
-    })
-  },
-  bindCategoryChange: function (e) {
-    let index = e.detail.value
-    this.setData({
-      category_index: index
-    })
-    let items = this.data.items
-    let default_goods = this.data.category_default_goods
-    let input_good_name = items[0].value
-    // 如果是用户输入则不随类型变化而设置类型默认物品
-    items[0].value = input_good_name && default_goods.indexOf(input_good_name) == -1 ? input_good_name : default_goods[index]
-    this.setData({
-      items: items
     })
   }
 })

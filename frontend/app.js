@@ -43,10 +43,9 @@ App({
     id: null, //用户的id(首页goToIndex会用到)
     regFlag: false, //用于判断用户已注册(和缓存中的token一起代表用户已经登录)
     shopName: "闪寻-失物招领",
-    //domain: "http://127.0.0.1:8999/api",
     domain: "http://192.168.1.116:8999/api",
     //domain: "https://ciwei.opencs.cn/api",
-    static_file_domain: "https://ciwei.opencs.cn",
+    //static_file_domain: "https://ciwei.opencs.cn",
     static_file_domain: "http://192.168.1.116:8999",
     member_status: 1, //用户状态
     op_status: 2,
@@ -97,51 +96,28 @@ App({
     },
     campus_id: -1, //学校id
     campus_name: "", //学校名
-    tutorial: true,
     read_goods: new BloomFilter(32*256, 16), //用户查阅过的物品ID，用于阅读量计数
-    recent_waiting_found: [], //用户最近查阅的拾物ID，用于发布寻物启事的时候，不给用户推荐
   },
   onLaunch: function () {
     // 获取后端二维码产品价格和产品ID
     wx.request({
       url: this.buildUrl('/special/info'),
       success: res => {
-        let data = res.data
-        this.globalData.qrcodePrice = data['qrcode'].price
-        this.globalData.qrcodeProductId = data['qrcode'].id
-        this.globalData.smsProductId = data['sms'].id
-        this.globalData.smsProductPrice = data['sms'].price
-        this.globalData.smsPkgProductId = data['sms_pkg'].id
-        this.globalData.smsPkgProductPrice = data['sms_pkg'].price
-        this.globalData.goodsTopPrice = data['top'].price
-        this.globalData.goodsTopDays = data['top'].days
-        this.globalData.buyQrCodeFreeSmsTimes = data['free_sms'].times
+        let data = res.data;
+        this.globalData.qrcodePrice = data['qrcode'].price;
+        this.globalData.qrcodeProductId = data['qrcode'].id;
+        this.globalData.smsProductId = data['sms'].id;
+        this.globalData.smsProductPrice = data['sms'].price;
+        this.globalData.smsPkgProductId = data['sms_pkg'].id;
+        this.globalData.smsPkgProductPrice = data['sms_pkg'].price;
+        this.globalData.goodsTopPrice = data['top'].price;
+        this.globalData.goodsTopDays = data['top'].days;
+        this.globalData.buyQrCodeFreeSmsTimes = data['free_sms'].times;
       },
       fail: res => {
         this.serverBusy()
       }
     });
-    // 获得类别列表
-    wx.request({
-      url: this.buildUrl('/goods/category/all'),
-      success: (res) => {
-        this.globalData.goodsCategories = res.data['data']['cat_list']
-        this.globalData.categoryDefaultGoods = res.data['data']['cat_default']
-      },
-      fail: res => {
-        this.serverBusy()
-      }
-    });
-    // 获得屏幕的大小
-    wx.getSystemInfo({
-      success: (res) => {
-        this.globalData.windowWidth = res.windowWidth
-      },
-      fail: res => {
-        this.serverBusy()
-      }
-    });
-    // Encrypt
   },
   /**
    * loginTip 用户点击了需要登录的功能按键时进入该函数
@@ -162,7 +138,7 @@ App({
             })
           } else if (res.cancel) { }
         }
-      })
+      });
       return false
     } else {
       return true
@@ -216,20 +192,16 @@ App({
       }
     })
   },
-  console: function (msg) {
-    console.log(msg);
-  },
   getRequestHeader: function (content_type = 0) {
-    var that = this
     if (content_type === 0) {
       return {
         'content-type': 'application/x-www-form-urlencoded',
-        'Authorization': that.getCache("token")
+        'Authorization': this.getCache("token")
       }
     } else {
       return {
         'content-type': 'application/json',
-        'Authorization': that.getCache("token")
+        'Authorization': this.getCache("token")
       }
     }
   },
@@ -391,9 +363,10 @@ App({
       //已登录
       if(this.globalData.isScanQrcode){
         //已登录用户扫码
-        this.qrCodeNavigate()
+        this.qrCodeNavigate();
+      } else {
+        this.onLoginSuccessShowToast('已登录');
       }
-      return
     }
     this.doLogin()
   },
@@ -487,6 +460,7 @@ App({
    * onLoginSuccessShowToast 向非扫码登录的用户显示登陆成功的提示信息
    * 对于通过注册登录的用户，自动关闭注册页面
    * @param content
+   * @param back_delta
    * @see doLogin 调用者
    * @see doRegister 调用者
    */

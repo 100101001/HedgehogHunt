@@ -9,7 +9,6 @@ Page({
   },
   onLoad: function (options) {
     //如果没有页面参数，则默认跳转失物招领页面
-    console.log(options)
     this.onLoadSetData(options.business_type ? parseInt(options.business_type) : 1)
   },
   onLoadSetData: function (business_type = 0) {
@@ -43,20 +42,8 @@ Page({
       goods_name: '',  // 物品名
       owner_name: '',  // 物主名
       filter_address: '',  // 搜索栏的地址关键词
-      loadingMoreHidden: true,  // 更多数据未加载
-      filter_good_category: 0, // 默认是全部类型的物品
-      open: false, //侧边栏折叠
-      tutorial: app.globalData.tutorial //侧边栏教程
+      loadingMoreHidden: true  // 更多数据未加载
     });
-    //请求后端类别列表
-    wx.request({
-      url: app.buildUrl('/goods/category/all'),
-      success: (res) => {
-        this.setData({
-          goods_category: ['全部'].concat(res.data['data']['cat_list'])   // 分类栏数据
-        })
-      }
-    })
   },
   //轮播图变化
   swiperchange: function (e) {
@@ -222,7 +209,6 @@ Page({
       activeCategoryId: this.data.activeCategoryId,
       loadingHidden: true, // loading
       swiperCurrent: 0,
-      goods: [],
       scrollTop: "0",
       processing: false,
       items: [{
@@ -321,14 +307,14 @@ Page({
   },
   //获取信息列表
   getGoodsList: function (e) {
-    let that = this
+    let that = this;
     if (!that.data.loadingMoreHidden || that.data.processing) {
       return
     }
     that.setData({
       processing: true,
       loadingHidden: false
-    })
+    });
     wx.request({
       url: app.buildUrl("/goods/search"),
       data: {
@@ -337,8 +323,7 @@ Page({
         owner_name: that.data.owner_name,
         p: that.data.p,
         business_type: that.data.business_type,
-        filter_address: that.data.filter_address,
-        filter_good_category: this.data.filter_good_category,
+        filter_address: that.data.filter_address
       },
       success: function (res) {
         let resp = res.data;
@@ -377,54 +362,6 @@ Page({
     })
   },
   /**
-   * tapDrag 手指拖动中，记录新x坐标
-   * @param e
-   */
-  tapDrag: function(e){
-    this.data.newmark = e.touches[0].pageX;
-  },
-  /**
-   * tapEnd 手指拖动结束
-   */
-  tapEnd: function(){
-    if(this.data.mark + app.globalData.windowWidth * 0.5 < this.data.newmark){
-      this.setData({
-        open : true
-      });
-    }else{
-      this.setData({
-        open : false
-      });
-    }
-    this.data.mark = 0;
-    this.data.newmark = 0;
-  },
-  /**
-   * tapStart 手指开始拖动
-   * @param e
-   */
-  tapStart:function(e){
-    console.log(e)
-    this.data.mark = this.data.newmark = e.touches[0].pageX;
-  },
-  /**
-   * selectGoodsCat 切换物品类别时重新加载数据
-   * @param e
-   */
-  selectGoodsCat: function (e) {
-    let name = e.currentTarget.dataset.name
-    let old_cat = this.data.filter_good_category
-    let new_cat = this.data.goods_category.indexOf(name)
-    this.setData({
-      open: false,
-      filter_good_category: new_cat
-    })
-    if (old_cat != new_cat) {
-      //换了新的类别
-      this.onPullDownRefresh()
-    }
-  },
-  /**
    * onPageScroll 目的：当页面滚动距离超过状态栏距离顶部的距离时，让状态栏吸附在顶部
    * @param e
    */
@@ -455,12 +392,6 @@ Page({
     //刷新页面数据
     this.onLoadSetData(1-this.data.business_type)
     this.onShow()
-  },
-  closeTutorial: function () {
-    app.globalData.tutorial = false
-    this.setData({
-      tutorial: false
-    })
   }
-})
+});
 

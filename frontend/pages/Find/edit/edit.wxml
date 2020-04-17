@@ -4,18 +4,6 @@
   <form class="goods-box" bindsubmit="formSubmit">
     <view class="price-and-location">
 
-      <!--分类选择器-->
-      <view class="hrz"></view>
-      <view class="item-container">
-        <image src="/images/icons/goods_type.png" mode="aspectFit"></image>
-        <view class="label">物品类别</view>
-        <picker bindchange="bindCategoryChange" value="{{category_index}}" range="{{category_arr}}">
-          <view class="inputbox">
-            <input value="{{category_arr[category_index]}}" placeholder="点击选择" disabled="true" bindtap="chooseCategory"></input>
-          </view>
-        </picker>
-      </view>
-
       <!--文本输入框：物品名，失主名-->
       <block wx:for="{{items}}" wx:key="index">
         <view class="hrz"></view>

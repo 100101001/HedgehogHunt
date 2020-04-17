@@ -1,4 +1,4 @@
-const app = getApp()
+const app = getApp();
 
 
 /**
@@ -6,18 +6,19 @@ const app = getApp()
  * 如果状态变为勾选：
  * 1、如果有二维码且账户没有通讯费，则提示让用户慎用余额
  * 2、否则就直接勾选
+ * @param e
  * @param cb_confirm
  */
 const changeUseBalance = function (e = {}, cb_confirm = () => {}) {
   //如果勾选使余额，对有二维码的用户进行余额使用预警
-  if (e.detail.value.length == 1) {
+  if (e.detail.value.length === 1) {
     wx.request({
       url: app.buildUrl("/balance/use/warn"),
       header: app.getRequestHeader(),
       success: res => {
-        let resp = res.data
+        let resp = res.data;
         if (resp['code'] !== 200) {
-          cb_confirm()
+          cb_confirm();
           return
         }
         if (resp['data']) {
@@ -28,39 +29,42 @@ const changeUseBalance = function (e = {}, cb_confirm = () => {}) {
             cb_confirm: cb_confirm
           })
         } else {
-          cb_confirm()
+          cb_confirm();
         }
+      },
+      fail: (res)=>{
+        app.serverBusy()
       }
     })
   } else {
-    cb_confirm()
+    cb_confirm();
   }
-}
+};
 
 /**
- * 如果余额大于5毛钱则
- * @param cb_confirm
+ * @param that
+ * @param cb_success
  */
 const initData = function (that, cb_success=(total_balance)=>{}){
   wx.request({
     url: app.buildUrl("/member/balance"),
     header: app.getRequestHeader(),
     success: res => {
-      let resp = res.data
+      let resp = res.data;
       if (resp['code'] !== 200) {
         that.setData({
           balance_got: false
-        })
+        });
         return
       }
-      let balance = parseFloat(resp['data']['balance'])
+      let balance = parseFloat(resp['data']['balance']);
       that.setData({
         balance_got: balance > 0, //没有余额不可见
         balance_use_disabled: balance <= 0, //禁用选项框
         balance_low: balance <= 0, //余额低于0不可用
         total_balance: balance, //余额总量
         balance: 0 // 可用余额
-      })
+      });
       cb_success(balance)
     }, fail: res => {
       app.serverBusy()
@@ -71,4 +75,4 @@ const initData = function (that, cb_success=(total_balance)=>{}){
 module.exports ={
   changeUseBalance: changeUseBalance,
   initData: initData
-}
+};
