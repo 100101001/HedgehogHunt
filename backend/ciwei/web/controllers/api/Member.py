@@ -4,10 +4,9 @@ import datetime
 from decimal import Decimal
 
 from flask import request, jsonify, g
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, func
 
 from application import db, app
-from common.libs import LogService
 from common.libs.CryptService import Cipher
 from common.libs.Helper import getCurrentDate
 from common.libs.MemberService import MemberService
@@ -20,13 +19,14 @@ from common.models.ciwei.Member import Member
 from common.models.ciwei.MemberSmsPkg import MemberSmsPkg
 from common.models.ciwei.Recommend import Recommend
 from common.models.ciwei.Thanks import Thank
-from common.models.ciwei.User import User
 
+from common.loggin.decorators import time_log
 from web.controllers.api import route_api
 
 
-@route_api.route("/balance/use/warn", methods=['GET', 'POST'])
-def warnUseBalance():
+@time_log
+@route_api.route("/member/balance/use/warn", methods=['GET', 'POST'])
+def memberUseBalanceWarn():
     """
     对使用余额，有二维码，但没有任何短信次数的会员进行余额预警
     :return:
@@ -49,22 +49,21 @@ def warnUseBalance():
     return jsonify(resp)
 
 
-@route_api.route("/balance/order", methods=['POST', 'GET'])
-def createBalanceOrder():
+@time_log
+@route_api.route("/member/balance/order", methods=['POST', 'GET'])
+def memberBalanceOrderCreate():
     """
     🥌余额充值下单
     :return:
     """
-    resp = {'code': 200, 'msg': 'success', 'data': {}}
+    resp = {'code': -1, 'msg': 'success', 'data': {}}
     req = request.values
     member_info = g.member_info
     if not member_info:
-        resp['code'] = -1
         resp['msg'] = "请先登录"
         return jsonify(resp)
     price = req['price'] if 'price' in req else 0
     if not price:
-        resp['code'] = -1
         resp['msg'] = "支付失败"
         return jsonify(resp)
 
@@ -82,10 +81,10 @@ def createBalanceOrder():
         'appid': app.config['OPENCS_APP']['appid'],
         'mch_id': app.config['OPENCS_APP']['mch_id'],
         'nonce_str': wechat_service.get_nonce_str(),
-        'body': '闪寻-充值',
+        'body': '鲟回-充值',
         'out_trade_no': model_order.order_sn,
         'total_fee': int(model_order.price * 100),
-        'notify_url': app.config['APP']['domain'] + "/api/balance/order/notify",
+        'notify_url': app.config['APP']['domain'] + "/api/member/balance/order/notify",
         'time_expire': (datetime.datetime.now() + datetime.timedelta(minutes=5)).strftime("%Y%m%d%H%M%S"),
         'trade_type': 'JSAPI',
         'openid': member_info.openid
@@ -99,11 +98,13 @@ def createBalanceOrder():
     db.session.add(model_order)
     db.session.commit()
     resp['data'] = pay_sign_data
+    resp['code'] = 200
     return jsonify(resp)
 
 
-@route_api.route('/balance/order/notify', methods=['GET', 'POST'])
-def balanceOrderCallback():
+@time_log
+@route_api.route('/member/balance/order/notify', methods=['GET', 'POST'])
+def memberBalanceOrderCallback():
     """
     余额单子支付回调
     :return:
@@ -154,240 +155,149 @@ def balanceOrderCallback():
     return target_wechat.dict_to_xml(result_data), header
 
 
+@time_log
 @route_api.route('/member/sms/pkg/add', methods=['GET', 'POST'])
-def addSmsPkg():
+def memberSmsPkgAdd():
     """
-
+    增加短信包
     :return:
     """
-    resp = {'code': 200, 'msg': '', 'data': {}}
-    req = request.values
+    resp = {'code': -1, 'msg': '', 'data': {}}
     member_info = g.member_info
     if not member_info:
-        resp['code'] = -1
         resp['msg'] = "请先登录"
         return jsonify(resp)
 
-    pkg = MemberSmsPkg()
-    pkg.open_id = member_info.openid
-    pkg.left_notify_times = 50
-    pkg.expired_time = datetime.datetime.now() + datetime.timedelta(weeks=156)
-    db.session.add(pkg)
+    MemberService.addSmsPkg(openid=member_info.openid)
     db.session.commit()
+    resp['code'] = 200
     return jsonify(resp)
 
 
+@time_log
 @route_api.route('/member/sms/change', methods=['GET', 'POST'])
-def changeSmsTimes():
+def memberSmsChange():
     """
-    用户通知次数
+    用户通知次数变更
     :return:
     """
-    resp = {'code': 200, 'msg': '', 'data': {}}
+    resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
     member_info = g.member_info
     if not member_info:
-        resp['code'] = -1
         resp['msg'] = "请先登录"
         return jsonify(resp)
-
-    times = int(req['times']) if 'times' in req else 0
-    member_info.left_notify_times += times
-    db.session.add(member_info)
+    MemberService.updateSmsNotify(member_id=member_info.id, sms_times=int(req.get('times', 0)))
     db.session.commit()
+    resp['code'] = 200
     return jsonify(resp)
 
 
+@time_log
 @route_api.route("/member/balance/change", methods=['GET', 'POST'])
-def balanceChange():
-    resp = {'code': 200, 'msg': '', 'data': {}}
+def memberBalanceChange():
+    resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
-    unit = req['unit'] if 'unit' in req else 0
-    unit = Decimal(unit).quantize(Decimal("0.00"))
-
+    unit = Decimal(req.get('unit', '0')).quantize(Decimal("0.00"))
+    note = req.get('note', '')
     member_info = g.member_info
     if not member_info:
-        resp['code'] = -1
         resp['msg'] = "请先登录"
         return jsonify(resp)
 
-    LogService.setMemberBalanceChange(member_info=member_info, unit=unit, old_balance=member_info.balance,
-                                      note=req.get('note', ''))
-    member_info.balance += unit
-    db.session.add(member_info)
+    MemberService.updateBalance(member_id=0, unit=unit, note=note)
     db.session.commit()
+    resp['code'] = 200
     return jsonify(resp)
 
 
-# TODO：如果可以锁号，那么登陆需要判断用户的status
-@route_api.route("/member/login", methods=['GET', 'POST'])
-def login():
+@time_log
+@route_api.route("/member/register", methods=['GET', 'POST'])
+def memberReg():
     """
     会员登陆或注册
     :return: openid#会员id
     """
-    resp = {'code': 200, 'msg': 'login successfully(login)', 'data': {}}
+    resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
 
-    # 检查参数：code
-    code = req['code'] if 'code' in req else ''
-
-    if not code or len(code) < 1:
-        resp['code'] = -1
-        resp['msg'] = "need code"
-        return jsonify(resp)
-
-    # 微信端登陆
-    # 没注册：新增openid绑定的会员/查找openid绑定的会员
-    # 返回openid#会员id
-    openid = MemberService.getWeChatOpenId(code)
+    openid = MemberService.getWeChatOpenId(req.get('code', ''))
     if openid is None:
-        resp['code'] = -1
-        resp['msg'] = "call wechat error"
+        resp['msg'] = "注册失败"
         return jsonify(resp)
 
-    nickname = req['nickName'] if 'nickName' in req else ''
-    sex = req['gender'] if 'gender' in req else 0
-    avatar = req['avatarUrl'] if 'avatarUrl' in req else ''
-    encrypt_mobile = req['mobile'] if 'mobile' in req and req['mobile'] else ''
-    '''
-    判断是否已经注册过，注册了直接返回一些信息即可
-    '''
-    member_info = Member.query.filter_by(openid=openid, status=1).first()
-    if not member_info:
-        model_member = Member()
-        model_member.nickname = nickname
-        model_member.sex = sex
-        model_member.avatar = avatar
-        model_member.updated_time = model_member.created_time = getCurrentDate()
-        model_member.openid = openid
-        model_member.mobile = encrypt_mobile
-        db.session.add(model_member)
-        db.session.commit()
-        member_info = model_member
-    else:
-        if not nickname:
-            member_info.nickname = nickname
-            db.session.add(member_info)
-        if not sex:
-            member_info.sex = sex
-            db.session.add(member_info)
-        if not avatar:
-            member_info.avatar = avatar
-            db.session.add(member_info)
-        if not encrypt_mobile:
-            member_info.mobile = encrypt_mobile
-            db.session.add(member_info)
-        db.session.commit()
+    model_member = Member()
+    model_member.nickname = req.get('nickName', '')
+    model_member.sex = req.get('gender', '')
+    model_member.avatar = req.get('avatarUrl', '')
+    model_member.openid = openid
+    model_member.mobile = req.get('mobile', '')  # 加密过了的手机
+    db.session.add(model_member)
+    db.session.flush()  # 防止获取id，会再次执行查询
 
-    # 登陆后，前端在 app.globalData 中存有全局变量
-    is_adm = False
-    is_user = False
-    has_qrcode = False
-    user_info = User.query.filter_by(member_id=member_info.id).first()
-    if user_info:
-        if user_info.level == 1:
-            is_adm = True
-            is_user = True
-        elif user_info.level > 1:
-            is_user = True
-
-    # 济人济市的openid if openid=="opLxO5fmwgdzntX4gfdKEk5NqLQA":
-    # uni-济旦财的openid if openid=="o1w1e5egBOLj5SjvPkNIsA3jpZFI":
-    if openid == "opLxO5fmwgdzntX4gfdKEk5NqLQA":
-        is_adm = True
-        is_user = True
-
-    if member_info.qr_code:
-        has_qrcode = True
-
-    token = "%s#%s" % (openid, member_info.id)
+    token = "%s#%s" % (openid, model_member.id)
     resp['data'] = {
         'token': token,
-        'is_adm': is_adm,
-        'is_user': is_user,
-        'has_qrcode': has_qrcode,
-        'member_status': member_info.status,
-        'id': member_info.id
+        'is_adm': False,
+        'is_user': False,
+        'has_qrcode': False,
+        'member_status': 1,
+        'id': model_member.id
     }
+    db.session.commit()  # 最后提交
+    resp['code'] = 200
     return jsonify(resp)
 
 
-@route_api.route("/member/check-reg", methods=['GET', 'POST'])
-def checkReg():
+@route_api.route("/member/login", methods=['GET', 'POST'])
+@time_log
+def memberLogin():
     """
     角色信息
     :return:用户角色,二维码,token,用户状态
     """
-    resp = {'code': 200, 'msg': 'login successfully(check-reg)', 'data': {}}
+    resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
-
     # 检查参数：code
-
-    code = req['code'] if 'code' in req else ''
-    if not code:
-        resp['code'] = -1
-        resp['msg'] = "微信繁忙"
+    openid, session_key = MemberService.getWeChatOpenId(req.get('code', ''), get_session_key=True)
+    if openid is None or session_key is None:
+        resp['msg'] = "登录失败"
         return jsonify(resp)
-
-    openid, session_key = MemberService.getWeChatOpenId(code, get_session_key=True)
-    if not openid:
-        resp['code'] = -1
-        resp['msg'] = "微信繁忙"
-        return jsonify(resp)
-    member_info = Member.query.filter_by(openid=openid).first()
+    member_info, user_info = MemberService.doLogin(openid=openid)
     if not member_info:
         resp['code'] = -2
-        resp['member_status'] = -2
-        resp['data'] = {
-            'openid': openid,
-            'session_key': session_key
-        }
-        resp['msg'] = "用户未注册"
+        resp['data'] = {'openid': openid, 'session_key': session_key}
         return jsonify(resp)
-    is_adm = False
-    is_user = False
-    has_qrcode = False
-    user_info = User.query.filter_by(member_id=member_info.id).first()
-    if user_info:
-        if user_info.level == 1:
-            is_adm = True
-            is_user = True
-        elif user_info.level > 1:
-            is_user = True
 
-    # 济人济市的openid if openid=="opLxO5fmwgdzntX4gfdKEk5NqLQA":
-    # uni-济旦财的openid if openid=="o1w1e5egBOLj5SjvPkNIsA3jpZFI":
-    if openid == "opLxO5fmwgdzntX4gfdKEk5NqLQA":
-        is_adm = True
-        is_user = True
-
-    if member_info.qr_code:
-        has_qrcode = True
+    hard_code_adm = member_info.openid in ['opLxO5fmwgdzntX4gfdKEk5NqLQA', '']
+    is_user = user_info is not None or hard_code_adm
+    is_adm = is_user and user_info.level == 1 or hard_code_adm
 
     token = "%s#%s" % (openid, member_info.id)
     resp['data'] = {
         'token': token,
         'is_adm': is_adm,
         'is_user': is_user,
-        'has_qrcode': has_qrcode,
+        'has_qrcode': member_info.has_qr_code,
         'member_status': member_info.status,
         'id': member_info.id
     }
+    resp['code'] = 200
     return jsonify(resp)
 
 
 @route_api.route("/member/is-reg", methods=['GET', 'POST'])
-def isReg():
+@time_log
+def memberIsReg():
     resp = {'code': 200, 'msg': '', 'data': {}}
     req = request.values
     openid = req.get('openid', '')
-    member_info = Member.query.filter_by(openid=openid).first()
-    resp['data']['is_reg'] = member_info is not None
+    resp['data']['is_reg'] = MemberService.isReg(openid=openid)
     return jsonify(resp)
 
 
 @route_api.route("/member/info")
+@time_log
 def memberInfo():
     """
     用户信息
@@ -398,15 +308,11 @@ def memberInfo():
     member_info = g.member_info
     if not member_info:
         resp['code'] = -1
-        resp['msg'] = "没有相关用户信息"
+        resp['msg'] = "请先登录"
         return jsonify(resp)
 
-    has_qrcode = False
-    if member_info.qr_code:
-        qr_code_url = UrlManager.buildImageUrl(member_info.qr_code, image_type='QR_CODE')
-        has_qrcode = True
-    else:
-        qr_code_url = ""
+    has_qrcode = member_info.has_qr_code
+    qr_code_url = "" if not has_qrcode else UrlManager.buildImageUrl(member_info.qr_code, image_type='QR_CODE')
 
     pkgs = MemberSmsPkg.query.filter(MemberSmsPkg.open_id == member_info.openid,
                                      MemberSmsPkg.expired_time >= datetime.datetime.now()).all()
@@ -433,15 +339,16 @@ def memberInfo():
         "has_qrcode": has_qrcode,
         "name": member_info.name,
         "mobile": Cipher.decrypt(text=member_info.mobile),
-        "m_times": m_times,
-        "total_times": p_times + m_times,
+        "m_times": m_times,  # 无限期
+        "total_times": p_times + m_times,  # 套餐包加单条
         "pkgs": pkg_data_list
     }
     return jsonify(resp)
 
 
 @route_api.route("/member/balance")
-def memberBalance():
+@time_log
+def memberBalanceGet():
     """
     用户信息
     :return: id,昵称,头像,积分,二维码
@@ -451,51 +358,45 @@ def memberBalance():
     member_info = g.member_info
     if not member_info:
         resp['code'] = -1
-        resp['msg'] = "没有相关用户信息"
+        resp['msg'] = "请先登录"
         return jsonify(resp)
 
-    resp['data'] = {
-        "balance": str(member_info.balance)
-    }
+    resp['data'] = {"balance": str(member_info.balance)}
     return jsonify(resp)
 
 
 @route_api.route("/member/has-qrcode")
+@time_log
 def memberHasQrcode():
     """
     用户信息
     :return: id,昵称,头像,积分,二维码
     """
-    resp = {'code': 200, 'msg': '', 'data': {}}
+    resp = {'code': -1, 'msg': '', 'data': {}}
 
     member_info = g.member_info
     if not member_info:
-        resp['code'] = -1
-        resp['msg'] = "没有相关用户信息"
+        resp['msg'] = "请先登录"
         return jsonify(resp)
 
-    resp['data'] = {
-        "has_qr_code": member_info.has_qr_code
-    }
+    resp['data'] = {"has_qr_code": member_info.has_qr_code}
+    resp['code'] = 200
     return jsonify(resp)
 
 
-# TODO：不需要分页么？
 @route_api.route("/member/get-new-recommend")
-def getNewRecommend():
+@time_log
+def memberNewRecommend():
     """
     未读答谢和所有的匹配推荐
     :return: 总数, 3类推荐的物品列表
     """
-    resp = {'code': 200, 'msg': '', 'data': {}}
+    resp = {'code': -1, 'msg': '', 'data': {}}
     # 检查登陆
     member_info = g.member_info
     if not member_info:
-        resp['code'] = -1
-        resp['msg'] = "没有相关用户信息"
+        resp['msg'] = "请先登录"
         return jsonify(resp)
-
-    # 获取所有会员的recommend_id列表中的物品,按状态：待,预,已分类，总数量最多显示99+
 
     # 推荐规则
     recommends = Recommend.query.filter_by(status=0, target_member_id=member_info.id).all()
@@ -505,79 +406,148 @@ def getNewRecommend():
     return_rule = and_(Good.business_type == 2,
                        or_(and_(Good.status == 1, Good.return_goods_openid == member_openid),
                            and_(Good.status == 2, Good.qr_code_openid == member_openid)))
-    # 一次性查询推荐和归还
-    goods_list = Good.query.filter(or_(recommend_rule, return_rule)).all()
+    # 一次性获取推荐失物和归还物品
+    goods_list = Good.query.filter(or_(recommend_rule, return_rule)).with_entities(Good.business_type,
+                                                                                   Good.status).all()
     # 分割推荐与归还
-    recommend_goods = filter(lambda item: item.business_type == 1, goods_list)
-    return_goods = filter(lambda item: item.business_type == 2, goods_list)
+    recommend_goods = list(filter(lambda item: item.business_type == 1, goods_list))
+    return_goods = list(filter(lambda item: item.business_type == 2, goods_list))
 
     # 推荐状态细分
-    recommend_new = min(len(list(recommend_goods)), 99)
+    recommend_new = min(len(recommend_goods), 99)
     recommend_status_1 = min(len(list(filter(lambda item: item.status == 1, recommend_goods))), 99)
     recommend_status_2 = min(len(list(filter(lambda item: item.status == 2, recommend_goods))), 99)
     recommend_status_3 = min(len(list(filter(lambda item: item.status == 3, recommend_goods))), 99)
     # 归还状态细分
-    return_new = len(list(return_goods))
+    return_new = len(return_goods)
     # 会员待取回的归还记录(待确认的寻物归还和待取回的二维码归还)
     normal_return_new = len(list(filter(lambda item: item.status == 1, return_goods)))
     scan_return_new = min(return_new - normal_return_new, 99)
     normal_return_new = min(normal_return_new, 99)
     return_new = min(return_new, 99)
-
     # 获取会员未读的答谢记录
-    thanks_list = Thank.query.filter_by(target_member_id=member_info.id, status=0).all()
-    thanks_new = 0
-    if thanks_list:
-        thanks_new = min(len(thanks_list), 99)
+    thanks_new = db.session.query(func.count(Thank.id)).filter_by(target_member_id=member_info.id, status=0).scalar()
+    thanks_new = min(thanks_new, 99)
 
     # 总数量,最多显示99+
     total_new = min(recommend_new + thanks_new + return_new, 99)
-
+    # 前端新消息计数
     resp['data'] = {
-        'total_new': total_new,
-        'recommend_new': recommend_new,
-        'thanks_new': thanks_new,
+        'total_new': total_new,  # 总计（导航栏）
+        'recommend_new': recommend_new,  # 推荐（记录索引）
+        'thanks_new': thanks_new,    # 推荐（记录索引）
         'recommend': {
             'wait': recommend_status_1,  # 推荐的失物招领帖子，待领
             'doing': recommend_status_2,  # 推荐的失物招领帖子，预领
             'done': recommend_status_3,  # 推荐的失物招领帖子，已领
         },
-        'return_new': return_new,
+        'return_new': return_new,   # 推荐（记录索引）
         'return': {
             'wait': normal_return_new,
             'doing': scan_return_new
         }
-    }
+    }  # 首页
+    resp['code'] = 200
+    return resp
+
+
+@time_log
+@route_api.route("/member/phone/decrypt", methods=['POST', 'GET'])
+def memberPhoneDecrypt():
+    """
+    前端获取手机号后，如果能成功解密获取，才能继续注册
+    返回前端的数据经过HTTPS加密处理
+    :return:
+    """
+    resp = {'code': -1, 'msg': '已获取手机号', 'data': {}}
+    from common.libs.mall.WechatService import WXBizDataCrypt
+    req = request.get_json()
+    encrypted_data = req.get('encrypted_data', '')  # 获取加密手机号
+    iv = req.get('iv', '')  # 获取加密向量
+    session_key = req.get('session_key', '')  # 获取秘钥session_key
+    if not session_key or not iv or not encrypted_data:
+        resp['msg'] = "手机号获取失败"
+        return jsonify(resp)
+    # 解密手机号
+    pc = WXBizDataCrypt(app.config['OPENCS_APP']['appid'], session_key)  # session_key是秘钥, appID则是解密后的数据一致性核对
+    try:
+        mobile_obj = pc.decrypt(encrypted_data, iv)
+    except Exception as e:
+        app.logger.warn(e)
+        resp['msg'] = "手机号获取失败，请确保从后台完全关闭小程序后重试"
+        return jsonify(resp)
+    resp['data'] = {'mobile': Cipher.encrypt(text=mobile_obj.get('phoneNumber'))}
+    resp['code'] = 200
     return jsonify(resp)
 
 
-@route_api.route("/member/block-search", methods=['GET', 'POST'])
-def blockMemberSearch():
+@time_log
+@route_api.route('/member/login/wx', methods=['GET', 'POST'])
+def memberSessionUpdate():
     """
+    前端检测登录状态已过期，获取新的session_key
+    :return:
+    """
+    resp = {'code': -1, 'msg': '', 'data': {}}
+    req = request.get_json()
+    openid, session_key = MemberService.getWeChatOpenId(req.get('code', ''), get_session_key=True)
+    if openid is None or session_key is None:
+        resp['msg'] = "手机号获取失败"
+        return jsonify(resp)
+    resp['data'] = {
+        'openid': openid,
+        'session_key': session_key
+    }
+    resp['code'] = 200
+    return jsonify(resp)
+
+
+@time_log
+@route_api.route('/member/set/name', methods=['GET', 'POST'])
+def memberNameSet():
+    resp = {'code': -1, 'msg': '修改成功', 'data': {}}
+    req = request.values
+    name = req.get('name', '')
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = "请先登录"
+        return jsonify(resp)
+
+    MemberService.updateName(member_id=member_info.id, name=name)
+    db.session.commit()
+    resp['code'] = 200
+    resp['data'] = {'name': name}
+    return jsonify(resp)
+
+
+@time_log
+@route_api.route("/member/block-search", methods=['GET', 'POST'])
+def memberBlockedSearch():
+    """
+
     :return: 状态为status的用户信息列表
     """
 
-    resp = {'code': 200, 'msg': 'search record successfully(search)', 'data': {}}
+    resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
 
     # 检查登陆
     member_info = g.member_info
     if not member_info:
-        resp['code'] = -1
-        resp['msg'] = "用户信息异常"
+        resp['msg'] = "请先登录"
         return jsonify(resp)
 
     # 按status筛选用户
-    status = int(req['status']) if 'status' in req else -1
-    query = Member.query.filter_by(status=status)
+    status = int(req.get('status', -1))
+    if status == -1:
+        resp['msg'] = '获取失败'
+        return jsonify(resp)
 
-    # 分页, 排序
-    p = int(req['p']) if ('p' in req and req['p']) else 1
-    if p < 1:
-        p = 1
+    p = max(int(req.get('p', 1)), 1)
     page_size = 10
     offset = (p - 1) * page_size
-    member_list = query.order_by(Member.updated_time.desc()).offset(offset).limit(page_size).all()
+    member_list = Member.query.filter_by(status=status).order_by(Member.updated_time.desc()).offset(offset).limit(
+        page_size).all()
 
     # models -> objects
     # 用户信息列表
@@ -596,14 +566,17 @@ def blockMemberSearch():
             }
             data_member_list.append(tmp_data)
 
+    resp['code'] = 200
     resp['data']['list'] = data_member_list
     resp['data']['has_more'] = len(data_member_list) >= page_size
     return jsonify(resp)
 
 
 # 恢复会员
+
 @route_api.route('/member/restore-member')
-def restoreMember():
+@time_log
+def memberRestore():
     """
     恢复用户
     :return: 成功
@@ -629,6 +602,7 @@ def restoreMember():
     return jsonify(resp)
 
 
+@time_log
 @route_api.route('/member/share')
 def memberShare():
     """
@@ -644,103 +618,6 @@ def memberShare():
         return jsonify(resp)
 
     # 会员credits加5
-    member_info.credits = member_info.credits + 5
-    member_info.updated_time = getCurrentDate()
-    db.session.add(member_info)
+    MemberService.updateCredits(member_id=member_info.id)
     db.session.commit()
-
-    return jsonify(resp)
-
-
-@route_api.route("/member/phone/decrypt", methods=['POST', 'GET'])
-def decryptPhone():
-    resp = {'code': -1, 'msg': '已获取手机号', 'data': {}}
-    from common.libs.mall.WechatService import WXBizDataCrypt
-    req = request.get_json()
-    app.logger.info(req)
-    # 获取加密手机号
-    encrypted_data = req['encrypted_data'] if 'encrypted_data' in req and req['encrypted_data'] else ''
-    if not encrypted_data:
-        resp['msg'] = "手机号获取失败"
-        return jsonify(resp)
-    # 获取加密向量
-    iv = req['iv'] if 'iv' in req and req['iv'] else ''
-    if not iv:
-        resp['msg'] = "手机号获取失败"
-        return jsonify(resp)
-    # 获取session_key
-    session_key = req['session_key'] if 'session_key' in req and req['session_key'] else ''
-    if not session_key:
-        resp['msg'] = "手机号获取失败"
-        return jsonify(resp)
-    appId = app.config['OPENCS_APP']['appid']
-    # 解密手机号
-    pc = WXBizDataCrypt(appId, session_key)
-    try:
-        mobile_obj = pc.decrypt(encrypted_data, iv)
-    except Exception as e:
-        app.logger.warn(e)
-        resp['msg'] = "手机号获取失败，请确保从后台完全关闭小程序后重试"
-        return jsonify(resp)
-    mobile = mobile_obj['phoneNumber']
-    app.logger.info("手机号是：{}".format(mobile))
-    resp['data'] = {
-        'mobile': Cipher.encrypt(mobile)
-    }
-    resp['code'] = 200
-    return jsonify(resp)
-
-
-@route_api.route('/member/login/wx', methods=['GET', 'POST'])
-def getUserInfo():
-    resp = {'code': 200, 'msg': '已获取手机号', 'data': {}}
-    req = request.get_json()
-    code = req['code'] if 'code' in req and req['code'] else ''
-    if not code:
-        resp['code'] = -1
-        resp['msg'] = "手机号获取失败"
-        return jsonify(resp)
-    openid, session_key = MemberService.getWeChatOpenId(code, get_session_key=True)
-    if openid is None:
-        resp['code'] = -1
-        resp['msg'] = "手机号获取失败"
-        return jsonify(resp)
-    resp['data'] = {
-        'openid': openid,
-        'session_key': session_key
-    }
-    return jsonify(resp)
-
-
-@route_api.route('/member/set/name', methods=['GET', 'POST'])
-def setName():
-    resp = {'code': 200, 'msg': '修改成功', 'data': {}}
-    req = request.values
-    name = req['name'] if 'name' in req and req['name'] else ''
-    member_info = g.member_info
-    if not member_info:
-        resp['code'] = -1
-        resp['msg'] = "请先登录"
-        return jsonify(resp)
-
-    member_info.name = name
-    member_info.updated_time = getCurrentDate()
-    db.session.add(member_info)
-    db.session.commit()
-    resp['data'] = {'name': member_info.name}
-    return jsonify(resp)
-
-
-@route_api.route('/member/exists', methods=['GET', 'POST'])
-def member_exists():
-    resp = {'code': 200, 'msg': '用户已注册', 'data': {'exists': True}}
-    req = request.values
-    openid = req['openid'] if 'openid' in req and req['openid'] else ''
-    if not openid:
-        resp['code'] = -1
-        resp['msg'] = "登陆信息缺失"
-        return jsonify(resp)
-    member_info = Member.query.filter_by(openid=openid).first()
-    if not member_info:
-        resp['data'] = {'exists': False}
     return jsonify(resp)

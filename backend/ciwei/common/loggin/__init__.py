@@ -6,13 +6,29 @@
 @file: __init__.py.py
 @desc: 
 """
-import logging
+import logging, logging.handlers
 
 
 def getLoggingHandler():
+    """
+    设置logging的格式，文件，logging级别
+    :return:
+    """
+    # 日志每天新增一个文件
+    handler = logging.handlers.TimedRotatingFileHandler('logs/ciwei', when='D', interval=1)
+    handler.suffix = "%Y%m%d.log"
+    logging_format = logging.Formatter(
+        '%(asctime)s - %(levelname)s - %(message)s')
+    handler.setFormatter(logging_format)
+    handler.setLevel(logging.DEBUG)
+    return handler
+
+
+def getNormalLoggingHandler():
     # 日志
     handler = logging.FileHandler('ciwei.log')
     logging_format = logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(filename)s - %(funcName)s - %(lineno)s - %(message)s')
+        '%(asctime)s - %(levelname)s - %(message)s')
     handler.setFormatter(logging_format)
     handler.setLevel(logging.DEBUG)
+    return handler

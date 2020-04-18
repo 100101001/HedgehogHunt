@@ -51,11 +51,19 @@ class DesCrypt:
         return decrypt_data[0:decrypt_data[len(decrypt_data) - 1] * -1].decode('utf-8')
 
 
-BS = AES.block_size
-
-
 class AESCrypt:
+    """
+    对称加解密工具
+    """
+
     def __init__(self, key='xunhui', model='ECB', iv=None, encode='utf8'):
+        """
+        初始AES加解密工具的秘钥，加密模式
+        :param key: 加解密秘钥
+        :param model: 默认采用ECB模式
+        :param iv: CBC模式需要的额外向量
+        :param encode: 字符串编码方式
+        """
         self.encode_ = encode
         self.model = {'ECB': AES.MODE_ECB, 'CBC': AES.MODE_CBC}[model]
         self.key = self.add_16(key)
@@ -64,28 +72,44 @@ class AESCrypt:
         elif model == 'CBC':
             self.aes = AES.new(self.key, self.model, iv)  # 创建一个aes对象
 
-        # 这里的密钥长度必须是16、24或32，目前16位的就够用了
-
     def add_16(self, par):
+        """
+        字节填充
+        :param par:
+        :return:
+        """
+        # 这里的密钥长度必须是16、24或32，目前16位的就够用了
         par = par.encode(self.encode_)
         while len(par) % 16 != 0:
             par += b'\x00'
         return par
 
     # def padding_pkcs5(self, value):
+    #     BS = AES.block_size
     #     return str.encode(value + (BS - len(value) % BS) * chr(BS - len(value) % BS))
 
     def encrypt(self, text=""):
+        """
+        加密方法
+        :param text:
+        :return:
+        """
         text = self.add_16(text)
-        self.encrypt_text = self.aes.encrypt(text)
-        return base64.encodebytes(self.encrypt_text).decode().strip()
+        encrypt_text = self.aes.encrypt(text)
+        return base64.encodebytes(encrypt_text).decode().strip()
 
     def decrypt(self, text=""):
+        """
+        解密方法
+        :param text:
+        :return:
+        """
         text = base64.decodebytes(text.encode(self.encode_))
-        self.decrypt_text = self.aes.decrypt(text)
-        return self.decrypt_text.decode(self.encode_).strip('\0')
+        decrypt_text = self.aes.decrypt(text)
+        return decrypt_text.decode(self.encode_).strip('\0')
 
 
+# 单例暴露
 Cipher = AESCrypt()
 
 # if __name__ == '__main__':

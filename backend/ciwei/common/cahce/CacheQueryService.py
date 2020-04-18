@@ -6,7 +6,10 @@
 @file: CacheQueryService.py
 @desc: 
 """
+import json
+
 from common.cahce import redis_conn_db_1, CacheKeyGetter
+from common.models.ciwei.Member import Member
 
 
 def getMarkCache(goods_id=0):
@@ -19,3 +22,19 @@ def getMarkCache(goods_id=0):
     marks = redis_conn_db_1.smembers(mark_key)
     redis_conn_db_1.expire(mark_key, 3600)
     return marks
+
+
+def getMemberCache(member_id=0):
+    """
+    从缓存获取序列化的会员信息，反序列化后返回
+    :param member_id:
+    :return:
+    """
+    member_info = None
+    mem_key = CacheKeyGetter.memberKey(member_id)
+    member_str = redis_conn_db_1.get(mem_key)
+    if member_str:
+        # 缓存命中
+        member_info = Member()
+        member_info.__dict__ = json.loads(member_str)
+    return member_info

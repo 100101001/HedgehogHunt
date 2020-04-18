@@ -6,55 +6,48 @@
 @file: MemberService.py
 @desc:
 """
-
-import hashlib
+import datetime
 import json
-import random
-import string
 
 import requests
 
 from application import app, db
-from common.cahce import redis_conn_db_1, CacheKeyGetter, CacheOpService, CacheQueryService
-from common.libs.Helper import getCurrentDate, queryToDict
+from common.cahce import CacheOpService, CacheQueryService
+from common.libs import LogService
+from common.libs.Helper import getCurrentDate
 from common.models.ciwei.Appeal import Appeal
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Member import Member
+from common.models.ciwei.MemberSmsPkg import MemberSmsPkg
 from common.models.ciwei.Recommend import Recommend
+from common.models.ciwei.User import User
 
 
 class MemberService:
 
     @staticmethod
-    def geneAuthCode(member_info=None):
-        m = hashlib.md5()
-        str = "%s-%s" % (member_info.id, member_info.salt)
-        m.update(str.encode('utf-8'))
-        return m.hexdigest
-
-    # 生成秘钥
-    @staticmethod
-    def geneSalt(length=16):
-        keylist = [random.choice((string.ascii_letters + string.digits)) for _ in range(length)]
-        return "".join(keylist)
-
-    @staticmethod
     def getWeChatOpenId(code, get_session_key=False):
-        appid = app.config['OPENCS_APP']['appid']
-        appkey = app.config['OPENCS_APP']['appkey']
-        url = 'https://api.weixin.qq.com/sns/jscode2session?appid={0}&secret={1}&' \
-              'js_code={2}&grant_type=authorization_code'.format(appid, appkey, code)
-
-        r = requests.get(url, headers={'Connection': 'close'})
-        res = json.loads(r.text)
-
+        """
+        通过code在微信登录获取openid, session_key
+        :param code:
+        :param get_session_key:
+        :return:
+        """
         openid = None
         session_key = None
-        if 'openid' in res:
-            openid = res['openid']
-        if 'session_key' in res:
-            session_key = res['session_key']
+        if code:
+            app_id = app.config['OPENCS_APP']['appid']
+            app_key = app.config['OPENCS_APP']['appkey']
+            url = 'https://api.weixin.qq.com/sns/jscode2session?appid={0}&secret={1}&' \
+                  'js_code={2}&grant_type=authorization_code'.format(app_id, app_key, code)
+
+            r = requests.get(url, headers={'Connection': 'close'})
+            res = json.loads(r.text)
+            if 'openid' in res:
+                openid = res['openid']
+            if 'session_key' in res:
+                session_key = res['session_key']
 
         if get_session_key:
             return openid, session_key
@@ -62,16 +55,117 @@ class MemberService:
             return openid
 
     @staticmethod
-    def updateCredits(member_id):
+    def isReg(openid=''):
+        """
+        微信用户是否已经注册
+        :param openid:
+        :return:
+        """
+        member_info = None
+        if openid:
+            member_info = Member.query.filter_by(openid=openid).first()
+        return member_info is not None
+
+    @staticmethod
+    def doLogin(openid=''):
+        """
+        登录
+        :param openid:
+        :return: 会员和管理员信息
+        """
+        member_info = None
+        user_info = None
+        if openid:
+            member_info = Member.query.filter_by(openid=openid).first()
+            if member_info:
+                CacheOpService.setMemberCache(member_info=member_info)
+                user_info = User.query.filter_by(member_id=member_info.id).first()
+        return member_info, user_info
+
+    @staticmethod
+    def updateCredits(member_id=0, quantity=5):
+        """
+        更新会员积分
+        :param quantity: 变更积分数，默认 5
+        :param member_id:
+        :return:
+        """
+        if not member_id:
+            return
         # 发布成功，用户积分涨5
         member_info = Member.query.filter_by(id=member_id).first()
-        member_info.credits += 5
-        CacheOpService.setMemberCache(member_info=member_info)
-        db.session.add(member_info)
+        if member_info:
+            member_info.credits += quantity
+            CacheOpService.setMemberCache(member_info=member_info)
+            db.session.add(member_info)
 
+    @staticmethod
+    def updateName(member_id=0, name=""):
+        """
+        更新会员的姓名
+        :param member_id:
+        :param name:
+        :return:
+        """
+        if not member_id or not name:
+            return
+        member_info = Member.query.filter_by(id=member_id).first()
+        if member_info:
+            member_info.name = name
+            CacheOpService.setMemberCache(member_info=member_info)
+            db.session.add(member_info)
+
+    @staticmethod
+    def updateSmsNotify(member_id=0, sms_times=0):
+        """
+        更新剩余通知次数，缓存写入
+        :param member_id:
+        :param sms_times:
+        :return:
+        """
+        if not sms_times or not member_id:
+            return
+        member_info = Member.query.filter_by(id=member_id).first()
+        if member_info:
+            LogService.setMemberNotifyTimesChange(member_info=member_info, unit=sms_times, old_times=member_info.left_notify_times, note="短信充值")
+            member_info.left_notify_times += sms_times
+            CacheOpService.setMemberCache(member_info=member_info)
+            db.session.add(member_info)
+
+    @staticmethod
+    def updateBalance(member_id=0, unit=0, note=''):
+        """
+        余额在购物，(被)答谢，通知，充值等情况下更新
+        :param member_id:
+        :param unit:
+        :param note:
+        :return:
+        """
+        if not member_id or not unit:
+            return
+        member_info = Member.query.filter_by(id=member_id).first()
+        if member_info:
+            LogService.setMemberBalanceChange(member_info=member_info, unit=unit, old_balance=member_info.balance,
+                                              note=note)
+            member_info.balance += unit
+            CacheOpService.setMemberCache(member_info=member_info)
+            db.session.add(member_info)
+
+    @staticmethod
+    def addSmsPkg(openid=''):
+        pkg = MemberSmsPkg()
+        pkg.open_id = openid
+        pkg.left_notify_times = 50
+        pkg.expired_time = datetime.datetime.now() + datetime.timedelta(weeks=156)
+        db.session.add(pkg)
 
     @staticmethod
     def blockMember(select_member_id):
+        """
+
+        :param select_member_id:
+        :return:
+        """
         # 发布成功，用户积分涨5
         # 违规用户状态设置为0.则无法再正常使用
         select_member_info = Member.query.filter_by(id=select_member_id).first()
@@ -92,6 +186,11 @@ class MemberService:
 
     @staticmethod
     def restoreMember(select_member_id):
+        """
+
+        :param select_member_id:
+        :return:
+        """
         # 违规用户状态设置为0.则无法再正常使用
         select_member_info = Member.query.filter_by(id=select_member_id).first()
         select_member_info.status = 1
@@ -112,6 +211,14 @@ class MemberService:
 
     @staticmethod
     def setRecommendStatus(member_id=0, goods_id=0, new_status=1, old_status=0):
+        """
+        从详情进入，推荐记录算已阅
+        :param member_id:
+        :param goods_id:
+        :param new_status:
+        :param old_status:
+        :return:
+        """
         # 假设第一点，一个用户不会发出大于一条的类似帖子，如果发了
         # 假设第二点，用户知道自己正在找的东西，还删除了推荐记录，所以会将所有相关的都置无效（无论因为哪一条推给了用户）
         Recommend.query.filter_by(found_goods_id=goods_id, target_member_id=member_id, status=old_status). \

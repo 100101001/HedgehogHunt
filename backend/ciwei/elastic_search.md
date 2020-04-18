@@ -110,108 +110,108 @@
     
 创建索引
 
-        mappings =   { 
-            "properties": {
-                "appeal_time": {
-                    "type": "date"
-                },
-                "avatar": {
-                    "type": "keyword",
-                    "index": "false"
-                },
-                "business_type": {
-                    "type": "byte"
-                },
-                "confirm_time": {
-                    "type": "date"
-                },
-                "created_time": {
-                    "type": "date"
-                },
-                "finish_time": {
-                    "type": "date"
-                },
-                "id": {
-                    "type": "long"
-                },
-                "lat": {
-                    "type": "float",
-                    "index": "false"
-                },
-                "lng": {
-                    "type": "float",
-                    "index": "false"
-                },
-                "loc": {
-                    "type": "text",
-                    "index": "false"
-                },
-                "os_location": {
-                  "type": "text"
-                },
-                "location": {
-                  "type": "keyword",
-                  "index": "false"
-                },
-                "main_image": {
-                    "type": "keyword",
-                    "index": "false"
-                },
-                "member_id": {
-                    "type": "long"
-                },
-                "mobile": {
-                    "type": "keyword",
-                    "index": "false"
-                },
-                "name": {
-                    "type": "text"
-                },
-                "nickname": {
-                    "type": "keyword",
-                    "index": "false"
-                },
-                "owner_name": {
-                    "type": "text"
-                },
-                "pics": {
-                    "type": "keyword",
-                    "index": "false"
-                },
-                "qr_code_openid": {
-                    "type": "keyword"
-                },
-                "report_status": {
-                    "type": "byte"
-                },
-                "return_goods_id": {
-                    "type": "long"
-                },
-                "return_goods_openid": {
-                    "type": "keyword"
-                },
-                "status": {
-                    "type": "byte"
-                },
-                "summary": {
-                    "type": "text"
-                },
-                "thank_time": {
-                    "type": "date"
-                },
-                "top_expire_time": {
-                    "type": "date"
-                },
-                "updated_time": {
-                    "type": "date"
-                },
-                "view_count": {
-                    "type": "integer"
-                }
+
+    mappings = {
+        "properties": {
+            "appeal_time": {
+                "type": "date"
+            },
+            "avatar": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "business_type": {
+                "type": "byte"
+            },
+            "confirm_time": {
+                "type": "date",
+            },
+            "created_time": {
+                "type": "date",
+            },
+            "finish_time": {
+                "type": "date",
+            },
+            "id": {
+                "type": "long"
+            },
+            "lat": {
+                "type": "float",
+                "index": "false"
+            },
+            "lng": {
+                "type": "float",
+                "index": "false"
+            },
+            "loc": {
+                "type": "text"
+            },
+            "os_location": {
+                "type": "text"
+            },
+            "location": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "main_image": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "member_id": {
+                "type": "long"
+            },
+            "mobile": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "name": {
+                "type": "text"
+            },
+            "nickname": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "owner_name": {
+                "type": "text"
+            },
+            "pics": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "qr_code_openid": {
+                "type": "keyword"
+            },
+            "report_status": {
+                "type": "byte"
+            },
+            "return_goods_id": {
+                "type": "long"
+            },
+            "return_goods_openid": {
+                "type": "keyword"
+            },
+            "status": {
+                "type": "byte"
+            },
+            "summary": {
+                "type": "text"
+            },
+            "thank_time": {
+                "type": "date"
+            },
+            "top_expire_time": {
+                "type": "date"
+            },
+            "updated_time": {
+                "type": "date"
+            },
+            "view_count": {
+                "type": "integer"
             }
         }
-        
-        res = es.indices.create(index="goods",  body={"mappings": {"_doc": mappings}}, include_type_name=True)
+    }
+
+    res = es.indices.create(index="goods", body={"mappings": mappings})
 
 curl 操作
 
@@ -221,4 +221,7 @@ curl 操作
     curl -XPOST localhost:9200/goods/_delete_by_query -H "Content-Type:application/json" -d '{"query":{"match":{"business_type":1}}}'
     # 删除寻物
     curl -XPOST localhost:9200/goods/_delete_by_query -H "Content-Type:application/json" -d '{"query":{"match":{"business_type":0}}}'
-      
+    # 查询所有记录
+    curl localhost:9200/goods/_doc?pretty -H "Content-Type:application/json" -d '{"query":{"match_all":{}}}'
+    # 按id查询
+    curl localhost:9200/goods/_doc/${id}?pretty

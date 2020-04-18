@@ -1,7 +1,9 @@
 # -*- coding:utf-8 -*-
 
 from flask import jsonify, g
+from sqlalchemy import func
 
+from application import db
 from common.models.ciwei.Feedback import Feedback
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Member import Member
@@ -19,10 +21,11 @@ def staticNumber():
         return jsonify(resp)
 
     # 上架与下架的商品数量
-    find_num = len(Good.query.filter_by(business_type=1).all())
-    lost_num = len(Good.query.filter_by(business_type=0).all())
-    gotback_num = len(Good.query.filter_by(status=3).all())
-    thanks_num = len(Good.query.filter_by(status=4).all())
+    total_num = db.session.query(func.count(Good.id)).groupby(Good.business_type)
+    find_num = total_num[1][0]
+    lost_num = total_num[0][0]
+    gotback_num = db.session.query(func.count(Good.id)).filter_by(business_type=3).scalar()
+    thanks_num = db.session.query(func.count(Good.id)).filter_by(business_type=4).scalar()
     total_num = len(Good.query.all())
 
     # 总浏览量

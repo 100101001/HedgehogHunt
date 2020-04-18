@@ -8,13 +8,11 @@
 """
 import datetime
 import decimal
-from decimal import Decimal
 
 from flask import request, jsonify, g
-from sqlalchemy import func
 
-from application import db, app, APP_CONSTANTS, cache, es
-from common.cahce import cas, redis_conn_db_1, CacheKeyGetter, CacheOpService
+from application import db, app, APP_CONSTANTS, es
+from common.cahce import cas, CacheOpService
 from common.libs import GoodsService
 from common.libs.Helper import getCurrentDate, param_getter
 from common.libs.MemberService import MemberService
@@ -24,6 +22,7 @@ from common.libs.mall.PayService import PayService
 from common.libs.mall.WechatService import WeChatService
 from common.libs.recommend.v2 import SyncService
 from common.libs.recommend.v2.SyncService import ES_CONSTANTS
+from common.loggin.decorators import time_log
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.GoodsTopOrder import GoodsTopOrder
 from common.models.ciwei.Mark import Mark
@@ -35,6 +34,7 @@ from web.controllers.api import route_api
 
 
 @route_api.route("/goods/top/order", methods=['POST', 'GET'])
+@time_log
 def topOrder():
     resp = {'code': -1, 'msg': 'success', 'data': {}}
     req = request.values
@@ -58,7 +58,7 @@ def topOrder():
         'appid': app.config['OPENCS_APP']['appid'],
         'mch_id': app.config['OPENCS_APP']['mch_id'],
         'nonce_str': wechat_service.get_nonce_str(),
-        'body': '闪寻-置顶',
+        'body': '鲟回-置顶',
         'out_trade_no': model_order.order_sn,
         'total_fee': int(model_order.price * 100),
         'notify_url': app.config['APP']['domain'] + "/api/goods/top/order/notify",
@@ -79,6 +79,7 @@ def topOrder():
 
 
 @route_api.route('/goods/top/order/notify', methods=['GET', 'POST'])
+@time_log
 def topOrderCallback():
     result_data = {
         'return_code': 'SUCCESS',
@@ -124,6 +125,7 @@ def topOrderCallback():
 
 
 @route_api.route("/goods/create", methods=['GET', 'POST'])
+@time_log
 def createGoods():
     """
     预发帖
@@ -164,14 +166,15 @@ def createGoods():
     model_goods.os_location = "###".join(
         os_location.split(",")) if os_location else (
         model_goods.location if business_type in (1, 2) else APP_CONSTANTS['default_lost_loc'])
-    model_goods.owner_name = "闪寻码主" if is_scan_return else req.get('owner_name')  # 前端发布除了扫码归还皆已判空
+    model_goods.owner_name = "鲟回码主" if is_scan_return else req.get('owner_name')  # 前端发布除了扫码归还皆已判空
     model_goods.summary = req.get('summary')  # 前端发布已判空
     model_goods.business_type = business_type  # 失物招领or寻物启示or归还
     model_goods.status = 7  # 创建未完成
     model_goods.mobile = req['mobile']  # 前端发布已判空
     # 置顶的物品7天后置顶过期，非置顶物品创建时就置顶过期
     now = datetime.datetime.now()
-    model_goods.top_expire_time = now if not int(req.get('is_top', 0)) else now + datetime.timedelta(days=int(req['days']))
+    model_goods.top_expire_time = now if not int(req.get('is_top', 0)) else now + datetime.timedelta(
+        days=int(req['days']))
     db.session.add(model_goods)
     db.session.commit()
 
@@ -185,6 +188,7 @@ def createGoods():
 
 
 @route_api.route("/goods/add-pics", methods=['GET', 'POST'])
+@time_log
 def addGoodsPics():
     """
     上传物品图片到服务器
@@ -239,6 +243,7 @@ def addGoodsPics():
 
 
 @route_api.route("/goods/update-pics", methods=['GET', 'POST'])
+@time_log
 def updatePics():
     """
     更新物品图片
@@ -288,6 +293,7 @@ def updatePics():
 
 
 @route_api.route("/goods/end-create", methods=['GET', 'POST'])
+@time_log
 def endCreate():
     """
     结束创建
@@ -344,6 +350,7 @@ def endCreate():
 
 
 @route_api.route("/goods/search", methods=['GET', 'POST'])
+@time_log
 def goodsSearchV2():
     resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
@@ -464,6 +471,7 @@ def goodsSearchV2():
 
 
 @route_api.route("/goods/search/v1", methods=['GET', 'POST'])
+@time_log
 def goodsSearchV1():
     """
     多维度搜索物品
@@ -573,6 +581,7 @@ def goodsSearchV1():
 
 
 @route_api.route('/goods/apply')
+@time_log
 def goodsApply():
     """
     申请认领，涉及物品状态变化
@@ -622,6 +631,7 @@ def goodsApply():
 
 
 @route_api.route('/goods/cancel/apply')
+@time_log
 def goodsCancelApplyInBatch():
     """
     CAS
@@ -669,6 +679,7 @@ def goodsCancelApplyInBatch():
 
 
 @route_api.route('/goods/return/cancel')
+@time_log
 def returnGoodsDelInBatch():
     """
     归还者批量删除，待确认的归还贴
@@ -716,6 +727,7 @@ def returnGoodsDelInBatch():
 
 
 @route_api.route('/goods/return/to/found', methods=['GET', 'POST'])
+@time_log
 def returnGoodsToFoundInBatch():
     """
     CAS【lock】
@@ -784,6 +796,7 @@ def returnGoodsToFoundInBatch():
 
 
 @route_api.route('/goods/return/reject')
+@time_log
 def returnGoodsRejectInBatch():
     """
     批量否认待确认的归还
@@ -837,6 +850,7 @@ def returnGoodsRejectInBatch():
 
 
 @route_api.route('/goods/return/confirm')
+@time_log
 def returnGoodsConfirm():
     """
     确认必须进入查看
@@ -871,6 +885,7 @@ def returnGoodsConfirm():
 
 
 @route_api.route('/goods/link/lost/del', methods=['GET'])
+@time_log
 def returnLinkLostDelInBatch():
     """
     此时的寻物贴的状态只有作者可以改变
@@ -904,6 +919,7 @@ def returnLinkLostDelInBatch():
 
 
 @route_api.route('/goods/link/return/del', methods=['GET'])
+@time_log
 def returnLinkReturnDelInBatch():
     """
     不更改状态status
@@ -929,6 +945,7 @@ def returnLinkReturnDelInBatch():
 
 
 @route_api.route('/goods/return/gotback', methods=['GET', 'POST'])
+@time_log
 def returnGoodsGotbackInBatch():
     """
     寻物启示状态只有作者能操作了
@@ -1025,6 +1042,7 @@ def returnGoodsGotbackInBatch():
 
 
 @route_api.route('/goods/return/clean', methods=['GET', 'POST'])
+@time_log
 def returnGoodsCleanInBatch():
     """
     涉及Goods的状态更新加锁
@@ -1068,6 +1086,7 @@ def returnGoodsCleanInBatch():
 
 
 @route_api.route('/goods/gotback')
+@time_log
 def goodsGotbackInBatch():
     """
     拿回失物
@@ -1117,6 +1136,7 @@ def goodsGotbackInBatch():
 
 
 @route_api.route('/goods/appeal', methods=['GET', 'POST'])
+@time_log
 def goodsAppeal():
     resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
@@ -1160,6 +1180,7 @@ def goodsAppeal():
 
 
 @route_api.route('/goods/info')
+@time_log
 def goodsInfo():
     """
     查看详情,读者分为以下类别,对应不同操作
@@ -1268,7 +1289,7 @@ def goodsInfo():
             op_time = goods_info.confirm_time if goods_status == 2 else goods_info.finish_time
             return_goods_id = goods_info.return_goods_id
             status = Good.query.filter_by(id=return_goods_id).with_entities(Good.status).first()
-            if not cas.exec_wrap(return_goods_id, ['nil', status], status):
+            if not cas.exec_wrap(return_goods_id, ['nil', status[0]], status[0]):
                 resp['msg'] = '操作冲突，请稍后重试'
                 return jsonify(resp)
             more_data = {'is_returner': is_returner,
@@ -1308,6 +1329,7 @@ def goodsInfo():
 
 
 @route_api.route('/goods/pure/info', methods=['GET', 'POST'])
+@time_log
 def fetchGoodsInfoForThanks():
     """
     答谢时用于获取寻物链接的归还帖子数据
@@ -1344,8 +1366,8 @@ def fetchGoodsInfoForThanks():
     resp['code'] = 200
     return jsonify(resp)
 
-
 @route_api.route("/goods/report", methods=['GET', 'POST'])
+@time_log
 def goodsReport():
     """
     举报物品/答谢
@@ -1410,8 +1432,8 @@ def goodsReport():
     return jsonify(resp)
 
 
-# TODO:此处推荐需要移除或添加
 @route_api.route("/goods/edit", methods=['GET', 'POST'])
+@time_log
 def editGoods():
     """
     更新物品信息
@@ -1469,8 +1491,8 @@ def editGoods():
     resp['code'] = 200
     return jsonify(resp)
 
-
 @route_api.route('/goods/status', methods=['GET', 'POST'])
+@time_log
 def goodsStatus():
     """
     检查前端的视图的物品状态是否是正确的
@@ -1492,8 +1514,8 @@ def goodsStatus():
     resp['code'] = 200
     return jsonify(resp)
 
-
 @route_api.route('/goods/found/to/sys', methods=['GET', 'POST'])
+@time_log
 def unmarkGoodsToSysInBatch():
     """
     待认领的物品送给系统，默默地将符合状态的更新
@@ -1530,331 +1552,13 @@ def unmarkGoodsToSysInBatch():
     return jsonify(resp)
 
 
-@route_api.route('/goods/test')
-def test():
-    # goods = Good.query.filter_by(id=1).with_entities(Good.status).first()
-    # Good.query.filter_by(id=1).update({'summary': 'sss', 'view_count': 1}, synchronize_session=False)
-    # good = Good.query.filter_by(id=1).first()
-    # db.session.commit()
-    # good = Good.query.filter_by(id=1).first()
-    # goods = Good.query.filter(Good.id.in_(['1','2'])).all()
-    # app.logger.info("hhh")
-    # goods = Good.query.filter(Good.id=='1').first()
-    # goods2 = Good.query.filter_by(id='1').first()
-    # from sqlalchemy import func
-    # from common.models.ciwei.Mark import Mark
-    # count = db.session.query(func.count(Mark.id)).scalar()
-    # goods = Good.query.filter(Good.id.in_(['1', '2', '3'])).with_entities(Good.business_type).distinct().all()
-    # a = Good.query.filter(Good.id.in_(goods))
-    # Good.query.filter_by(id=1).update({'view_count': Good.view_count + 100}, synchronize_session=False)
-    # db.session.commit()
-    # status = Good.query.filter_by(id=1).with_entities(Good.status).first()
-    # return jsonify({'s':status[0]})
-    # cnt = db.session.query(func.count(Mark.id)).filter(Mark.status == 7).scalar()
-    # Mark.query.update({'status': 7}, synchronize_session=False)
-    # cnt = db.session.query(func.count(Mark.id)).filter(Mark.status == 7).scalar()
-    # Good.query.filter(Good.id == 1).with_for_update().first()
-    # a = Good.query.filter(Good.id == 1, Good.view_count == 4).with_for_update().update({'view_count': 5},
-    #                                                                                    synchronize_session=False)
-    # if a == 0:
-    #     v = Good.query.filter(Good.id == 1, Good.view_count == 4).with_for_update().update({'view_count': 5},
-    #                                                                                        synchronize_session=False)
-    #     return "v: " + str(v)
-    # a = Good.query.filter(Good.id == 1).with_for_update().update({'summary': 21}, synchronize_session='fetch')
-    # a = Good.query.filter(Good.id == 1).first()
-    # db.session.commit()
-    # return a.summary
-    # a = db.session.query(func.count(Mark.id)).filter(Mark.status != 7).with_for_update().scalar()
-    # db.session.commit()
-    from common.models.ciwei.Recommend import Recommend
-    a = Recommend.query.update({'status': 7}, synchronize_session=False)
-    goods_info = Good.query.filter_by(id=1).with_entities(Good.id, Good.member_id).first()
-    # print("h")
-    return "quick return"
-
-
-@route_api.route('/goods/test/2')
-def test2():
-    # a = Good.query.filter(Good.id == 1).first()
-    # db.session.commit()
-    # return a.summary
-    # a = Good.query.filter(Good.id == 1, Good.view_count == 4).with_for_update().update({'view_count': 5},
-    #                                                                                    synchronize_session=False)
-    # a = Good.query.filter(Good.id == 1).first()
-    # b = a.summary
-    # c = a.summary
-    # return b + ',' + c
-    cache.set('token', "hhhh")
-    a = cache.get('token')
-    # a = db.session.query(func.count(Mark.id)).filter(Mark.status != 7).with_for_update().scalar()
-    return str(a)
-    # pass
-
-
-@route_api.route('/goods/test/3')
-def test3():
-    from application import es
-    result = es.get(index='test', id=1)
-    return jsonify(result.get('_source'))
-
-
-@route_api.route('/goods/test/4')
-def test4():
-    # a = cas.exec('test', 2, 3)
-    a = cas.exec_wrap('test', ['nil', 1], 3)
-    return 'test cas'
-
-
-@route_api.route('/goods/test/5')
-def test5():
-    n = {'id': "[1,2,3,4]"}
-    b = {}
-    goods_ids = param_getter['ids'](n.get('id', None))
-    goods_ids2 = param_getter['ids'](b.get('id', None))
-
-    import time
-    s = time.time()
-    from sqlalchemy import or_
-    Good.query.filter(or_(Good.name.ilike("%外%衣%"))).all()
-    end = time.time() - s
-
-    # for i in [2]:
-    #     og = Good.query.filter_by(id=i).first()
-    #     og.summary = '2dadsaa'
-    #     db.session.add(og)
-    # for item_id in [1,2,3,4,5,6,7,8]:
-    #     if not cas.exec(item_id, 100, 3):
-    #         for o in [1,2,3,4,5,6,7,8]:
-    #             cas.exec(o, 3, 100)
-    #         break
-    # goods_id = [1, 2, 3, 4, 5, 6, 7, 8]
-    # for i in range(len(goods_id)):
-    #     if not cas.exec(goods_id[i], 100, 3):
-    #         for o in range(i):
-    #             cas.exec(goods_ids[o], 3, 100)
-    #         break
-
-    # for i in [1, 2, 3, 4, 5, 6, 7, 8]:
-    #     if not cas.exec_wrap(i, [i, 'nil'], i):
-    #         print(i)
-    # Good.query.filter(Good.id.in_([8, 1, 2, 3, 4,5,6,7])).update({'qr_code_openid': ''}, synchronize_session=False)
-    # a = db.session.query(exists().where(Good.id == 8)).scalar()
-    good = Good.query.filter(Good.id == 19).first()
-    a = good is not None
-
-    c = set(i for i in [1, 2, 2, 3, 3, 3, 4, 4, 5, 6])
-    d = 1 in c
-    e = 8 in c
-
-    # a = redis_conn.get('abs')
-    # Good.query.filter(Good.id.in_([1,2,3,4,5,6,7,8,9]))
-    return str(end)
-
-
-@route_api.route('/goods/test/6')
-def test6():
-    # es.create(index='goods', doc_type='recommend', id=1,
-    #           body={
-    #               'id': 1,
-    #               'goods_name': '淡黄的长裙',
-    #               'category': 10,
-    #               'business_type': 1,
-    #               'location': '121.2121###31.121',
-    #           })
-    # es.create(index='goods', doc_type='recommend', id=2,
-    #           body={
-    #               'id': 2,
-    #               'goods_name': '蓝色的长裙',
-    #               'category': 10,
-    #               'business_type': 1,
-    #               'lng': '121.2121
-    #               'lat': '31.121',
-    #           })
-
-    es.delete(index='goods', doc_type='recommend', id=1)
-    es.delete(index='goods', doc_type='recommend', id=2)
-    import time
-    s = time.time()
-    body = {
-        'query': {
-            'bool': {
-                'must': [
-                    {
-                        'match': {
-                            'goods_name': '长裙'
-                        },
-
-                    },
-                    {
-                        'match': {
-                            'category': 10
-                        }
-                    }
-                ],
-                'should': [
-                    {
-                        'match': {
-                            'goods_name': '淡黄'
-                        }
-                    }
-                ]
-            }
-        }
-    }
-
-    res = es.search(index='goods', doc_type='recommend', body=body)
-    e = time.time() - s
-
-    s1 = time.time()
-    res2 = redis_conn_db_1.smembers(10)
-    e1 = time.time() - s1
-
-    s2 = time.time()
-    for i in [1, 2, 3, 4, 5]:
-        a = i * i * i * i * i + i * i * i * i + i * i * i + i * i + i
-        a *= 3
-        if a > 100:
-            pass
-    e2 = time.time() - s2
-
-    return jsonify(res)
-
-
-@route_api.route('/goods/test/7')
-def test7():
-    only_new = True
-    from common.models.ciwei.Recommend import Recommend
-    from sqlalchemy import and_
-    rule = and_(Recommend.target_member_id == 100001,
-                Recommend.status == 0 if only_new else Recommend.status != 7)
-    data_list = Good.query.join(Recommend, Recommend.found_goods_id == Good.id).filter(rule).order_by(
-        Recommend.rel_score.desc()).all()
-    # data_list = Recommend.query.join(Good, Recommend.found_goods_id == Good.id).filter(rule).order_by(Recommend.rel_score.desc()).all()
-    for item in data_list:
-        print('hhhh')
-        continue
-    return ""
-
-
-@route_api.route('/goods/test/8')
-def test8():
-    hset = redis_conn_db_1.hvals('BDA')
-    # body = {
-    #     "doc": {
-    #         "name": "外一"
-    #     }
-    # }
-    # res = es.update(index='goods',id=36, body=body)
-
-    mappings = {
-        "properties": {
-            "appeal_time": {
-                "type": "date"
-            },
-            "avatar": {
-                "type": "keyword",
-                "index": "false"
-            },
-            "business_type": {
-                "type": "byte"
-            },
-            "confirm_time": {
-                "type": "date",
-            },
-            "created_time": {
-                "type": "date",
-            },
-            "finish_time": {
-                "type": "date",
-            },
-            "id": {
-                "type": "long"
-            },
-            "lat": {
-                "type": "float",
-                "index": "false"
-            },
-            "lng": {
-                "type": "float",
-                "index": "false"
-            },
-            "loc": {
-                "type": "text"
-            },
-            "os_location": {
-                "type": "text"
-            },
-            "location": {
-                "type": "keyword",
-                "index": "false"
-            },
-            "main_image": {
-                "type": "keyword",
-                "index": "false"
-            },
-            "member_id": {
-                "type": "long"
-            },
-            "mobile": {
-                "type": "keyword",
-                "index": "false"
-            },
-            "name": {
-                "type": "text"
-            },
-            "nickname": {
-                "type": "keyword",
-                "index": "false"
-            },
-            "owner_name": {
-                "type": "text"
-            },
-            "pics": {
-                "type": "keyword",
-                "index": "false"
-            },
-            "qr_code_openid": {
-                "type": "keyword"
-            },
-            "report_status": {
-                "type": "byte"
-            },
-            "return_goods_id": {
-                "type": "long"
-            },
-            "return_goods_openid": {
-                "type": "keyword"
-            },
-            "status": {
-                "type": "byte"
-            },
-            "summary": {
-                "type": "text"
-            },
-            "thank_time": {
-                "type": "date"
-            },
-            "top_expire_time": {
-                "type": "date"
-            },
-            "updated_time": {
-                "type": "date"
-            },
-            "view_count": {
-                "type": "integer"
-            }
-        }
-    }
-
-    # res = es.indices.create(index='index_test', body=mappings)
-    # res = es.indices.create(index='index_test', body=mappings)
-    res = es.indices.create(index="goods", body={"mappings": mappings})
-    return res
-
 @route_api.route('/goods/test/9')
+@time_log
 def test9():
-    res = es.search(index='goods', body={'query':{'match_all':{}}})
-    #res = SyncService.syncDeleteGoodsToESBulk(goods_ids=[5,6,8,9,10])
-    #SyncService.syncUpdatedGoodsToES(goods_id=)
-    return res
-    #pass
+    from common.models.ciwei.Member import Member
+    from sqlalchemy import func
+    #cnt = db.session.query(func.count(Member.id)).scalar()
+    cnt = db.session.query(func.count(Good.id)).group_by(Good.business_type).all()
+    from common.models.ciwei.Recommend import Recommend
+    res = Good.query.join(Recommend, Recommend.found_goods_id == Good.id).add_entity(Recommend).all()
+    return str(cnt)

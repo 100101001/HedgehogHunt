@@ -40,18 +40,22 @@ class SynonymsService:
             'adj': []  # [淡黄', '嫩黄'..., '蓝色', '青色'...]
         }
         for kw in key_words[1:]:
-            vec = self.sym_dict.get(kw, None)  # ['淡黄']
-            if vec:
-                ret_dict['adj'].extend(vec)
+            vec = self.sym_dict.get(kw, [kw])  # ['淡黄']
+            ret_dict['adj'].extend(vec)
         return ret_dict
 
-    @time_log
     @classmethod
+    @time_log
     def extractKeywords(cls, search_words):
         key_words = jieba.analyse.extract_tags(search_words)
         return key_words
 
     def getWordClassesSync(self, input_word):
+        """
+        同步物品到redis需要,不分词性的返回
+        :param input_word:
+        :return:
+        """
         key_words = self.extractKeywords(input_word)
         ret_list = []
         for kw in key_words:

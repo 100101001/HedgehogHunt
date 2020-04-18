@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-import json
 
-from application import app
+import re
+
 from flask import request, g, jsonify
 
-from common.cahce import redis_conn_db_1, CacheKeyGetter
-from common.libs.Helper import queryToDict
+from application import app
+from common.cahce import CacheQueryService, CacheOpService
 from common.models.ciwei.Member import Member
-import re
 
 '''
 api认证
@@ -55,24 +54,17 @@ def check_member_login():
 
     try:
         member_id = auth_info[1]
-        mem_key = CacheKeyGetter.memberKey(member_id)
-        member_str = redis_conn_db_1.get(mem_key)
-        if not member_str:
+        member_info = CacheQueryService.getMemberCache(member_id=member_id)
+        if not member_info:
+            # 缓存不命中
             member_info = Member.query.filter_by(id=member_id).first()
-            redis_conn_db_1.set(mem_key, json.dumps(queryToDict(member_info)))
-            redis_conn_db_1.expire(mem_key, 3600)
-        else:
-            member_info = Member()
-            member_info.__dict__ = json.loads(member_str)
+            CacheOpService.setMemberCache(member_info=member_info)
     except Exception:
         return False
 
     if member_info is None:
         return False
 
-    # if auth_info[0] != MemberService.geneAuthCode( member_info ):
-    #     return False
-    #
     if member_info.status != 1:
         return False
 

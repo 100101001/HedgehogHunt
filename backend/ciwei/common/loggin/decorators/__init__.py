@@ -14,9 +14,14 @@ from application import app
 
 def time_log(func):
     @wraps(func)
-    def run_time():
+    def run_time(*args, **kwargs):
         start = time.time()
-        func()
+        res = func(*args, **kwargs)
         cost = time.time() - start
-        app.logger.warn("耗时总计：{0}".format(str(cost)))
+        # 2020-04-18 16:46:13,863 - WARNING - web.controllers.api.Goods - test9 - 耗时总计：0.3007230758666992
+        if cost < 1:
+            app.logger.info("{0} - {1} - 耗时总计：{2}".format(func.__module__, func.__name__, str(cost)))
+        else:
+            app.logger.warn("{0} - {1} - 耗时总计：{2}".format(func.__module__, func.__name__, str(cost)))
+        return res
     return run_time

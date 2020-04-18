@@ -10,28 +10,33 @@ import json
 
 from common.cahce import redis_conn_db_1, CacheKeyGetter
 from common.libs.Helper import queryToDict
+from common.loggin.decorators import time_log
 
 
+@time_log
 def setMemberCache(member_info=None):
     """
-
+    从数据库获取到Member信息，或者更新了Member信息后设置缓存
     :param member_info:
     :return:
     """
+    if not member_info:
+        return
     mem_key = CacheKeyGetter.memberKey(member_info.id)
     redis_conn_db_1.set(mem_key, json.dumps(queryToDict(member_info)))
     redis_conn_db_1.expire(mem_key, 3600)
 
 
+@time_log
 def setMarkCache(goods_id=0, marks=None):
     """
-
+    进入详情页面，会员查看记录，将每次都需要的认领者ID记录进缓存。方便后续查询使用。 v是set
     :param goods_id:
-    :param marks:
+    :param marks: []
     :return:
     """
     mark_key = CacheKeyGetter.markKey(goods_id)
-    redis_conn_db_1.sadd(mark_key, -1)  # 占位符可以用来判断缓存中有
+    redis_conn_db_1.sadd(mark_key, -1)  # 占位符可以用来判断缓存命中
     mark_member_ids = set(i.member_id for i in marks)
     for m_id in mark_member_ids:
         redis_conn_db_1.sadd(mark_key, m_id)
@@ -39,21 +44,27 @@ def setMarkCache(goods_id=0, marks=None):
     return mark_member_ids
 
 
+@time_log
 def addPreMarkCache(goods_id=0, member_id=0):
     """
-
+    会员认领了good后，向cache中goods_id的认领集合中加入member_id
+    保险起见，缓存命中才会进行操作。
+    但因为会员只能进入详情认领，在详情接口中会设置该缓存(过期时间为2h)，一般都会缓存命中。
     :param goods_id:
     :param member_id:
     :return:
     """
     mark_key = CacheKeyGetter.markKey(goods_id)
-    redis_conn_db_1.sadd(mark_key, member_id)
-    redis_conn_db_1.expire(mark_key, 3600)
+    if redis_conn_db_1.smembers(mark_key):
+        redis_conn_db_1.sadd(mark_key, member_id)
+        redis_conn_db_1.expire(mark_key, 3600)
 
 
+@time_log
 def removePreMarkCache(found_ids=None, member_id=0):
     """
-    记录
+    会员取消认领了good后，向cache中goods_id的认领集合中移除member_id
+    如果缓存不命中，操作了也没有关系
     :param found_ids:
     :param member_id:
     :return:
