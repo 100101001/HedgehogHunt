@@ -6,7 +6,7 @@
 </view>
 
 <!--快速导航-->
-<view class="pin-cards-container" wx:for="{{navigators}}">
+<view class="pin-cards-container" wx:for="{{navigators}}" wx:key="index">
   <view class="pin-card">
     <view class="pin-card-text">
       {{item.label}}

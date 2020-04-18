@@ -13,7 +13,7 @@ const changeUseBalance = function (e = {}, cb_confirm = () => {}) {
   //如果勾选使余额，对有二维码的用户进行余额使用预警
   if (e.detail.value.length === 1) {
     wx.request({
-      url: app.buildUrl("/balance/use/warn"),
+      url: app.buildUrl("/member/balance/use/warn"),
       header: app.getRequestHeader(),
       success: res => {
         let resp = res.data;

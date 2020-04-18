@@ -28,7 +28,7 @@ const toOrderSpecialProduct = function (data={}) {
  */
 const balanceCharge = function (pay_price=0.01, cb_success=()=>{}) {
   wx.request({
-    url: app.buildUrl('/balance/order'),
+    url: app.buildUrl('/member/balance/order'),
     header: app.getRequestHeader(),
     data: {
       price: pay_price
@@ -263,7 +263,7 @@ Page({
     wx.showToast({
       title: title,
       icon: icon,
-      duraton: duraton,
+      duration: duraton,
       mask: mask
     })
   },
@@ -296,7 +296,7 @@ Page({
           return
         }
         this.setData({
-          name: resp.data.name
+          name: resp['data'].name
         })
       }, complete: res => {
         wx.hideToast()

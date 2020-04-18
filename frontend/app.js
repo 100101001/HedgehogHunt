@@ -43,10 +43,10 @@ App({
     id: null, //用户的id(首页goToIndex会用到)
     regFlag: false, //用于判断用户已注册(和缓存中的token一起代表用户已经登录)
     shopName: "闪寻-失物招领",
-    domain: "http://192.168.1.116:8999/api",
+    domain: "http://192.168.0.116:8999/api",
     //domain: "https://ciwei.opencs.cn/api",
     //static_file_domain: "https://ciwei.opencs.cn",
-    static_file_domain: "http://192.168.1.116:8999",
+    static_file_domain: "http://192.168.0.116:8999",
     member_status: 1, //用户状态
     op_status: 2,
     showHintQrcode: true, //导航栏上方的提示浮窗，标记是否显示浮窗，用户可关闭
@@ -394,7 +394,7 @@ App({
         }
         //成功拿到code
         wx.request({
-          url: this.buildUrl('/member/check-reg'),
+          url: this.buildUrl('/member/login'),
           header: {
             'content-type': 'application/x-www-form-urlencoded'
           },
@@ -406,14 +406,15 @@ App({
             let resp = res.data;
             if (resp['code'] !== 200) {
               //非注册用户
-              if (resp['code'] == -2) {
+              if (resp['code'] === -2) {
                 //缓存session-key和openid（用于注册）
-                this.setCache("loginInfo", resp['data'])
-              }
-              if (isScanQrcode) {
-                //未注册用户扫码
-                this.qrCodeNavigate()
-              }
+                this.setCache("loginInfo", resp['data']);
+                if (isScanQrcode) {
+                  //未注册用户扫码
+                  this.qrCodeNavigate()
+                }
+              };
+              this.alert({content: resp['msg']});
               return
             }
             //成功获取用户状态信息，进行全局缓存
@@ -522,7 +523,7 @@ App({
         }
         userInfo['code'] = code
         wx.request({
-          url: this.buildUrl('/member/login'),
+          url: this.buildUrl('/member/register'),
           header: this.getRequestHeader(),
           method: 'POST',
           data: userInfo,
