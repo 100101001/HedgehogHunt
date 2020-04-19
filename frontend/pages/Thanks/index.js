@@ -350,20 +350,20 @@ Page({
         let resp = res.data;
         if (resp['code'] !== 200) {
           app.alert({
-            content: resp['msg']
-          })
-          this.setData({canSendThank: true})
-          return
+            content: resp['msg'],
+            cb_confirm: ()=>{
+              this.setData({canSendThank: true});
+            }
+          });
+          return;
         }
-        this.setInitData()
+        this.setInitData();
         wx.showToast({
           title: '答谢成功！',
           icon: 'success',
           duration: 700,
-          complete: () => {
-            setTimeout(() => {
-              wx.navigateBack()
-            }, 500)
+          complete: (res) => {
+            setTimeout(wx.navigateBack, 500)
           }
         })
       },

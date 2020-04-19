@@ -76,10 +76,10 @@ App({
     subscribe: {  //订阅消息的模板ID
       recommend: 'eT6wS62k3KzRNagqnZOd_Fuui0As0GBX7fYfpUSyi0Y', //给寻物启事发帖者发送匹配通知
       finished: {
-        found: '_dAjVN6DHEewP_z01WhKXlZ7xY9nfs_OEtVbnBC88MU',  //各失物招领发布者发送被取回的通知
-        return: ''
+        found: '_dAjVN6DHEewP_z01WhKXlZ7xY9nfs_OEtVbnBC88MU',  //向失物招领发布者发送被取回的通知
+        return: '4JEcTuWKyXwYQM2kYbQoPkG8WBB52cKdsP9FxiSSqEY'  //归还者归还时订阅，如果对方确认或者取回了，发送
       },
-      return: 'bHZTF62ciS-03u8MmGe0cA7YMVHdGpwH-bY9wrmfDfY',
+      return: 'bHZTF62ciS-03u8MmGe0cA7YMVHdGpwH-bY9wrmfDfY', //给寻物启事发帖者，如果有人归还就通知
       thanks: 'MxeBoTL5FcGb8DGtQtsoesFS5VmEd67KlRtMAQj8hoI'  //给失物招领发帖者发送答谢通知
     },
     business_type: { //失物招领与寻物启事的标记

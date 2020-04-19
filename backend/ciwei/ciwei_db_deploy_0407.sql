@@ -684,15 +684,19 @@ CREATE TABLE `report`  (
   `user_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拉黑会员的管理员id',
   `member_id` int(11) UNSIGNED NOT NULL COMMENT '发布消息的会员id',
   `report_member_id` int(11) UNSIGNED NOT NULL COMMENT '举报消息的会员id',
+  `report_member_nickname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '举报消息的会员名',
+  `report_member_avatar` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '举报消息的会员头像',
   `record_id` int(11) NOT NULL COMMENT '信息id，有可能是物品信息违规，也可能是用户的答谢违规',
   `summary` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 1：已读 0：未读',
   `record_type` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 1：物品信息违规 0：答谢信息违规',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `ix_report_record_id`(`record_id`) USING BTREE,
+  INDEX `ix_report_status`(`status`) USING BTREE,
+  INDEX `ix_report_record_type`(`record_type`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '举报消息表' ROW_FORMAT = Dynamic;
-
 
 -- ----------------------------
 -- Table structure for thank_order

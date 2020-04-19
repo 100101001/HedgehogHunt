@@ -230,3 +230,6 @@ curl 操作
     curl localhost:9200/goods/_doc?pretty -H "Content-Type:application/json" -d '{"query":{"match_all":{}}}'
     # 按id查询
     curl localhost:9200/goods/_doc/${id}?pretty
+      
+
+gitk --all $( git fsck --no-reflog | awk '/dangling commit/ {print $3}' )

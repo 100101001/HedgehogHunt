@@ -8,8 +8,8 @@ Page({
     business_type: ""
   },
   onLoad: function(options) {
-    let op_status = options.op_status
-    if (op_status == 4) {
+    let op_status = options.op_status * 1;
+    if (op_status === 4) {
       var infos = {
         list: {},
         saveHidden: true,
@@ -62,7 +62,7 @@ Page({
       only_new: infos['only_new'],
       op_status: op_status,
       all_thanks_checked: false //用于更新查看状态（只看了收到，还是发出也都看了）
-    })
+    });
     this.onPullDownRefresh()
   },
   //下拉刷新
@@ -77,7 +77,7 @@ Page({
     if (this.data.op_status == 4) {
       this.getReportList();
     } else {
-      this.getGoodsList();
+      this.getThanksList();
     }
   },
   //上滑加载
@@ -88,7 +88,7 @@ Page({
       that.setData({
         loadingHidden: true
       });
-      that.getGoodsList();
+      that.getThanksList();
     }, 500);
   },
   listenerNameInput: function(e) {
@@ -102,7 +102,7 @@ Page({
     });
   },
   //获取信息列表
-  getGoodsList: function(e) {
+  getThanksList: function(e) {
     var that = this;
     if (!that.data.loadingMoreHidden) {
       return;
@@ -225,43 +225,38 @@ Page({
       this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), list);
     }
   },
-  //拉黑举报者
+  /**
+   * 拉黑举报者
+   * @param e
+   */
   toBlock: function (e) {
-    var report_status = e.currentTarget.dataset.report_status;
-    var report_id = e.currentTarget.dataset.report_id;
-    var that = this;
-    var data = {
-      report_id: report_id,
-      report_status: report_status,
-    };
     wx.request({
       url: app.buildUrl("/thanks/block"),
       header: app.getRequestHeader(),
-      data: data,
-      success: function (res) {
-        var resp = res.data;
-        if (resp.code !== 200) {
+      data: {
+        report_id: e.currentTarget.dataset.report_id,
+        report_status: e.currentTarget.dataset.report_status,
+      },
+      success:  (res) => {
+        let resp = res.data;
+        if (resp['code'] !== 200) {
           app.alert({
-            'content': resp.msg
+            content: resp['msg']
           });
-          return
+          return;
         }
-        wx.hideLoading();
         wx.showToast({
           title: '操作成功！',
           icon: 'success',
           duration: 2000
         });
-        that.onPullDownRefresh();
+        this.onPullDownRefresh();
       },
       fail: function (res) {
-        wx.hideLoading();
-        wx.showToast({
-          title: '操作失败',
-          duration: 2000
-        });
         app.serverBusy();
-        return;
+      },
+      complete: res => {
+        wx.hideLoading();
       }
     });
   },
