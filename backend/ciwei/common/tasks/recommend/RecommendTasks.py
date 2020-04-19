@@ -140,7 +140,7 @@ def doAutoRecommendGoods(goods_info=None, edit=False):
 
     # 异步批量的发送订阅消息[分发给专门负责订阅消息的worker处理]
     # 注意消息经序列化后, need_notification列表中的good变成了纯粹的列表(属性按序排列)
-    SubscribeTasks.send_recommend_subscribe_in_batch.delay(lost_goods_list=need_notification, found_goods=goods_info)
+    SubscribeTasks.send_recommend_subscribe_in_batch.delay(lost_list=need_notification, found_goods=goods_info)
 
 
 def addRecommendGoods(target_member_id=0, found_goods_id=0, lost_goods_id=0, edit=False):

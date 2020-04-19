@@ -160,6 +160,9 @@
             "member_id": {
                 "type": "long"
             },
+            "openid": {
+                "type": "keyword"
+            },
             "mobile": {
                 "type": "keyword",
                 "index": "false"
@@ -214,7 +217,9 @@
     res = es.indices.create(index="goods", body={"mappings": mappings})
 
 curl 操作
-
+    
+    # 删除索引
+    curl -XDELETE localhost:9200/goods?pretty
     # 删除所有记录
     curl -XPOST localhost:9200/goods/_delete_by_query -H "Content-Type:application/json" -d '{"query":{"match_all":{}}}'
     # 删除拾物   

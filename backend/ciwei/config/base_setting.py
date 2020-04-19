@@ -166,13 +166,11 @@ QR_CODE = {
 }
 
 SUBSCRIBE_TEMPLATES = {
-    'recommend': 'zSCF_j0kTfRvPe8optyb5sx8F25S3Xc9yCvvObXFCh4',  # 给寻物启事发帖者发送匹配通知
-    'finished': {
-        'found': '_dAjVN6DHEewP_z01WhKXlZ7xY9nfs_OEtVbnBC88MU',  # 各失物招领发布者发送被取回的通知
-        'return': ''
-    },
-    'lost': 'bHZTF62ciS-03u8MmGe0cA7YMVHdGpwH-bY9wrmfDfY',  # 给寻物启事发布者发送物品被归还通知
-    'thanks': 'gBSM-RF5b3L_PoT3f1u8ibxZMz-qzAsNSZy2LSBPsG8'  # 给失物招领发帖者发送答谢通知
+    'recommend': 'eT6wS62k3KzRNagqnZOd_Fuui0As0GBX7fYfpUSyi0Y',  # 给寻物启事发帖者发送匹配通知
+    'finished_found':  '_dAjVN6DHEewP_z01WhKXlZ7xY9nfs_OEtVbnBC88MU',  # 向失物招领发布者发送被取回的通知
+    'finished_return': '4JEcTuWKyXwYQM2kYbQoPkG8WBB52cKdsP9FxiSSqEY',  # 归还者归还时订阅，如果对方确认或者取回了，发送
+    'return': 'bHZTF62ciS-03u8MmGe0cA7YMVHdGpwH-bY9wrmfDfY',  # 给寻物启事发帖者，如果有人归还就通知
+    'thanks': 'MxeBoTL5FcGb8DGtQtsoesFS5VmEd67KlRtMAQj8hoI'  # 给失物招领发帖者发送答谢通知
 }
 
 UPLOAD = {
@@ -209,5 +207,6 @@ CONSTANTS = {
         'avatar': 'https://wx.qlogo.cn/mmopen/vi_32/7jCR4QflwchksTBcyakicSepWVQdfbHIQL2glRrkY7ic52iaXqfuBb2tlQ8ELlaGWZDXFgKM4zAMeQZSiaaJtibI3gQ/132',
         'nickname': '鲟回-管理员'
     },
-    'default_lost_loc': '不知道###不知道###0###0'
+    'default_lost_loc': '不知道###不知道###0###0',
+    'page_size': 10
 }

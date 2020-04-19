@@ -38,6 +38,7 @@ def syncNewGoodsToRedis(goods_info=None):
         'lat': eval(location[1]),
         'member_id': goods_info.member_id,
         # 订阅消息
+        'openid': goods_info.openid,
         'name': goods_name,
         'created_time': goods_info.created_time,
         'loc': location[0]
@@ -91,6 +92,7 @@ def syncGoodsToES(goods_info=None, edit=False):
         'lng': eval(location[2]),
         'lat': eval(location[1]),
         # 订阅消息
+        'openid': goods_info.openid,
         'created_time': goods_info.created_time,
         'loc': location[0],
         # 其他同步数据

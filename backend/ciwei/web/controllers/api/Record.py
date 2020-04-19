@@ -4,6 +4,7 @@ import datetime
 from flask import request, jsonify, g
 from sqlalchemy import or_, and_
 
+from application import APP_CONSTANTS
 from common.cahce import cas
 from common.libs import RecordService
 from common.libs.Helper import param_getter
@@ -68,7 +69,7 @@ def recordSearch():
     search_rule = RecordService.searchBarFilter(owner_name=req.get('owner_name', ''), goods_name=str(req.get('mix_kw', '')))
     # 分页排序
     p = max(int(req.get('p', 1)), 1)
-    page_size = 10
+    page_size = APP_CONSTANTS['page_size']
     offset = (p - 1) * page_size
     order_rule = Recommend.rel_score.desc() if op_status == 2 else Good.id.desc()
     goods_list = query.filter(search_rule).order_by(order_rule).offset(offset).limit(page_size).all()

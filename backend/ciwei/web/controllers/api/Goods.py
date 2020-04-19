@@ -155,7 +155,7 @@ def createGoods():
     # 所有类型帖子的公共信息
     model_goods = Good()
     model_goods.member_id = member_info.id
-    model_goods.openid = member_info.openid  # 作者的身份标识，冗余设计
+    model_goods.openid = member_info.openid  # 作者的身份标识，冗余设计，方便订阅消息等
     model_goods.nickname = member_info.nickname
     model_goods.avatar = member_info.avatar
     model_goods.name = req["goods_name"]  # 物品名，前端发布已判空
@@ -1558,7 +1558,111 @@ def test9():
     from common.models.ciwei.Member import Member
     from sqlalchemy import func
     #cnt = db.session.query(func.count(Member.id)).scalar()
-    cnt = db.session.query(func.count(Good.id)).group_by(Good.business_type).all()
-    from common.models.ciwei.Recommend import Recommend
-    res = Good.query.join(Recommend, Recommend.found_goods_id == Good.id).add_entity(Recommend).all()
-    return str(cnt)
+    # cnt = db.session.query(func.count(Good.id)).group_by(Good.business_type).all()
+    # from common.models.ciwei.Recommend import Recommend
+    # res = Good.query.join(Recommend, Recommend.found_goods_id == Good.id).add_entity(Recommend).all()
+    mappings = {
+        "properties": {
+            "appeal_time": {
+                "type": "date"
+            },
+            "avatar": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "business_type": {
+                "type": "byte"
+            },
+            "confirm_time": {
+                "type": "date",
+            },
+            "created_time": {
+                "type": "date",
+            },
+            "finish_time": {
+                "type": "date",
+            },
+            "id": {
+                "type": "long"
+            },
+            "lat": {
+                "type": "float",
+                "index": "false"
+            },
+            "lng": {
+                "type": "float",
+                "index": "false"
+            },
+            "loc": {
+                "type": "text"
+            },
+            "os_location": {
+                "type": "text"
+            },
+            "location": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "main_image": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "member_id": {
+                "type": "long"
+            },
+            "openid": {
+                "type": "keyword"
+            },
+            "mobile": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "name": {
+                "type": "text"
+            },
+            "nickname": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "owner_name": {
+                "type": "text"
+            },
+            "pics": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "qr_code_openid": {
+                "type": "keyword"
+            },
+            "report_status": {
+                "type": "byte"
+            },
+            "return_goods_id": {
+                "type": "long"
+            },
+            "return_goods_openid": {
+                "type": "keyword"
+            },
+            "status": {
+                "type": "byte"
+            },
+            "summary": {
+                "type": "text"
+            },
+            "thank_time": {
+                "type": "date"
+            },
+            "top_expire_time": {
+                "type": "date"
+            },
+            "updated_time": {
+                "type": "date"
+            },
+            "view_count": {
+                "type": "integer"
+            }
+        }
+    }
+
+    res = es.indices.create(index="goods", body={"mappings": mappings})
+    return res

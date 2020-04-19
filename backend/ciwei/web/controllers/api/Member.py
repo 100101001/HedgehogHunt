@@ -1,5 +1,11 @@
-#!/usr/bin/python3.6.8
-# -*- coding:utf-8 -*-
+# encoding: utf-8
+"""
+@author: github/100101001
+@contact: 17702113437@163.com
+@time: 2020/1/9 上午12:36
+@file: Member.py
+@desc:
+"""
 import datetime
 from decimal import Decimal
 

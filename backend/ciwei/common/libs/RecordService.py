@@ -8,7 +8,7 @@
 """
 from sqlalchemy import and_, or_
 
-from application import db
+from application import db, APP_CONSTANTS
 from common.cahce import cas
 from common.libs.UrlManager import UrlManager
 from common.libs.recommend.v2 import SyncService
@@ -17,6 +17,7 @@ from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Recommend import Recommend
 from common.models.ciwei.Report import Report
+from common.models.ciwei.Thanks import Thank
 from common.tasks.sync import SyncTasks
 
 
@@ -182,7 +183,7 @@ def getMyRecommend(member_id=0, goods_status=0, only_new=True):
 
 def searchBarFilter(owner_name='', address='', goods_name=''):
     """
-
+    获取记录页的搜索过滤条件
     :param owner_name:
     :param address:
     :param goods_name:
@@ -202,7 +203,7 @@ def searchBarFilter(owner_name='', address='', goods_name=''):
 
 def makeRecordData(item=None, op_status=0, status=0, now=None):
     """
-
+    拼装记录数据
     :param now:
     :param item:
     :param op_status:
@@ -219,8 +220,9 @@ def makeRecordData(item=None, op_status=0, status=0, now=None):
     is_pre_mark_fail = item_status != 2 and status == 0 and op_status == 1  # 物品状态已经不是预认领，但认领记录确是预认领
     is_appealed = item_status == 5  # 物品状态为 5 标示正在做申诉处理
     # 查看状态为预寻回的发布过的寻物记录，且还没有查看过，说明没有确认是自己的，搜易不能批量操作确认取回
-    unknown_returned_lost = item.business_type == 0 and op_status == 0 and item.status == 2 \
-                            and not cas.exec(item.return_goods_id, 2, 2)  # 如果看过那么一定有状态记录
+    unconfirmed_returned_lost = item.business_type == 0 and op_status == 0 and item.status == 2 \
+                                and not cas.exec(item.return_goods_id, 2, 2)  # 如果看过那么一定有状态记录
+    show_record_loc = op_status == 0 or op_status == 5
     record = {
         "id": item.id,  # 供前端用户点击查看详情用的
         "new": recommend_status,
@@ -229,14 +231,121 @@ def makeRecordData(item=None, op_status=0, status=0, now=None):
         "avatar": item.avatar,
         "goods_name": item.name,
         "owner_name": item.owner_name,
-        "location": item.location.split("###")[1] if op_status == 0 or op_status == 5 else "",  # 归还贴和发布贴概要可看地址
+        "location": item.location.split("###")[1] if show_record_loc else "",  # 归还贴和发布贴概要可看地址
         "summary": item.summary,
         "business_type": item.business_type,
         "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
         "main_image": UrlManager.buildImageUrl(item.main_image),
         "selected": False,  # 供前端选中删除记录用的属性
-        "unselectable": is_appealed or is_pre_mark_fail or unknown_returned_lost,  # 前端编辑禁止选中
+        "unselectable": is_appealed or is_pre_mark_fail or unconfirmed_returned_lost,  # 前端编辑禁止选中
         "top": item.top_expire_time > now,  # 是否为置顶记录
         "updated_time": str(item.updated_time)
     }
-    return {}
+    return record
+
+
+"""
+后半部分与答谢记录查看与举报相关
+"""
+
+
+def deleteMyThanks(thank_ids=None):
+    """
+    删除答谢记录
+    :param thank_ids:
+    :return:
+    """
+    if not thank_ids:
+        return False
+    Thank.query.filter(Thank.id.in_(thank_ids)).update({'status': 7}, synchronize_session=False)
+    db.session.commit()
+    return True
+
+
+def deleteReportedThanks(thank_ids=None, user_id=0):
+    """
+    同时删除答谢和答谢举报记录
+    :param thank_ids:
+    :param user_id:
+    :return:
+    """
+    if not thank_ids or not user_id:
+        return False
+    Thank.query.filter(Thank.id.in_(thank_ids)). \
+        update({'user_id': user_id, 'report_status': 5}, synchronize_session=False)
+    Report.query.filter(Report.record_type == 0, Report.record_id.in_(thank_ids)). \
+        update({'user_id': user_id, 'status': 5}, synchronize_session=False)
+    db.session.commit()
+    return True
+
+
+def getMyReceivedThanks(member_id=0, only_new=False):
+    """
+    获取我收到的别人对我的答谢记录
+    :param member_id:
+    :param only_new:
+    :return:
+    """
+
+    status_rule = Thank.status == 0 if only_new else Thank.status.in_([0, 1])
+    query = Thank.filter(Thank.target_member_id == member_id, status_rule)
+    return query
+
+
+def getMySendThanks(member_id=0, only_new=False):
+    """
+    获取我发出的答谢记录
+    :param member_id:
+    :param only_new:
+    :return:
+    """
+    status_rule = Thank.status == 0 if only_new else Thank.status.in_([0, 1])
+    query = Thank.filter(Thank.member_id == member_id, status_rule)
+    return query
+
+
+def getReportedThanks(report_status=0, p=1):
+    """
+    获取特定页的举报记录
+    :param report_status:
+    :param p:
+    :return:
+    """
+    p = max(p, 1)
+    page_size = APP_CONSTANTS['page_size']
+    offset = (p - 1) * page_size
+    # 同时返回 Report和Thank
+    return Thank.query.join(Report, Report.record_id == Thank.id).add_entity(Report).filter(
+        Report.status == report_status,
+        Report.record_type == 0).order_by(Report.id.desc()).offset(offset).limit(page_size).all()
+
+
+def makeReportThankRecord(reported_thank=None):
+    """
+    组装答谢举报记录
+    :param reported_thank:
+    :return:
+    """
+    report, thank = reported_thank.Report, reported_thank.Thank
+    reported_thank_record = {
+        # 答谢记录本身的信息
+        "id": thank.id,
+        "status": thank.status,  # 不存在时置1
+        "goods_name": thank.goods_name,
+        "owner_name": thank.owner_name,
+        "updated_time": str(thank.updated_time),
+        "business_desc": thank.business_desc,
+        "summary": thank.summary,  # 答谢文字
+        "reward": str(thank.thank_price),
+        "member_id": thank.id,
+        "auther_name": thank.nickname,
+        "avatar": thank.avatar,
+        "selected": False,
+        # 答谢举报的信息
+        "report_member_id": report.report_member_id,
+        "report_member_avatar": report.report_member_avatar,
+        "report_member_name": report.report_member_nickname,
+        "report_updated_time": str(report.updated_time),
+        "report_id": report.id,
+    }
+    return reported_thank_record

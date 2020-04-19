@@ -73,29 +73,22 @@ def doAutoRecommendGoods(goods_info=None, edit=False):
     for good in goods_list:
         good_id = good.get('id')
         target_member_id = good.get('member_id') if release_type == 1 else goods_info.member_id  # 获得寻物启示贴主id
-        lost_goods_id = good_id if release_type == 1 else goods_info.id
-        found_goods_id = good_id if release_type == 0 else goods_info.id  # 获取失物招领id
+        lost_goods_id = good_id if release_type == 1 else goods_info.id   # 如果发布的是失物招领，lost_id就是匹配上的物品列表的id
+        found_goods_id = good_id if release_type == 0 else goods_info.id  # 如果发布的是寻物启事，found_id就是匹配上的物品列表的id
         new_recommend = addRecommendGoods(target_member_id=target_member_id,
                                           found_goods_id=found_goods_id,
                                           lost_goods_id=lost_goods_id,
                                           edit=edit)
 
         if new_recommend and release_type == 1:
-            # 是之前没推荐过的新物品给了寻物启示失主，且该寻物启事还剩寻物消息才发通知
-            # 通知：有人可能捡到了你遗失的东西
+            # 如果发布了失物招领，需要给新匹配上的寻物启示发匹配成功通知
             need_notification.append(good)
 
-    # # 批量更新寻物剩余的匹配通知次数
-    # if release_type == 1 and len(need_notification) > 0:
-    #     notified_goods = [item.get('member_id') for item in need_notification]
-    #
-    #     db.session.commit()
     app.logger.warn("推荐结束")
-
-    # 异步批量的发送订阅消息[分发给专门负责订阅消息的worker处理]
-    # 注意消息经序列化后, need_notification列表中的good变成了纯粹的列表(属性按序排列)
-    SubscribeTasks.send_recommend_subscribe_in_batch.delay(lost_goods_list=need_notification,
-                                                           found_goods=queryToDict(goods_info))
+    if need_notification:
+        # 有需要发送消息的，异步批量的发送订阅消息
+        SubscribeTasks.send_recommend_subscribe_in_batch.delay(lost_list=need_notification,
+                                                               found_goods=queryToDict(goods_info))
 
 
 def addRecommendGoods(target_member_id=0, found_goods_id=0, lost_goods_id=0, edit=False):

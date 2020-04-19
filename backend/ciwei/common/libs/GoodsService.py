@@ -18,6 +18,7 @@ from common.libs.recommend.v2 import SyncService
 from common.models.ciwei.Mark import Mark
 from common.tasks.recommend.v2 import RecommendTasks
 from common.tasks.sms import SmsTasks
+from common.tasks.subcribe import SubscribeTasks
 from common.tasks.sync import SyncTasks
 
 
@@ -50,6 +51,11 @@ def returnToLostSuccess(return_goods=None, lost_goods=None):
                                                                 'return_goods_openid': return_goods.openid,
                                                                 'confirm_time': now,
                                                                 'status': 2})
+    # 异步发送订阅消息
+    SubscribeTasks.send_return_subscribe.delay(return_info={'goods_name': return_goods.name,
+                                                      'returner': return_goods.nickname,
+                                                      'return_date': return_goods.created_time.strftime("%Y年%m月%d日 %H：%M"),
+                                                      'rcv_openid': lost_goods.openid})
 
 
 def scanReturnSuccess(scan_goods=None, notify_id=''):
