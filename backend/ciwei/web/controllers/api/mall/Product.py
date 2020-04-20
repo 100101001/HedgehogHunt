@@ -5,6 +5,7 @@ from sqlalchemy import or_, desc, func, distinct
 from application import db
 from common.libs.Helper import getDictFilterField, selectFilterObj
 from common.libs.UrlManager import UrlManager
+from common.loggin.decorators import time_log
 from common.models.ciwei.Member import Member
 from common.models.ciwei.mall.Campus import Campus
 from common.models.ciwei.mall.CampusProduct import CampusProduct
@@ -16,6 +17,7 @@ from web.controllers.api import route_api, jsonify
 
 
 @route_api.route("/campus/search", methods=['GET'])
+@time_log
 def product_campus():
     resp = {'code': -1, 'msg': "成功", 'data': {}}
     req = request.values
@@ -50,6 +52,7 @@ def product_campus():
 
 
 @route_api.route("/product/index")
+@time_log
 def productIndex():
     resp = {'code': 200, 'msg': '操作成功~', 'data': {}}
     req = request.values
@@ -100,6 +103,7 @@ def productIndex():
 
 
 @route_api.route("/product/search")
+@time_log
 def productSearch():
     resp = {'code': 200, 'msg': '操作成功~', 'data': {}}
     req = request.values
@@ -167,6 +171,7 @@ def productSearch():
 
 
 @route_api.route("/product/info")
+@time_log
 def productInfo():
     resp = {'code': 200, 'msg': '操作成功~', 'data': {}}
     req = request.values
@@ -210,6 +215,7 @@ def productInfo():
 
 
 @route_api.route("/product/comments")
+@time_log
 def productComments():
     """
 
@@ -251,6 +257,7 @@ def productComments():
 
 
 @route_api.route('/product/qrcode/info', methods=['GET', 'POST'])
+@time_log
 def productQrcodeInfo():
     return jsonify({
         'code': 200,

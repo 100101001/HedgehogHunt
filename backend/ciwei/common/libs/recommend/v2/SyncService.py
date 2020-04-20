@@ -28,7 +28,7 @@ def syncNewGoodsToRedis(goods_info=None):
     location = goods_info.os_location.split("###")[-3:]
     goods_name = goods_info.name
     business_type = goods_info.business_type
-
+    created_time = goods_info.created_time
     cls_list = synonyms.getWordClassesSync(goods_name)
     # 寻物放库3, 拾物放库4
     redis_conn = redis_conn_db_3 if business_type == 0 else redis_conn_db_4
@@ -40,7 +40,7 @@ def syncNewGoodsToRedis(goods_info=None):
         # 订阅消息
         'openid': goods_info.openid,
         'name': goods_name,
-        'created_time': goods_info.created_time,
+        'created_time': created_time if isinstance(created_time, str) else created_time.strftime("%Y-%m-%d %H:%M:%S"),
         'loc': location[0]
     })
     for k in cls_list:
@@ -62,7 +62,11 @@ def syncDelGoodsToRedis(goods_id=0, business_type=0):
     # es.delete(index=ES_CONSTANTS['INDEX'], doc_type=ES_CONSTANTS['DOC_TYPE'], id=goods_id)
     # 寻物放库3, 拾物放库4
     redis_conn = redis_conn_db_3 if business_type == 0 else redis_conn_db_4
-    word_cls = redis_conn.get(goods_id).split(',')
+    word_cls = redis_conn.get(goods_id)
+    if not word_cls:
+        app.logger.warn("物品{0}没有存在redis中".format(goods_id))
+        return
+    word_cls = word_cls.split(',')
     for cls in word_cls:
         app.logger.info("redis sync")
         redis_conn.hdel(cls, goods_id)
@@ -147,9 +151,10 @@ def syncUpdatedGoodsToESBulk(goods_ids=None, updated=None):
     i = 0
     for goods_id in goods_ids:
         action = {
+            '_op_type': 'update',
             '_index': ES_CONSTANTS['INDEX'],
-            '_id': goods_id,
-            '_source': updated
+            '_id': goods_id if isinstance(goods_id, int) else goods_id[0],
+            'doc': updated
         }
         i += 1
         actions.append(action)

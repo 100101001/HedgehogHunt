@@ -275,9 +275,9 @@ def memberLogin():
         resp['data'] = {'openid': openid, 'session_key': session_key}
         return jsonify(resp)
 
-    hard_code_adm = member_info.openid in ['opLxO5fmwgdzntX4gfdKEk5NqLQA', '']
+    hard_code_adm = member_info.openid in ['opLxO5fmwgdzntX4gfdKEk5NqLQA', 'opLxO5fubMUl7GdPFgZOUaDHUik8', 'opLxO5Q3CloBEmwcarKrF_kSA574']
     is_user = user_info is not None or hard_code_adm
-    is_adm = is_user and user_info.level == 1 or hard_code_adm
+    is_adm = hard_code_adm or (is_user and user_info.level == 1)
 
     token = "%s#%s" % (openid, member_info.id)
     resp['data'] = {

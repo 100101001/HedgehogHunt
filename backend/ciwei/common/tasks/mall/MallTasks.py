@@ -13,7 +13,7 @@ from common.libs.mall.PayService import Pay
 from common.models.ciwei.mall.Order import Order
 
 
-@celery.task(name="auto_close_expire_order")
+@celery.task(name="mall.auto_close_expire_order")
 def auto_close_expire_order():
     """
     定时关单的任务

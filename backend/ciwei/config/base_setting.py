@@ -2,7 +2,7 @@ from celery.schedules import crontab
 
 SERVER_PORT = 8999
 # IP = '127.0.0.1'
-IP = '192.168.1.116'
+IP = '192.168.0.116'
 # IP='100.68.70.139'
 # IP='47.102.201.193'
 DEBUG = True
@@ -33,17 +33,22 @@ CELERY_RESULT_SERIALIZER = 'json'
 # celery 定时任务
 CELERYBEAT_SCHEDULE = {
     # 30分钟未支付订单自动关单
-    'auto_close_expire_order_every_minutes': {
-        'task': 'auto_close_expire_order',
-        'schedule': crontab(minute='*/15'),
+    'auto_close_expire_order_every_quarter': {
+        'task': 'mall.auto_close_expire_order',
+        'schedule': crontab(minute='*/15'),  # 每15分钟执行一次
         'options': {'queue': 'mall_queue', 'routing_key': 'for_mall', 'delivery_mode': 'transient'}  # 定时清理的消息如果丢失是没有关系的
+    },
+    'incr_read_count_to_db_every_day': {
+        'task': 'sync.incr_read_count_to_db',
+        'schedule':  crontab(minute=0, hour=0),  # 每天的凌晨执行任务
+        'options': {'queue': 'sync_queue', 'routing_key': 'for_sync'}
     }
 }
 # celery 检查schedule中是否有要执行的任务的间隔可以睡10分钟
 CELERYBEAT_MAX_LOOP_INTERVAL = 600
 # celery的任务队列  ## exchange_type有:1:N, N:1, 1:1
 CELERY_QUEUES = {
-    'mall_queue': {  # 这是上面指定的默认队列
+    'mall_queue': {  # 指定各个队列的exchange,和worker处理来自不同队列任务时的优先级。同一队列的任务优先级通过@task的property属性设定。
         'exchange': 'mall_queue',
         'exchange_type': 'direct',
         'routing_key': 'for_mall',
@@ -72,6 +77,12 @@ CELERY_QUEUES = {
         'exchange_type': 'direct',
         'routing_key': 'for_sync',
         'consumer_arguments': {'x-priority': 10}
+    },
+    'log_queue': {
+        'exchange': 'log_queue',
+        'exchange_type': 'direct',
+        'routing_key': 'for_log',
+        'consumer_arguments': {'x-priority': 5}
     }
 }
 # celery任务路由
@@ -208,5 +219,6 @@ CONSTANTS = {
         'nickname': '鲟回-管理员'
     },
     'default_lost_loc': '不知道###不知道###0###0',
+    'default_loc': ['不知道', '不知道', 0, 0],
     'page_size': 10
 }

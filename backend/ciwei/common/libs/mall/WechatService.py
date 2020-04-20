@@ -12,7 +12,11 @@ import xml.etree.ElementTree as ET
 
 import requests
 
-from application import app, cache
+from application import app
+from common.cahce import CacheQueryService, CacheOpService
+import base64
+import json
+from Crypto.Cipher import AES
 
 
 class WeChatService:
@@ -63,11 +67,12 @@ class WeChatService:
         return False
 
     def dict_to_xml(self, dict_data):
-        '''
+        """
         dict to xml
+        :rtype: object
         :param dict_data:
         :return:
-        '''
+        """
         xml = ["<xml>"]
         for k, v in dict_data.items():
             xml.append("<{0}>{1}</{0}>".format(k, v))
@@ -75,11 +80,11 @@ class WeChatService:
         return "".join(xml)
 
     def xml_to_dict(self, xml_data):
-        '''
+        """
         xml to dict
         :param xml_data:
         :return:
-        '''
+        """
         xml_dict = {}
         root = ET.fromstring(xml_data)
         for child in root:
@@ -87,19 +92,20 @@ class WeChatService:
         return xml_dict
 
     def get_nonce_str(self):
-        '''
+        """
         获取随机字符串
         :return:
-        '''
+        """
         return str(uuid.uuid4()).replace('-', '')
 
     @staticmethod
     def get_wx_token():
-        import time
-
-        token = cache.get("token")
-
-        if not token or token['expires_at'] > time.time():
+        """
+        从缓存获取token并返回，过期获取新的返回，并设置缓存
+        :return:
+        """
+        token = CacheQueryService.getWxToken()
+        if not token:
             # get new token
             url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={}&secret={}".format(
                 app.config['OPENCS_APP']['appid'], app.config['OPENCS_APP']['appkey'])
@@ -110,26 +116,21 @@ class WeChatService:
                 app.logger.error("failed to get token! Errcode: %s, Errmsg:%s", data['errcode'], data['errmsg'])
                 return None
             else:
-                data = wxResp.json()
-                token = {'token': data['access_token'], 'expires_at': data['expires_in'] + time.time()}
-                cache.set("token", token)
+                CacheOpService.setWxToken(wxResp.json())
                 return token['token']
         else:
             return token
 
 
-import base64
-import json
-from Crypto.Cipher import AES
-
-
 class WXBizDataCrypt:
+    """
+    微信手机AES解密
+    """
     def __init__(self, appId, sessionKey):
         self.appId = appId
         self.sessionKey = sessionKey
 
     def decrypt(self, encryptedData, iv):
-
         # base64 decode
         sessionKey = base64.b64decode(self.sessionKey)
         encryptedData = base64.b64decode(encryptedData)

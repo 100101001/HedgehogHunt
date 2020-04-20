@@ -145,43 +145,22 @@ def createGoods():
         resp['msg'] = "发布失败"
         resp['data'] = req
         return jsonify(resp)
-    location = req.get("location", [])
-    if not location:
-        resp['msg'] = "地址为空"
-        return jsonify(resp)
 
     # 是否是扫码归还
-    is_scan_return = business_type == 2 and 'owner_name' not in req
-    # 所有类型帖子的公共信息
-    model_goods = Good()
-    model_goods.member_id = member_info.id
-    model_goods.openid = member_info.openid  # 作者的身份标识，冗余设计，方便订阅消息等
-    model_goods.nickname = member_info.nickname
-    model_goods.avatar = member_info.avatar
-    model_goods.name = req["goods_name"]  # 物品名，前端发布已判空
-    location = req["location"]  # 放置地址/住址，前端发布已判空
-    os_location = req['os_location']  # 丢失和发现地址
-    model_goods.location = "###".join(location.split(","))  # 放置地址/住址
-    # 如果是失物招領或者归还就是放置地点.否则就是留空
-    model_goods.os_location = "###".join(
-        os_location.split(",")) if os_location else (
-        model_goods.location if business_type in (1, 2) else APP_CONSTANTS['default_lost_loc'])
-    model_goods.owner_name = "鲟回码主" if is_scan_return else req.get('owner_name')  # 前端发布除了扫码归还皆已判空
-    model_goods.summary = req.get('summary')  # 前端发布已判空
-    model_goods.business_type = business_type  # 失物招领or寻物启示or归还
-    model_goods.status = 7  # 创建未完成
-    model_goods.mobile = req['mobile']  # 前端发布已判空
-    # 置顶的物品7天后置顶过期，非置顶物品创建时就置顶过期
-    now = datetime.datetime.now()
-    model_goods.top_expire_time = now if not int(req.get('is_top', 0)) else now + datetime.timedelta(
-        days=int(req['days']))
-    db.session.add(model_goods)
-    db.session.commit()
+    if business_type == 0:
+        model_goods = GoodsService.releaseLost(release_info=req, author_info=member_info)
+    elif business_type == 1:
+        model_goods = GoodsService.releaseFound(release_info=req, author_info=member_info)
+    else:
+        is_scan_return = 'owner_name' not in req
+        model_goods = GoodsService.releaseReturn(release_info=req, author_info=member_info,
+                                                 is_scan_return=is_scan_return)
 
     # 返回商品记录的id，用于后续添加图片
     # 判断图片是否已经存在于服务器上
     resp['code'] = 200
     resp['id'] = model_goods.id
+    db.session.commit()
     img_list_status = UploadService.filterUpImages(req['img_list'])  # 图片列表发布时已判空
     resp['img_list_status'] = img_list_status
     return jsonify(resp)
@@ -610,7 +589,6 @@ def goodsApply():
     # 预认领事务
     member_id = member_info.id
     MemberService.preMarkGoods(member_id=member_id, goods_id=goods_id)
-
     if status == 1:
         updated = {'status': 2, 'confirm_time': datetime.datetime.now()}
         Good.query.filter_by(id=goods_id, status=status).update(updated, synchronize_session=False)
@@ -659,15 +637,16 @@ def goodsCancelApplyInBatch():
 
     if status == 2:
         # 对于于认领的物品，状态可能发生变更
-        no_marks = GoodsService.getNoMarksAfterDelPremark(found_ids=found_ids)
+        no_marks = GoodsService.getNoMarksAfterDelPremark(found_ids=found_ids, member_id=member_id)
         no_mark_num = len(no_marks)
+
         if no_mark_num > 0:
             # 公开信息操作加锁，状态预期和加锁
             # 失物招领状态更新
             Good.query.filter(Good.id.in_(no_marks), Good.status == status).update(
                 {'status': 1}, synchronize_session=False)
-            db.session.commit()
             SyncService.syncUpdatedGoodsToESBulk(goods_ids=no_marks, updated={'status': 1})
+            db.session.commit()
             # 异步进匹配库
             SyncTasks.synRecoverGoodsToRedis.delay(goods_ids=no_marks)
     else:
@@ -716,10 +695,10 @@ def returnGoodsDelInBatch():
     # 归还贴
     return_updated = {'status': 7, 'return_goods_id': 0, 'return_goods_openid': ''}
     Good.query.filter(Good.id.in_(return_ids), Good.status == status).update(return_updated, synchronize_session=False)
-    db.session.commit()
     # 同步ES
     SyncService.syncUpdatedGoodsToESBulk(goods_ids=lost_ids, updated=lost_updated)
     SyncService.syncDeleteGoodsToESBulk(goods_ids=return_ids)
+    db.session.commit()
     # 异步进匹配库
     SyncTasks.synRecoverGoodsToRedis.delay(goods_ids=lost_ids)
     resp['code'] = 200
@@ -747,14 +726,16 @@ def returnGoodsToFoundInBatch():
     total_goods_num = len(return_ids)
     if status == 0:
         # 公开已拒绝的归还贴（只有作者能操作）
+        for r_id in return_ids:
+            cas.exec(r_id, 0, 1)
         return_updated = {'status': 1, 'business_type': 1, 'top_expire_time': datetime.datetime.now()}
         Good.query.filter(Good.id.in_(return_ids),
                           Good.status == status).update(return_updated, synchronize_session=False)
-        db.session.commit()
         # 同步ES
         SyncService.syncUpdatedGoodsToESBulk(goods_ids=return_ids, updated=return_updated)
         # 异步进匹配库
         SyncTasks.synRecoverGoodsToRedis.delay(goods_ids=return_ids)
+        db.session.commit()
     elif status == 1:
         # 其实（再待确认的归还记录，和寻物详情）
         # 公开待确认的归还贴
@@ -783,10 +764,10 @@ def returnGoodsToFoundInBatch():
                           'return_goods_id': 0, 'return_goods_openid': ''}
         Good.query.filter(Good.id.in_(return_ids),
                           Good.status == status).update(return_updated, synchronize_session=False)
-        db.session.commit()
         # 同步到ES
         SyncService.syncUpdatedGoodsToESBulk(goods_ids=lost_ids, updated=lost_updated)
         SyncService.syncUpdatedGoodsToESBulk(goods_ids=return_ids, updated=return_updated)
+        db.session.commit()
         # 异步进匹配库
         ids = return_ids.extend(lost_ids)
         SyncTasks.synRecoverGoodsToRedis.delay(goods_ids=ids)
@@ -840,9 +821,10 @@ def returnGoodsRejectInBatch():
     # 归还贴
     return_updated = {'status': 0, 'return_goods_id': 0, 'return_goods_openid': ''}
     Good.query.filter(Good.id.in_(return_ids), Good.status == status).update(return_updated, synchronize_session=False)
-    db.session.commit()
+
     SyncService.syncUpdatedGoodsToESBulk(goods_ids=lost_ids, updated=lost_updated)
     SyncService.syncUpdatedGoodsToESBulk(goods_ids=return_ids, updated=return_updated)
+    db.session.commit()
     # 异步进匹配库
     SyncTasks.synRecoverGoodsToRedis.delay(goods_ids=lost_ids)
     resp['code'] = 200
@@ -1195,136 +1177,33 @@ def goodsInfo():
     # 检查参数：物品id,物品的发布者存在
     goods_id = int(req.get('id', -1))
     if goods_id == -1:
-        resp['msg'] = '参数为空'
+        resp['msg'] = '帖子不存在'
         return jsonify(resp)
     goods_info = Good.query.filter_by(id=goods_id).first()
     if not goods_info or goods_info.status == 7:
         resp['msg'] = '作者已删除'
         return jsonify(resp)
-    goods_status = goods_info.status
-    if not cas.exec_wrap(goods_id, ['nil', goods_status], goods_status):
-        # 虽然数据库还没更新，但内存的原子操作已经更新了 WR
-        resp['msg'] = '操作冲突，请稍后重试'
-        return jsonify(resp)
+
     # 浏览量
-    read = int(req.get('read', 1))
-    if not read:
-        goods_info.view_count += 1
-        db.session.add(goods_info)
-    # 已阅扫码归还
+    has_read = int(req.get('read', 1))
+    GoodsService.setGoodsReadCount(has_read=has_read, goods_id=goods_id)
+
+    # 获取数据
     member_info = g.member_info
-    is_login = member_info is not None
-    if is_login and goods_info.qr_code_openid == member_info.openid:
-        goods_info.owner_name = member_info.name
-        db.session.add(goods_info)
-
-    # 更新为已阅推荐
-    op_status = int(req.get('op_status', 0))
-    if op_status == 2 and not read:
-        # 从推荐记录进入详情,代表用户一定已经登陆了
-        MemberService.setRecommendStatus(member_id=member_info.id, goods_id=goods_id, new_status=1, old_status=0)
-
-    # 每个不同类型的帖子是否可看地址
-    is_auth = is_login and (member_info.id == goods_info.member_id)
     business_type = goods_info.business_type
-    show_location = False
-    if business_type == 1:
-        # 失物招领只有(预)认领者和作者自己能看地址
-        show_location = is_login and (
-                MemberService.hasMarkGoods(member_id=member_info.id, goods_id=goods_id) or is_auth)
+    if business_type == 0:
+        data = GoodsService.getLostGoodsInfo(goods_info=goods_info, member_info=member_info)
+    elif business_type == 1:
+        data = GoodsService.getFoundGoodsInfo(goods_info=goods_info, member_info=member_info)
+        GoodsService.setRecommendRead(is_recommend_src=int(req.get('op_status', 0)) == 2,
+                                      has_read=has_read, member_info=member_info, goods_id=goods_id)
     elif business_type == 2:
-        # 能进入归还贴子的用户，都是能看的
-        show_location = is_login
-    elif business_type == 0:
-        # 寻物启示只有归还者和作者自己能看地址
-        show_location = is_login and (goods_info.return_goods_openid == member_info.openid or is_auth)
+        data = GoodsService.getReturnGoodsInfo(goods_info=goods_info, member_info=member_info)
 
-    # 例：上海市徐汇区肇嘉浜路1111号###美罗城###31.192948153###121.439673735
-    location_list = goods_info.location.split("###")
-    location_list[2] = eval(location_list[2])
-    location_list[3] = eval(location_list[3])
-
-    data = {
-        # 物品帖子数据信息
-        "id": goods_id,
-        "business_type": goods_info.business_type,  # 寻物启示 or 失物招领
-        "top": goods_info.top_expire_time > datetime.datetime.now(),
-        "goods_name": goods_info.name,  # 物品名
-        "owner_name": goods_info.owner_name,  # 物主名
-        "summary": goods_info.summary,  # 简述
-        "main_image": UrlManager.buildImageUrl(goods_info.main_image),
-        "target_price": str(goods_info.target_price),  # TODO：悬赏金
-        "pics": [UrlManager.buildImageUrl(i) for i in goods_info.pics.split(",")],
-        "location": location_list,
-        "mobile": goods_info.mobile,
-        # 物品帖子作者信息
-        "is_auth": is_auth,  # 是否查看自己发布的帖子(不能进行状态操作，可以编辑)
-        "auther_id": goods_info.member_id,
-        "auther_name": goods_info.nickname,
-        "avatar": goods_info.avatar,
-        # 为用户浏览和操作设计的信息
-        "status_desc": str(goods_info.status_desc),
-        "status": goods_status,
-        "view_count": goods_info.view_count,  # 浏览量
-        "updated_time": str(goods_info.updated_time),  # 被编辑的时间 or 首次发布的时间
-        "is_thanked": goods_status == 4
-    }
-
-    if business_type == 1 and goods_status > 1:
-        # 失物招领的申诉或认领信息
-        data.update({'is_owner': is_login and goods_info.owner_id == member_info.id})
-        if goods_status == 5:
-            # 申诉的时间
-            data.update({'op_time': goods_info.appeal_time.strftime("%Y-%m-%d %H:%M")})
-        elif is_auth:
-            # 作者需要知道认领信息和时间
-            op_time = goods_info.confirm_time if goods_status == 2 else goods_info.finish_time
-            data.update({'op_time': op_time.strftime("%Y-%m-%d %H:%M")})
-    elif business_type == 0 and goods_status > 1:
-        # 归还贴需要的寻物贴ID，和被归还过的寻物启示帖子需要归还贴ID
-        is_returner = is_login and goods_info.return_goods_openid == member_info.openid
-        more_data = {'is_returner': is_returner}
-        if is_auth or is_returner:
-            # 需要判断予寻回的帖子是否已经确认过归还，已取回，对方有没有删除帖子
-            op_time = goods_info.confirm_time if goods_status == 2 else goods_info.finish_time
-            return_goods_id = goods_info.return_goods_id
-            status = Good.query.filter_by(id=return_goods_id).with_entities(Good.status).first()
-            if not cas.exec_wrap(return_goods_id, ['nil', status[0]], status[0]):
-                resp['msg'] = '操作冲突，请稍后重试'
-                return jsonify(resp)
-            more_data = {'is_returner': is_returner,
-                         'return_goods_id': return_goods_id,  # 用来链接两贴
-                         'is_confirmed': status[0] == 2,  # 根据是否已经确认过归还贴对寻物启示发布者和归还者进行提示
-                         'is_origin_deleted': status[0] == 7,  # 根据此提示可以删除本贴
-                         'op_time': op_time.strftime("%Y-%m-%d %H:%M")  # 根据此提示操作时间
-                         }
-        data.update(more_data)
-    elif business_type == 2:
-        # 能看归还贴子的都是相关人士
-        lost_goods_id = goods_info.return_goods_id
-        if goods_status == 1:
-            more_data = {'return_goods_id': lost_goods_id}
-            data.update(more_data)
-        elif goods_status == 2:
-            more_data = {'return_goods_id': lost_goods_id,
-                         'op_time': goods_info.confirm_time.strftime("%Y-%m-%d %H:%M")}
-            data.update(more_data)
-        elif goods_status > 2:
-            lost_goods_status = Good.query.filter_by(id=lost_goods_id).with_entities(Good.status).first()
-            if not cas.exec_wrap(lost_goods_id, ['nil', lost_goods_status], lost_goods_status):
-                resp['msg'] = '操作冲突，请稍后重试'
-                return jsonify(resp)
-            is_origin_del = lost_goods_status[0] == 7
-            more_data = {'return_goods_id': lost_goods_id,
-                         'is_origin_deleted': is_origin_del,
-                         # 通知也删了，不再会有感谢
-                         'is_no_thanks': not goods_info.return_goods_openid and is_origin_del,
-                         'op_time': goods_info.finish_time.strftime("%Y-%m-%d %H:%M")}
-            data.update(more_data)
-    db.session.commit()  # 浏览量
+    db.session.commit()
     resp['code'] = 200
     resp['data']['info'] = data
-    resp['data']['show_location'] = show_location
+    resp['data']['show_location'] = data['show_location']
     return jsonify(resp)
 
 
@@ -1366,6 +1245,7 @@ def fetchGoodsInfoForThanks():
     resp['code'] = 200
     return jsonify(resp)
 
+
 @route_api.route("/goods/report", methods=['GET', 'POST'])
 @time_log
 def goodsReport():
@@ -1382,52 +1262,40 @@ def goodsReport():
     if not member_info:
         resp['msg'] = '没有用户信息，无法完成举报！请授权登录'
         return jsonify(resp)
-    record_id = int(req.get('id', -1))
-    if record_id == -1:
+    goods_id = int(req.get('id', -1))
+    status = int(req.get('status', -1))  # 用户视图中以为的状态
+    if goods_id == -1 or status == -1:
         resp['msg'] = "举报失败"
-        resp['req'] = req
         return jsonify(resp)
-    record_type = int(req.get('record_type', -1))
-    if record_type not in (1, 0):
-        resp['msg'] = '举报失败'
-        return jsonify(resp)
-    report_info = Report.query.filter_by(record_id=record_id, record_type=record_type).first()
-    if report_info:
+    # 物品信息已有了违规标记
+    reporting_goods = Good.query.filter_by(id=goods_id).first()
+    if reporting_goods.report_status != 0:
         resp['msg'] = "该条信息已被举报过，管理员处理中"
+        return resp
+
+    if not cas.exec(goods_id, status, 7):  # 用户视图中以为的状态正确，进入critical op 区
+        resp['msg'] = "操作冲突，请稍后重试"
         return jsonify(resp)
+    # 物品举报标记
+    reporting_goods.report_status = 1
+    db.session.add(reporting_goods)
 
-    record_info = None
-    if record_type == 1:
-        # 物品信息违规
-        record_info = Good.query.filter_by(id=record_id).first()
-        goods_status = record_info.status
-        if not cas.exec(record_id, goods_status, goods_status):
-            resp['msg'] = "操作冲突，请稍后重试"
-            return jsonify(resp)
-    elif record_type == 0:
-        # 答谢信息违规
-        record_info = Thank.query.filter_by(id=record_id).first()
-    if not record_info:
-        resp['msg'] = '参数错误'
-        return jsonify(resp)
-
-    # 更新物品或答谢的 report_status 为 1
-    # 新增举报
-    record_info.report_status = 1
-    db.session.add(record_info)
-
-    model_report = Report()
-    model_report.status = 1
-    model_report.member_id = record_info.member_id
-    model_report.report_member_id = member_info.id
-    model_report.record_id = record_id
-    model_report.record_type = record_type
-    db.session.add(model_report)
+    # 新增举报记录
+    report = Report()
+    report.member_id = reporting_goods.member_id
+    # 举报用户的身份信息
+    report.report_member_id = member_info.id
+    report.report_member_nickname = member_info.nickname
+    report.report_member_avatar = member_info.avatar
+    # 被举报的物品信息链接
+    report.record_id = goods_id
+    report.record_type = 1  # 标识举报链接的是物品ID
+    db.session.add(report)
 
     MemberService.updateCredits(member_id=member_info.id)
     db.session.commit()
-    if record_type == 0:
-        SyncService.syncUpdatedGoodsToES(goods_id=record_id, updated={'report_status': 1})
+    SyncService.syncUpdatedGoodsToES(goods_id=goods_id, updated={'report_status': 1})
+    cas.exec(goods_id, 7, status)  # 解锁
     resp['code'] = 200
     return jsonify(resp)
 
@@ -1491,6 +1359,7 @@ def editGoods():
     resp['code'] = 200
     return jsonify(resp)
 
+
 @route_api.route('/goods/status', methods=['GET', 'POST'])
 @time_log
 def goodsStatus():
@@ -1513,6 +1382,7 @@ def goodsStatus():
 
     resp['code'] = 200
     return jsonify(resp)
+
 
 @route_api.route('/goods/found/to/sys', methods=['GET', 'POST'])
 @time_log
@@ -1557,112 +1427,13 @@ def unmarkGoodsToSysInBatch():
 def test9():
     from common.models.ciwei.Member import Member
     from sqlalchemy import func
-    #cnt = db.session.query(func.count(Member.id)).scalar()
+    # cnt = db.session.query(func.count(Member.id)).scalar()
     # cnt = db.session.query(func.count(Good.id)).group_by(Good.business_type).all()
     # from common.models.ciwei.Recommend import Recommend
     # res = Good.query.join(Recommend, Recommend.found_goods_id == Good.id).add_entity(Recommend).all()
-    mappings = {
-        "properties": {
-            "appeal_time": {
-                "type": "date"
-            },
-            "avatar": {
-                "type": "keyword",
-                "index": "false"
-            },
-            "business_type": {
-                "type": "byte"
-            },
-            "confirm_time": {
-                "type": "date",
-            },
-            "created_time": {
-                "type": "date",
-            },
-            "finish_time": {
-                "type": "date",
-            },
-            "id": {
-                "type": "long"
-            },
-            "lat": {
-                "type": "float",
-                "index": "false"
-            },
-            "lng": {
-                "type": "float",
-                "index": "false"
-            },
-            "loc": {
-                "type": "text"
-            },
-            "os_location": {
-                "type": "text"
-            },
-            "location": {
-                "type": "keyword",
-                "index": "false"
-            },
-            "main_image": {
-                "type": "keyword",
-                "index": "false"
-            },
-            "member_id": {
-                "type": "long"
-            },
-            "openid": {
-                "type": "keyword"
-            },
-            "mobile": {
-                "type": "keyword",
-                "index": "false"
-            },
-            "name": {
-                "type": "text"
-            },
-            "nickname": {
-                "type": "keyword",
-                "index": "false"
-            },
-            "owner_name": {
-                "type": "text"
-            },
-            "pics": {
-                "type": "keyword",
-                "index": "false"
-            },
-            "qr_code_openid": {
-                "type": "keyword"
-            },
-            "report_status": {
-                "type": "byte"
-            },
-            "return_goods_id": {
-                "type": "long"
-            },
-            "return_goods_openid": {
-                "type": "keyword"
-            },
-            "status": {
-                "type": "byte"
-            },
-            "summary": {
-                "type": "text"
-            },
-            "thank_time": {
-                "type": "date"
-            },
-            "top_expire_time": {
-                "type": "date"
-            },
-            "updated_time": {
-                "type": "date"
-            },
-            "view_count": {
-                "type": "integer"
-            }
-        }
-    }
-
-    res = es.indices.create(index="goods", body={"mappings": mappings})
-    return res
+    # good = Good.query.first()
+    # good.view_count+=1
+    # db.session.add(good)
+    # db.session.commit()
+    #cnt = db.session.query(func.count(Mark.id)).filter(Mark.goods_id == 1, Mark.status != 7).scalar()
+    return ""

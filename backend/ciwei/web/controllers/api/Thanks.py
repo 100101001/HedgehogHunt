@@ -13,6 +13,7 @@ from sqlalchemy import or_
 from application import app, db, APP_CONSTANTS
 from common.libs import RecordService, ThanksService
 from common.libs.Helper import param_getter, queryToDict
+from common.libs.MemberService import MemberService
 from common.loggin.decorators import time_log
 from common.models.ciwei.Member import Member
 from common.models.ciwei.Report import Report
@@ -137,6 +138,53 @@ def thanksCreate():
     return resp
 
 
+# 举报答谢记录
+@route_api.route("/thanks/report", methods=['GET', 'POST'])
+@time_log
+def thanksReport():
+    """
+    举报物品/答谢
+    :return: 成功
+    """
+    resp = {'code': -1, 'msg': '举报成功', 'data': {}}
+    req = request.values
+
+    # 检查登陆
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = '没有用户信息，无法完成举报！请授权登录'
+        return jsonify(resp)
+    thank_id = int(req.get('id', -1))
+    if thank_id == -1:
+        resp['msg'] = "举报失败"
+        return jsonify(resp)
+    # 答谢信息违规
+    reporting_thank = Thank.query.filter_by(id=thank_id).first()
+    if reporting_thank.report_status != 0:
+        resp['msg'] = "该条信息已被举报过，管理员处理中"
+        return resp
+
+    # 标记举报
+    reporting_thank.report_status = 1
+    db.session.add(reporting_thank)
+    # 新增举报记录
+    report = Report()
+    report.member_id = reporting_thank.member_id
+    # 举报者信息
+    report.report_member_id = member_info.id
+    report.report_member_nickname = member_info.nickname
+    report.report_member_avatar = member_info.avatar
+    # 被举报的答谢的链接信息
+    report.record_id = thank_id
+    report.record_type = 0  # 标识链接的是Thank ID
+    db.session.add(report)
+
+    MemberService.updateCredits(member_id=member_info.id)
+    db.session.commit()
+    resp['code'] = 200
+    return jsonify(resp)
+
+
 # 查询所有记录
 @route_api.route("/thanks/reports-search", methods=['GET', 'POST'])
 @time_log
@@ -188,7 +236,7 @@ def thanksBlock():
         return jsonify(resp)
     report_status = int(req.get('report_status', -1))
     report_id = int(req.get('report_id', -1))
-    if report_id == -1 or report_status not in (2, 3):
+    if report_id == -1 or report_status not in (2, 3, 4):
         resp['msg'] = '操作失败'
         return resp
     user_info = User.query.filter_by(member_id=member_info.id).first()
@@ -203,8 +251,9 @@ def thanksBlock():
     db.session.add(report_info)
     db.session.add(thanks_info)
     # TODO:检查 report_status
-    Member.query.filter_by(id=report_info.member_id if report_status == 3 else report_info.report_member_id). \
-        update({'status': 0}, synchronize_session=False)
+    if report_status in (2, 3):
+        Member.query.filter_by(id=report_info.member_id if report_status == 3 else report_info.report_member_id). \
+            update({'status': 0}, synchronize_session=False)
     db.session.commit()
     resp['code'] = 200
     return resp

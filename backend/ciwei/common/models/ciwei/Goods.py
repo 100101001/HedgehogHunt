@@ -39,7 +39,7 @@ class Good(db.Model):
                                                                                  "8:发布者被管理员拉黑"
                                                                                  "1: 待取回归还"
                                                                                  "2：已取回归还")
-    view_count = db.Column(INTEGER(11, unsigned=True), nullable=False, index=True,  default=0, comment="总浏览次数")
+    view_count = db.Column(INTEGER(11, unsigned=True), nullable=False, index=True, default=0, comment="总浏览次数")
     top_expire_time = db.Column(db.DateTime, nullable=False, index=True, default=datetime.now,
                                 comment='置顶过期时间')
     recommended_times = db.Column(INTEGER(11, unsigned=True), nullable=False, default=1, comment="有未读推荐")

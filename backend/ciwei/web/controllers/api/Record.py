@@ -6,7 +6,7 @@ from sqlalchemy import or_, and_
 
 from application import APP_CONSTANTS
 from common.cahce import cas
-from common.libs import RecordService
+from common.libs import RecordService, UserService
 from common.libs.Helper import param_getter
 from common.libs.UrlManager import UrlManager
 from common.loggin.decorators import time_log
@@ -20,6 +20,7 @@ from web.controllers.api import route_api
 
 # 查询所有记录
 @route_api.route("/record/search", methods=['GET', 'POST'])
+@time_log
 def recordSearch():
     """
     多维搜索
@@ -136,7 +137,7 @@ def recordDelete():
         op_res = RecordService.deleteMyAppeal(goods_ids=id_list, member_id=member_info.id)
     elif op_status == 4:
         # 物品和举报状态为 5
-        user_info = User.query.filter_by(member_id=member_info.id).first()
+        user_info = UserService.getUser(member_id=member_info.id)
         if user_info:
             op_res = RecordService.deleteReportedGoods(goods_ids=id_list, user_id=user_info.id)
     resp['code'] = 200 if op_res else -1

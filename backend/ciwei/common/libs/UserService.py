@@ -1,28 +1,35 @@
+# encoding: utf-8
+"""
+@author: github/100101001
+@contact: 17702113437@163.com
+@time: 2020/4/20 上午4:24
+@file: UserService.py
+@desc: 
+"""
+from common.cahce import CacheQueryService, CacheOpService
+from common.models.ciwei.User import User
 
-#使用hash以及base64来对密码进行加密
-import hashlib,base64
-import random,string
 
-class UserService():
+def getAllUsers():
+    """
+    返回所有管理员缓存
+    :return:
+    """
+    users = CacheQueryService.getAllUserCache()
+    if not users:
+        users = User.query.order_by(User.level.asc()).all()
+        CacheOpService.setUsersCache(users=users)
+    return users
 
-    @staticmethod
-    def geneAuthCode(user_info=None):
-        m=hashlib.md5()
-        str="%s-%s-%s-%s"%(user_info.uid,user_info.login_name,user_info.login_pwd,user_info.login_salt)
-        m.update(str.encode('utf-8'))
-        return m.hexdigest
 
-    #使用输入的密码pwd以及秘钥salt来进行加密
-    @staticmethod
-    def genePwd(pwd,salt):
-        m=hashlib.md5()
-        str="%s-%s"%(base64.encodebytes(pwd.encode('utf-8')),salt)
-
-        m.update(str.encode('utf-8'))
-        return m.hexdigest()
-
-    #生成秘钥
-    @staticmethod
-    def geneSalt(length=16):
-        keylist=[random.choice((string.ascii_letters+string.digits)) for i in range(length)]
-        return ("".join(keylist))
+def getUser(member_id=0):
+    """
+    返回管理员缓存
+    :param member_id:
+    :return:
+    """
+    user = CacheQueryService.getUserCache(member_id=member_id)
+    if not user:
+        user = User.query.filter_by(member_id=member_id).first()
+        CacheOpService.setUsersCache(users=[user])
+    return user

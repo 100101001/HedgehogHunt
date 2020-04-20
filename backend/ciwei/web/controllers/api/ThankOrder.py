@@ -17,12 +17,10 @@ def createThankOrder():
     req = request.values
     member_info = g.member_info
     if not member_info:
-        resp['code'] = -1
         resp['msg'] = "请先登录"
         return jsonify(resp)
-    price = req['price'] if 'price' in req else 0
+    price = Decimal(req.get('price', '0')).quantize(Decimal('0.00'))
     if not price:
-        resp['code'] = -1
         resp['msg'] = "支付失败"
         return jsonify(resp)
 
@@ -33,15 +31,16 @@ def createThankOrder():
     model_order.order_sn = pay_service.geneThankOrderSn()
     model_order.openid = member_info.openid
     model_order.member_id = member_info.id
-    model_order.price = Decimal(price).quantize(Decimal('0.00'))
+    model_order.price = price
 
+    order_sn = model_order.order_sn
     # 微信下单
     pay_data = {
         'appid': app.config['OPENCS_APP']['appid'],
         'mch_id': app.config['OPENCS_APP']['mch_id'],
         'nonce_str': wechat_service.get_nonce_str(),
         'body': '闪寻-答谢',
-        'out_trade_no': model_order.order_sn,
+        'out_trade_no': order_sn,
         'total_fee': int(model_order.price * 100),
         'notify_url': app.config['APP']['domain'] + "/api/thank/order/notify",
         'time_expire': (datetime.datetime.now() + datetime.timedelta(minutes=5)).strftime("%Y%m%d%H%M%S"),
@@ -50,14 +49,14 @@ def createThankOrder():
     }
     pay_sign_data = wechat_service.get_pay_info(pay_data=pay_data)
     if not pay_sign_data:
-        resp['code'] = -1
         resp['msg'] = "微信服务器繁忙，请稍后重试"
         return jsonify(resp)
     model_order.status = 0
     db.session.add(model_order)
     db.session.commit()
+    resp['code'] = 200
     resp['data'] = pay_sign_data
-    resp['data']['thank_order_sn'] = model_order.order_sn
+    resp['data']['thank_order_sn'] = order_sn
     return jsonify(resp)
 
 
@@ -131,7 +130,6 @@ def query_payment_result():
     # 订单不存在
     # 微信已通知,直接返回订单状态
     # 查询微信后台状态
-    from common.models.ciwei.ThankOrder import ThankOrder
     order = ThankOrder.query.filter_by(id=req['order_id']).first()
     if not order:
         resp['msg'] = "无效订单号"
@@ -144,7 +142,6 @@ def query_payment_result():
             resp['code'] = 200
             resp['data'] = {"trade_state": trade_state}
         else:
-            # TODO:前端看到的应该是旧的状态
             resp['msg'] = "微信服务器繁忙"
     return jsonify(resp)
 

@@ -47,5 +47,11 @@ def syncDelGoodsToRedis(goods_ids=None, business_type=0):
         SyncService.syncDelGoodsToRedis(goods_id=goods_id, business_type=business_type)
 
 
-if __name__ == "__main__":
-    pass
+@celery.task(name='sync.incr_read_count_to_db', property=5)
+def syncIncrReadCountToDb():
+    """
+    定时任务
+    :return:
+    """
+    from common.libs import GoodsService
+    GoodsService.syncUpdatedReadCountInRedisToDb()

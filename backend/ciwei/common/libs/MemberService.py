@@ -80,6 +80,7 @@ class MemberService:
             if member_info:
                 CacheOpService.setMemberCache(member_info=member_info)
                 user_info = User.query.filter_by(member_id=member_info.id).first()
+                CacheOpService.setUsersCache(users=[user_info])
         return member_info, user_info
 
     @staticmethod

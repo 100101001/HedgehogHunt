@@ -33,3 +33,37 @@ def markKey(goods_id=0):
     :return:
     """
     return "mark_{0}".format(goods_id)
+
+
+def goodsReadKey(goods_id=0):
+    """
+    db1 中缓存的文章阅读量
+    :param goods_id:
+    :return:
+    """
+    return "read_{0}".format(goods_id)
+
+
+def goodsReadKeyPrefixPattern():
+    """
+    db1 中缓存的所有阅读量的key
+    :return:
+    """
+    return "read_*"
+
+
+def userKey(member_id=0):
+    """
+
+    :param member_id:
+    :return:
+    """
+    return "user_{0}".format(member_id)
+
+
+def allUserKey():
+    return "all_users"
+
+
+def wxTokenKey():
+    return "wechat_token"

@@ -9,7 +9,7 @@
 from sqlalchemy import and_, or_
 
 from application import db, APP_CONSTANTS
-from common.cahce import cas
+from common.cahce import cas, CacheQueryService
 from common.libs.UrlManager import UrlManager
 from common.libs.recommend.v2 import SyncService
 from common.models.ciwei.Appeal import Appeal
@@ -288,7 +288,7 @@ def getMyReceivedThanks(member_id=0, only_new=False):
     """
 
     status_rule = Thank.status == 0 if only_new else Thank.status.in_([0, 1])
-    query = Thank.filter(Thank.target_member_id == member_id, status_rule)
+    query = Thank.query.filter(Thank.target_member_id == member_id, status_rule)
     return query
 
 
@@ -300,7 +300,7 @@ def getMySendThanks(member_id=0, only_new=False):
     :return:
     """
     status_rule = Thank.status == 0 if only_new else Thank.status.in_([0, 1])
-    query = Thank.filter(Thank.member_id == member_id, status_rule)
+    query = Thank.query.filter(Thank.member_id == member_id, status_rule)
     return query
 
 

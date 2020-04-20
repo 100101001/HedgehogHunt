@@ -176,6 +176,7 @@ def send_subscribe(openid='', template='', data=None):
         "template_id": app.config["SUBSCRIBE_TEMPLATES"][template],
         "data": data
     }
+    app.logger.info("发送{0}消息, data: {1}".format(template, str(data)))
     wx_resp = requests.post(url, json=data).json()
     app.logger.info("完成{}消息 错误码:{} 错误信息：{}".format(template, wx_resp['errcode'], wx_resp['errmsg']))
     LogTasks.addWechatApiCallLog.delay(url=url.split('?')[0], token=token, req_data=data, resp_data=wx_resp)

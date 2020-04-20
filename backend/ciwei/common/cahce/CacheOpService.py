@@ -8,9 +8,10 @@
 """
 import json
 
-from common.cahce import redis_conn_db_1, CacheKeyGetter
+from common.cahce import redis_conn_db_1, CacheKeyGetter, CacheKeyReverse
 from common.libs.Helper import queryToDict
 from common.loggin.decorators import time_log
+from common.models.ciwei.Goods import Good
 
 
 @time_log
@@ -73,3 +74,54 @@ def removePreMarkCache(found_ids=None, member_id=0):
         m_key = CacheKeyGetter.markKey(found_id)
         redis_conn_db_1.srem(m_key, member_id)
         redis_conn_db_1.expire(m_key, 3600)
+
+
+@time_log
+def setUsersCache(users=None):
+    all_user_key = CacheKeyGetter.allUserKey()
+    for user in users:
+        if user is not None:
+            redis_conn_db_1.hset(all_user_key, user.member_id, json.dumps(queryToDict(user)))
+            redis_conn_db_1.expire(all_user_key, 3600)
+
+
+@time_log
+def setGoodsIncrReadCache(goods_id=0):
+    """
+    设置新增的阅读量
+    :param goods_id:
+    :return:
+    """
+    read_key = CacheKeyGetter.goodsReadKey(goods_id)
+    redis_conn_db_1.incr(read_key, 1)
+    redis_conn_db_1.expire(read_key, 3600 * 24 * 7)  # 一天内的累计阅读新增
+
+
+def syncAndClearGoodsIncrReadCache():
+    """
+    把缓存中的阅读增量放至数据库
+    :return:
+    """
+    from application import db
+    # 获取所有阅读量的key
+    read_key_pattern = CacheKeyGetter.goodsReadKeyPrefixPattern()
+    keys = redis_conn_db_1.keys(read_key_pattern)
+    for k in keys:
+        incr_views = int(redis_conn_db_1.get(k))
+        goods_id = CacheKeyReverse.goodsReadKey(read_key=k)
+        Good.query.filter_by(id=goods_id).update({'view_count': Good.view_count + incr_views},
+                                                 synchronize_session=False)
+    db.session.commit()
+    # 全部同步后批量删除
+    redis_conn_db_1.delete(*keys)
+
+
+def setWxToken(token_data=None):
+    """
+    设置微信token及过期时间
+    :param token_data:
+    :return:
+    """
+    wx_token_key = CacheKeyGetter.wxTokenKey()
+    redis_conn_db_1.set(wx_token_key, token_data.get('access_token'))
+    redis_conn_db_1.expire(wx_token_key, int(token_data.get('expires_in', 7200)) - 200)
