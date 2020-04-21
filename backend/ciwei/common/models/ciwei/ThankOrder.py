@@ -1,6 +1,7 @@
 # coding: utf-8
-import decimal
+
 from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy.dialects.mssql import TINYINT
 from sqlalchemy.dialects.mysql import INTEGER
@@ -17,7 +18,8 @@ class ThankOrder(db.Model):
     member_id = db.Column(INTEGER(11, unsigned=True), nullable=False, comment="会员id")
     openid = db.Column(db.String(32), nullable=False, comment="第三方id")
     transaction_id = db.Column(db.String(64), default='', comment="微信支付交易号")
-    price = db.Column(db.Numeric(10, 2), nullable=False, default=decimal.Decimal(0.00), comment="支付金额")
+    price = db.Column(db.Numeric(10, 2), nullable=False, default=Decimal(0.00), comment="支付金额")
+    balance_discount = db.Column(db.Numeric(10, 2), nullable=False, default=Decimal(0.00), comment="余额垫付金额")
     status = db.Column(TINYINT(), nullable=False, default=-1, comment="状态 -1=刚创建, 0=微信预下单-未支付, "
                                                                       " 1=微信支付成功, 2=微信已关单, "
                                                                       "3=微信支付错误")

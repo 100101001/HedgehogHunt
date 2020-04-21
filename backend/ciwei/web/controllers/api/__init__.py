@@ -6,7 +6,7 @@ route_api = Blueprint('api_page', __name__)
 # 之后才能再引用回来，如果把后面这行代码放到定义route_api之前，那么将会提示无法引用
 # ********而import *则是把Member中所有代码都引用过来了，这样不会再发生404找不到的错误了
 from web.controllers.api.Member import *
-from web.controllers.api.User1 import *
+from web.controllers.api.User import *
 from web.controllers.api.Upload import *
 from web.controllers.api.Goods import *
 from web.controllers.api.Record import *

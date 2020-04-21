@@ -38,7 +38,7 @@ def deleteMyRelease(goods_ids=None, biz_type=0, status=0):
             ok_ids.append(item_id)
     Good.query.filter(Good.id.in_(ok_ids), Good.status == status).update({'status': 7}, synchronize_session=False)
     db.session.commit()
-    SyncService.syncDeleteGoodsToESBulk(goods_ids=goods_ids)
+    SyncService.syncSoftDeleteGoodsToESBulk(goods_ids=goods_ids)
     if status == 1 and biz_type != 2:
         # 删除了待匹配的物品(失物招领和寻物启事的biz_type=1/0)
         SyncTasks.syncDelGoodsToRedis.delay(goods_ids=goods_ids, business_type=biz_type)

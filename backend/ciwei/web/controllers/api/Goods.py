@@ -7,7 +7,7 @@
 @desc:
 """
 import datetime
-import decimal
+from decimal import Decimal
 
 from flask import request, jsonify, g
 
@@ -27,11 +27,11 @@ from common.models.ciwei.Goods import Good
 from common.models.ciwei.GoodsTopOrder import GoodsTopOrder
 from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Report import Report
-from common.models.ciwei.Thanks import Thank
-from common.tasks.subcribe import SubscribeTasks
+from common.tasks.subscribe import SubscribeTasks
 from common.tasks.sync import SyncTasks
 from web.controllers.api import route_api
 
+TOP_PRICE = APP_CONSTANTS['sp_product']['top']['price']
 
 @route_api.route("/goods/top/order", methods=['POST', 'GET'])
 @time_log
@@ -50,9 +50,9 @@ def topOrder():
     model_order.order_sn = pay_service.geneGoodsTopOrderSn()
     model_order.openid = member_info.openid
     model_order.member_id = member_info.id
-    model_order.price = decimal.Decimal(req['price']).quantize(decimal.Decimal('0.00')) \
-        if 'price' in req else decimal.Decimal('20.00')
-
+    model_order.price = Decimal(req.get('price', TOP_PRICE)).quantize(Decimal('0.00'))
+    top_charge = Decimal(TOP_PRICE).quantize(Decimal('0.00'))
+    model_order.balance_discount = top_charge - model_order.price
     # 微信下单
     pay_data = {
         'appid': app.config['OPENCS_APP']['appid'],
@@ -697,7 +697,7 @@ def returnGoodsDelInBatch():
     Good.query.filter(Good.id.in_(return_ids), Good.status == status).update(return_updated, synchronize_session=False)
     # 同步ES
     SyncService.syncUpdatedGoodsToESBulk(goods_ids=lost_ids, updated=lost_updated)
-    SyncService.syncDeleteGoodsToESBulk(goods_ids=return_ids)
+    SyncService.syncSoftDeleteGoodsToESBulk(goods_ids=return_ids)  # 不会被统计和显示(status=7的没有这个标签页)
     db.session.commit()
     # 异步进匹配库
     SyncTasks.synRecoverGoodsToRedis.delay(goods_ids=lost_ids)
@@ -895,7 +895,7 @@ def returnLinkLostDelInBatch():
     Good.query.filter(Good.id.in_(ok_lost_ids), Good.status == status).update({'status': 7},
                                                                               synchronize_session=False)
     db.session.commit()
-    SyncService.syncDeleteGoodsToESBulk(goods_ids=ok_lost_ids)
+    SyncService.syncSoftDeleteGoodsToESBulk(goods_ids=ok_lost_ids)
     resp['code'] = 200
     return jsonify(resp)
 
@@ -1062,7 +1062,7 @@ def returnGoodsCleanInBatch():
         # 删除寻物贴就是普通的删除
         Good.query.filter(Good.id.in_(goods_ids)).update(updated, synchronize_session=False)
     db.session.commit()
-    SyncService.syncDeleteGoodsToESBulk(goods_ids=goods_ids)
+    SyncService.syncSoftDeleteGoodsToESBulk(goods_ids=goods_ids)
     resp['code'] = 200
     return jsonify(resp)
 
@@ -1349,7 +1349,7 @@ def editGoods():
     db.session.commit()
     cas.exec(goods_id, 7, status)
     # 异步推荐存储同步
-    SyncService.syncDeleteGoodsToESBulk(goods_ids=[goods_id])
+    SyncService.syncHardDeletedGoodsToESBulk(goods_ids=[goods_id])
 
     # 通过链接发送之后的图片是逗号连起来的字符串
     img_list = req['img_list']
@@ -1425,7 +1425,6 @@ def unmarkGoodsToSysInBatch():
 @route_api.route('/goods/test/9')
 @time_log
 def test9():
-    from common.models.ciwei.Member import Member
     from sqlalchemy import func
     # cnt = db.session.query(func.count(Member.id)).scalar()
     # cnt = db.session.query(func.count(Good.id)).group_by(Good.business_type).all()
@@ -1435,5 +1434,9 @@ def test9():
     # good.view_count+=1
     # db.session.add(good)
     # db.session.commit()
-    #cnt = db.session.query(func.count(Mark.id)).filter(Mark.goods_id == 1, Mark.status != 7).scalar()
+    # cnt = db.session.query(func.count(Mark.id)).filter(Mark.goods_id == 1, Mark.status != 7).scalar()
+    from common.models.ciwei.Recommend import Recommend
+    # Good.query.join(Recommend, Recommend.found_goods_id == Good.id, Recommend.target_member_id == Good.owner_id).count()
+    # cnt = Good.query.join(Recommend, Recommend.lost_goods_id==Good.id).filter(Good.status.in_(3,4)).scalar()
+    cnt = db.session.query(func.count(Recommend.id)).filter(Recommend.found_goods_id==Good.id, Recommend.target_member_id==Good.owner_id).scalar()
     return ""

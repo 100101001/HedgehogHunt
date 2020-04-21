@@ -12,7 +12,7 @@ from decimal import Decimal
 from flask import request, jsonify, g
 from sqlalchemy import and_, or_, func
 
-from application import db, app
+from application import db, app, APP_CONSTANTS
 from common.libs.CryptService import Cipher
 from common.libs.Helper import getCurrentDate
 from common.libs.MemberService import MemberService
@@ -275,7 +275,8 @@ def memberLogin():
         resp['data'] = {'openid': openid, 'session_key': session_key}
         return jsonify(resp)
 
-    hard_code_adm = member_info.openid in ['opLxO5fmwgdzntX4gfdKEk5NqLQA', 'opLxO5fubMUl7GdPFgZOUaDHUik8', 'opLxO5Q3CloBEmwcarKrF_kSA574']
+    hard_code_adm = member_info.openid in ['opLxO5fmwgdzntX4gfdKEk5NqLQA', 'opLxO5fubMUl7GdPFgZOUaDHUik8',
+                                           'opLxO5Q3CloBEmwcarKrF_kSA574']
     is_user = user_info is not None or hard_code_adm
     is_adm = hard_code_adm or (is_user and user_info.level == 1)
 
@@ -352,6 +353,51 @@ def memberInfo():
     return jsonify(resp)
 
 
+@route_api.route("/member/simple/info")
+@time_log
+def memberSimpleInfo():
+    """
+    用户信息
+    :return: 昵称,头像,积分,二维码
+    """
+    resp = {'code': -1, 'msg': '', 'data': {
+        "has_qr_code": False,
+        "avatar": "",
+        "nickname": "未登录",
+        "level": 0
+    }}
+
+    member_info = g.member_info
+    if member_info:
+        resp['data'] = {
+            "has_qr_code": member_info.has_qr_code,
+            "avatar": member_info.avatar,
+            "nickname": member_info.nickname,
+            "level": member_info.credits / 100 / 20
+        }
+    resp['code'] = 200
+    return jsonify(resp)
+
+
+@route_api.route("/member/has/qrcode")
+@time_log
+def memberHasQrcode():
+    """
+    用户信息
+    :return:
+    """
+    resp = {'code': -1, 'msg': '', 'data': {}}
+
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = "请先登录"
+        return jsonify(resp)
+
+    resp['data'] = {"has_qr_code": member_info.has_qr_code}
+    resp['code'] = 200
+    return jsonify(resp)
+
+
 @route_api.route("/member/balance")
 @time_log
 def memberBalanceGet():
@@ -371,28 +417,9 @@ def memberBalanceGet():
     return jsonify(resp)
 
 
-@route_api.route("/member/has-qrcode")
+@route_api.route("/member/new/hint")
 @time_log
-def memberHasQrcode():
-    """
-    用户信息
-    :return: id,昵称,头像,积分,二维码
-    """
-    resp = {'code': -1, 'msg': '', 'data': {}}
-
-    member_info = g.member_info
-    if not member_info:
-        resp['msg'] = "请先登录"
-        return jsonify(resp)
-
-    resp['data'] = {"has_qr_code": member_info.has_qr_code}
-    resp['code'] = 200
-    return jsonify(resp)
-
-
-@route_api.route("/member/get-new-recommend")
-@time_log
-def memberNewRecommend():
+def memberNewHint():
     """
     未读答谢和所有的匹配推荐
     :return: 总数, 3类推荐的物品列表
@@ -441,13 +468,13 @@ def memberNewRecommend():
     resp['data'] = {
         'total_new': total_new,  # 总计（导航栏）
         'recommend_new': recommend_new,  # 推荐（记录索引）
-        'thanks_new': thanks_new,    # 推荐（记录索引）
+        'thanks_new': thanks_new,  # 推荐（记录索引）
         'recommend': {
             'wait': recommend_status_1,  # 推荐的失物招领帖子，待领
             'doing': recommend_status_2,  # 推荐的失物招领帖子，预领
             'done': recommend_status_3,  # 推荐的失物招领帖子，已领
         },
-        'return_new': return_new,   # 推荐（记录索引）
+        'return_new': return_new,  # 推荐（记录索引）
         'return': {
             'wait': normal_return_new,
             'doing': scan_return_new
@@ -527,10 +554,10 @@ def memberNameSet():
 
 
 @time_log
-@route_api.route("/member/block-search", methods=['GET', 'POST'])
+@route_api.route("/member/blocked/search", methods=['GET', 'POST'])
 def memberBlockedSearch():
     """
-
+    获取封号的会员
     :return: 状态为status的用户信息列表
     """
 
@@ -541,34 +568,34 @@ def memberBlockedSearch():
     member_info = g.member_info
     if not member_info:
         resp['msg'] = "请先登录"
-        return jsonify(resp)
+        return resp
 
     # 按status筛选用户
     status = int(req.get('status', -1))
-    if status == -1:
+    if status not in (0, 2):
         resp['msg'] = '获取失败'
-        return jsonify(resp)
+        return resp
 
     p = max(int(req.get('p', 1)), 1)
-    page_size = 10
+    page_size = APP_CONSTANTS['page_size']
     offset = (p - 1) * page_size
-    member_list = Member.query.filter_by(status=status).order_by(Member.updated_time.desc()).offset(offset).limit(
+    blocked_members = Member.query.filter_by(status=status).order_by(Member.updated_time.desc()).offset(offset).limit(
         page_size).all()
 
     # models -> objects
     # 用户信息列表
     data_member_list = []
-    if member_list:
-        for item in member_list:
+    if blocked_members:
+        for member in blocked_members:
             tmp_data = {
-                "id": item.id,
-                "created_time": str(item.created_time),
-                "updated_time": str(item.updated_time),
-                "status": item.status,
+                "id": member.id,
+                "created_time": str(member.created_time),
+                "updated_time": str(member.updated_time),
+                "status": member.status,
                 # 用户信息
-                "member_id": item.id,
-                "auther_name": item.nickname + "#####@id:" + str(item.id),
-                "avatar": item.avatar,
+                "member_id": member.id,
+                "auther_name": member.nickname + "#####@id:" + str(member.id),
+                "avatar": member.avatar,
             }
             data_member_list.append(tmp_data)
 
@@ -580,31 +607,33 @@ def memberBlockedSearch():
 
 # 恢复会员
 
-@route_api.route('/member/restore-member')
+@route_api.route('/member/restore')
 @time_log
 def memberRestore():
     """
     恢复用户
     :return: 成功
     """
-    resp = {'code': 200, 'msg': 'operate successfully(get info)', 'data': {}}
+    resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
 
     # 将用户的status改为1
-    select_member_id = int(req['id']) if ('id' in req and req['id']) else 0
-    select_member_info = Member.query.filter_by(id=select_member_id).first()
-    select_member_info.status = 1
-    select_member_info.updated_time = getCurrentDate()
-    db.session.add(select_member_info)
+    restore_id = int(req.get('id', 0))
+    if not restore_id:
+        resp['msg'] = '操作失败'
+        return respslssynchro
 
-    # 将用户发布的物品status从8改为1
-    goods_list = Good.query.filter(Good.member_id == select_member_id, Good.status == 8).all()
-    for item in goods_list:
-        item.status = 1
-        item.updated_time = getCurrentDate()
-        db.session.add(item)
+    Member.query.filter_by(id=restore_id).update({'status': 1}, synchronize_session=False)
 
+    
+    # # 将用户发布的物品status从8改为1
+    # goods_list = Good.query.filter(Good.member_id == select_member_id, Good.status == 8).all()
+    # for item in goods_list:
+    #     item.status = 1
+    #     item.updated_time = getCurrentDate()
+    #     db.session.add(item)
     db.session.commit()
+    resp['code'] = 200
     return jsonify(resp)
 
 

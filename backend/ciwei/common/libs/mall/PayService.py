@@ -245,16 +245,16 @@ class PayService:
         db.session.commit()
         return True
 
-    def thankOrderSuccess(self, pay_order_id=0, params=None):
+    def thankOrderSuccess(self, thank_order_id=0, params=None):
         """
         支付成功后,更新订单状态
-        :param pay_order_id:
+        :param thank_order_id:
         :param params:
         :return: 数据库操作成功
         """
 
         # 更新ThankOrder支付状态
-        order_info = ThankOrder.query.filter_by(id=pay_order_id).first()
+        order_info = ThankOrder.query.filter_by(id=thank_order_id).first()
         if not order_info or order_info.status not in [0]:
             return True
         order_info.transaction_id = params.get('pay_sn', '')
@@ -326,17 +326,17 @@ class PayService:
         db.session.commit()
         return True
 
-    def addThankPayCallbackData(self, pay_order_id=0, callback_type='pay', data=''):
+    def addThankPayCallbackData(self, thank_order_id=0, callback_type='pay', data=''):
         """
         微信支付回调记录
-        :param pay_order_id:
+        :param thank_order_id:
         :param callback_type:
         :param data:
         :return:
         """
         # 新增
         model_callback = ThankOrderCallbackData()
-        model_callback.thank_order_id = pay_order_id
+        model_callback.thank_order_id = thank_order_id
         if callback_type == "pay":
             model_callback.pay_data = data
             model_callback.refund_data = ''

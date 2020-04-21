@@ -26,7 +26,7 @@ class Order(db.Model):
     pay_sn = db.Column(db.String(128), nullable=False, default='', comment="第三方流水号")
     prepay_id = db.Column(db.String(128), nullable=False, default='', comment="第三方预付id")
     note = db.Column(db.Text, nullable=False, comment="备注信息")
-    status = db.Column(TINYINT(), nullable=False, default=0, comment="1：支付完成 0 无效 -1 申请退款 -2 "
+    status = db.Column(TINYINT(), nullable=False, default=0, index=True, comment="1：支付完成 0 无效 -1 申请退款 -2 "
                                                                      "退款中 -9 退款成功  -8 待支付  -7"
                                                                      " 完成支付待确认")
     express_status = db.Column(TINYINT(), nullable=False, default=0, comment="快递状态，-8 待支付 -7 "

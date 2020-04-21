@@ -20,7 +20,7 @@ from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
 from common.tasks.recommend.v2 import RecommendTasks
 from common.tasks.sms import SmsTasks
-from common.tasks.subcribe import SubscribeTasks
+from common.tasks.subscribe import SubscribeTasks
 from common.tasks.sync import SyncTasks
 
 

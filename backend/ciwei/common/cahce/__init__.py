@@ -51,25 +51,25 @@ class CasLua:
 
 # 基于redis的乐观锁
 redis_pool_db_2 = redis.ConnectionPool(host=app.config['REDIS']['CACHE_REDIS_HOST'],
-                                       port=app.config['REDIS']['CACHE_REDIS_PORT'], db=2, max_connections=10,
+                                       port=app.config['REDIS']['CACHE_REDIS_PORT'], password=app.config['REDIS']['CACHE_REDIS_PASSWORD'], db=2, max_connections=10,
                                        decode_responses=True)
 redis_conn_private = redis.StrictRedis(connection_pool=redis_pool_db_2)
 cas = CasLua(flask_redis=redis_conn_private)
 
 # 由于数据库设计的非冗余导致的频繁数据库查询
 redis_pool_db_1 = redis.ConnectionPool(host=app.config['REDIS']['CACHE_REDIS_HOST'],
-                                       port=app.config['REDIS']['CACHE_REDIS_PORT'], db=1, max_connections=10,
+                                       port=app.config['REDIS']['CACHE_REDIS_PORT'], password=app.config['REDIS']['CACHE_REDIS_PASSWORD'], db=1, max_connections=10,
                                        decode_responses=True)
 redis_conn_db_1 = redis.StrictRedis(connection_pool=redis_pool_db_1)
 
 # 由于匹配，存放在3，4里的 cls -> {id,lng,lat,author_id} === biz_type:1
 redis_pool_db_3 = redis.ConnectionPool(host=app.config['REDIS']['CACHE_REDIS_HOST'],
-                                       port=app.config['REDIS']['CACHE_REDIS_PORT'], db=3, max_connections=10,
+                                       port=app.config['REDIS']['CACHE_REDIS_PORT'], password=app.config['REDIS']['CACHE_REDIS_PASSWORD'], db=3, max_connections=10,
                                        decode_responses=True)
 redis_conn_db_3 = redis.StrictRedis(connection_pool=redis_pool_db_3)
 # 由于匹配，存放在3，4里的 cls -> {id,lng,lat,author_id}  === biz_type:0
 redis_pool_db_4 = redis.ConnectionPool(host=app.config['REDIS']['CACHE_REDIS_HOST'],
-                                       port=app.config['REDIS']['CACHE_REDIS_PORT'], db=4, max_connections=10,
+                                       port=app.config['REDIS']['CACHE_REDIS_PORT'], password=app.config['REDIS']['CACHE_REDIS_PASSWORD'], db=4, max_connections=10,
                                        decode_responses=True)
 redis_conn_db_4 = redis.StrictRedis(connection_pool=redis_pool_db_4)
 

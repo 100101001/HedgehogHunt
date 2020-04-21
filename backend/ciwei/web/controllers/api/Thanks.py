@@ -19,7 +19,7 @@ from common.models.ciwei.Member import Member
 from common.models.ciwei.Report import Report
 from common.models.ciwei.Thanks import Thank
 from common.models.ciwei.User import User
-from common.tasks.subcribe import SubscribeTasks
+from common.tasks.subscribe import SubscribeTasks
 from web.controllers.api import route_api
 
 
@@ -239,6 +239,7 @@ def thanksBlock():
     if report_id == -1 or report_status not in (2, 3, 4):
         resp['msg'] = '操作失败'
         return resp
+
     user_info = User.query.filter_by(member_id=member_info.id).first()
     if not user_info:
         resp['msg'] = "您无管理员权限"

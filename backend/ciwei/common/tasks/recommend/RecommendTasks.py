@@ -14,7 +14,7 @@ from common.libs.recommend.DistanceService import DistanceService
 from common.libs.recommend.SynonymsService import SynonymsService
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Recommend import Recommend
-from common.tasks.subcribe import SubscribeTasks
+from common.tasks.subscribe import SubscribeTasks
 
 synonyms = SynonymsService()
 distance = DistanceService()

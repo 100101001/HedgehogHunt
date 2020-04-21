@@ -2,9 +2,8 @@
 import decimal
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Integer, Numeric
 from sqlalchemy.dialects.mysql import INTEGER
-from flask_sqlalchemy import SQLAlchemy
+
 from application import db
 
 

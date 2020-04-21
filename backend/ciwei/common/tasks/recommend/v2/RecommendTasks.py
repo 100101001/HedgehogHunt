@@ -7,7 +7,6 @@
 @desc: 
 """
 import json
-from collections import Counter
 
 from application import celery, db, app, es, APP_CONSTANTS
 from common.cahce import redis_conn_db_4, redis_conn_db_3
@@ -16,7 +15,7 @@ from common.libs.recommend.v2.DistanceService import DistanceService
 from common.libs.recommend.v2.SynonymsService import SynonymsService
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Recommend import Recommend
-from common.tasks.subcribe import SubscribeTasks
+from common.tasks.subscribe import SubscribeTasks
 
 synonyms = SynonymsService()
 distance = DistanceService()
@@ -155,7 +154,7 @@ def doFilterPossibleGoods_Redis(goods_info=None, cls_dict=None):
         data['score'] = 1
         possibles.append(data)
 
-    if goods_info.os_location != APP_CONSTANTS['default_lost_loc']:
+    if goods_info.os_location != APP_CONSTANTS['default_lost_loc']:  # 发布了寻物启事，且不记得东西丢哪了，就不筛了
         possibles = distance.filterNearbyGoods(goods_list=possibles, found_location=goods_info.os_location)
 
     # 权重
@@ -196,9 +195,11 @@ def doFilterPossibleGoods_ES(goods_info=None):
     for kw in should_syms:
         should.append({'match': {'name': kw}})
 
-    must = [{'match': {'name': ''}},
-            {'match': {'business_type': 1 - goods_info.business_type}}]
-    must_not = {'match': {'member_id': goods_info.member_id}}
+    must = [{'match': {'name': ''}},  # 会循环填充
+            {'match': {'business_type': 1 - goods_info.business_type}},  # 互相匹配
+            {'match': {'status': 1}}]  # 只配待认领和待寻回的：看会员操作情况，如果乱认领的很多那么就改成 1~2
+    must_not = {'match': {'member_id': goods_info.member_id}}  # 不配自己发布的
+    # 布尔查询
     body = {
         'query': {
             'bool': {
@@ -221,7 +222,3 @@ def doFilterPossibleGoods_ES(goods_info=None):
     if goods_info.os_location != APP_CONSTANTS['default_lost_loc']:
         possibles = distance.filterNearbyGoods(goods_list=possibles, found_location=goods_info.os_location)
     return possibles
-
-
-if __name__ == "__main__":
-    pass

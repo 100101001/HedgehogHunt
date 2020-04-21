@@ -6,293 +6,119 @@
 @desc:
 """
 from flask import request, jsonify, g
-from sqlalchemy import or_
 
-from application import db
-from common.libs.Helper import getCurrentDate, selectFilterObj
+from application import APP_CONSTANTS
+from common.libs import RecordService, ReportService
 from common.libs.UrlManager import UrlManager
 from common.models.ciwei.Goods import Good
-from common.models.ciwei.Member import Member
 from common.models.ciwei.Report import Report
-from common.models.ciwei.Thanks import Thank
-from common.models.ciwei.User import User
 from web.controllers.api import route_api
 
 
-# 查询所有举报信息
-@route_api.route("/report/goods-search", methods=['GET', 'POST'])
-def reportGoodsSearch():
-    resp = {'code': 200, 'msg': 'search successfully(search)', 'data': {}}
-    req = request.values
-
-    p = int(req['p']) if ('p' in req and req['p']) else 1
-    if p < 1:
-        p = 1
-
-    page_size = 10
-    offset = (p - 1) * page_size
-
-    status = int(req['status']) if ('status' in req and req['status']) else 0
-    record_type = int(req['record_type']) if ('record_type' in req and req['record_type']) else "nonono"
-    query = Report.query.filter_by(status=status)
-    query = query.filter_by(record_type=record_type)
-    # #将对应的用户信息取出来，组合之后返回
-    reports_list = query.order_by(Report.id.desc()).offset(offset).limit(10).all()
-    record_ids = selectFilterObj(reports_list, 'record_id')
-
-    owner_name = req['owner_name'] if 'owner_name' in req else ''
-    mix_kw = str(req['mix_kw']) if 'mix_kw' in req else ''
-
-    record_query = Good.query.filter(Good.id.in_(record_ids))
-    if owner_name:
-        rule = or_(Good.owner_name.ilike("%{0}%".format(owner_name)))
-        record_query = record_query.filter(rule)
-    if mix_kw:
-        fil_str = "%{0}%".format(mix_kw[0])
-        for i in mix_kw[1:]:
-            fil_str = fil_str + "%{0}%".format(i)
-        rule = or_(Good.name.ilike("%{0}%".format(fil_str)), Good.member_id.ilike("%{0}%".format(mix_kw)))
-        record_query = record_query.filter(rule)
-    records_list = record_query.order_by(Good.id.desc(), Good.view_count.desc()).offset(offset).limit(10).all()
-
-    data_goods_list = []
-    if records_list:
-        # 获取用户的信息
-        for item in records_list:
-            tmp_data = {
-                "id": item.id,
-                "goods_name": item.name,
-                "owner_name": item.owner_name,
-                "updated_time": str(item.updated_time),
-                "business_type": item.business_type,
-                "summary": item.summary,
-                "main_image": UrlManager.buildImageUrl(item.main_image),
-                "auther_name": item.nickname,
-                "avatar": item.avatar,
-                "selected": False,
-                "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
-            }
-            data_goods_list.append(tmp_data)
-
-    resp['data']['list'] = data_goods_list
-    resp['data']['has_more'] = len(data_goods_list) >= page_size
-    return jsonify(resp)
-
-
-@route_api.route("/report/thanks-search", methods=['GET', 'POST'])
-def reportThanksSearch():
-    resp = {'code': 200, 'msg': 'search successfully(search)', 'data': {}}
-    req = request.values
-
-    p = int(req['p']) if ('p' in req and req['p']) else 1
-    if p < 1:
-        p = 1
-
-    page_size = 10
-    offset = (p - 1) * page_size
-
-    status = int(req['status']) if ('status' in req and req['status']) else 0
-    record_type = int(req['record_type']) if ('record_type' in req and req['record_type']) else "nonono"
-    query = Report.query.filter_by(status=status)
-    query = query.filter_by(record_type=record_type)
-    # #将对应的用户信息取出来，组合之后返回
-    reports_list = query.order_by(Report.id.desc()).offset(offset).limit(10).all()
-    record_ids = selectFilterObj(reports_list, 'record_id')
-
-    owner_name = req['owner_name'] if 'owner_name' in req else ''
-    mix_kw = str(req['mix_kw']) if 'mix_kw' in req else ''
-
-    records_list = []
-    if record_type == 1:
-        record_query = Good.query.filter(Good.id.in_(record_ids))
-        records_list = record_query.order_by(Good.id.desc(), Good.view_count.desc()).offset(offset).limit(10).all()
-    else:
-        record_query = Thank.query.filter(Thank.id.in_(record_ids))
-        if owner_name:
-            rule = or_(Thank.owner_name.ilike("%{0}%".format(owner_name)))
-            record_query = record_query.filter(rule)
-        if mix_kw:
-            fil_str = "%{0}%".format(mix_kw[0])
-            for i in mix_kw[1:]:
-                fil_str = fil_str + "%{0}%".format(i)
-            rule = or_(Thank.name.ilike("%{0}%".format(fil_str)), Good.member_id.ilike("%{0}%".format(mix_kw)))
-            record_query = record_query.filter(rule)
-            records_list = record_query.order_by(Thank.id.desc(), Good.view_count.desc()).offset(offset).limit(10).all()
-
-    data_goods_list = []
-    if records_list:
-        for item in records_list:
-            if record_type == 1:
-                tmp_data = {
-                    "id": item.id,
-                    "goods_name": item.name,
-                    "owner_name": item.owner_name,
-                    "updated_time": str(item.updated_time),
-                    "business_type": item.business_type,
-                    "summary": item.summary,
-                    "main_image": UrlManager.buildImageUrl(item.main_image),
-                    "auther_name": item.nickname,
-                    "avatar": item.avatar,
-                    "selected": False,
-                    "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
-                }
-            else:
-                tmp_data = {
-                    "id": item.id,
-                    "status": item.status,  # 不存在时置1
-                    "goods_name": item.goods_name,
-                    "owner_name": item.owner_name,
-                    "updated_time": str(item.updated_time),
-                    "business_desc": item.business_desc,
-                    "summary": item.summary,
-                    "reward": "0.00",
-                    "auther_name": item.nickname,
-                    "avatar": item.avatar,
-                    "selected": False,
-                }
-            data_goods_list.append(tmp_data)
-
-    resp['data']['list'] = data_goods_list
-    resp['data']['has_more'] = len(data_goods_list) >= page_size
-    return jsonify(resp)
-
-
-# 查看举报详情
-@route_api.route('/report/goods-info')
+@route_api.route('/report/goods/info')
 def reportGoodsInfo():
-    resp = {'code': 200, 'msg': 'operate successfully(get info)', 'data': {}}
-    req = request.values
-
-    id = int(req['id']) if ('id' in req and req['id']) else 0
-    goods_info = Good.query.filter_by(id=id).first()
-    if not goods_info:
-        resp['code'] = -1
-        resp['msg'] = '没有找到相关商品信息'
-        return jsonify(resp)
-
-    member_info = g.member_info
-    # 用户能否看到地址,如果是在mark列表或者发布者可以看到地址和电话
-    show_location = True
-
-    report_info = Report.query.filter_by(record_id=id).first()
-    auther_info = Member.query.filter_by(id=goods_info.member_id).first()
-    if not auther_info:
-        resp['code'] = -1
-        resp['msg'] = '没有找到相关发布者信息'
-        return jsonify(resp)
-
-    # 处理地址
-    location_list = goods_info.location.split("###")
+    resp = {'code': 200, 'msg': '', 'data': {}}
+    if not g.member_info:
+        resp['msg'] = "请先登录"
+        return resp
+    req = request.values  # 取出参数
+    goods_id = int(req.get('id', -1))
+    if goods_id == -1:
+        resp['msg'] = "加载失败"
+        return resp
+    # 获取举报和物品信息
+    reported_goods = Good.query.join(Report, Good.id == Report.record_id).add_entity(Report).filter(
+        Good.id == goods_id).first()
+    goods, report = reported_goods.Good, reported_goods.Report
+    location_list = goods.location.split("###")
     location_list[2] = eval(location_list[2])
     location_list[3] = eval(location_list[3])
-    # 浏览量加一
-    goods_info.view_count = goods_info.view_count + 1
-    db.session.add(goods_info)
-
     resp['data']['info'] = {
-        "id": goods_info.id,
-        "goods_name": goods_info.name,
-        "owner_name": goods_info.owner_name,
-        "summary": goods_info.summary,
-        "view_count": goods_info.view_count,
-        "main_image": UrlManager.buildImageUrl(goods_info.main_image),
-        "target_price": str(goods_info.target_price),
-        "pics": [UrlManager.buildImageUrl(i) for i in goods_info.pics.split(",")],
-        "updated_time": str(goods_info.updated_time),
+        "id": goods.id,
+        "goods_name": goods.name,
+        "owner_name": goods.owner_name,
+        "summary": goods.summary,
+        "view_count": goods.view_count,
+        "main_image": UrlManager.buildImageUrl(goods.main_image),
+        "pics": [UrlManager.buildImageUrl(i) for i in goods.pics.split(",")],
+        "updated_time": str(goods.updated_time),
         "location": location_list,
-        "business_type": goods_info.business_type,
-        "mobile": goods_info.mobile,
-        "status_desc": str(goods_info.status_desc),
-        "status": goods_info.status,
-
-        "auther_name": auther_info.nickname,
-        "avatar": auther_info.avatar,
+        "business_type": goods.business_type,
+        "mobile": goods.mobile,
+        "status_desc": str(goods.status_desc),
+        "status": goods.status,
+        # 作者和举报信息
+        "auther_name": goods.nickname,
+        "avatar": goods.avatar,
+        "report_status": report.status
     }
-
-    resp['data']['show_location'] = show_location
-
-    db.session.commit()
-
-    if not report_info:
-        resp['code'] = -1
-        resp['msg'] = "没有找到相关记录"
-        return jsonify(resp)
-
-    report_member_info = Member.query.filter_by(id=report_info.report_member_id).first()
-    # 没有找到用户信息则返回
-    if not report_member_info:
-        resp['data']['report_auth_info'] = {}
-        resp['msg'] = '举报者信息丢失'
-        resp['data']['report_id'] = report_info.id
-        return jsonify(resp)
-
+    # 举报者身份信息
     resp['data']['report_auth_info'] = {
-        "avatar": report_member_info.avatar,
-        "auther_name": report_member_info.nickname,
-        "updated_time": str(report_member_info.updated_time),
+        "avatar": report.report_member_avatar,
+        "auther_name": report.report_member_nickname,
+        "updated_time": str(report.updated_time),
         "is_auth": False,
-        "goods_status": goods_info.status,
+        "is_reporter": True,
+        "goods_status": goods.status,
     }
+    return resp
 
-    resp['data']['ids'] = {
-        "auther_id": auther_info.id,
-        "report_member_id": report_member_info.id,
-        "goods_id": goods_info.id,
-        "report_id": report_info.id
-    }
 
+@route_api.route("/report/goods/search", methods=['GET', 'POST'])
+def reportGoodsSearch():
+    """
+    物品举报记录
+    :return:
+    """
+    resp = {'code': 200, 'msg': '', 'data': {}}
+    req = request.values
+    p = max(int(req.get('p', 1)), 1)
+    page_size = APP_CONSTANTS['page_size']
+    offset = (p - 1) * page_size  # 计算偏移量
+    status = int(req.get('status', -1))  # 举报的状态
+    query = Good.query.join(Report, Report.record_id == Good.id).filter(Report.record_type == 1,
+                                                                        Report.status == status)
+    search_rule = RecordService.searchBarFilter(owner_name=req.get('owner_name', ''), goods_name=req.get('mix_kw', ''))
+    reported_goods = query.filter(search_rule).order_by(Good.id.desc()).offset(offset).limit(page_size).all()
+    reported_goods_records = []
+    if reported_goods:
+        for item in reported_goods:
+            goods = {
+                "id": item.id,  # 物品id
+                "goods_name": item.name,   # 物品名
+                "owner_name": item.owner_name,  # 物主
+                "updated_time": str(item.updated_time),  # 编辑 or 新建时间
+                "business_type": item.business_type,  # 寻物/失物招领
+                "summary": item.summary,  # 描述
+                "main_image": UrlManager.buildImageUrl(item.main_image),  # 首图
+                "auther_name": item.nickname,  # 作者昵称
+                "avatar": item.avatar,  # 作者头像
+                "selected": False,  # 前段编辑属性
+                "status_desc": str(item.status_desc),   # 静态属性，返回状态码对应的文字
+            }  # 数据组装
+            reported_goods_records.append(goods)
+    resp['data']['list'] = reported_goods_records
+    resp['data']['has_more'] = len(reported_goods_records) >= page_size
     return jsonify(resp)
 
 
-# 拉黑发布者或者举报者
 @route_api.route('/report/block')
-def reportBlock():
-    resp = {'code': 200, 'msg': 'operate successfully(block)', 'data': {}}
-    req = request.values
-
-    member_info = g.member_info
+def reportStatusSet():
+    """
+    拉黑举报者2/发布者3/无违规4
+    :return:
+    """
+    resp = {'code': -1, 'msg': '操作失败', 'data': {}}
+    member_info = g.member_info  # 登录检查
     if not member_info:
-        resp['code'] = -1
-        resp['msg'] = "用户信息异常"
-        return jsonify(resp)
-
-    user_info = User.query.filter_by(member_id=member_info.id).first()
-    if not user_info:
-        resp['code'] = -1
-        resp['msg'] = "没有相关管理员信息，如需操作请添加管理员"
-        resp['data'] = str(member_info.id) + "+" + member_info.nickname
-        return jsonify(resp)
-
-    report_status = int(req['report_status']) if 'report_status' in req else "nonono"
-    auther_id = int(req['auther_id'])
-    report_member_id = int(req['report_member_id'])
-    goods_id = int(req['goods_id'])
-    report_id = int(req['report_id'])
-
-    auther_info = Member.query.filter_by(id=auther_id).first()
-    report_member_info = Member.query.filter_by(id=report_member_id).first()
-    goods_info = Good.query.filter_by(id=goods_id).first()
-    report_info = Report.query.filter_by(id=report_id).first()
-
-    report_info.status = report_status
-    report_info.user_id = user_info.uid
-    goods_info.report_status = report_status
-    goods_info.user_id = user_info.uid
-    # 拉黑举报者
-    if report_status == 2:
-        report_member_info.status = 0
-    # 拉黑发布者
-    elif report_status == 3:
-        auther_info.status = 0
-    # 没有违规
-    else:
-        pass
-
-    auther_info.updated_time = report_info.updated_time = goods_info.updated_time = report_info.updated_time = getCurrentDate()
-    db.session.add(auther_info)
-    db.session.add(report_info)
-    db.session.add(report_member_info)
-    db.session.add(goods_info)
-    db.session.commit()
-
+        resp['msg'] = "请管理员先登录"
+        return resp
+    req = request.values
+    report_status = int(req.get('report_status', -1))
+    goods_id = int(req.get('id', -1))
+    if goods_id == -1 or report_status not in (2, 3, 4):
+        resp['msg'] = "操作失败"
+        return resp
+    op_res = ReportService.setGoodsReportStatus(goods_id=goods_id, report_status=report_status, member_id=member_info.id)
+    resp['code'] = 200 if op_res else -1
     return jsonify(resp)

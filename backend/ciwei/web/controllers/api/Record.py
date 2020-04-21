@@ -1,20 +1,21 @@
-# -*- coding:utf-8 -*-
+# encoding: utf-8
+"""
+@author: github/100101001
+@contact: 17702113437@163.com
+@time: 2020/2/8 下午6:32
+@file: Record.py
+@desc:
+"""
 import datetime
 
 from flask import request, jsonify, g
-from sqlalchemy import or_, and_
 
 from application import APP_CONSTANTS
-from common.cahce import cas
 from common.libs import RecordService, UserService
 from common.libs.Helper import param_getter
-from common.libs.UrlManager import UrlManager
 from common.loggin.decorators import time_log
-from common.models.ciwei.Appeal import Appeal
 from common.models.ciwei.Goods import Good
-from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Recommend import Recommend
-from common.models.ciwei.User import User
 from web.controllers.api import route_api
 
 

@@ -13,7 +13,7 @@ from web.controllers.api import route_api, jsonify
 
 @route_api.route("/thank/order", methods=['POST', 'GET'])
 def createThankOrder():
-    resp = {'code': 200, 'msg': 'success', 'data': {}}
+    resp = {'code': -1, 'msg': 'success', 'data': {}}
     req = request.values
     member_info = g.member_info
     if not member_info:
@@ -32,7 +32,7 @@ def createThankOrder():
     model_order.openid = member_info.openid
     model_order.member_id = member_info.id
     model_order.price = price
-
+    model_order.balance_discount = Decimal(req.get('discount', '0')).quantize(Decimal('0.00'))
     order_sn = model_order.order_sn
     # 微信下单
     pay_data = {
@@ -62,6 +62,11 @@ def createThankOrder():
 
 @route_api.route('/thank/order/notify', methods=['GET', 'POST'])
 def thankOrderCallback():
+    """
+    支付回调
+    :return:
+    """
+
     result_data = {
         'return_code': 'SUCCESS',
         'return_msg': 'OK'
@@ -85,25 +90,25 @@ def thankOrderCallback():
         return target_wechat.dict_to_xml(result_data), header
 
     order_sn = callback_data['out_trade_no']
-    pay_order_info = ThankOrder.query.filter_by(order_sn=order_sn).first()
-    if not pay_order_info:
+    thank_order_info = ThankOrder.query.filter_by(order_sn=order_sn).first()
+    if not thank_order_info:
         result_data['return_code'] = result_data['return_msg'] = 'FAIL'
         return target_wechat.dict_to_xml(result_data), header
 
-    if int(pay_order_info.price * 100) != int(callback_data['total_fee']):
+    if int(thank_order_info.price * 100) != int(callback_data['total_fee']):
         result_data['return_code'] = result_data['return_msg'] = 'FAIL'
         return target_wechat.dict_to_xml(result_data), header
 
     # 更新订单的支付状态, 记录日志
 
     # 订单状态已回调更新过直接返回
-    if pay_order_info.status == 1:
+    if thank_order_info.status == 1:
         return target_wechat.dict_to_xml(result_data), header
     # 订单状态未回调更新过
     target_pay = PayService()
-    target_pay.thankOrderSuccess(pay_order_id=pay_order_info.id, params={"pay_sn": callback_data['transaction_id'],
+    target_pay.thankOrderSuccess(thank_order_id=thank_order_info.id, params={"pay_sn": callback_data['transaction_id'],
                                                                          "paid_time": callback_data['time_end']})
-    target_pay.addThankPayCallbackData(pay_order_id=pay_order_info.id, data=request.data)
+    target_pay.addThankPayCallbackData(thank_order_id=thank_order_info.id, data=request.data)
     return target_wechat.dict_to_xml(result_data), header
 
 
