@@ -1,2 +1,0 @@
-<import src="../../template/record-info/record-info-template.wxml" />
-<template is="record-info-template" data="{{...infos}}"></template>
