@@ -40,11 +40,6 @@ Page({
   onShareAppMessage: function () {
 
   },
-  toReleaseAdv: function () {
-    wx.navigateTo({
-      url: '/pages/adv/release/adv-release',
-    })
-  },
   toAddAdm:function(){
     wx.navigateTo({
       url: 'add_adm/index',
