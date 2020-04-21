@@ -296,6 +296,7 @@ CREATE TABLE `goods_top_order`  (
   `openid` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '第三方id',
   `transaction_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '微信支付交易号',
   `price` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '支付金额',
+  `balance_discount` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '余额垫付金额',
   `status` tinyint(1) NOT NULL DEFAULT -1 COMMENT '状态 -1=刚创建, 0=微信预下单-未支付,  1=微信支付成功, 2=微信已关单, 3=微信支付错误',
   `paid_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '支付完成时间',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
@@ -493,6 +494,7 @@ CREATE TABLE `order`  (
   `express_sn` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '快递单号',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `idx_order_sn`(`order_sn`) USING BTREE,
+  INDEX `idx_order_status`(`status`) USING BTREE,
   INDEX `idx_member_id_status`(`member_id`, `status`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '周边购买订单表' ROW_FORMAT = Dynamic;
 
@@ -703,6 +705,7 @@ CREATE TABLE `thank_order`  (
   `openid` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '第三方id',
   `transaction_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '微信支付交易号',
   `price` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '支付金额',
+  `balance_discount` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '余额垫付金额',
   `status` tinyint(1) NOT NULL DEFAULT -1 COMMENT '状态 -1=刚创建, 0=微信预下单-未支付,  1=微信支付成功, 2=微信已关单, 3=微信支付错误',
   `paid_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '支付完成时间',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
