@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "个人信息"
+  "navigationBarTitleText": "个人信息",
+  "usingComponents": {
+    "lyx-modal": "../../../components/lyx-modal/lyx-modal"
+  }
 }

@@ -1,5 +1,5 @@
 <import src="../../template/search-bar/search-bar-template.wxml" />
-<template is="search-bar-template" data="{{...infos}}" />
+<template is="search-bar-template" data="{{...infos, op_status}}" />
 <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
 <view class="container">
   <!--搜索框、选项卡、编辑栏-->

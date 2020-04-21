@@ -117,7 +117,7 @@ function goToPoint(point = "") {
  */
 const getNewRecommend = function(cb_complete=(data={})=>{}){
   wx.request({
-    url: app.buildUrl('/member/get-new-recommend'),
+    url: app.buildUrl('/member/new/hint'),
     header: app.getRequestHeader(),
     success: (res) => {
       let resp = res.data;
@@ -182,15 +182,40 @@ const DES3_Encrypt = function (data,key) {
   return des3en;
 }
 
+/**
+ * 将小程序的API封装成支持Promise的API
+ * @params fn {Function} 小程序原始API，如wx.login
+ */
+const wxPromisify = fn => {
+  return function (obj = {}) {
+    return new Promise((resolve, reject) => {
+      obj.success = function (res) {
+        resolve(res)
+      }
+
+      obj.fail = function (res) {
+        reject(res)
+      }
+
+      fn(obj)
+    })
+  }
+}
+
 module.exports = {
   formatTime: formatTime,
   onNavigateTap: onNavigateTap,
   regexConfig: regexConfig,
   toFixed: toFixed,
   toFixedStr: toFixedStr,
+  //页面滚动
   goToPoint: goToPoint,
+  //获取新推荐数
   getNewRecommend: getNewRecommend,
+  //编辑前检查操作冲突
   checkGoodsStatus: checkGoodsStatus,
+  //前端加密解密
   des3_decrypt: DES3_Decrypt,
-  des3_encrypt: DES3_Encrypt
+  des3_encrypt: DES3_Encrypt,
+  wxPromisify: wxPromisify
 }

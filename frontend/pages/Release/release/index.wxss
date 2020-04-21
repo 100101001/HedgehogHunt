@@ -11,6 +11,7 @@
   justify-content: center;
   opacity: 0.7;
   align-content: center;
+  margin-top: -10rpx;
 }
 
 .summary-container {
@@ -51,10 +52,6 @@
   height: 40rpx;
 }
 
-.location {
-  margin-top: 30rpx;
-}
-
 .label {
   font-size: 30rpx;
   font-weight: 500;
@@ -92,6 +89,9 @@
   border-radius: 10rpx;
 }
 
+.input-hints {
+  margin-bottom: 30rpx;
+}
 .add-view {
   background-color: #efefef;
   margin: 10px;

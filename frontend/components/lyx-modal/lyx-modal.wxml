@@ -1,0 +1,14 @@
+<!-- components/lyx-modal/lyx-modal.wxml -->
+<view class="modal" hidden="{{hidden}}">
+
+    <view class="container" hidden="{{hidden}}">
+        <view class="title">{{title}}</view>
+        <view class="content">
+            <slot></slot>
+        </view>
+        <view class='modal-btn-wrapper'>
+            <view class="cancel-btn" style='color:rgba(7,17,27,0.6)' bindtap='cancel' wx:if="{{!noCancel}}">{{cancelText}}</view>
+            <view class="confirm-btn {{noCancel? 'btn-wider': ''}}" style="{{tintColor}}" bindtap="confirm">{{confirmText}}</view>
+        </view>
+    </view>
+</view>

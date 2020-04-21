@@ -196,6 +196,7 @@ Page({
   onLoad: function (options) {
     let goods_id = options.goods_id * 1;
     let op_status = options.op_status;
+    op_status = op_status? op_status*1: -1;
     this.setData({
       appLoadingHidden: true, //申领中的加载loading图标
       op_status: op_status, //我的记录进入查看详情，可以得知是从什么记录过来的
@@ -222,46 +223,43 @@ Page({
       address: location[0],
     })
   },
+  /**
+   * 除了物品信息还需要举报信息
+   * @param id
+   */
   getReportInfo: function (id) {
-    var that = this;
-    that.setData({
+    this.setData({
       loadingHidden: false
     });
     wx.request({
-      url: app.buildUrl("/report/goods-info"),
+      url: app.buildUrl("/report/goods/info"),
       header: app.getRequestHeader(),
       data: {
         id: id
       },
-      success: function (res) {
-        var resp = res.data;
-        if (resp.code !== 200) {
+      success: (res) => {
+        let resp = res.data;
+        if (resp['code'] !== 200) {
           app.alert({
-            'content': resp.msg
+            content: resp['msg']
           });
           return;
         }
-        var op_status = that.data.op_status;
-        that.setData({
-          //认领过的则直接显示地址
-          //op_status是操作的代码，商品详情就是0
+        let data = resp['data'];
+        this.setData({
           infos: {
-            info: resp.data.info,
+            info: data['info'],
             loadingHidden: true,
-            show_location: resp.data.show_location,
-            report_auth_info: resp.data.report_auth_info,
-            op_status: op_status,
-            report_id: resp.data.report_id
-          },
-          ids: resp.data.ids,
+            show_location: true,
+            report_auth_info: data['report_auth_info']
+          }
         });
       },
-      fail: function (res) {
+      fail: (res) => {
         app.serverBusy();
-        return;
       },
-      complete: function (res) {
-        that.setData({
+      complete: (res) => {
+        this.setData({
           loadingHidden: true
         });
       },
@@ -274,8 +272,7 @@ Page({
    * @param op_status 从归还通知，还是匹配推荐等记录栏过来的
    */
   getGoodsInfo: function (id, read = false, op_status = 0) {
-    var that = this;
-    that.setData({
+    this.setData({
       loadingHidden: false
     });
     wx.request({
@@ -295,7 +292,7 @@ Page({
           });
           return;
         }
-        that.setData({
+        this.setData({
           //认领过的则直接显示地址
           //op_status是操作的代码，商品详情就是0
           infos: {
@@ -307,10 +304,9 @@ Page({
       },
       fail: function (res) {
         app.serverBusy();
-        return;
       },
-      complete: function (res) {
-        that.setData({
+      complete:  (res) => {
+        this.setData({
           loadingHidden: true
         });
       },
@@ -321,25 +317,19 @@ Page({
    */
   toBlock: function (e) {
     let report_status = e.currentTarget.dataset.report_status;
-    let that = this;
-    let ids = that.data.ids;
-    let data = {
-      auther_id: ids['auther_id'],
-      report_member_id: ids['report_member_id'],
-      goods_id: ids['goods_id'],
-      report_id: ids['report_id'],
-      report_status: report_status
-    };
-    this.doBlockUser(data);
+    this.doBlockUser(this.data.goods_id, report_status);
   },
   /**
    * 拉黑举报者 {@link toBlock}
    */
-  doBlockUser: function (data = {}) {
+  doBlockUser: function (id=0, report_status=0) {
     wx.request({
       url: app.buildUrl("/report/block"),
       header: app.getRequestHeader(),
-      data: data,
+      data: {
+        id: id,
+        report_status: report_status
+      },
       success: function (res) {
         let resp = res.data;
         if (resp['code'] !== 200) {
@@ -348,16 +338,20 @@ Page({
           });
           return
         }
-        wx.hideLoading();
         wx.showToast({
           title: '操作成功！',
           icon: 'success',
-          duration: 2000
+          duration: 1000,
+          success: (res) => {
+            setTimeout(wx.navigateBack, 700)
+          }
         });
       },
-      fail: function (res) {
-        wx.hideLoading();
+      fail:  (res) => {
         app.serverBusy();
+      },
+      complete: (res) => {
+        wx.hideLoading();
       }
     });
   },
@@ -367,21 +361,17 @@ Page({
    */
   toReport: function (e) {
     if (!app.loginTip()) {
-      app.alert({
-        content: "请登录后，进行留痕举报！"
-      });
       return;
     }
-    wx.showModal({
+    app.alert({
       title: "违规举报",
       content: "为维护平台环境，欢迎举报色情及诈骗、恶意广告等违规信息！同时，恶意举报将会被封号，请谨慎操作，确认举报？",
-      success: function (res) {
-        if (res.confirm) { //点击确定,获取操作用户id以及商品id,从用户token里面获取id
-          wx.showLoading({
-            title: '信息提交中..'
-          });
-          this.doReportGoods(e.currentTarget.dataset.id);
-        }
+      showCancel: true,
+      cb_confirm: ()=>{
+        wx.showLoading({
+          title: '信息提交中..'
+        });
+        this.doReportGoods(e.currentTarget.dataset.id);
       }
     });
   },
@@ -395,7 +385,7 @@ Page({
       header: app.getRequestHeader(),
       data: {
         id: id,
-        record_type: 1,
+        status: this.data.infos.info.status
       },
       success: (res) => {
         let resp = res.data;
@@ -408,7 +398,7 @@ Page({
         wx.showToast({
           title: '举报成功，感谢反馈！',
           icon: 'success',
-          duration: 2000,
+          duration: 1000,
           success: res => {
             setTimeout(wx.navigateBack, 600);
           }
@@ -417,7 +407,7 @@ Page({
       fail: (res) => {
         app.serverBusy();
       },
-      complete: res => {
+      complete: (res) => {
         wx.hideLoading();
       }
     });
@@ -597,6 +587,7 @@ Page({
     })
   },
   toEdit: function (event) {
+    // 编辑物品的冲突解决
     util.checkGoodsStatus(this.data.goods_id,  this.data.infos.info.status, (status) => {
       wx.navigateTo({
         url: '../edit/edit?info=' + JSON.stringify(this.data.infos.info),

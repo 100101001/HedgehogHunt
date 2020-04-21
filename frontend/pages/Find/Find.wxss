@@ -4,6 +4,8 @@
 page {
 /*背景图片*/
   background-image: url("https://console.changshunlive.com/static/img/20190308185846.png");
+  background-repeat:no-repeat;
+  background-size:100% 100%;
   background-attachment: fixed;
   background-position: 0rpx -30rpx
 }

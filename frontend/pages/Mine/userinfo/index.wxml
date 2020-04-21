@@ -67,41 +67,41 @@
   <text class="save-qrcode-text" wx:if="{{show_qrcode}}">点击保存</text>
 </view>
 
-<modal class="edit-modal" hidden="{{hiddenNameModal}}" title="编辑姓名" confirm-text="确定" cancel-text="取消" bindcancel="cancelNameEdit" bindconfirm="confirmNameEdit"  color="#f7931e" >
+<lyx-modal class="edit-modal" hidden="{{hiddenNameModal}}" title="编辑姓名" confirm-text="确定" cancel-text="取消" bindcancel="cancelNameEdit" bindconfirm="confirmNameEdit"  color="#f7931e" >
   <view><input type='text' focus="true" cursor-spacing='100' placeholder="请输入姓名" bindinput="listenerNameInput" value="{{name}}"/></view>
-</modal>
+</lyx-modal>
 
-<modal class="edit-modal" hidden="{{hiddenMobileModal}}" title="编辑手机" no-cancel="true" confirm-text="取消" bindconfirm="cancelMobileEdit" color="#f7931e">
+<lyx-modal class="edit-modal" hidden="{{hiddenMobileModal}}" title="编辑手机" no-cancel="true" confirm-text="取消" bindconfirm="cancelMobileEdit" color="#f7931e">
   <view> <button class='bind-phone-btn' bindtap="toEditPhone">一键绑定</button></view>
-</modal>
+</lyx-modal>
 
-<modal hidden="{{hiddenBalanceRecharge}}" title="充值金额" confirm-text="确定" cancel-text="取消" bindconfirm="confirmRechargeBalance"  bindcancel="cancelRechargeBalance"  cancel-color="#f7931e">
+<lyx-modal hidden="{{hiddenBalanceRecharge}}" title="充值金额" confirm-text="确定" cancel-text="取消" bindconfirm="confirmRechargeBalance"  bindcancel="cancelRechargeBalance"  cancel-color="#f7931e">
     <view class="input-number">
         <input type="digit" focus="true"  cursor-spacing='100' placeholder="请输入充值金额" bindinput="listenBalanceRecharge" value="{{balance_recharge_amount}}" />
         <view>元</view>
     </view>
-</modal>
+</lyx-modal>
 
 
-<modal hidden="{{hiddenContactModal}}" title="扫码联系客服提现" no-cancel="true" confirm-text="取消" bindconfirm="cancelContact">
+<lyx-modal hidden="{{hiddenContactModal}}" title="扫码联系客服提现" no-cancel="true" confirm-text="取消" bindconfirm="cancelContact">
   <view><image data-src="{{contact_img}}" class="contact-info" src="{{contact_img}}" bindtap="previewImage" /></view>
-</modal>
+</lyx-modal>
 
 <!--短信-->
-<modal hidden="{{hiddenSmsTimesModal}}" title="购买短信条数" confirm-text="确定" cancel-text="取消" bindconfirm="confirmSmsTimes"  bindcancel="cancelSmsTimes">
+<lyx-modal hidden="{{hiddenSmsTimesModal}}" title="购买短信条数" confirm-text="确定" cancel-text="取消" bindconfirm="confirmSmsTimes"  bindcancel="cancelSmsTimes">
     <view class="input-number">
         <input type="number" focus="true"  cursor-spacing='100' placeholder="请输入条数" bindinput="listenSmsCnt" value="{{sms_num}}"/>
         <view>条</view>
     </view>
-</modal>
+</lyx-modal>
 
 <!--短信包详情-->
-<modal hidden="{{hiddenSmsPkgModal}}" title="购买短信套餐包" confirm-text="确定" cancel-text="取消" bindconfirm="confirmSmsPkg" bindcancel="cancelSmsPkg">
-    <view>优惠价{{sms_pkg_price}}元，包3年通知，上限50条。</view>
-</modal>
+<lyx-modal hidden="{{hiddenSmsPkgModal}}" title="购买短信套餐包" confirmText="确定" cancel-text="取消" bindconfirm="confirmSmsPkg" bindcancel="cancelSmsPkg">
+    <view class="height: 40rpx;">优惠价{{sms_pkg_price}}元，包3年通知，上限50条。</view>
+</lyx-modal>
 
 <!--短信套餐详情-->
-<modal class="sms-detail-modal" wx:if="{{total_notify_times}}" hidden="{{hiddenSmsDetailModal}}" title="短信余额详情" no-cancel="true" confirm-text="确定" bindconfirm="closeSmsDetail">
+<lyx-modal class="sms-detail-modal" wx:if="{{total_notify_times}}" hidden="{{hiddenSmsDetailModal}}" title="短信余额详情" no-cancel="true" confirm-text="哈哈" bindconfirm="closeSmsDetail">
   <view class="sms-detail">
     <view wx:if="{{!sms_pkgs.length}}">短信包：无</view>
     <view class="hrz" wx:if="{{!sms_pkgs.length}}"></view>
@@ -112,4 +112,4 @@
     <view wx:if="{{member_notify_times}}">按量购：无限期{{member_notify_times}}条</view>
     <view wx:if="{{!member_notify_times}}">按量购：无限期0条</view>
   </view>
-</modal>
+</lyx-modal>

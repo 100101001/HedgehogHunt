@@ -4,10 +4,10 @@
     <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
 
     <!--仅管理员可见的举报者栏-->
-    <template is="info-auth-template" data="{{...report_auth_info}}" wx:if="{{report_auth_info}}"/>
+    <template is="info-auth-template" data="{{...report_auth_info, op_status}}" wx:if="{{report_auth_info}}"/>
 
     <!--作者栏-->
-    <template is="info-auth-template" data="{{...info}}" />
+    <template is="info-auth-template" data="{{...info, op_status}}" />
 
     <!--商品轮播图-->
     <view class="swiper-container">
@@ -342,18 +342,17 @@
       </view>
     </view>
 
-
+    <!---------------------归还贴结束------------------>
 
     <!--管理员用户视图，和管理员操作-->
     <view class="footer-box" wx:if="{{op_status==4}}">
-      <view class="shop-cart-btn" catchtap="toBlock" data-report_status="4">
+      <view class="shop-cart-btn" catchtap="goHome" data-report_status="4">
         <image src="/images/icons/home_select.png"></image>
-        <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>无违规</view>
+        <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>返回</view>
       </view>
-      <view class="join-shop-cart" catchtap="toBlock" data-report_status="2">拉黑举报者</view>
-      <view class="now-buy" catchtap="toBlock" data-report_status="3">
-        <text>拉黑发布者</text>
-      </view>
+      <view class="join-shop-cart" catchtap="toBlock" data-report_status="2"  wx:if="{{info.report_status!==2}}">拉黑举报者</view>
+      <view class="now-buy" catchtap="toBlock" data-report_status="3" wx:if="{{info.report_status!==3}}">拉黑发布者</view>
+      <view class="join-shop-cart grey" catchtap="toBlock" data-report_status="4" wx:if="{{info.report_status!==4}}">无违规</view>
     </view>
 
   </view>

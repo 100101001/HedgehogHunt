@@ -115,25 +115,13 @@ Page({
     })
   },
   goRecord: function (event) {
-    //var op_status = event.currentTarget.dataset.op_status * 1;
-    let op_status = event.currentTarget.dataset.op_status
-    console.log(op_status);
     wx.navigateTo({
-      url: '../Record/index?op_status=' + op_status
+      url: '../Record/index?op_status=' +  event.currentTarget.dataset.op_status
     })
   },
   goThanksList: function (event) {
-    //app.globalData.op_status = 2;
-    //var op_status = event.currentTarget.dataset.op_status * 1;
     wx.navigateTo({
       url: '../Thanks/record/index?op_status=' + event.currentTarget.dataset.op_status,
     })
-  },
-  //点击导航
-  onNavigateTap: function (event) {
-    navigate.onNavigateTap(event, this)
-  },
-  closeQrcodeHint: function (e) {
-    navigate.closeQrcodeHint(this)
   }
 })

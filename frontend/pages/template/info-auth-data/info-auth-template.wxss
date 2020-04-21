@@ -52,3 +52,9 @@
   color: #f7931e;
   margin-top: 4rpx;
 }
+
+.reporter-author-label {
+  font-size: 30rpx;
+  width: 100rpx;
+  color: #f7931e;
+}

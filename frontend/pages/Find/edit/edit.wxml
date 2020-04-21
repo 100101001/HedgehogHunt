@@ -16,17 +16,22 @@
         </view>
       </block>
 
+      <!--事发位置地址选择器和输入框，除了归还贴，其它帖子都需要填写-->
+      <view class="hrz" id="to-make-up-location"></view>
+      <import src="../../template/on-site-location/on-site-location-template.wxml"></import>
+      <template is="on-site-location" data="{{business_type, os_location, edit}}"></template>
+      <!--事发位置地址选择器和输入框，除了归还贴，其它帖子都需要填写-->
+
       <!--地址选择器和输入框-->
-      <view class="hrz"></view>
       <view class="item-container">
         <image src="/images/icons/location.png" mode="aspectFit"></image>
         <view class="label" wx:if="{{ business_type }}">放置位置</view>
         <view class="label" wx:if="{{!business_type }}">住址</view>
-        <view class="get-location" bindtap="getLocation">获取位置</view>
+        <view class="get-location" data-loc="1" bindtap="getLocation">获取位置</view>
       </view>
       <!--归还帖可见放置提示-->
       <view class="location-name">
-        <input name="location" bindinput="lisentLocationInput" disabled="{{location.length==0}}" value="{{location[1]}}" placeholder="若获取的地址不够精确可手动输入完善"></input>
+        <input name="location" data-loc="1" bindinput="listenLocationInput" disabled="{{location.length==0}}" value="{{location[1]}}" placeholder="若获取的地址不够精确可手动输入完善"></input>
       </view>
       <view class="hrz"></view>
     </view>
@@ -44,8 +49,6 @@
         <image class="add-pic-icon" src="/images/icons/add-pics.png"></image>
       </view>
     </view>
-    <view class="tips-views" wx:if="{{business_type==0}}">发布寻物启事前可以先去首页看看有没有人发布失物招领~</view>
-    <view class="tips-views" wx:if="{{business_type==1}}">发布失物招领前可以先去首页看看有没有人发布寻物启事~</view>
     <view class="hrz"></view>
     <view class="summary-container">
       <view class="tips-views">物品描述</view>

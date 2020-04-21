@@ -1,7 +1,7 @@
 //获取应用实例
-const util = require('../../../utils/util')
-const useBalance = require("../../../pages/template/use-balance/use-balance.js")
-const app = getApp()
+const util = require('../../../utils/util');
+const useBalance = require("../../../pages/template/use-balance/use-balance.js");
+const app = getApp();
 
 /**
  * hasQrcode 设置用户是否有二维码
@@ -10,7 +10,7 @@ const app = getApp()
  */
 const hasQrcode = function (cb_success=(has_qr_code)=>{}) {
   wx.request({
-    url: app.buildUrl("/member/has-qrcode"),
+    url: app.buildUrl("/member/has/qrcode"),
     header: app.getRequestHeader(),
     success: res => {
       let resp = res.data

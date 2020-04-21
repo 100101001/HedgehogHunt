@@ -206,12 +206,15 @@ Page({
       app.cancelQrcodeScan()
     }
   },
-  //获取位置的方法
+  /**
+   * 获取位置按钮，先授权，然后可以获取用户位置
+   * @param e
+   */
   getLocation: function (e) {
     wx.showLoading({
       title: '正在获取位置'
     });
-    let loc_id = e.currentTarget.dataset.loc;
+    let loc_id = e.currentTarget.dataset.loc * 1; // string转成number
     wx.getSetting({
       success: (res) => {
         if (!res.authSetting['scope.userLocation']) {
@@ -250,7 +253,7 @@ Page({
           res.longitude,
         ];
         //判断设置的捡拾
-        if (loc_id == 1) {
+        if (loc_id === 1) {
           this.setData({
             location: loc
           })
@@ -267,11 +270,20 @@ Page({
    * @param e
    */
   listenLocationInput: function (e) {
-    let location = this.data.location;
-    location[1] = e.detail.value;
-    this.setData({
-      location: location
-    });
+    let loc_id = e.currentTarget.dataset.loc * 1; // string转成number
+    if (loc_id === 1){
+      let location = this.data.location;
+      location[1] = e.detail.value;
+      this.setData({
+        location: location
+      });
+    } else {
+      let os_location = this.data.os_location;
+      os_location[1] = e.detail.value;
+      this.setData({
+        os_location: os_location
+      });
+    }
   },
   /**
    * 上传的图片点击进入预览
@@ -342,14 +354,24 @@ Page({
     }
   },
   /**
-   * 必填信息的数据
+   * 必填信息的数据，后续判空用
    * @param items
    * @returns {*}
    */
-  getEssentialData: function(items = []){
+  getEssentialData: function (items = []) {
     let data;
-    if (!globalData.isScanQrcode) {
-      //不在扫码
+    let business_type = this.data.business_type;
+    if (business_type === 1) {
+      // 失物招领必须填写发现地点
+      data = {
+        os_location: this.data.os_location.length ? this.data.os_location[1] : "",  //
+        goods_name: items[0].value,
+        mobile: items[2].value,
+        owner_name: items[1].value,
+        summary: this.data.summary_value
+      };
+    } else if (business_type === 0) {
+      // 寻物启事必须填写居住地点
       data = {
         location: this.data.location.length ? this.data.location[1] : "",
         goods_name: items[0].value,
@@ -358,13 +380,26 @@ Page({
         summary: this.data.summary_value
       };
     } else {
-      //扫码发布可不填失主信息
-      data = {
-        location: this.data.location.length ? this.data.location[1] : "",
-        goods_name: items[0].value,
-        mobile: items[1].value,
-        summary: this.data.summary_value
-      };
+      // 归还寻物贴
+      if (!globalData.isScanQrcode) {
+        // 寻物归还所有必填
+        data = {
+          os_location: this.data.os_location.length ? this.data.os_location[1] : "",  //
+          location: this.data.location.length ? this.data.location[1] : "",
+          goods_name: items[0].value,
+          mobile: items[2].value,
+          owner_name: items[1].value,
+          summary: this.data.summary_value
+        };
+      } else {
+        // 扫码发布可不填失主信息和
+        data = {
+          os_location: this.data.os_location.length ? this.data.os_location[1] : "",
+          goods_name: items[0].value,
+          mobile: items[1].value,
+          summary: this.data.summary_value
+        };
+      }
     }
     return data;
   },
@@ -391,20 +426,21 @@ Page({
     // 图片列表判空
     if (this.data.imglist.length === 0) {
       app.alert({
-        'content': "至少要提交一张图片"
+        content: "至少要提交一张图片"
       });
       this.setData({
         submitDisable: false
       });
       return
     }
-    let os_location = this.data.os_location;
+    let location = this.data.location;
     let business_type = this.data.business_type;
-    if (os_location.length === 0 && (business_type == 1)) {
+    if (location.length === 0 && (business_type === 1)) {
       //失物招领发帖时，再三询问是否真的一致，确保信息正确
       app.alert({
         title: '发布提示',
-        content: '发现地是很重要的寻物线索，确认发现地点与放置地点一致？',
+        content: '放置地点是很重要的取物线索，确认放置地点与发现地点一致？',
+        showCancel: true,
         cb_confirm: () => {
           //准备发布数据
           this.continueToRelease(data);
@@ -412,7 +448,10 @@ Page({
         cb_cancel: () => {
           //滚动到事发地点位置
           setTimeout(() => {
-            util.goToPoint('#on-site-location')
+            this.setData({
+              submitDisable: false
+            });
+            util.goToPoint('#to-make-up-location')
           }, 200)
         }
       })
@@ -499,7 +538,7 @@ Page({
         }, onFailContactTech)
       } else {
         //支付并扣除余额再发布
-        pay_price = util.toFixed(pay_price - this.data.balance, 2)
+        pay_price = util.toFixed(pay_price - this.data.balance, 2);
         topCharge(pay_price, ()=>{
           changeUserBalance(-this.data.balance, ()=>{
             this.subscribeMsgAndRelease(data)
@@ -791,6 +830,7 @@ Page({
     let tips_obj = {
       "goods_name": "物品名称",
       "owner_name": business_type ? "失主姓名" : "姓名",
+      "os_location": business_type ? "发现位置" : "丢失位置",
       "location": business_type ? "物品放置位置" : "居住地址",
       "summary": "描述",
       "mobile": "联系电话"
@@ -801,19 +841,21 @@ Page({
       placeholder: "例:校园卡",
       label: tips_obj['goods_name'],
       icons: "/images/icons/goods_name.png",
-      value: business_type ==2  && info ? info.goods_name : "",  //归还帖自动填充归还的物品名
+      value: business_type === 2  && info ? info.goods_name : "",  //归还帖自动填充归还的物品名
     }, {
       name: "owner_name",
-      placeholder: "例:可可",
-      label: tips_obj['owner_name'],
+      hints: business_type===0? '您的姓名，不会公布，仅用于筛选推荐': '物品上附有的物主身份信息，方便失主寻物',
+      placeholder: "例:可可" + (business_type===1?'，若没有请填无。': '') ,
+      label: business_type ? "失主姓名": "姓名",
       icons: "/images/icons/discount_price.png",
-      value: business_type == 2 && info ? info.owner_name : "" //归还帖自动填充归还物品的失主名
+      value: business_type === 2 && info ? info.owner_name : "" //归还帖自动填充归还物品的失主名
     },
       {
         name: "mobile",
         placeholder: "高危非必填",
+        hints: '您的联络方式，涉及个人隐私，不建议公开',
         value: "高危非必填",
-        label: tips_obj['mobile'],
+        label: "手机",
         icons: "/images/icons/mobile.png",
       }
     ];
@@ -841,6 +883,7 @@ Page({
       tips_obj: tips_obj, //表单项填写提示
       info_owner_name: info ? info.owner_name : "", //归还帖自动填充归还物品的失主名
       location: info ? info.location : [], //归还帖自动填充归还物品的放置地址(就近放置)
+      os_location: info? info.os_location: [] //归还帖自动填充归还物品的发现地址
     })
   },
   /**

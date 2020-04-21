@@ -18,6 +18,6 @@
       </view>
     </block>
   </view>
-<view wx:if="{{!loadingMoreHidden}}" class="no-more-goods">没有更多记录了~</view>
-<view wx:if="{{loadingMoreHidden}}" class="no-more-goods">上滑加载更多～</view>
+<view wx:if="{{!loadingMore}}" class="no-more-goods">没有更多记录了~</view>
+<view wx:if="{{loadingMore}}" class="no-more-goods">上滑加载更多～</view>
 </view>

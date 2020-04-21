@@ -28,5 +28,5 @@
       <view class="hrz"></view>
   </block>
 </view>
-<view class="tips-views" wx:if="{{!loadingMoreHidden}}">没有更多记录了~</view>
-<view class="tips-views" wx:if="{{loadingMoreHidden}}">上滑加载更多～</view>
+<view class="tips-views" wx:if="{{!loadingMore}}">没有更多记录了~</view>
+<view class="tips-views" wx:if="{{loadingMore}}">上滑加载更多～</view>

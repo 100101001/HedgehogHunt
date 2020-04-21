@@ -97,6 +97,12 @@ App({
     campus_id: -1, //学校id
     campus_name: "", //学校名
     read_goods: new BloomFilter(32*256, 16), //用户查阅过的物品ID，用于阅读量计数
+    unRegUserInfo: {
+      "has_qr_code": false,
+      "avatar": "/images/more/un_reg_user.png",
+      "nickname": "请注册",
+      "level": 0
+    }
   },
   onLaunch: function () {
     // 获取后端二维码产品价格和产品ID
@@ -334,7 +340,7 @@ App({
    */
   getNewRecommend: function () {
     wx.request({
-      url: this.buildUrl('/member/get-new-recommend'),
+      url: this.buildUrl('/member/new/hint'),
       header: this.getRequestHeader(),
       method: 'GET',
       data: {},

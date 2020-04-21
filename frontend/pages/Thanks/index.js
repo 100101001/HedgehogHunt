@@ -11,29 +11,31 @@ const app = getApp();
  * @param that 页面指针
  */
 const thankPay = function (pay_price=0.51, cb_success=()=>{}, that) {
+  let balance_discount = that.data.use_balance? that.data.balance: 0;
   wx.request({
     url: app.buildUrl('/thank/order'),
     header: app.getRequestHeader(),
     data: {
-      price: pay_price
+      price: pay_price,
+      discount: balance_discount  //冗余记录一下余额垫付数
     },
     method: 'POST',
     success: res => {
-      let resp = res.data
+      let resp = res.data;
 
       //下单失败提示后返回
       if (resp['code'] !== 200) {
         app.alert({
           content: resp['msg']
-        })
+        });
         that.setData({
           canSendThank: true
-        })
+        });
         return
       }
 
       //下单成功调起支付
-      let pay_data = resp['data']
+      let pay_data = resp['data'];
       wx.requestPayment({
         timeStamp: pay_data['timeStamp'],
         nonceStr: pay_data['nonceStr'],
@@ -196,10 +198,8 @@ Page({
     }
   },
   toSendThanks: function (e) {
-    isG
-
     this.setData({canSendThank: false});
-    if (this.data.thanks_text == "") {
+    if (this.data.thanks_text === "") {
       app.alert({
         title: '温馨提示',
         content: '别忘了用文字传递感谢~'
@@ -275,15 +275,15 @@ Page({
    * 分为纯从账户扣和另需要支付 {@see doThankPayWithBalance}
    */
   toThankPayWithBalance: function() {
-    let thank_pay = this.data.thank_pay   //根据手续费计算得出的用户需要支付的金额
-    let fee_hint_content = ""
+    let thank_pay = this.data.thank_pay;
+    let fee_hint_content = "";
     if (thank_pay <= this.data.total_balance) {
       //纯余额支付
       fee_hint_content ='将从您的余额扣除' + thank_pay + '元。'
     } else {
       //支付+余额
-      let balance = this.data.balance  //垫付的金额
-      let pay_price = util.toFixed(thank_pay - balance, 2)
+      let balance = this.data.balance;  //垫付的金额
+      let pay_price = util.toFixed(thank_pay - balance, 2);
       fee_hint_content = '从账户扣除' + balance + '元后，您需支付' + pay_price + '元。'
     }
     app.alert({
@@ -317,7 +317,6 @@ Page({
       let pay_price = util.toFixed(thank_pay - balance, 2)
       thankPay(pay_price, (order_sn) => { //答谢的支付订单流水号
         changeUserBalance(-balance, () => {
-          console.log(order_sn)
           this.createThanks(thank_pay, order_sn)
         })
       }, this) //this用于失败后取消答谢按钮的禁用

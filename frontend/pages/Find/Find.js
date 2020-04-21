@@ -143,58 +143,53 @@ Page({
       url: '../adv/info/adv-info?id=' + adv_id
     })
   },
-  //举报按钮
+  /**
+   * 实际举报物品
+   * @param e
+   */
   toReport: function (e) {
-    var regFlag = app.globalData.regFlag;
-    if (!regFlag) {
-      app.loginTip();
+    if (!app.loginTip()) {
       return;
     }
-    var id = e.currentTarget.dataset.id;
-    var that = this;
-    wx.showModal({
+    app.alert({
       title: "违规举报",
       content: "为维护平台环境，欢迎举报色情及诈骗、恶意广告等违规信息！同时，恶意举报将会被封号，请谨慎操作，确认举报？",
+      showCancel: true,
+      cb_confirm: () => {
+        wx.showLoading({
+          title: '信息提交中..'
+        });
+        this.doReportGoods(e.currentTarget.dataset.id)
+      }
+    });
+  },
+  doReportGoods: function (id = -1) {
+    wx.request({
+      url: app.buildUrl("/goods/report"),
+      header: app.getRequestHeader(),
+      data: {
+        id: id,
+        status: this.data.activeCategoryId
+      },
       success: function (res) {
-        if (res.confirm) { //点击确定,获取操作用户id以及商品id,从用户token里面获取id
-          wx.showLoading({
-            title: '信息提交中..'
+        let resp = res.data;
+        if (resp['code'] !== 200) {
+          app.alert({
+            content: resp['msg']
           });
-          wx.request({
-            url: app.buildUrl("/goods/report"),
-            header: app.getRequestHeader(),
-            data: {
-              id: id,
-              record_type: 1,
-            },
-            success: function (res) {
-              var resp = res.data;
-              if (resp.code != 200) {
-                app.alert({
-                  'content': resp.msg
-                });
-                return
-              }
-              wx.hideLoading();
-              wx.showToast({
-                title: '举报成功，感谢！',
-                icon: 'success',
-                duration: 2000
-              });
-            },
-            fail: function (res) {
-              wx.hideLoading();
-              wx.showToast({
-                title: '系统繁忙，反馈失败，还是感谢！',
-                duration: 2000
-              });
-            },
-            complete: function () {
-              wx.hideLoading();
-              that.onPullDownRefresh();
-            }
-          });
+          return
         }
+        wx.showToast({
+          title: '举报成功，感谢！',
+          icon: 'success',
+          duration: 1000
+        });
+      },
+      fail: function (res) {
+        app.serverBusy()
+      },
+      complete: (res) => {
+        wx.hideLoading();
       }
     });
   },

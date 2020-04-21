@@ -14,7 +14,8 @@
     "pages/Mine/connect/index",
     "pages/Mine/userinfo/index",
     "pages/Find/edit/edit",
-    "pages/Qrcode/Mobile/index"
+    "pages/Qrcode/Mobile/index",
+    "pages/Homepage/official-account/index"
   ],
   "subpackages": [
     {

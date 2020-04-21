@@ -82,7 +82,9 @@ const doCancelReturnGoods = function (goods_ids = [], status, that) {
 
 /**
  * 只是删除自己发布的归还贴
- * @param goods_id
+ * @param goods_ids
+ * @param status
+ * @param that
  */
 const doCleanReleasedReturnGoods = function (goods_ids = [], status=3, that) {
   wx.request({
@@ -117,6 +119,7 @@ const doCleanReleasedReturnGoods = function (goods_ids = [], status=3, that) {
 /**
  * returnToFoundGoodsInBatch 取消归还{@link toDeleteMyReleaseReturn}时选择实际将帖子转成公开的失物招领
  * @param goods_ids
+ * @param status
  */
 const returnToFoundGoodsInBatch = function (goods_ids = [], status=0) {
   wx.request({
@@ -153,6 +156,7 @@ const returnToFoundGoodsInBatch = function (goods_ids = [], status=0) {
 /**
  * giveUnmarkedFoundToSystem 把待认领的失物招领送给系统
  * @param goods_ids
+ * @param status
  * @param that
  */
 const giveUnmarkedFoundToSystem = function (goods_ids = [], status=1, that) {
@@ -212,7 +216,7 @@ const gotbackPremarkGoods = function (goods_ids = [], status= 2, that) {
 
 const allUnEditableGood = function (goods_list) {
   let arr =  goods_list.filter((item)=>{return item.unselectable});
-  return arr.length == goods_list.length
+  return arr.length === goods_list.length
 };
 
 
@@ -221,7 +225,7 @@ Page({
   data: {
     owner_name: "",
     goods_name: "",
-    business_type: "",
+    business_type: 0,
   },
   /**
    * 设置页面顶部选项卡和搜索框(编辑框)的初始化数据
@@ -229,7 +233,7 @@ Page({
    * @param options 跳转传入参数
    */
   onLoad: function (options) {
-    let op_status = options.op_status;
+    let op_status = options.op_status * 1;
     this.setData({
       op_status: op_status, //参数,代表正在查看认领/匹配/发布/答谢
     });
@@ -242,8 +246,10 @@ Page({
    */
   onLoadSetData: function (op_status) {
     let check_cat;
-    if (op_status == 0) {
+    let title;
+    if (op_status === 0) {
       //发布记录
+      title = '发布记录';
       check_cat = [
         {
           id: 1,  //goods的status
@@ -266,7 +272,8 @@ Page({
       this.setData({
         business_type: 0
       })
-    } else if (op_status == 1) {
+    } else if (op_status === 1) {
+      title = '认领记录';
       //认领记录（后端是Mark表的status不是Goods表的status）
       check_cat = [
         {
@@ -282,7 +289,8 @@ Page({
           name: '已答谢',
         }
       ];
-    } else if (op_status == 5) {
+    } else if (op_status === 5) {
+      title = '归还通知';
       //归还记录（后端是Goods表的status但因为business_type==2所以不用考虑和外部同步）
       check_cat = [
         {
@@ -302,7 +310,8 @@ Page({
           name: '已答谢',
         }
       ];
-    } else if (op_status == 2) {
+    } else if (op_status === 2) {
+      title = '匹配推送';
       //匹配推送
       let recommend = app.globalData.recommend;
       check_cat = [{
@@ -322,7 +331,8 @@ Page({
         },
       ]
     }
-    else if (op_status == 6){
+    else if (op_status === 6){
+      title = '申诉记录';
       check_cat = [{
         id: 0,
         name: '待处理',
@@ -335,7 +345,8 @@ Page({
         }
       ]
     }
-    else if (op_status == 4) {
+    else if (op_status === 4) {
+      title = '举报记录';
       //管理后台
       check_cat = [{
         id: 1,
@@ -360,6 +371,7 @@ Page({
       ]
     }
     //默认选中首个状态
+    wx.setNavigationBarTitle({title: title});
     let check_cat_id = check_cat[0].id;
     this.setData({
       only_new: false,
@@ -396,15 +408,13 @@ Page({
     this.setData({
       p: 1,
       infos: infos,
-      loadingMoreHidden: true,
-      all_selected_disabled: true  //每次操作后的重新加載時，重置
+      loadingMore: true,  // 还有更多数据未加载
+      all_selected_disabled: true  // 每次操作后的重新加載時，重置，全选按钮禁用
     });
-    let op_status = this.data.op_status;
-    if (op_status == 4) {
+    if (this.data.op_status === 4) {
       this.getReportList();
     } else {
       //匹配更新new计数
-      this.updateTips();
       this.getGoodsList();
     }
   },
@@ -412,7 +422,7 @@ Page({
    * updateTips 同步推荐计数
    */
   updateTips: function () {
-    if (this.data.op_status == 2) {
+    if (this.data.op_status === 2) {
       util.getNewRecommend((data) => {
         //新的推荐通知
         let recommend = data.recommend;
@@ -424,7 +434,7 @@ Page({
           infos: infos
         })
       })
-    } else if (this.data.op_status == 5) {
+    } else if (this.data.op_status === 5) {
       //新的归还通知
       util.getNewRecommend((data) => {
         let returns = data.return;
@@ -464,16 +474,16 @@ Page({
     let saveHidden = this.data.infos.saveHidden;
     if (!saveHidden) {
       app.alert({
-        'content': "请先完成操作再查看详情~"
+        content: "请先完成操作再查看详情~"
       });
     } else {
       wx.navigateTo({
         url: '/pages/Find/info/info?goods_id=' + id + '&op_status=' + this.data.op_status
-      })
+      });
       //在当前页的info中找到该帖，更新其new标识
-      let infos = this.data.infos
+      let infos = this.data.infos;
       let idx = (infos.list || []).findIndex((item) => item.id === id);
-      infos.list[idx].new = 1
+      infos.list[idx].new = 1;
       this.setData({
         infos: infos
       })
@@ -481,17 +491,15 @@ Page({
   },
   //下滑加载
   onReachBottom: function (e) {
-    var that = this
     //延时500ms处理函数
-    setTimeout(function () {
-      that.setData({
+    setTimeout(() => {
+      this.setData({
         loadingHidden: true
       });
-      var op_status = that.data.op_status
-      if (op_status == 4) {
-        that.getReportList()
+      if (this.data.op_status === 4) {
+        this.getReportList()
       } else {
-        that.getGoodsList()
+        this.getGoodsList()
       }
     }, 500)
   },
@@ -500,10 +508,7 @@ Page({
   },
   //获取信息列表
   getGoodsList: function (e) {
-    if (!this.data.loadingMoreHidden) {
-      return
-    }
-    if (this.data.processing) {
+    if (!this.data.loadingMore || this.data.processing) {
       return
     }
     this.setData({
@@ -524,26 +529,22 @@ Page({
         business_type: this.data.business_type
       },
       success: (res) => {
-        let resp = res.data
+        let resp = res.data;
         if (resp['code'] !== 200) {
           app.alert({
             content: resp['msg']
-          })
+          });
           return
         }
-        let goods_list = resp['data']['list']
+        let goods_list = resp['data']['list'];
         goods_list = app.cutStr(goods_list);
-        goods_list = this.data.infos.list.concat(goods_list)
+        goods_list = this.data.infos.list.concat(goods_list);
         //修改save的状态
         this.setData({
           p: this.data.p + 1,
-          all_selected_disabled: this.data.all_selected_disabled && allUnEditableGood(goods_list)
+          all_selected_disabled: this.data.all_selected_disabled && allUnEditableGood(goods_list),  // 都需要不存在才不禁用
+          loadingMore: resp['data']['has_more']
         });
-        if (resp['data']['has_more'] === 0) {
-          this.setData({
-            loadingMoreHidden: false,
-          })
-        }
         this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), goods_list);
       },
       fail: (res) => {
@@ -559,55 +560,46 @@ Page({
   },
   //获取违规列表
   getReportList: function () {
-    var that = this;
-    if (!that.data.loadingMoreHidden) {
+    if (!this.data.loadingMore || this.data.processing) {
       return;
     }
-    if (that.data.processing) {
-      return;
-    }
-    that.setData({
+    this.setData({
       processing: true,
       loadingHidden: false
     });
     wx.request({
-      url: app.buildUrl("/report/goods-search"),
+      url: app.buildUrl("/report/goods/search"),
       header: app.getRequestHeader(),
       data: {
-        status: that.data.check_status_id,
-        mix_kw: that.data.goods_name,
-        owner_name: that.data.owner_name,
-        p: that.data.p,
-        record_type: 1,
+        status: this.data.check_status_id,
+        mix_kw: this.data.goods_name,
+        owner_name: this.data.owner_name,
+        p: this.data.p
       },
-      success: function (res) {
-        var resp = res.data;
-        if (resp.code !== 200) {
+      success:  (res) => {
+        let resp = res.data;
+        if (resp['code'] !== 200) {
           app.alert({
-            'content': resp.msg
+            content: resp['msg']
           });
           return
         }
-        var goods_list = resp.data.list;
+        let data = resp['data'];
+        let goods_list = data['list'];
         goods_list = app.cutStr(goods_list);
-        goods_list = that.data.infos.list.concat(goods_list),
-          //修改save的状态
-          that.setData({
-            p: that.data.p + 1,
-          });
-        if (resp.data.has_more === 0) {
-          that.setData({
-            loadingMoreHidden: false,
-          })
-        }
-        that.setPageData(that.getSaveHide(), that.allSelect(), that.noSelect(), goods_list);
+        goods_list = this.data.infos.list.concat(goods_list);
+        //修改save的状态
+        this.setData({
+          p: this.data.p + 1,
+          loadingMore: data['has_more']
+        });
+        this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), goods_list);
       },
-      fail: function (res) {
+      fail:  (res) => {
         app.serverBusy();
-        return;
       },
-      complete: function (res) {
-        that.setData({
+      complete:  (res) => {
+        this.setData({
           processing: false,
           loadingHidden: true
         });
@@ -622,76 +614,66 @@ Page({
     let index = e.currentTarget.dataset.index;
     let list = this.data.infos.list;
     if (index !== "" && index != null) {
-      if (this.data.op_status == 1 && list[index].status_desc == "申诉中") {
-        app.alert({title: '禁止操作', content: '该申诉帖已被系统冻结，禁止任何操作，请您谅解！'});
-        return;
-      }
       list[index].selected = !list[index].selected;
       this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), list);
     }
   },
-  //计算是否全选了
+  /**
+   * 是否全选
+   * @returns {boolean}
+   */
   allSelect: function () {
-    var list = this.data.infos.list;
-    var allSelect = false;
-    for (var i = 0; i < list.length; i++) {
-      var curItem = list[i];
-      if (curItem.selected) {
-        allSelect = true;
-      } else {
+    let list = this.data.infos.list;
+    let allSelect = true;
+    for (let i = 0; i < list.length; i++) {
+      if (!list[i].selected) {
         allSelect = false;
         break;
       }
     }
     return allSelect;
   },
-  //计算是否都没有选
+  /**
+   * 是否全没选
+   * @returns {boolean}
+   */
   noSelect: function () {
-    var list = this.data.infos.list;
-    var noSelect = 0;
-    for (var i = 0; i < list.length; i++) {
-      var curItem = list[i];
-      if (!curItem.selected) {
+    let list = this.data.infos.list;
+    let noSelect = 0;
+    for (let i = 0; i < list.length; i++) {
+      if (!list[i].selected) {
         noSelect++;
       }
     }
-    if (noSelect == list.length) {
-      return true;
-    } else {
-      return false;
-    }
+    return noSelect === list.length;
   },
-  //全选和全部选按钮
+  /**
+   * 点击全选按钮后，所有radio状态反选（全选选中点击，radio全空）
+   */
   bindAllSelect: function () {
-    var currentAllSelect = this.data.infos.allSelect;
-    var list = this.data.infos.list;
-    for (var i = 0; i < list.length; i++) {
-      if (list[i].unselectable) {
+    let currentAllSelect = this.data.infos.allSelect;
+    let list = this.data.infos.list;
+    for (let i = 0; i < list.length; i++) {
+      if (list[i]['unselectable']) {  //不可选择的，点击全选会被跳过
         continue;
       }
-      if (currentAllSelect) {
-        list[i].selected = false;
-      } else {
-        list[i].selected = true;
-      }
+      list[i].selected = !currentAllSelect;
     }
     this.setPageData(this.getSaveHide(), !currentAllSelect, this.noSelect(), list);
   },
   //编辑默认全不选
   editTap: function () {
-    var list = this.data.infos.list;
-    for (var i = 0; i < list.length; i++) {
-      var curItem = list[i];
-      curItem.active = false;
+    let list = this.data.infos.list;
+    for (let i = 0; i < list.length; i++) {
+      list[i].selected = false;
     }
     this.setPageData(!this.getSaveHide(), this.allSelect(), this.noSelect(), list);
   },
   //选中完成默认全选
   saveTap: function () {
-    var list = this.data.infos.list;
-    for (var i = 0; i < list.length; i++) {
-      var curItem = list[i];
-      curItem.active = true;
+    let list = this.data.infos.list;
+    for (let i = 0; i < list.length; i++) {
+      list[i].selected = true;
     }
     this.setPageData(!this.getSaveHide(), this.allSelect(), this.noSelect(), list);
   },
@@ -907,13 +889,13 @@ Page({
    */
   toDeleteMyRelease: function (id_list = []) {
     let business_type = this.data.business_type;
-    if (business_type == 2) {
+    if (business_type === 2) {
       //删除归还贴
       this.toDeleteMyReleaseReturn(id_list)
-    } else if (business_type == 1) {
+    } else if (business_type === 1) {
       //删失物招领
       this.toDeleteMyFound(id_list)
-    } else if (business_type == 0) {
+    } else if (business_type === 0) {
       //删寻物启事
       this.toDeleteMyLost(id_list)
     }
@@ -1188,7 +1170,7 @@ Page({
   businessTypeClick: function () {
     let infos = this.data.infos;
     let business_type = this.data.business_type;
-    if (business_type == 0) {
+    if (business_type === 0) {
       //寻-->失
       infos.check_cat = [
         {
@@ -1212,7 +1194,7 @@ Page({
           name: '申诉中'
         }];
       business_type = 1
-    } else if (business_type == 1) {
+    } else if (business_type === 1) {
       //失->还
       infos.check_cat = [
         {
@@ -1269,20 +1251,20 @@ Page({
     this.onPullDownRefresh();
   },
   /**
-   * op_status不为4的时候
+   * 状态栏的切换
    * @param e
    */
   recordTypeClick: function (e) {
-    //选择一次分类时返回选中值
-    let infos = this.data.infos
-    let old_id = infos.check_status_id
-    let new_id = e.currentTarget.id
-    if (old_id != new_id) {
-      infos.check_status_id = new_id
+    let infos = this.data.infos;
+    let old_id = infos.check_status_id;
+    let new_id = e.currentTarget.id * 1;
+    if (old_id !== new_id) {
+      // 切换了新的状态，重新加载数据
+      infos.check_status_id = new_id;
       this.setData({
         infos: infos,
         check_status_id: e.currentTarget.id
-      })
+      });
       this.onPullDownRefresh();
     }
   }

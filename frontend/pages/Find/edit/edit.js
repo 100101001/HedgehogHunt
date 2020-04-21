@@ -123,7 +123,7 @@ const changeUserBalance = function (unit = 0, cb_success = () => {}) {
 Page({
   data: {
     loadingHidden: true,
-    category_arr: []
+    edit: true
   },
   onLoad: function (options) {
     //从详情页进入编辑，info是原来的帖子数据
@@ -141,28 +141,84 @@ Page({
     }
   },
   onShow: function() {},
-  //获取位置的方法
+  /**
+   * 获取位置按钮，先授权，然后可以获取用户位置
+   * @param e
+   */
   getLocation: function (e) {
-    wx.chooseLocation({
+    wx.showLoading({
+      title: '正在获取位置'
+    });
+    let loc_id = e.currentTarget.dataset.loc * 1; // string转成number
+    wx.getSetting({
       success: (res) => {
-        this.setData({
-          location: [
-            res.address,
-            res.name,
-            res.latitude,
-            res.longitude,
-          ]
-        })
+        if (!res.authSetting['scope.userLocation']) {
+          // 获取定位授权
+          wx.authorize({
+            scope: 'scope.userLocation',
+            success: (res)=> {
+              this.chooseLocation(loc_id);
+            },
+            fail: (errMsg) => {
+              app.alert({content: '授权失败，将无法成功编辑信息'})
+            },
+            complete: (res)=> {
+              wx.hideLoading()
+            }
+          })
+        } else {
+          //已经获取了授权，直接选择地址
+          wx.hideLoading();
+          this.chooseLocation(loc_id);
+        }
       },
+      fail: (res) => {
+        wx.hideLoading();
+        app.alert({content: '网络开小差了，请稍后再试'});
+      }
     })
   },
-  //监听输入框
-  lisentLocationInput: function (e) {
-    let location = this.data.location;
-    location[1] = e.detail.value;
-    this.setData({
-      location: location
-    });
+  chooseLocation: function (loc_id = 1) {
+    wx.chooseLocation({
+      success: (res) => {
+        let loc = [
+          res.address,
+          res.name,
+          res.latitude,
+          res.longitude,
+        ];
+        //判断设置的捡拾
+        if (loc_id === 1) {
+          this.setData({
+            location: loc
+          })
+        } else {
+          this.setData({
+            os_location: loc
+          })
+        }
+      }
+    })
+  },
+  /**
+   * 位置选取后修正精确地址描述
+   * @param e
+   */
+  listenLocationInput: function (e) {
+    let loc_id = e.currentTarget.dataset.loc * 1; // string转成number
+    if (loc_id === 1) {
+      let location = this.data.location;
+      location[1] = e.detail.value;
+      this.setData({
+        location: location
+      });
+    } else {
+      let os_location = this.data.os_location;
+      os_location[1] = e.detail.value;
+      this.setData({
+        os_location: os_location
+      });
+    }
   },
   /**
    * onLoadSetData 页面一加载就设置表单数据{@see setEditFormInitData}和置顶组件
@@ -184,6 +240,7 @@ Page({
     let business_type = info.business_type;
     let tips_obj = {
       "goods_name": "物品名称",
+      "os_location": business_type? "发现位置": "丢失位置",
       "owner_name": business_type ? "失主姓名" : "姓名",
       "location": business_type ? "物品放置位置" : "居住地址",
       "summary": "描述",
@@ -214,7 +271,6 @@ Page({
     let summary_placeholder = "";
     if (business_type) {
       summary_placeholder = "添加物品描述：拾到物品的时间、地点以及物品上面的其他特征如颜色、记号等...";
-
     } else {
       summary_placeholder = "添加寻物描述：物品丢失大致时间、地点，记号等...";
     }
@@ -228,6 +284,7 @@ Page({
       tips_obj: tips_obj,
       goods_id: info.id,
       location: info.location.slice(),  //为了比对编辑是否修改了内容，slice使得副本修改不影响原info
+      os_location: info.os_location.slice(),  //为了比对编辑是否修改了内容，slice使得副本修改不影响原info
       top: info.top, //原来是否置顶
       submitDisable: false
     });
@@ -325,6 +382,7 @@ Page({
     data['business_type'] = this.data.business_type;
     data['img_list'] = img_list;
     data['location'] = this.data.location;
+    data['os_location'] = this.data.os_location;
     data['id'] = this.data.goods_id;
     // 原来非置顶/置顶过期，编辑后置顶，才算置顶操作
     data['is_top'] = this.data.isTop && !this.data.top ? 1 : 0;
@@ -332,12 +390,13 @@ Page({
 
     // 编辑操作是否更改了匹配信息
     let origin_info = this.data.origin_info;
-    let kw_modified = (data['owner_name'] != origin_info.owner_name ||
-      data['goods_name'] != origin_info.goods_name);
-    this.data.keyword_modified = kw_modified ? 1 : 0;
+    let kw_modified = (data['owner_name'] !== origin_info.owner_name ||
+      data['goods_name'] !== origin_info.goods_name || !data['os_location'].equals(origin_info.os_location));
+    this.data.keyword_modified = kw_modified ? 1 : 0;  // python后端bool和js的boolean不兼容
+    //编辑操作是否更改了信息
     let modified = this.data.keyword_modified || !origin_info.pics.equals(img_list)
-      || !origin_info.location.equals(data['location']) || origin_info.summary != data['summary'];
-    this.data.modified = modified ? 1 : 0;
+      || !origin_info.location.equals(data['location']) || origin_info.summary !== data['summary'];
+    this.data.modified = modified ? 1 : 0;  // python后端bool和js的boolean不兼容
     this.toUploadData(data)
   },
   /**
@@ -345,7 +404,7 @@ Page({
    * @param data 上传数据
    */
   toUploadData: function (data) {
-    if (data['is_top'] == 1) {
+    if (data['is_top'] === 1) {
       this.confirmTop(data)
     } else {
       this.uploadData(data)
@@ -453,7 +512,7 @@ Page({
         img_url: img_list[i - 1]
       },
       success: (res) => {
-        if (img_list.length == i) {
+        if (img_list.length === i) {
           this.endCreate(id);
         }
       },
@@ -476,7 +535,7 @@ Page({
       },
       name: 'file', //文件名，不要修改，Flask直接读取
       success: (res) => {
-        if (img_list.length == i) {
+        if (img_list.length === i) {
           this.endCreate(id);
         }
       },
@@ -506,15 +565,12 @@ Page({
           return
         }
 
-
         wx.showToast({
-          title: '提交成功',
+          title: '编辑成功',
           icon: 'success',
-          duration: 2000,
+          duration: 1000,
           success: res=>{
-            setTimeout(function(){
-              wx.navigateBack()
-            }, 1500)
+            setTimeout( wx.navigateBack, 800)
           }
         })
       },

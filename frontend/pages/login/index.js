@@ -30,6 +30,9 @@ const getNewSessionKey = function (cb_success=(session_key)=>{}) {
           let info = resp['data'];
           cb_success(info['session_key']);
           app.setCache("loginInfo", info);
+        },
+        fail: (res) =>{
+          app.serverBusy()
         }
       })
     },
@@ -59,6 +62,9 @@ const checkReg = function (openid, cb_comp = (isReg) => {}) {
         app.login();
       }
       cb_comp(is_reg);
+    },
+    fail: (res)=>{
+      app.serverBusy()
     }
   })
 };
@@ -200,6 +206,9 @@ Page({
         wx.navigateTo({
           url: '/pages/login/index?phone=' + mobile
         })
+      },
+      fail: (res)=>{
+        app.serverBusy()
       }
     })
   }

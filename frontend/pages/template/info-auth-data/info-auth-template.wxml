@@ -7,14 +7,23 @@
       <view class="auther-name">{{auther_name}}</view>
       <view class="updated-time">{{updated_time}}</view>
     </view>
-    <view class="report" catchtap="toReport" data-id="{{id}}" wx:if="{{!is_auth}}">
-      <image src="/images/icons/report.png"></image>
-      <text>举报</text>
+    <view wx:if="{{op_status!==4}}">
+      <view class="report" catchtap="toReport" data-id="{{id}}" wx:if="{{!is_auth}}">
+        <image src="/images/icons/report.png"></image>
+        <text>举报</text>
+      </view>
+      <!--只有取回前的状态才能编辑-->
+      <view class="report" catchtap="toEdit" data-id="{{id}}" wx:if="{{is_auth && status < 3}}">
+        <image src="/images/icons/edit-red.png"></image>
+        <text>编辑</text>
+      </view>
     </view>
-    <view class="report" catchtap="toEdit" data-id="{{id}}" wx:if="{{is_auth && status==1}}">
-      <image src="/images/icons/edit-red.png"></image>
-      <text>编辑</text>
+
+    <view wx:if="{{op_status==4}}">
+      <view class="report">
+        <view class="reporter-author-label">{{is_reporter? '举报者': '发布者'}}</view>
+      </view>
     </view>
   </view>
-  <view class="submit-btn" bindtap="noRule" wx:if="{{ check_report && goods_status==3 }}">无违规</view>
+<!--  <view class="submit-btn" bindtap="noRule" wx:if="{{ check_report && goods_status==3 }}">无违规</view>-->
 </template>
