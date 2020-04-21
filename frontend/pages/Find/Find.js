@@ -42,7 +42,7 @@ Page({
       goods_name: '',  // 物品名
       owner_name: '',  // 物主名
       filter_address: '',  // 搜索栏的地址关键词
-      loadingMoreHidden: true  // 更多数据未加载
+      loadingMore: true  // 更多数据未加载
     });
   },
   //轮播图变化
@@ -52,13 +52,10 @@ Page({
     })
   },
   /**
-   * onShow 页面显示
+   * onShow 页面显示初始化数据，加载第一页物品
    */
   onShow: function () {
     //加载第一页的物品数据
-    this.setData({
-      regFlag: app.globalData.regFlag
-    });
     this.setInitData();
     this.onPullDownRefresh();
   },
@@ -88,31 +85,34 @@ Page({
       url: 'info/info?goods_id=' + e.currentTarget.dataset.id
     })
   },
-  //刷新
-  onPullDownRefresh: function (event) {
+  /**
+   * 获取第一页物品数据
+   */
+  onPullDownRefresh: function () {
     this.setData({
       p: 1,
       goods_list: [],
-      loadingMoreHidden: true
+      loadingMore: true
     });
     this.getGoodsList();
   },
-  //点击导航图标
-  onNavigateTap: function (event) {
-    navigate.onNavigateTap(event, this)
-  },
+  /**
+   * 分享页面进入首页，加分
+   * @param Options
+   * @returns {{path: string, success: success, title: string}}
+   */
   onShareAppMessage: function (Options) {
     return {
-      title: '我在【闪寻-失物招领】找东西，你也快来看看吧~',
+      title: '我在【鲟回-失物招领】找东西，你也快来看看吧~',
       path: '/pages/index/index',
-      success: function (res) {
+      success:  (res) => {
         wx.request({
           url: app.buildUrl('/member/share'),
-          success: function (res) {
-            var resp = res.data;
-            if (resp.code != 200) {
+          success:  (res) => {
+            let resp = res.data;
+            if (resp['code'] !== 200) {
               app.alert({
-                'content': resp.msg
+                content: resp['msg']
               });
               return;
             }
@@ -120,12 +120,11 @@ Page({
               title: '分享成功！',
               icon: 'success',
               content: '积分+5',
-              duration: 3000
+              duration: 1000
             })
           },
-          fail: function (res) {
+          fail:  (res) => {
             app.serverBusy();
-            return;
           }
         })
       }
@@ -136,7 +135,10 @@ Page({
       scrollTop: e.detail.scrollTop
     })
   },
-  //查看导航栏信息
+  /**
+   * 查看轮播广告
+   * @param e
+   */
   goAdvInfo: function (e) {
     let adv_id = e.currentTarget.dataset.id;
     wx.navigateTo({
@@ -156,20 +158,24 @@ Page({
       content: "为维护平台环境，欢迎举报色情及诈骗、恶意广告等违规信息！同时，恶意举报将会被封号，请谨慎操作，确认举报？",
       showCancel: true,
       cb_confirm: () => {
-        wx.showLoading({
-          title: '信息提交中..'
-        });
         this.doReportGoods(e.currentTarget.dataset.id)
       }
     });
   },
+  /**
+   * 举报物品
+   * @param id
+   */
   doReportGoods: function (id = -1) {
+    wx.showLoading({
+      title: '信息提交中..'
+    });
     wx.request({
       url: app.buildUrl("/goods/report"),
       header: app.getRequestHeader(),
       data: {
         id: id,
-        status: this.data.activeCategoryId
+        status: this.data.activeCategoryId   //操作冲突检测
       },
       success: function (res) {
         let resp = res.data;
@@ -199,36 +205,36 @@ Page({
   setInitData: function () {
     this.setData({
       goods_list: [],
-      loadingMoreHidden: true,
+      loadingMore: true,
       p: 1,
-      activeCategoryId: this.data.activeCategoryId,
-      loadingHidden: true, // loading
-      swiperCurrent: 0,
+      activeCategoryId: this.data.activeCategoryId,  //选中的状态
+      loadingHidden: true, // 加载图标
+      swiperCurrent: 0,  //轮播图图片下标
       scrollTop: "0",
-      processing: false,
-      items: [{
+      processing: false,  //加载数据
+      items: [{  //搜索输入表单
         name: 'owner_name',
         placeholder: '姓名',
         icons: 'search_icon',
         act: "listenerNameInput",
       },
-      {
-        name: "goods_name",
-        placeholder: "物品",
-        act: "listenerGoodsNameInput",
-      },
-      {
-        name: "filter_address",
-        placeholder: "地址",
-        act: "listenerAddressInput",
-      }
+        {
+          name: "goods_name",
+          placeholder: "物品",
+          act: "listenerGoodsNameInput",
+        },
+        {
+          name: "filter_address",
+          placeholder: "地址",
+          act: "listenerAddressInput",
+        }
       ]
     })
   },
   //获取轮播图
   getBanners: function () {
     let that = this;
-    if (!that.data.loadingMoreHidden) {
+    if (!that.data.loadingMore) {
       return;
     }
     if (that.data.processing) {
@@ -302,47 +308,43 @@ Page({
   },
   //获取信息列表
   getGoodsList: function (e) {
-    let that = this;
-    if (!that.data.loadingMoreHidden || that.data.processing) {
+    if (!this.data.loadingMore || this.data.processing) {
       return
     }
-    that.setData({
+    this.setData({
       processing: true,
       loadingHidden: false
     });
     wx.request({
       url: app.buildUrl("/goods/search"),
       data: {
-        status: that.data.activeCategoryId,
-        mix_kw: that.data.goods_name,
-        owner_name: that.data.owner_name,
-        p: that.data.p,
-        business_type: that.data.business_type,
-        filter_address: that.data.filter_address
+        status: this.data.activeCategoryId,
+        mix_kw: this.data.goods_name,
+        owner_name: this.data.owner_name,
+        p: this.data.p,
+        business_type: this.data.business_type,
+        filter_address: this.data.filter_address
       },
-      success: function (res) {
+      success:  (res) => {
         let resp = res.data;
         if (resp['code'] !== 200) {
-          app.alert({content: resp['msg']})
-          return
+          app.alert({content: resp['msg']});
+          return;
         }
-        let goods_list = resp['data'].list
-        goods_list = app.cutStr(goods_list) //概要，切去各个字符串属性过长的部分
-        that.setData({
-          goods_list: that.data.goods_list.concat(goods_list),
-          p: that.data.p + 1,
+        let data = resp['data'];
+        let goods_list = data['list'];
+        goods_list = app.cutStr(goods_list); //概要，切去各个字符串属性过长的部分
+        this.setData({
+          goods_list: this.data.goods_list.concat(goods_list),
+          p: this.data.p + 1,
+          loadingMore: data['has_more']
         })
-        if (resp.data.has_more === 0) {
-          that.setData({
-            loadingMoreHidden: false,
-          })
-        }
       },
-      fail: function (res) {
+      fail:  (res) => {
         app.serverBusy()
       },
-      complete: function (res) {
-        that.setData({
+      complete:  (res) => {
+        this.setData({
           processing: false,
           loadingHidden: true
         })

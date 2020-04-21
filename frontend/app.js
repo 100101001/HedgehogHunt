@@ -42,7 +42,7 @@ App({
     version: "1.0",
     id: null, //用户的id(首页goToIndex会用到)
     regFlag: false, //用于判断用户已注册(和缓存中的token一起代表用户已经登录)
-    shopName: "闪寻-失物招领",
+    shopName: "鲟回-失物招领",
     domain: "http://192.168.0.116:8999/api",
     //domain: "https://ciwei.opencs.cn/api",
     //static_file_domain: "https://ciwei.opencs.cn",
@@ -64,10 +64,10 @@ App({
     qrcodeName: "", //二维码用户名字
     unLoggedRelease: false, //扫码用户未注册仍继续发布
     unLoggedReleaseToken: {}, //扫码用户未注册仍继续发布使用的用户token
-    qrcodePrice: 2, //闪寻码的价格
+    qrcodePrice: 2.5, //闪寻码的价格
     qrcodeProductId: 15, //闪寻码产品ID
-    goodsTopPrice: 100, // 置顶发布价格
-    goodsTopDays: 1, //置顶天数
+    goodsTopPrice: 20, // 置顶发布价格
+    goodsTopDays: 7, //置顶天数
     smsProductId: 16, //短信按量计费产品ID
     smsProductPrice: 1, //短信按量购买价格
     smsPkgProductId: 17, //短信包量产品ID

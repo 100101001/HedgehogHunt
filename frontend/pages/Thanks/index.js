@@ -131,20 +131,21 @@ Page({
     })
     //计算可用余额
     let pay_money = util.toFixed(parseFloat(e.detail.value), 2)
-    if(pay_money<=this.data.total_balance){
+    let total_balance = this.data.total_balance
+    if(pay_money - 0.01 <= total_balance){
       //余额足够
       this.setData({
-        balance: pay_money //可用余额
+        balance: pay_money - 0.01 //可用余额，至少支付0.01
       })
     } else {
       //余额不够
       this.setData({
-        balance: this.data.total_balance //全用
+        balance: total_balance //全用
       })
     }
     //禁用和勾选重置
     this.setData({
-      balance_use_disabled: pay_money == 0, //禁用勾选框
+      balance_use_disabled: pay_money === 0, //禁用勾选框
       use_balance: pay_money? this.data.use_balance: false
     })
   },
@@ -166,31 +167,34 @@ Page({
    * @param e
    */
   radioChange: function (e) {
-    let checkedRadio = e.detail.value
+    let checkedRadio = e.detail.value * 1
     let items = this.data.items
     for (let i = 0; i < items.length; i++) {
-      items[i]['checked'] = i == checkedRadio
+      items[i]['checked'] = i === checkedRadio
     }
     this.setData({
       checkedRadio: checkedRadio,
       items: items,
-      balance_use_disabled: checkedRadio == 0,
-      use_balance: checkedRadio == 0 ? false : this.data.use_balance
+      balance_use_disabled: checkedRadio === 0,
+      use_balance: checkedRadio === 0 ? false : this.data.use_balance
     })
     //计算可用余额
-    if(checkedRadio != 3){
+    if(checkedRadio !== 3){
       //没有选择自定义
-      let pay_price = util.toFixed(items[checkedRadio].price, 2)
-      if(pay_price<=this.data.total_balance) {
+      let pay_money = util.toFixed(items[checkedRadio].price, 2)
+      let total_balance = this.data.total_balance
+      if(pay_money - 0.01 <= total_balance){
+        //余额足够
         this.setData({
-          balance: pay_price
+          balance: Math.max(pay_money - 0.01, 0) //可用余额，至少要支付0.01
         })
       } else {
+        //余额不够
         this.setData({
-          balance: this.data.total_balance
+          balance: total_balance //全用
         })
       }
-    }else{
+    } else {
       //选择了自定义
       this.setData({
         balance: this.data.total_balance
@@ -210,7 +214,7 @@ Page({
     //取出答谢金额，可能是自定义金额或者指定金额
     let price = this.data.price
     let checkedRadio = this.data.checkedRadio
-    price = checkedRadio == 3 ? price : this.data.items[checkedRadio]['price']
+    price = checkedRadio === 3 ? price : this.data.items[checkedRadio]['price']
     // 金额合法性检测
     if (!/^[0-9]+([.][0-9]+)?$/.test(price)) {
       app.alert({
@@ -232,7 +236,7 @@ Page({
   doSendThanks: function () {
     //分纯答谢和金额答谢
     //金额答谢分纯账户和混合付款
-    if (this.data.thank_pay == 0) {
+    if (this.data.thank_pay === 0) {
       //纯文字感谢
       this.createThanks(0.00)
     } else {
@@ -277,9 +281,9 @@ Page({
   toThankPayWithBalance: function() {
     let thank_pay = this.data.thank_pay;
     let fee_hint_content = "";
-    if (thank_pay <= this.data.total_balance) {
+    if (thank_pay - 0.01 <= this.data.total_balance) {
       //纯余额支付
-      fee_hint_content ='将从您的余额扣除' + thank_pay + '元。'
+      fee_hint_content ='将从您的余额扣除' + (thank_pay-0.01) + '元。'
     } else {
       //支付+余额
       let balance = this.data.balance;  //垫付的金额
@@ -307,20 +311,12 @@ Page({
   doThankPayWithBalance: function () {
     let thank_pay = this.data.thank_pay  //用户输入的答谢金额s
     let balance = this.data.balance  //余额垫付的金额
-    if (thank_pay <= this.data.total_balance) {
-      //纯余额支付
-      changeUserBalance(-thank_pay, () => {
-        this.createThanks(thank_pay)
+    let pay_price = util.toFixed(thank_pay - balance, 2)
+    thankPay(pay_price, (order_sn) => { //答谢的支付订单流水号
+      changeUserBalance(-balance, () => {
+        this.createThanks(thank_pay, order_sn)
       })
-    } else {
-      //先支付后再扣除余额
-      let pay_price = util.toFixed(thank_pay - balance, 2)
-      thankPay(pay_price, (order_sn) => { //答谢的支付订单流水号
-        changeUserBalance(-balance, () => {
-          this.createThanks(thank_pay, order_sn)
-        })
-      }, this) //this用于失败后取消答谢按钮的禁用
-    }
+    }, this) //this用于失败后取消答谢按钮的禁用
   },
   /**
    * createThanks 创建答谢记录{@see doCreateThanks}

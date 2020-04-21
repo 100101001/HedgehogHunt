@@ -302,11 +302,11 @@ Page({
     //余额勾选框
     useBalance.initData(this, (total_balance)=>{
       //计算可用余额和折后价格
-      if (total_balance >= this.data.top_price){
+      if (total_balance >= this.data.top_price - 0.01){
         //余额足够
         this.setData({
-          discount_price: 0, //使用余额，支付0元
-          balance: this.data.top_price
+          discount_price: 0.01, //使用余额，支付0.01元
+          balance: Math.max(this.data.top_price-0.01, 0)
         })
       } else {
         //余额不足
@@ -441,20 +441,13 @@ Page({
   toTopCharge: function (data = {}) {
     let pay_price = this.data.top_price;
     if (this.data.use_balance) {
-      if (this.data.total_balance >= pay_price) {
-        //扣除余额后发布
-        changeUserBalance(-pay_price, ()=>{
+      //支付并扣除余额再发布
+      pay_price = this.data.discount_price;
+      topCharge(pay_price, ()=>{
+        changeUserBalance(-this.data.balance, ()=>{
           this.uploadData(data)
         })
-      } else {
-        //支付并扣除余额再发布
-        pay_price = util.toFixed(pay_price - this.data.balance, 2);
-        topCharge(pay_price, ()=>{
-          changeUserBalance(-this.data.balance, ()=>{
-            this.uploadData(data)
-          })
-        }, this)
-      }
+      }, this)
     } else {
       //支付后发布
       topCharge(pay_price, ()=>{
@@ -564,7 +557,6 @@ Page({
           this.setData({submitDisable: false});
           return
         }
-
         wx.showToast({
           title: '编辑成功',
           icon: 'success',
@@ -577,10 +569,7 @@ Page({
       fail: (res) => {
         app.serverBusy();
         this.setData({submitDisable: false})
-      },
-      complete: (res) => {
-        this.setData({loadingHidden: true})
-      },
+      }
     })
   },
   /**
@@ -601,7 +590,7 @@ Page({
   changeUseBalance: function (e) {
     useBalance.changeUseBalance(e, () => {
       this.setData({
-        use_balance: e.detail.value.length == 1
+        use_balance: e.detail.value.length === 1
       })
     })
   }

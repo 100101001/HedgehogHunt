@@ -11,12 +11,12 @@ const globalData = app.globalData;
  */
 const getSubscribeTmpIds = function (business_type = 0) {
   let tmpIds = [];
-  if (business_type == globalData.business_type.found) { //失物招领
+  if (business_type === globalData.business_type.found) { //失物招领
     tmpIds = [
       globalData.subscribe.finished.found,
       globalData.subscribe.thanks
     ]
-  } else if (business_type == globalData.business_type.lost) {  // 寻物启事
+  } else if (business_type === globalData.business_type.lost) {  // 寻物启事
     tmpIds = [
       globalData.subscribe.recommend,
       globalData.subscribe.return
@@ -529,24 +529,17 @@ Page({
    * TODO 余额扣除失败，进行退钱
    */
   toTopCharge: function (data = {}) {
-    let pay_price = this.data.top_price
     if (this.data.use_balance) {
-      if (this.data.total_balance >= pay_price) {
-        //扣除余额后发布
-        changeUserBalance(-pay_price, ()=>{
+      //支付并扣除余额再发布
+      let pay_price = this.data.discount_price;
+      topCharge(pay_price, ()=>{
+        changeUserBalance(-this.data.balance, ()=>{
           this.subscribeMsgAndRelease(data)
         }, onFailContactTech)
-      } else {
-        //支付并扣除余额再发布
-        pay_price = util.toFixed(pay_price - this.data.balance, 2);
-        topCharge(pay_price, ()=>{
-          changeUserBalance(-this.data.balance, ()=>{
-            this.subscribeMsgAndRelease(data)
-          }, onFailContactTech)
-        }, this)
-      }
+      }, this)
     } else {
       //支付后发布
+      let pay_price = this.data.top_price;
       topCharge(pay_price, ()=>{
         this.subscribeMsgAndRelease(data)
       }, this)
@@ -744,7 +737,7 @@ Page({
           return
         }
         //初始化表单数据
-        this.setInitData();
+        this.setFormInitData();
         //用户提示
         this.endCreateSuccess();
       },
@@ -899,11 +892,11 @@ Page({
     //余额勾选框
     useBalance.initData(this, (total_balance) => {
       //计算可用余额和折后价格
-      if (total_balance >= this.data.top_price) {
+      if (total_balance >= this.data.top_price - 0.01) {
         //余额足够
         this.setData({
-          discount_price: 0, //使用余额，支付0元
-          balance: this.data.top_price //可用于垫付的余额
+          discount_price: 0.01, //使用余额，支付0元
+          balance: Math.max(this.data.top_price-0.01, 0) //可用于垫付的余额
         })
       } else {
         //余额不足
