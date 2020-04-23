@@ -97,6 +97,7 @@ def reportGoodsSearch():
                 "auther_name": item.nickname,  # 作者昵称
                 "avatar": item.avatar,  # 作者头像
                 "selected": False,  # 前段编辑属性
+                "location": item.location.split("###")[1],  # 概要显示
                 "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
             }  # 数据组装
             reported_goods_records.append(goods)
@@ -106,7 +107,7 @@ def reportGoodsSearch():
     return jsonify(resp)
 
 
-@route_api.route('/report/deal')
+@route_api.route('/report/goods/deal')
 def reportDeal():
     """
     拉黑举报者2/发布者3/无违规4

@@ -39,6 +39,11 @@ def setGoodsReportDealt(goods_id=0, report_status=0, goods_report_status=0, user
         Report).first()
     # 设置物品的举报状态和发布状态
     report, goods = reported_goods.Report, reported_goods.Good
+
+    prev_report_status = report.status
+    # if prev_report_status not in (1, 4):
+    #     rollbackPrevReportDeal(goods_id=0, prev_report_status)
+
     report.status = report_status
     goods.report_status = goods_report_status
     report.user_id = goods.user_id = user_id
@@ -136,6 +141,17 @@ def blockReleaser(goods_id=0, user_id=0):
     # 因为会员被拉黑了，所以相当于所有的物品都因为被举报而封锁
     MemberService.blockMember(member_id=blocked_member_id, user_id=user_id)
 
+
+
+def rollbackPrevReportDeal(prev_report_status=2):
+    """
+
+    :param prev_report_status:
+    :return:
+    """
+    if prev_report_status not in (2, 3):
+        pass
+    pass
 
 def newGoodReport(reporting_goods=None, reporting_member=None):
     """

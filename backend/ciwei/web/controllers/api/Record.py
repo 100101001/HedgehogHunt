@@ -140,6 +140,6 @@ def recordDelete():
         # 物品和举报状态为 5
         user_info = UserService.getUser(member_id=member_info.id)
         if user_info:
-            op_res = RecordService.deleteGoodsReport(goods_ids=id_list, user_id=user_info.id)
+            op_res = RecordService.deleteGoodsReport(goods_ids=id_list, user_id=user_info.uid)
     resp['code'] = 200 if op_res else -1
     return resp

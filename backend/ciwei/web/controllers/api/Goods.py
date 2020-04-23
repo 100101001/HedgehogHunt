@@ -1171,7 +1171,7 @@ def goodsReport():
     db.session.add(reporting_goods)
 
     ReportService.newGoodReport(reporting_goods=reporting_goods, reporting_member=member_info)
-    MemberService.updateCredits(member_id=member_info.id)
+    # MemberService.updateCredits(member_id=member_info.id)
     db.session.commit()
 
     # ES 同步

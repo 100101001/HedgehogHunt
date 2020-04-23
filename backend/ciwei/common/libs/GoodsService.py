@@ -280,7 +280,8 @@ def getLostGoodsInfo(goods_info=None, member_info=None):
     if member_info:
         show_location = is_auth = member_info.id == goods_info.member_id
     data = makeGoodsCommonInfoData(goods_info=goods_info, show_location=show_location, is_auth=is_auth)
-    data['top'] = goods_info.top_expire_time > datetime.datetime.now(),  # 置顶信息
+    is_top = goods_info.top_expire_time > datetime.datetime.now()
+    data['top'] = is_top
     goods_status = goods_info.status
     if goods_status > 1 and member_info:
         is_returner = goods_info.return_goods_openid == member_info.openid
