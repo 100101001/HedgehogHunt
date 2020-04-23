@@ -281,7 +281,8 @@
           <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'> 返回 </view>
         </view>
         <!--帖子状态很新鲜，没什么好展示的状态，用作查看原链接寻物贴好了-->
-        <view class="join-shop-cart" catchtap="goCheckReturnGoods" data-id="{{info.return_goods_id}}">查看原寻物贴</view>
+        <view class="join-shop-cart" catchtap="goCheckReturnGoods" data-id="{{info.return_goods_id}} wx:if={{info.return_goods_id}}">查看原寻物贴</view>
+        <view class="join-shop-cart" catchtap="goCheckSms" wx:if="{{!info.return_goods_id}}">查看短信余额</view>
         <!--归还帖的状态操作区-->
         <view class="now-buy return grey" style="color=#999" catchtap="goRejectReturnGoods">
           <text>不是我的</text>
@@ -346,13 +347,10 @@
 
     <!--管理员用户视图，和管理员操作-->
     <view class="footer-box" wx:if="{{op_status==4}}">
-      <view class="shop-cart-btn" catchtap="goHome" data-report_status="4">
-        <image src="/images/icons/home_select.png"></image>
-        <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>返回</view>
-      </view>
-      <view class="join-shop-cart" catchtap="toBlock" data-report_status="2"  wx:if="{{info.report_status!==2}}">拉黑举报者</view>
-      <view class="now-buy" catchtap="toBlock" data-report_status="3" wx:if="{{info.report_status!==3}}">拉黑发布者</view>
-      <view class="join-shop-cart grey" catchtap="toBlock" data-report_status="4" wx:if="{{info.report_status!==4}}">无违规</view>
+      <view class="join-shop-cart" catchtap="dealGoodsReport" data-report_status="2"  wx:if="{{info.report_status!==2}}">拉黑举报者</view>
+      <view class="now-buy" catchtap="dealGoodsReport" data-report_status="3" wx:if="{{info.report_status!==3}}">拉黑发布者</view>
+      <view class="join-shop-cart grey" catchtap="dealGoodsReport" data-report_status="4" wx:if="{{info.report_status!==4}}">无违规</view>
+      <view class="join-shop-cart light-grey" catchtap="dealGoodsReport" data-report_status="5" wx:if="{{info.report_status!==5}}">屏蔽</view>
     </view>
 
   </view>

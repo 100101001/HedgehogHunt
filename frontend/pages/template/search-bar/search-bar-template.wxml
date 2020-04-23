@@ -19,17 +19,6 @@
     </view>
   </form>
 
-  <!--举报的选项卡-->
-<!--  <view class="type-container" wx:if="{{op_status==4}}">-->
-<!--    <scroll-view class="type-navbar-check-report">-->
-<!--      <view class="type-box-five" wx:for="{{check_cat}}" wx:for-item="cat" wx:key="index">-->
-<!--        <view id="{{cat.id}}" class="type-navbar-item {{check_status_id == cat.id ? 'type-item-on' : ''}}" bindtap="checkReportClick">-->
-<!--          {{cat.name}}<view class="content_tip" wx:if="{{cat.value && cat.value!=0}}">{{cat.value}}</view>-->
-<!--        </view>-->
-<!--      </view>-->
-<!--    </scroll-view>-->
-<!--  </view>-->
-
   <!--选项卡-->
   <view class="type-container">
     <scroll-view class="type-navbar-check-report" scroll-x="true">
@@ -99,5 +88,14 @@
       </view>
     </view>
 
+    <!--管理员的举报记录-->
+    <view wx:if="{{op_status==4}}">
+      <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected"
+            wx:if="{{check_status_id==1}}">禁止操作
+      </view>
+      <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected"
+            wx:if="{{check_status_id!=1}}">删除
+      </view>
+    </view>
   </view>
 </template>

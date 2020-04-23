@@ -353,11 +353,11 @@ Page({
         name: '待处理'
       },
         {
-          id: 2,
+          id: 3,
           name: '发布者'
         },
         {
-          id: 3,
+          id: 2,
           name: '举报者'
         },
         {
@@ -558,7 +558,9 @@ Page({
       },
     })
   },
-  //获取违规列表
+  /**
+   * 获取被举报的物品的列表，进行处理
+   */
   getReportList: function () {
     if (!this.data.loadingMore || this.data.processing) {
       return;

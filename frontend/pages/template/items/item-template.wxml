@@ -1,6 +1,5 @@
 <template name="item-template">
-<block wx:for="{{items}}" wx:key="index">
-    <view class="hrz"></view>
+<block wx:for="{{items}}" wx:key="index" hover-class="navigator-clicked" hover-stay-time="1000">
     <view class="item-container" bindtap="{{item.act? item.act: ''}}">
       <view class="label">{{item.label}}</view>
       <image src="{{item.icons}}" mode="aspectFit"></image>

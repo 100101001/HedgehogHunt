@@ -2,6 +2,9 @@
   text-align: center;
 }
 
+
+
+/***浮窗的位置，和渲染时的初始浮现动画***/
 .hint-qrcode-container {
   margin-left: 9%;
   margin-right: 11%;
@@ -12,42 +15,37 @@
   animation-iteration-count: 1;
   bottom: 180rpx;
 }
-
 @keyframes moveup {
   from {bottom:-0rpx;}
   to {bottom:180rpx;}
 }
-
-
+/***浮窗被误触时的下沉动画***/
 .hint-qrcode-touch{
   animation: movedown 2s;
   z-index: -10;
 }
-
 @keyframes movedown {
   from {bottom:180rpx;}
   to {bottom: -220rpx;}
 }
-
+/***浮窗内部背景色及提示文字***/
 .hint-qrcode-text-container {
   display: flex;
-  background-color: rgba(0, 51, 255, 0.4);
+  background-color: rgba(0, 51, 255, 0.35);
   border-radius: 40rpx;
   padding: 15rpx 0rpx 15rpx 30rpx;
 }
-
 .hint-qrcode-text {
   color: rgba(255, 255, 255, 1);
 }
-
-
+/***浮窗内部提示跳转文字，及被点击后模拟navigator的超链接变色***/
 .hint-navigator {
   color: rgba(255, 255, 0, 1);
 }
 .hint-navigator-hover{
   background: #999;
 }
-
+/***浮窗关闭的 x **/
 .close-hint-container{
   padding: 20rpx 20rpx;
   position: absolute;
@@ -64,7 +62,6 @@
   vertical-align: middle;
   transform: rotate(45deg);
 }
-
 .close-hint:after {
   content: "/";
   display: block;
@@ -73,17 +70,17 @@
   background: rgba(255,255,255,1);
   transform: rotate(-90deg);
 }
-
+/***浮窗下方的三角箭头***/
 .arrow {
   width: 0;
   height: 0;
   font-size: 0;
   border: solid 10px;
-  border-color: rgba(0, 51, 255, 0.4) rgba(254, 241, 226, 0) rgba(254, 241, 226, 0) rgba(254, 241, 226, 0);
+  border-color: rgba(0, 51, 255, 0.35) rgba(254, 241, 226, 0) rgba(254, 241, 226, 0) rgba(254, 241, 226, 0);
   margin: 0 auto;
   z-index: 0;
 }
-
+/***导航栏icon***/
 .navigate_icon_container {
   padding-top: 20rpx;
   padding-bottom: 10rpx;
@@ -94,34 +91,29 @@
   flex-direction: row;
   background-color: #fff;
 }
-
 .icon_container {
   margin-left: 70rpx;
   text-align: center;
   display: flex;
   flex-direction: column;
 }
-
 .home_icon_container {
   margin-left: 50rpx;
   text-align: center;
   display: flex;
   flex-direction: column;
 }
-
 .find_icon_container {
   text-align: center;
   display: flex;
   flex-direction: column;
   margin-left: 220rpx;
 }
-
 .icon_text {
   margin-top: 10rpx;
   font-size: 22rpx;
   text-align: center;
 }
-
 .release_icon_container {
   position: fixed;
   bottom: 10rpx;
@@ -131,15 +123,13 @@
   display: flex;
   flex-direction: column;
 }
-
 .release_icon {
   margin-bottom: 25rpx;
 }
-
 .release_text {
   font-size: 22rpx;
 }
-
+/**导航栏我的旁边的新消息计数**/
 .content_tip {
   font-size: 20rpx;
   font-weight: 600;
@@ -153,4 +143,8 @@
   justify-content: center;
   text-align: center;
   border-radius: 50%;
+}
+/**点击了导航栏的某个图标后变色**/
+.navigator-clicked {
+  filter: drop-shadow(5rpx 5rpx 5rpx #f7931e);
 }

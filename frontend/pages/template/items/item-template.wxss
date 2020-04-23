@@ -32,3 +32,7 @@
   font-weight: 500rpx;
   margin-left: -60rpx;
 }
+
+.navigator-clicked {
+  filter: drop-shadow(5rpx 5rpx 5rpx #f7931e);
+}

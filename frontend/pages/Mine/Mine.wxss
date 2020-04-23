@@ -1,29 +1,9 @@
 @import "../template/mine-item/mine-item-template.wxss";
-@import "../template/navigate-bar/navigate-bar-template.wxss";
+
 
 page{
   background-color: #fff;
   color: #888888;
-}
-.user{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.avatar {
-  height: 200rpx;
-  width: 200rpx;
-  margin-top: 50rpx;
-}
-
-.nickname {
-  font-size: 24px;
-  font-weight: 600;
-}
-
-.wechatid {
-  font-size: 15px;
 }
 
 .userinfo {
@@ -38,7 +18,7 @@ page{
   display: flex;
   flex-direction: column;
   margin-top: 70rpx;
-  width: 642rpx;
+  width: 630rpx;
   height: 54rpx;
   justify-content: center;
   align-items: center;
@@ -57,7 +37,7 @@ page{
   flex-direction: row;
   margin-left: 64rpx;
   width: 642rpx;
-  border-bottom: 1px solid #ededed;
+/*  border-bottom: 1px solid #ededed;*/
   text-align: center;
 }
 
@@ -145,3 +125,6 @@ page{
 }
 
 
+.navigator-clicked {
+  filter: drop-shadow(5rpx 5rpx 5rpx #f7931e);
+}
