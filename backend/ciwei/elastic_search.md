@@ -110,8 +110,7 @@
     
 创建索引
 
-
-    mappings = {
+        mappings = {
         "properties": {
             "appeal_time": {
                 "type": "date"
@@ -210,11 +209,21 @@
             },
             "view_count": {
                 "type": "integer"
+            },
+            "user_id": {
+                "type": "integer"
             }
         }
     }
 
-    res = es.indices.create(index="goods", body={"mappings": mappings})
+    body = {
+        "settings": {
+            "number_of_shards": 3,
+            "number_of_replicas": 1
+        },
+        "mappings": mappings
+    }
+    res = es.indices.create(index="goods", body=body)
 
 curl 操作
     

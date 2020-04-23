@@ -13,7 +13,7 @@ from flask import request, jsonify, g
 
 from application import db, app, APP_CONSTANTS, es
 from common.cahce import cas, CacheOpService
-from common.libs import GoodsService
+from common.libs import GoodsService, ReportService
 from common.libs.Helper import getCurrentDate, param_getter
 from common.libs.MemberService import MemberService
 from common.libs.UploadService import UploadService
@@ -343,9 +343,7 @@ def goodsSearchV2():
         resp['msg'] = '获取失败'
         return jsonify(resp)
 
-    report_status_must_not = {"terms": {"report_status": [2, 3, 5]}}
-    must_not = [report_status_must_not]
-
+    report_status_must = {"match": {"report_status": 0}}  # 举报帖子将暂时隐藏
     biz_type_must = {"match": {"business_type": business_type}}
     status_must = {"match": {"status": status}}
     search_bar_must = []
@@ -359,7 +357,7 @@ def goodsSearchV2():
     if os_location:
         search_bar_must.append({"match": {"loc": os_location}})
 
-    must = [biz_type_must, status_must]
+    must = [biz_type_must, report_status_must, status_must]
     must.extend(search_bar_must)
 
     p = int(req.get('p', 1))
@@ -370,7 +368,6 @@ def goodsSearchV2():
     query = {
         'query': {
             "bool": {
-                'must_not': must_not,
                 'must': must
             }
         },
@@ -444,117 +441,7 @@ def goodsSearchV2():
     # 失/拾 一页信息 是否已加载到底
     resp['code'] = 200
     resp['data']['list'] = data_goods_list
-    resp['data']['has_more'] = len(data_goods_list) >= page_size
-    resp['business_type'] = business_type
-    return jsonify(resp)
-
-
-@route_api.route("/goods/search/v1", methods=['GET', 'POST'])
-@time_log
-def goodsSearchV1():
-    """
-    多维度搜索物品
-    1.有效未被举报的 status
-    2.页面 business_type
-    3.选项卡 status
-    4.搜索框 owner_name, 物名name, author_name, address
-    5.物品类别
-    :return: 经分页排序后的搜索列表 list, 是否还有更多页 boolean
-    """
-    resp = {'code': -1, 'msg': '', 'data': {}}
-    req = request.values
-
-    # 检查参数：business_type, 物品状态status
-    business_type = int(req.get('business_type', -1))
-    if business_type not in (0, 1):
-        resp['msg'] = "参数错误/缺失"
-        return jsonify(resp)
-    status = int(req.get('status', -1))
-    if status == -1:
-        resp['msg'] = '参数为空'
-        return jsonify(resp)
-
-    # 维度0：按report_status字段筛选掉物品
-    query = Good.query.filter(Good.report_status != 2)
-    query = query.filter(Good.report_status != 3)
-    query = query.filter(Good.report_status != 5)
-
-    # 维度1：页面
-    # 按拾/失筛选物品
-    query = query.filter_by(business_type=business_type)
-
-    # 维度2：选项卡
-    # status
-    # 1 待（新发布）
-    # 2 预 （失认领，拾系统匹配后认领，或者他人主动归还）
-    # 3 已 需要显示给申诉，以及显示系统的成果
-    # 4 已答谢 需要显示给申诉，以及显示系统的成果
-    query = query.filter_by(status=status)
-
-    # 维度4：搜索框
-    # 按物主筛选
-    # 按物品名筛选
-    # 按遗失/发现地址筛选
-    owner_name = req['owner_name'] if 'owner_name' in req else ''
-    if owner_name:
-        fil_str = "%{0}%".format(owner_name[0])
-        for i in owner_name[1:]:
-            fil_str = fil_str + "%{0}%".format(i)
-        query = query.filter(Good.owner_name.ilike("%{0}%".format(fil_str)))
-    mix_kw = str(req['mix_kw']) if 'mix_kw' in req else ''
-    if mix_kw:
-        fil_str = "%{0}%".format(mix_kw[0])
-        for i in mix_kw[1:]:
-            fil_str = fil_str + "%{0}%".format(i)
-        query = query.filter(Good.name.ilike("%{0}%".format(fil_str)))
-    filter_address = str(req['filter_address']) if 'filter_address' in req else ''
-    if filter_address:
-        fil_str = "%{0}%".format(filter_address[0])
-        for i in filter_address[1:]:
-            fil_str = fil_str + "%{0}%".format(i)
-        query = query.filter(Good.os_location.ilike(fil_str))
-
-    # 分页：获取第p页的所有物品
-    # 排序：置顶贴和新发布的热门贴置于最前面
-    p = int(req['p']) if ('p' in req and req['p']) else 1
-    if p < 1:
-        p = 1
-    page_size = 10
-    offset = (p - 1) * page_size
-    goods_list = query.order_by(Good.top_expire_time.desc(), Good.view_count.desc()).offset(offset).limit(
-        page_size).all()
-
-    # 组装返回的对象列表（需要作者名,头像）
-    data_goods_list = []
-    if goods_list:
-        # 所有发布者 id -> Member
-        now = datetime.datetime.now()
-        for item in goods_list:
-            # 只返回符合用户期待的状态的物品
-            item_id = item.id
-            item_status = item.status
-            if not cas.exec(item_id, item_status, item_status) and not cas.exec(item_id, 'nil', item_status):
-                continue
-            tmp_data = {
-                "id": item.id,
-                "goods_name": item.name,
-                "owner_name": item.owner_name,
-                "updated_time": str(item.updated_time),
-                "business_type": item.business_type,
-                "summary": item.summary,
-                "main_image": UrlManager.buildImageUrl(item.main_image),
-                "auther_name": item.nickname,
-                "avatar": item.avatar,
-                "selected": False,
-                "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
-                "top": item.top_expire_time > now
-            }
-            data_goods_list.append(tmp_data)
-
-    # 失/拾 一页信息 是否已加载到底
-    resp['code'] = 200
-    resp['data']['list'] = data_goods_list
-    resp['data']['has_more'] = len(data_goods_list) >= page_size
+    resp['data']['has_more'] = len(data_goods_list) >= page_size and p < APP_CONSTANTS['max_pages_allowed']  # 由于深度分页的性能问题，限制页数(鼓励使用更好的搜索条件获取较少的数据量)
     resp['business_type'] = business_type
     return jsonify(resp)
 
@@ -860,6 +747,7 @@ def returnGoodsConfirm():
     # 归还
     return_updated = {'status': 2, 'confirm_time': datetime.datetime.now()}
     Good.query.filter_by(id=goods_id, status=status).update(return_updated, synchronize_session=False)
+    MemberService.preMarkGoods(member_id=member_info.id, goods_id=goods_id, business_type=2)
     db.session.commit()
     SyncService.syncUpdatedGoodsToES(goods_id=goods_id, updated=return_updated)
     resp['code'] = 200
@@ -915,7 +803,6 @@ def returnLinkReturnDelInBatch():
     if lost_ids is None:
         resp['msg'] = "智能清除失败，请手动删除"
         return jsonify(resp)
-
     return_ids = Good.query.filter(Good.id.in_(lost_ids)).with_entities(Good.return_goods_id).all()
     # 归还
     return_updated = {'return_goods_openid': ''}
@@ -982,6 +869,7 @@ def returnGoodsGotbackInBatch():
         Good.query.filter(Good.id.in_(lost_ids), Good.status == 2).update(lost_updated, synchronize_session=False)
         # 归还
         Good.query.filter(Good.id.in_(goods_ids), Good.status == 2).update(return_updated, synchronize_session=False)
+        MemberService.markedGoods(member_id=member_id, goods_ids=goods_ids)
         db.session.commit()
         # 同步ES
         SyncService.syncUpdatedGoodsToESBulk(goods_ids=lost_ids, updated=lost_updated)
@@ -1012,6 +900,7 @@ def returnGoodsGotbackInBatch():
         Good.query.filter(Good.id.in_(return_ids), Good.status == 2).update(return_updated, synchronize_session=False)
         # 寻物启事
         Good.query.filter(Good.id.in_(goods_ids), Good.status == 2).update(lost_updated, synchronize_session=False)
+        MemberService.markedGoods(member_id=member_id, goods_ids=return_ids)
         db.session.commit()
         # 同步ES
         SyncService.syncUpdatedGoodsToESBulk(goods_ids=goods_ids, updated=lost_updated)
@@ -1057,12 +946,12 @@ def returnGoodsCleanInBatch():
         updated = {'status': 7, 'return_goods_openid': ''}
         # 删除归还贴需要注意，同时置空通知链接
         Good.query.filter(Good.id.in_(goods_ids)).update(updated, synchronize_session=False)
-    elif business_type == 0:
+    else:
         updated = {'status': 7}
         # 删除寻物贴就是普通的删除
         Good.query.filter(Good.id.in_(goods_ids)).update(updated, synchronize_session=False)
     db.session.commit()
-    SyncService.syncSoftDeleteGoodsToESBulk(goods_ids=goods_ids)
+    SyncService.syncUpdatedGoodsToESBulk(goods_ids=goods_ids, updated=updated)
     resp['code'] = 200
     return jsonify(resp)
 
@@ -1104,9 +993,7 @@ def goodsGotbackInBatch():
     updated = {'status': 3, 'owner_id': member_id, 'finish_time': datetime.datetime.now()}
     Good.query.filter(Good.id.in_(goods_ids), Good.status == status).update(updated, synchronize_session=False)
     # 不加锁是因为，不影响goods的认领计数，且是一个人的操作
-    Mark.query.filter(Mark.member_id == member_id,
-                      Mark.goods_id.in_(goods_ids),
-                      Mark.status == 0).update({'status': 1}, synchronize_session=False)
+    MemberService.markedGoods(member_id=member_id, goods_ids=goods_ids)
     db.session.commit()
     # ES
     SyncService.syncUpdatedGoodsToESBulk(goods_ids=goods_ids, updated=updated)
@@ -1181,7 +1068,10 @@ def goodsInfo():
         return jsonify(resp)
     goods_info = Good.query.filter_by(id=goods_id).first()
     if not goods_info or goods_info.status == 7:
-        resp['msg'] = '作者已删除'
+        resp['msg'] = '作者已删除' if goods_info.report_status == 0 else '管理员已删除本贴'
+        return jsonify(resp)
+    if goods_info.report_status != 0:
+        resp['msg'] = '帖子被举报，已冻结'
         return jsonify(resp)
 
     # 浏览量
@@ -1280,21 +1170,15 @@ def goodsReport():
     reporting_goods.report_status = 1
     db.session.add(reporting_goods)
 
-    # 新增举报记录
-    report = Report()
-    report.member_id = reporting_goods.member_id
-    # 举报用户的身份信息
-    report.report_member_id = member_info.id
-    report.report_member_nickname = member_info.nickname
-    report.report_member_avatar = member_info.avatar
-    # 被举报的物品信息链接
-    report.record_id = goods_id
-    report.record_type = 1  # 标识举报链接的是物品ID
-    db.session.add(report)
-
+    ReportService.newGoodReport(reporting_goods=reporting_goods, reporting_member=member_info)
     MemberService.updateCredits(member_id=member_info.id)
     db.session.commit()
+
+    # ES 同步
     SyncService.syncUpdatedGoodsToES(goods_id=goods_id, updated={'report_status': 1})
+    # redis 候选去除(底层判断，上层透明)
+    SyncTasks.syncDelGoodsToRedis.delay(goods_ids=[goods_id], business_type=reporting_goods.business_type)
+
     cas.exec(goods_id, 7, status)  # 解锁
     resp['code'] = 200
     return jsonify(resp)
@@ -1327,7 +1211,6 @@ def editGoods():
     goods_info = Good.query.filter_by(id=goods_id).first()
     if not goods_info:
         resp['msg'] = "数据上传失败"
-        resp['data'] = req
         return jsonify(resp)
 
     goods_info.pics = ""
@@ -1426,17 +1309,8 @@ def unmarkGoodsToSysInBatch():
 @time_log
 def test9():
     from sqlalchemy import func
-    # cnt = db.session.query(func.count(Member.id)).scalar()
-    # cnt = db.session.query(func.count(Good.id)).group_by(Good.business_type).all()
-    # from common.models.ciwei.Recommend import Recommend
-    # res = Good.query.join(Recommend, Recommend.found_goods_id == Good.id).add_entity(Recommend).all()
-    # good = Good.query.first()
-    # good.view_count+=1
-    # db.session.add(good)
-    # db.session.commit()
-    # cnt = db.session.query(func.count(Mark.id)).filter(Mark.goods_id == 1, Mark.status != 7).scalar()
-    from common.models.ciwei.Recommend import Recommend
-    # Good.query.join(Recommend, Recommend.found_goods_id == Good.id, Recommend.target_member_id == Good.owner_id).count()
-    # cnt = Good.query.join(Recommend, Recommend.lost_goods_id==Good.id).filter(Good.status.in_(3,4)).scalar()
-    cnt = db.session.query(func.count(Recommend.id)).filter(Recommend.found_goods_id==Good.id, Recommend.target_member_id==Good.owner_id).scalar()
-    return ""
+    good = Good.query.first()
+    goods_id = good.id
+    db.session.commit()
+    print(good.id)
+    return str(good.id)

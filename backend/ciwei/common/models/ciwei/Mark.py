@@ -9,6 +9,8 @@
 
 from datetime import datetime
 
+from sqlalchemy.dialects.mssql import TINYINT
+
 from application import db
 
 
@@ -17,16 +19,16 @@ class Mark(db.Model):
     __table_args__ = ({'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8mb4', 'comment': '认领表'})
 
     id = db.Column(db.Integer, primary_key=True)
+    business_type = db.Column(TINYINT(), nullable=False, default=1, comment="状态 1:失物招领 0:寻物启事 2:寻物归还与扫码归还")
     goods_id = db.Column(db.Integer, nullable=False, index=True, default=0, comment='认领的物品id')
     member_id = db.Column(db.Integer, nullable=False, index=True, default=0, comment='用户id')
-    status = db.Column(db.Integer, nullable=False, index=True, default=0, comment='状态 -1作者删除 0:未取 1:已取, 7自行删除')
+    status = db.Column(db.Integer, nullable=False, index=True, default=0, comment='状态 -1作者删除 0:未取 1:已取 7自行删除')
     updated_time = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now, comment='最后更新时间')
     created_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment='插入时间')
 
     @property
     def status_desc(self):
         return {
-            "-1": "认领物品被作者删除",
             "0": "未取认领",
             "1": "已取认领",
             "7": "已删认领"

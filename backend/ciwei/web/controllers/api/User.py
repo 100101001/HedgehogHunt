@@ -12,13 +12,12 @@ from flask import request, jsonify, g
 
 from common.libs import UserService
 from common.loggin.decorators import time_log
-from common.models.ciwei.Member import Member
 from web.controllers.api import route_api
 
 
-@route_api.route("/user/get-user", methods=['GET', 'POST'])
+@route_api.route("/user/all", methods=['GET', 'POST'])
 @time_log
-def getUserList():
+def getAllUsers():
     """
     获取添加的管理员列表
     :return:
@@ -67,17 +66,31 @@ def userRegister():
         resp['msg'] = "请先登录"
         return jsonify(resp)
     member_id = int(req.get('member_id', -1))
-    if  member_id == -1:
+    if member_id == -1:
         resp['msg'] = "添加失败"
         return jsonify(resp)
-    reg_member_info = Member.query.filter_by(id=member_id).first()
-    if not reg_member_info:
-        resp['msg'] = "添加失败，没有该用户"
-        return jsonify(resp)
 
-    UserService.addNewUser(user_info=req, member_info=reg_member_info)
-    resp['code'] = 200
+    op_res, op_msg = UserService.addNewUser(reg_info=req, member_id=member_id)
+    resp['code'] = 200 if op_res else -1
+    resp['msg'] = op_msg
     return jsonify(resp)
 
 
+@route_api.route("/user/delete", methods=['GET', 'POST'])
+def userDelete():
+    resp = {'code': -1, 'msg': '删除成功', 'data': {}}
+    req = request.values
 
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = "请先登录"
+        return jsonify(resp)
+
+    member_id = req.get('id', -1)
+    if member_id == -1:
+        resp['msg'] = "删除失败"
+        return jsonify(resp)
+
+    UserService.deleteUser(member_id=member_id)
+    resp['code'] = 200
+    return jsonify(resp)

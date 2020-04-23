@@ -52,7 +52,7 @@ def cartIndex():
             data_cart_list.append(tmp_data)
 
     resp['data']['list'] = data_cart_list
-    resp['data']['has_more'] = len(data_cart_list) >= page_size
+    resp['data']['has_more'] = len(data_cart_list) >= page_size and p < 10  # 由于深度分页的性能问题，限制页数(鼓励使用更好的搜索条件获取较少的数据量)
     return jsonify(resp)
 
 

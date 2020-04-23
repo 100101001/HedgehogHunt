@@ -13,20 +13,19 @@ from flask import request, jsonify, g
 from sqlalchemy import and_, or_, func
 
 from application import db, app, APP_CONSTANTS
+from common.libs import UserService
 from common.libs.CryptService import Cipher
-from common.libs.Helper import getCurrentDate
 from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
 from common.libs.mall.PayService import PayService
 from common.libs.mall.WechatService import WeChatService
+from common.loggin.decorators import time_log
 from common.models.ciwei.BalanceOder import BalanceOrder
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Member import Member
 from common.models.ciwei.MemberSmsPkg import MemberSmsPkg
 from common.models.ciwei.Recommend import Recommend
 from common.models.ciwei.Thanks import Thank
-
-from common.loggin.decorators import time_log
 from web.controllers.api import route_api
 
 
@@ -435,17 +434,14 @@ def memberNewHint():
     recommends = Recommend.query.filter_by(status=0, target_member_id=member_info.id).all()
     recommend_rule = and_(Good.id.in_([r.found_goods_id for r in recommends]), Good.status.in_([1, 2, 3]))
     # 归还规则
-    member_openid = member_info.openid
-    return_rule = and_(Good.business_type == 2,
-                       or_(and_(Good.status == 1, Good.return_goods_openid == member_openid),
-                           and_(Good.status == 2, Good.qr_code_openid == member_openid)))
+    return_rule = and_(Good.business_type == 2, Good.status == 1)
     # 一次性获取推荐失物和归还物品
     goods_list = Good.query.filter(or_(recommend_rule, return_rule)).with_entities(Good.business_type,
-                                                                                   Good.status).all()
+                                                                                   Good.status,
+                                                                                   Good.return_goods_id).all()
     # 分割推荐与归还
     recommend_goods = list(filter(lambda item: item.business_type == 1, goods_list))
     return_goods = list(filter(lambda item: item.business_type == 2, goods_list))
-
     # 推荐状态细分
     recommend_new = min(len(recommend_goods), 99)
     recommend_status_1 = min(len(list(filter(lambda item: item.status == 1, recommend_goods))), 99)
@@ -454,7 +450,7 @@ def memberNewHint():
     # 归还状态细分
     return_new = len(return_goods)
     # 会员待取回的归还记录(待确认的寻物归还和待取回的二维码归还)
-    normal_return_new = len(list(filter(lambda item: item.status == 1, return_goods)))
+    normal_return_new = len(list(filter(lambda item: item.return_goods_id != 0, return_goods)))
     scan_return_new = min(return_new - normal_return_new, 99)
     normal_return_new = min(normal_return_new, 99)
     return_new = min(return_new, 99)
@@ -601,7 +597,7 @@ def memberBlockedSearch():
 
     resp['code'] = 200
     resp['data']['list'] = data_member_list
-    resp['data']['has_more'] = len(data_member_list) >= page_size
+    resp['data']['has_more'] = len(data_member_list) >= page_size and p < APP_CONSTANTS['max_pages_allowed']  # 由于深度分页的性能问题，限制页数(鼓励使用更好的搜索条件获取较少的数据量)
     return jsonify(resp)
 
 
@@ -617,39 +613,38 @@ def memberRestore():
     resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
 
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = '请先登录'
+        return resp
     # 将用户的status改为1
     restore_id = int(req.get('id', 0))
     if not restore_id:
         resp['msg'] = '操作失败'
-        return respslssynchro
+        return resp
 
-    Member.query.filter_by(id=restore_id).update({'status': 1}, synchronize_session=False)
+    user = UserService.getUser(member_id=member_info.id)
+    if not user:
+        resp['msg'] = "您不是管理员，操作失败"
+        return resp
 
-    
-    # # 将用户发布的物品status从8改为1
-    # goods_list = Good.query.filter(Good.member_id == select_member_id, Good.status == 8).all()
-    # for item in goods_list:
-    #     item.status = 1
-    #     item.updated_time = getCurrentDate()
-    #     db.session.add(item)
-    db.session.commit()
+    MemberService.restoreMember(member_id=restore_id, user_id=user.uid)
     resp['code'] = 200
-    return jsonify(resp)
+    return resp
 
 
-@time_log
 @route_api.route('/member/share')
+@time_log
 def memberShare():
     """
     分享
     :return: 成功
     """
-    resp = {'code': 200, 'msg': 'operate successfully(get info)', 'data': {}}
+    resp = {'code': 200, 'msg': '', 'data': {}}
     # 检查登陆
     member_info = g.member_info
     if not member_info:
-        resp['code'] = -1
-        resp['msg'] = "用户信息异常"
+        resp['msg'] = '请先登录'
         return jsonify(resp)
 
     # 会员credits加5

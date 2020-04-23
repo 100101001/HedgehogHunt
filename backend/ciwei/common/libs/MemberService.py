@@ -15,6 +15,7 @@ from application import app, db
 from common.cahce import CacheOpService, CacheQueryService
 from common.libs import LogService
 from common.libs.Helper import getCurrentDate
+from common.libs.recommend.v2 import SyncService
 from common.models.ciwei.Appeal import Appeal
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
@@ -161,53 +162,49 @@ class MemberService:
         db.session.add(pkg)
 
     @staticmethod
-    def blockMember(select_member_id):
+    def blockMember(member_id=0, user_id=0):
         """
 
-        :param select_member_id:
+        :param user_id:
+        :param member_id:
         :return:
         """
-        # 发布成功，用户积分涨5
-        # 违规用户状态设置为0.则无法再正常使用
-        select_member_info = Member.query.filter_by(id=select_member_id).first()
-        select_member_info.status = 0
-
-        # 该用户下正常的账户
-        goods_list = Good.query.filter(Good.member_id == select_member_id, Good.status == 1).all()
-        for item in goods_list:
-            item.status = 8
-            item.updated_time = getCurrentDate()
-            db.session.add(item)
-            db.session.commit()
-
-        select_member_info.updated_time = getCurrentDate()
-        db.session.add(select_member_info)
+        if not member_id or not user_id:
+            return
+        # 会员状态标记
+        Member.query.filter_by(id=member_id).update({'status': 0}, synchronize_session=False)
         db.session.commit()
-        return True
+        # 物品举报状态标记
+        # 取出来id再更新是为了ES同步
+        goods_ids = Good.query.filter(Good.member_id == member_id, Good.report_status == 0).with_entities(Good.id).all()
+        if goods_ids:
+            updated = {'report_status': 6, 'user_id': user_id}
+            Good.query.filter(Good.id.in_(goods_ids)).update(updated, synchronize_session=False)
+            db.session.commit()
+            SyncService.syncUpdatedGoodsToESBulk(goods_ids=goods_ids, updated=updated)
 
     @staticmethod
-    def restoreMember(select_member_id):
+    def restoreMember(member_id=0, user_id=0):
         """
 
-        :param select_member_id:
+        :param user_id:
+        :param member_id:
         :return:
         """
         # 违规用户状态设置为0.则无法再正常使用
-        select_member_info = Member.query.filter_by(id=select_member_id).first()
-        select_member_info.status = 1
-
-        # 该用户下正常的账户
-        goods_list = Good.query.filter(Good.member_id == select_member_id, Good.status == 8).all()
-        for item in goods_list:
-            item.status = 1
-            item.updated_time = getCurrentDate()
-            db.session.add(item)
-            db.session.commit()
-
-        select_member_info.updated_time = getCurrentDate()
-        db.session.add(select_member_info)
+        if not member_id or not user_id:
+            return
+            # 会员状态标记
+        Member.query.filter_by(id=member_id).update({'status': 1}, synchronize_session=False)
         db.session.commit()
-
+        # 物品举报状态标记
+        # 取出来id再更新是为了ES同步
+        goods_ids = Good.query.filter(Good.member_id == member_id, Good.report_status == 6).with_entities(Good.id).all()
+        if goods_ids:
+            updated = {'report_status': 0, 'user_id': user_id}
+            Good.query.filter(Good.id.in_(goods_ids)).update(updated, synchronize_session=False)
+            db.session.commit()
+            SyncService.syncUpdatedGoodsToESBulk(goods_ids=goods_ids, updated=updated)
         return True
 
     @staticmethod
@@ -226,9 +223,10 @@ class MemberService:
             update({'status': new_status}, synchronize_session=False)
 
     @staticmethod
-    def preMarkGoods(member_id=0, goods_id=0):
+    def preMarkGoods(member_id=0, goods_id=0, business_type=1):
         """
         预认领
+        :param business_type:
         :param member_id:
         :param goods_id:
         :return:
@@ -243,6 +241,7 @@ class MemberService:
                 db.session.add(repeat_mark)
             return repeat_mark.status == 0
         pre_mark = Mark()
+        pre_mark.business_type = business_type
         pre_mark.goods_id = goods_id
         pre_mark.member_id = member_id
         db.session.add(pre_mark)
@@ -277,6 +276,18 @@ class MemberService:
         Mark.query.filter(Mark.member_id == member_id,
                           Mark.goods_id.in_(found_ids),
                           Mark.status == 0).update({'status': 7}, synchronize_session=False)
+
+    @staticmethod
+    def markedGoods(member_id=0, goods_ids=None):
+        """
+        确认取回物品
+        :param member_id:
+        :param goods_ids:
+        :return:
+        """
+        Mark.query.filter(Mark.member_id == member_id,
+                          Mark.goods_id.in_(goods_ids),
+                          Mark.status == 0).update({'status': 1}, synchronize_session=False)
 
     @staticmethod
     def appealGoods(member_id=0, goods_id=0):

@@ -8,7 +8,7 @@
 from flask import request, jsonify, g
 
 from application import APP_CONSTANTS
-from common.libs import RecordService, ReportService
+from common.libs import RecordService, ReportService, UserService
 from common.libs.UrlManager import UrlManager
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Report import Report
@@ -17,6 +17,10 @@ from web.controllers.api import route_api
 
 @route_api.route('/report/goods/info')
 def reportGoodsInfo():
+    """
+    管理员进入被举报的帖子查看详情
+    :return:
+    """
     resp = {'code': 200, 'msg': '', 'data': {}}
     if not g.member_info:
         resp['msg'] = "请先登录"
@@ -67,7 +71,7 @@ def reportGoodsInfo():
 @route_api.route("/report/goods/search", methods=['GET', 'POST'])
 def reportGoodsSearch():
     """
-    物品举报记录
+    管理员获取物品举报记录
     :return:
     """
     resp = {'code': 200, 'msg': '', 'data': {}}
@@ -76,8 +80,7 @@ def reportGoodsSearch():
     page_size = APP_CONSTANTS['page_size']
     offset = (p - 1) * page_size  # 计算偏移量
     status = int(req.get('status', -1))  # 举报的状态
-    query = Good.query.join(Report, Report.record_id == Good.id).filter(Report.record_type == 1,
-                                                                        Report.status == status)
+    query = ReportService.getReportedGoods(report_status=status)
     search_rule = RecordService.searchBarFilter(owner_name=req.get('owner_name', ''), goods_name=req.get('mix_kw', ''))
     reported_goods = query.filter(search_rule).order_by(Good.id.desc()).offset(offset).limit(page_size).all()
     reported_goods_records = []
@@ -85,7 +88,7 @@ def reportGoodsSearch():
         for item in reported_goods:
             goods = {
                 "id": item.id,  # 物品id
-                "goods_name": item.name,   # 物品名
+                "goods_name": item.name,  # 物品名
                 "owner_name": item.owner_name,  # 物主
                 "updated_time": str(item.updated_time),  # 编辑 or 新建时间
                 "business_type": item.business_type,  # 寻物/失物招领
@@ -94,16 +97,17 @@ def reportGoodsSearch():
                 "auther_name": item.nickname,  # 作者昵称
                 "avatar": item.avatar,  # 作者头像
                 "selected": False,  # 前段编辑属性
-                "status_desc": str(item.status_desc),   # 静态属性，返回状态码对应的文字
+                "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
             }  # 数据组装
             reported_goods_records.append(goods)
     resp['data']['list'] = reported_goods_records
-    resp['data']['has_more'] = len(reported_goods_records) >= page_size
+    resp['data']['has_more'] = len(reported_goods_records) >= page_size and p < APP_CONSTANTS[
+        'max_pages_allowed']  # 由于深度分页的性能问题，限制页数(鼓励使用更好的搜索条件获取较少的数据量)
     return jsonify(resp)
 
 
-@route_api.route('/report/block')
-def reportStatusSet():
+@route_api.route('/report/deal')
+def reportDeal():
     """
     拉黑举报者2/发布者3/无违规4
     :return:
@@ -116,9 +120,22 @@ def reportStatusSet():
     req = request.values
     report_status = int(req.get('report_status', -1))
     goods_id = int(req.get('id', -1))
-    if goods_id == -1 or report_status not in (2, 3, 4):
+    if goods_id == -1 or report_status not in (2, 3, 4, 5):
         resp['msg'] = "操作失败"
         return resp
-    op_res = ReportService.setGoodsReportStatus(goods_id=goods_id, report_status=report_status, member_id=member_info.id)
-    resp['code'] = 200 if op_res else -1
+
+    user = UserService.getUser(member_id=member_info.id)
+    if not user:
+        resp['msg'] = "您不是管理员，操作失败"
+        return resp
+
+    if report_status == 5:
+        ReportService.blockGoods(goods_id=goods_id, user_id=user.uid)
+    elif report_status == 4:
+        ReportService.recoverGoods(goods_id=goods_id, user_id=user.uid)
+    elif report_status == 2:
+        ReportService.blockReporter(goods_id=goods_id, user_id=user.uid)
+    elif report_status == 3:
+        ReportService.blockReleaser(goods_id=goods_id, user_id=user.uid)
+    resp['code'] = 200
     return jsonify(resp)

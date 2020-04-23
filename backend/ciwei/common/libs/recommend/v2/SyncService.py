@@ -114,6 +114,7 @@ def syncGoodsToES(goods_info=None, edit=False):
         'return_goods_openid': goods_info.return_goods_openid,
         'qr_code_openid': goods_info.qr_code_openid,
         'view_count': goods_info.view_count,
+        'user_id': goods_info.user_id,
         'report_status': goods_info.report_status,
         'confirm_time': goods_info.confirm_time,
         'finish_time': goods_info.finish_time,

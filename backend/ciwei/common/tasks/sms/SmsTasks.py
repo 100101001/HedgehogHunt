@@ -45,7 +45,6 @@ def notifyQrcodeOwner(params=None):
     # 有效用户
     rcv_member_info = Member.query.filter_by(openid=rcv_openid, status=1).first()
     if rcv_member_info is None:
-        print("NO USER")
         return "NO USER"
 
     now = datetime.datetime.now()
@@ -54,7 +53,7 @@ def notifyQrcodeOwner(params=None):
     recent_rcv_notify = AcsSmsSendLog.query.filter(AcsSmsSendLog.rcv_openid == rcv_openid,
                                      AcsSmsSendLog.template_id == ACS_CONSTANTS['TEMP_IDS']['NOTIFY'],
                                      AcsSmsSendLog.acs_code == "OK",
-                                     AcsSmsSendLog.created_time >= now - datetime.timedelta(minutes=1)).first()
+                                     AcsSmsSendLog.created_time >= now - datetime.timedelta(weeks=1)).first()
     if recent_rcv_notify:
         # 一周只发一次失物通知
         return "TOO FREQ"

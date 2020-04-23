@@ -153,13 +153,13 @@ def returnToLostSuccess(return_goods=None, lost_goods=None):
 def scanReturnSuccess(scan_goods=None, notify_id=''):
     """
     扫码归还结束发帖
+    ES同步和发送短信
     :param scan_goods:
     :param notify_id:
     :return:
     """
     # 链接归还的对象，直接就是对方的物品(如若不是可举报)
     scan_goods.qr_code_openid = notify_id
-    scan_goods.status = 2
     db.session.add(scan_goods)
     MemberService.updateCredits(member_id=scan_goods.member_id)
     db.session.commit()

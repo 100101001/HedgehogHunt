@@ -109,7 +109,7 @@ def deleteMyAppeal(goods_ids=None, member_id=0):
     return True
 
 
-def deleteReportedGoods(goods_ids=None, user_id=0):
+def deleteGoodsReport(goods_ids=None, user_id=0):
     """
     管理员删除被举报的物品帖子
     :param goods_ids:
@@ -118,10 +118,8 @@ def deleteReportedGoods(goods_ids=None, user_id=0):
     """
     if not goods_ids or not user_id:
         return False
-    Good.query.filter(Good.id.in_(goods_ids)). \
-        update({'user_id': user_id, 'report_status': 5}, synchronize_session=False)
     Report.query.filter(Report.record_type == 1, Report.record_id.in_(goods_ids)). \
-        update({'user_id': user_id, 'status': 5}, synchronize_session=False)
+        update({'deleted_by': user_id}, synchronize_session=False)
     db.session.commit()
     return True
 
@@ -138,7 +136,8 @@ def getMyMark(member_id=0, mark_status=0):
     :return:
     """
     return Good.query.join(Mark, Good.id == Mark.goods_id).filter(Mark.member_id == member_id,
-                                                                  Mark.status == mark_status)
+                                                                  Mark.status == mark_status,
+                                                                  Good.business_type == 1)
 
 
 def getMyReturnNotice(member_openid='', return_status=0):
@@ -222,6 +221,7 @@ def makeRecordData(item=None, op_status=0, status=0, now=None):
     # 查看状态为预寻回的发布过的寻物记录，且还没有查看过，说明没有确认是自己的，搜易不能批量操作确认取回
     unconfirmed_returned_lost = item.business_type == 0 and op_status == 0 and item.status == 2 \
                                 and not cas.exec(item.return_goods_id, 2, 2)  # 如果看过那么一定有状态记录
+    is_reported = item.report_status != 0
     show_record_loc = op_status == 0 or op_status == 5
     record = {
         "id": item.id,  # 供前端用户点击查看详情用的
@@ -237,7 +237,7 @@ def makeRecordData(item=None, op_status=0, status=0, now=None):
         "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
         "main_image": UrlManager.buildImageUrl(item.main_image),
         "selected": False,  # 供前端选中删除记录用的属性
-        "unselectable": is_appealed or is_pre_mark_fail or unconfirmed_returned_lost,  # 前端编辑禁止选中
+        "unselectable": is_appealed or is_pre_mark_fail or unconfirmed_returned_lost or is_reported,  # 前端编辑禁止选中
         "top": item.top_expire_time > now,  # 是否为置顶记录
         "updated_time": str(item.updated_time)
     }

@@ -88,7 +88,7 @@ def recordSearch():
 
     resp['code'] = 200
     resp['data']['list'] = record_list
-    resp['data']['has_more'] = len(goods_list) >= page_size
+    resp['data']['has_more'] = len(goods_list) >= page_size and p < APP_CONSTANTS['max_pages_allowed']  # 由于深度分页的性能问题，限制页数(鼓励使用更好的搜索条件获取较少的数据量)
     return resp
 
 
@@ -140,6 +140,6 @@ def recordDelete():
         # 物品和举报状态为 5
         user_info = UserService.getUser(member_id=member_info.id)
         if user_info:
-            op_res = RecordService.deleteReportedGoods(goods_ids=id_list, user_id=user_info.id)
+            op_res = RecordService.deleteGoodsReport(goods_ids=id_list, user_id=user_info.id)
     resp['code'] = 200 if op_res else -1
     return resp

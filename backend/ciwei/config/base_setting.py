@@ -2,7 +2,7 @@ from celery.schedules import crontab
 
 SERVER_PORT = 8999
 # IP = '127.0.0.1'
-IP = '192.168.0.116'
+IP = '192.168.1.116'
 # IP='100.68.70.139'
 # IP='47.102.201.193'
 DEBUG = True
@@ -20,7 +20,7 @@ SQLALCHEMY_ENCODING = 'utf-8'
 
 # celery 异步任务框架的配置
 BROKER_URL = 'amqp://root:qweasd123@localhost:5672/ciwei'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://:lyx147@localhost:6379/0'
 CELERY_TIMEZONE = 'Asia/Shanghai'
 CELERY_ENABLE_UTC = True
 # celery 日志文件
@@ -30,6 +30,14 @@ CELERYBEAT_LOG_FILE = '/home/ellen/repos/HedgehogHunt/backend/logs/celery-beats.
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+CELERY_IMPORTS = (
+    'common.tasks.log.LogTasks',
+    'common.tasks.mall.MallTasks',
+    'common.tasks.sms.SmsTasks',
+    'common.tasks.sync.SyncTasks',
+    'common.tasks.subscribe.SubscribeTasks',
+    'common.tasks.recommend.v2.RecommendTasks'
+)
 # celery 定时任务
 CELERYBEAT_SCHEDULE = {
     # 30分钟未支付订单自动关单
@@ -40,7 +48,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'incr_read_count_to_db_every_day': {
         'task': 'sync.incr_read_count_to_db',
-        'schedule':  crontab(minute=0, hour=0),  # 每天的凌晨执行任务
+        'schedule':  crontab(minute=25, hour=2),  # 每天的凌晨执行任务
         'options': {'queue': 'sync_queue', 'routing_key': 'for_sync'}
     }
 }
@@ -121,7 +129,7 @@ REDIS = {
     'CACHE_REDIS_HOST': 'localhost',
     'CACHE_REDIS_PORT': 6379,
     'CACHE_REDIS_DB': 1,
-    'CACHE_REDIS_PASSWORD': ''
+    'CACHE_REDIS_PASSWORD': 'lyx147'
 }
 
 # elastic search 的配置
@@ -220,5 +228,37 @@ CONSTANTS = {
     },
     'default_lost_loc': '不知道###不知道###0###0',
     'default_loc': ['不知道', '不知道', 0, 0],
-    'page_size': 10
+    'page_size': 10,
+    'max_pages_allowed': 50,
+    'sp_product': {
+        'qrcode': {
+            'id': 15,
+            'price': 2.5
+        },
+        'sms_pkg': {
+            'id': 16,
+            'price': 4.5
+        },
+        'sms': {
+            'id': 17,
+            'price': 0.1
+        },
+        'top': {
+            'price': 0.02,
+            'days': 7
+        },
+        'free_sms': {
+            'times': 5
+        }
+    },
+    'goods': {
+        'report_status': {
+            'releaser_block': 3,
+            'reporter_block': 2,
+            'block': 5,
+            'soft_block': 6,
+            'clean': 0
+        }
+    }
+
 }

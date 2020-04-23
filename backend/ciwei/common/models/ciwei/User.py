@@ -1,17 +1,17 @@
 # coding: utf-8
-from sqlalchemy import BigInteger, Column, DateTime, Integer, String
+from datetime import datetime
+
 from sqlalchemy.dialects.mssql import TINYINT
 from sqlalchemy.dialects.mysql import INTEGER
-from flask_sqlalchemy import SQLAlchemy
+
 from application import db
-from datetime import datetime
 
 
 class User(db.Model):
     __tablename__ = 'user'
     __table_args__ = ({'mysql_engine': 'InnoDB', 'mysql_charset': 'utf8mb4', 'comment': '管理员表'})
 
-    uid = db.Column(db.BigInteger, primary_key=True, autoincrement=True, comment="管理员id")
+    uid = db.Column(INTEGER(11, unsigned=True), primary_key=True, autoincrement=True, comment="管理员id")
     member_id = db.Column(INTEGER(11, unsigned=True), nullable=False, comment="注册会员id")
     level = db.Column(INTEGER(11, unsigned=True), nullable=False, comment="管理员等级")
     name = db.Column(db.String(100), nullable=False, default='', comment="用户名")

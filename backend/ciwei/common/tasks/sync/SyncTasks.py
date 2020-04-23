@@ -43,6 +43,8 @@ def syncDelGoodsToRedis(goods_ids=None, business_type=0):
     :param goods_ids:
     :return:
     """
+    if business_type not in (0, 1):
+        return
     for goods_id in goods_ids:
         SyncService.syncDelGoodsToRedis(goods_id=goods_id, business_type=business_type)
 

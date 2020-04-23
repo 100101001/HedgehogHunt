@@ -86,6 +86,12 @@ def setUsersCache(users=None):
 
 
 @time_log
+def delUserCache(member_id=0):
+    all_user_key = CacheKeyGetter.allUserKey()
+    redis_conn_db_1.hdel(all_user_key, member_id)
+
+
+@time_log
 def setGoodsIncrReadCache(goods_id=0):
     """
     设置新增的阅读量
