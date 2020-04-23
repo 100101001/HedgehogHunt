@@ -100,7 +100,7 @@ App({
     unRegUserInfo: {
       "has_qr_code": false,
       "avatar": "/images/more/un_reg_user.png",
-      "nickname": "请注册",
+      "nickname": "请登录",
       "level": 0
     }
   },

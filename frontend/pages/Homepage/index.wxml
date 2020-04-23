@@ -28,7 +28,7 @@
 <view class="activity-center-container">
   <view class="activity-center-header">活动中心</view>
   <view class="activity-cards-container">
-    <view class="activity-card" wx:for="{{activties}}">
+    <view class="activity-card" wx:for="{{activties}}" wx:key="index">
 
     </view>
   </view>
