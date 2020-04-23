@@ -1,67 +1,71 @@
-.hrz{
-  border: 1rpx solid #ededed;
-  width: 100%;
-  margin-top: 10rpx;
-  margin-bottom: 10rpx;
+
+.table {
+  border: 0px solid darkgray;
 }
-.item-container{
+/**表格标题***/
+.th {
+  font-weight: bold;
+  width: 20%;
+  justify-content: center;
+  background: #FFE4B5;
+  color: #fff;
   display: flex;
-  height: 100rpx;
-  width: 100%;
+  height: 3rem;
   align-items: center;
 }
-
-.item-container image{
-  margin-left: 100rpx;
-  width: 60rpx;
-  height: 60rpx;
+/**表格行****/
+.tr {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  height: 3rem;
+  align-items: center;
+}
+/****行内单个表格元素****/
+.td {
+  color: #888888;
+  width:20%;
+  justify-content: center;
+  text-align: center;
+}
+/**表格行背景色交替****/
+.bg-w{
+  background: snow;
+}
+.bg-g{
+  background: #FFFFF0;
 }
 
-.label{
-  font-size: 30rpx;
-  font-weight: 500;
-  margin-left: 80rpx;
-  /*为了保证对齐设置宽度*/
-  width: 300rpx;
-  opacity: 0.7;
-}
-
-.num{
-  font-size: 28rpx;
-  opacity: 0.7;
-  font-weight: 500rpx;
-  margin-left: -70rpx;
-}
-
+/**新增管理员，表单输入**/
 .inputbox{
   font-size: 26rpx;
   font-weight: 500;
-  margin-left: 80rpx;
+  margin: 20rpx auto;
   border: 1px solid #f7931e;
-  margin-top: 20rpx;
   border-radius: 10rpx;
   width:300rpx;
   text-align: center;
 }
+/**新增管理员，提交表单**/
 .submit-btn{
   background-color:#f7931e;
   font-size: 26rpx;
   font-weight: 600;
   text-align: center;
   color:#fff;
-  position:fixed;
-  left:530rpx;
-  top:970rpx;
-  padding: 3rpx 30rpx 3rpx 30rpx;
-  border-radius: 40rpx;
+  border-radius: 20rpx;
+  width: 200rpx;
+  margin: 50rpx auto;
+  margin-bottom: 0rpx;
 }
-.delete{
+/**表格最后一列的操作管理员的按钮**/
+.op-btn{
   width: 80rpx;
   height: 60rpx;
   border-radius: 10rpx;
   background-color: #f7931e;
   font-size: 26rpx;
-  margin-left: 140rpx;
+  margin-left: 30rpx;
   display: flex;
   color: #fff;
   text-align: center;
@@ -69,20 +73,10 @@
   align-items: center;
 }
 .restore{
-  width: 80rpx;
-  height: 60rpx;
-  border-radius: 10rpx;
   background-color: #009578;
-  font-size: 26rpx;
-  margin-left: 140rpx;
-  display: flex;
-  color: #fff;
-  text-align: center;
-  justify-content: center;
-  align-items: center;
 }
 .show-btn{
-    background-color:#009578;
+  background-color:#f7931e;
   font-size: 26rpx;
   font-weight: 600;
   text-align: center;
@@ -91,5 +85,5 @@
   left:530rpx;
   top:870rpx;
   padding: 3rpx 30rpx 3rpx 30rpx;
-  border-radius: 40rpx;
+  border-radius: 20rpx;
 }

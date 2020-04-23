@@ -1,79 +1,88 @@
-// pages/jmall/my/controls/add_adm/index.js
-var app = getApp();
+// /controls/pages/add_adm/index.js
+const app = getApp();
 Page({
   data: {
     show_user: true,
-    loadingHidden: true
+    loadingHidden: true,
+    hiddenContact: true,  //联络方式
+    hiddenAddUser: true   //新增管理员
   },
   onLoad: function (options) {
-    this.getUserList();
-    var is_adm = app.globalData.is_adm;
   },
   onShow: function () {
     this.getUserList();
   },
-  deleteUser: function (e) {
-    var that = this;
-    that.setData({
+  toDeleteUser: function(e){
+    app.alert({
+      content: '确定删除？',
+      showCancel: true,
+      cb_confirm: ()=>{
+        this.doOpOnUser("/user/delete", e.currentTarget.dataset.id)
+      }
+    })
+  },
+  toRestoreUser: function(e){
+    app.alert({
+      content: '确定恢复？',
+      showCancel: true,
+      cb_confirm: ()=>{
+        this.doOpOnUser("/user/restore", e.currentTarget.dataset.id)
+      }
+    })
+  },
+  /**
+   * 删除或者恢复管理员
+   * @param url
+   * @param mid
+   */
+  doOpOnUser: function(url="/user/delete", mid=0){
+    this.setData({
       loadingHidden: false
     });
-    var uid = e.currentTarget.dataset.id;
     wx.request({
-      url: app.buildUrl("/user/delete"),
+      url: app.buildUrl(url),
       method: 'POST',
       header: app.getRequestHeader(),
-      data: {'uid': uid},
-      success: function (res) {
-        var resp = res.data;
-        if (resp.code != 200) {
-          app.alert({'content': resp.msg});
+      data: {'id': mid},
+      success:  (res) => {
+        let resp = res.data;
+        app.alert({content: resp['msg']});
+        if (resp['code'] !== 200) {
           return
         }
-        app.alert({'content': resp.msg});
-        that.getUserList();
+        this.getUserList();
       },
-      fail: function (res) {
+      fail:  (res) => {
         app.serverBusy();
-        return;
       },
-      complete: function (res) {
-        that.setData({
+      complete:  (res) =>{
+        this.setData({
           loadingHidden: true
         });
       },
     })
   },
-  restoreUser: function (e) {
-    var that = this;
-    that.setData({
-      loadingHidden: false
-    });
-    var uid = e.currentTarget.dataset.id;
-    wx.request({
-      url: app.buildUrl("/user/restore"),
-      method: 'POST',
-      header: app.getRequestHeader(),
-      data: {'uid': uid},
-      success: function (res) {
-        var resp = res.data;
-        if (resp.code != 200) {
-          app.alert({'content': resp.msg});
-          return
-        }
-        app.alert({'content': resp.msg});
-        that.getUserList();
-      },
-      fail: function (res) {
-        app.serverBusy();
-        return;
-      },
-      complete: function (res) {
-        that.setData({
-          loadingHidden: true
-        });
-      },
+  /**
+   * 打开新增管理员
+   */
+  openAddUser: function () {
+    this.setData({
+      hiddenAddUser: false
     })
   },
+  /**
+   * 关闭新增管理员
+   */
+  closeAddUser: function () {
+    this.setData({
+      hiddenAddUser: true,
+      form_info: ''
+    })
+  },
+  /**
+   * 新增管理员的表单
+   * @param e
+   */
   formSubmit: function (e) {
     let user_info = e.detail.value;
     if (user_info.name.length === 0 || user_info.level.length === 0 || user_info.mobile.length === 0 || user_info.name.length === 0) {
@@ -91,7 +100,7 @@ Page({
           let resp = res.data;
           app.alert({content: resp['msg']});
           if (resp['code'] === 200) {
-            this.formReset();
+            this.closeAddUser();
             this.getUserList();
           }
         },
@@ -106,43 +115,73 @@ Page({
       })
     }
   },
-  formReset: function () {
-    console.log('form发生了reset事件')
-  },
-  changeShowUser: function () {
-    var show_user = !this.data.show_user;
-    this.setData({
-      show_user: show_user,
-    })
-  },
+  /**
+   * 获取当前系统的所有的管理员
+   */
   getUserList: function () {
-    var that = this;
-    that.setData({
+    this.setData({
       loadingHidden: false
     });
     wx.request({
-      url: app.buildUrl("/user/get-user"),
+      url: app.buildUrl("/user/all"),
       header: app.getRequestHeader(),
-      success: function (res) {
-        var resp = res.data;
-        if (resp.code != 200) {
-          app.alert({'content': resp.msg});
+      success:  (res) => {
+        let resp = res.data;
+        if (resp['code'] !== 200) {
+          app.alert({content: resp['msg']});
           return
         }
-        that.setData({
+        this.setData({
           user_list: resp['user_list']
         })
       },
-      fail: function (res) {
+      fail:  (res) => {
         app.serverBusy();
-        return;
       },
-      complete: function (res) {
-        that.setData({
+      complete:  (res) => {
+        this.setData({
           loadingHidden: true
         });
-
       },
     })
-  }
+  },
+  /**
+   * 打开联络的模态框
+   * @param e
+   */
+  openContact: function (e) {
+    let dataset = e.currentTarget.dataset;
+    this.setData({
+      hiddenContact: false,
+      mobile: dataset.mobile,
+      email: dataset.email
+    })
+  },
+  /**
+   * 打开联络的模态框后点击复制手机号和邮箱
+   * @param e
+   */
+  copyContact: function (e) {
+    let id = e.currentTarget.dataset.id * 1;
+    wx.setClipboardData({
+      data: e.currentTarget.dataset.text,
+      success: res => {
+        wx.showToast({
+          title: (id? '邮箱地址':'手机号') +'已复制',
+        })
+      }
+    })
+  },
+  /**
+   * 关闭联络的模态框
+   */
+  closeContact: function () {
+    this.setData({
+      hiddenContact: true,
+      mobile: "",
+      email: ""
+    })
+  },
+
+
 });

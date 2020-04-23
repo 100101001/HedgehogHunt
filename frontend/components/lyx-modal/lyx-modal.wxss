@@ -24,7 +24,7 @@
 
 .title {
     font-size: 34rpx;
-    color: black;
+    color: #888888;
     text-align: center;
     margin-top: 30rpx;
 }

@@ -1,5 +1,5 @@
-// pages/jmall/my/controls/index.js
-var app=getApp();
+// /controls/pages/index.js
+const app = getApp();
 Page({
   data: {
     items: [
@@ -14,14 +14,28 @@ Page({
         act: "toCheckThanksReport",
       },
       {
-        label: "反馈信息",
+        label: "物品申诉",
         icons: "/images/icons/next.png",
-        act: "toCheckFeedback",
+        act: "toCheckThanksReport",
+      }
+    ],
+    items1: [
+      {
+        label: "添加管理员",
+        icons: "/images/icons/next.png",
+        act: "toAddAdm",
       },
-        {
+      {
         label: "黑名单",
         icons: "/images/icons/next.png",
         act: "toCheckBlockMember",
+      }
+    ],
+    items2: [
+      {
+        label: "反馈信息",
+        icons: "/images/icons/next.png",
+        act: "toCheckFeedback",
       },
       {
         label: "统计数据",
@@ -32,45 +46,56 @@ Page({
 
   },
   onLoad: function (options) {
-        var is_adm = app.globalData.is_adm;
-        this.setData({
-            is_adm: is_adm
-        })
-  },
-  onShareAppMessage: function () {
-
-  },
-  toReleaseAdv: function () {
-    wx.navigateTo({
-      url: '/pages/adv/release/adv-release',
+    this.setData({
+      is_adm: app.globalData.is_adm
     })
   },
-  toAddAdm:function(){
+  // toReleaseAdv: function () {
+  //   wx.navigateTo({
+  //     url: '/pages/adv/release/adv-release',
+  //   })
+  // },
+  toAddAdm: function () {
     wx.navigateTo({
       url: 'add_adm/index',
     })
   },
-  toCheckReport:function(){
+  /**
+   * 物品举报
+   */
+  toCheckReport: function () {
     wx.navigateTo({
       url: '/pages/Record/index?op_status=4',
     })
   },
+  /**
+   * 答谢举报
+   */
   toCheckThanksReport: function () {
     wx.navigateTo({
       url: '/pages/Thanks/record/index?op_status=4',
     })
   },
-  toCheckStat:function(){
+  /**
+   * 数据统计
+   */
+  toCheckStat: function () {
     wx.navigateTo({
       url: 'static/index',
     })
   },
-  toCheckFeedback:function(){
+  /**
+   * 反馈检查
+   */
+  toCheckFeedback: function () {
     wx.navigateTo({
       url: 'feedback_msg/index',
     })
   },
-    toCheckBlockMember:function(){
+  /**
+   * 会员黑名单
+   */
+  toCheckBlockMember: function () {
     wx.navigateTo({
       url: 'blockmember/blockmember',
     })

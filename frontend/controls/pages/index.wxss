@@ -1,2 +1,12 @@
 /* pages/jmall/my/controls/index.wxss */
-@import "../../pages/template/items/item-template.wxss";
+/*@import "../../pages/template/mine-item/mine-item-template.wxss";*/
+@import "../../pages/Mine/Mine.wxss";
+/*@import "../../pages/template/items/item-template.wxss";*/
+/*.item-container image {*/
+/*  margin-left: 150rpx;*/
+/*}*/
+
+/*.label {*/
+/*  color: #888888;*/
+/*  font-weight: bold;*/
+/*}*/

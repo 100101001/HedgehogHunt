@@ -320,21 +320,27 @@ Page({
     })
   },
   /**
-   * 拉黑举报者 {@see doBlockUser}
+   * 处理举报 {@see doDealGoodsReport}
    */
-  toBlock: function (e) {
-    let report_status = e.currentTarget.dataset.report_status;
-    this.doBlockUser(this.data.goods_id, report_status);
+  dealGoodsReport: function (e) {
+    app.alert({
+      title: '举报处理',
+      content: '确认操作？',
+      showCancel: true,
+      cb_confirm: () => {
+        this.doDealGoodsReport(this.data.goods_id, e.currentTarget.dataset.report_status);
+      }
+    });
   },
   /**
-   * 拉黑举报者 {@link toBlock}
+   * 处理举报 {@link dealGoodsReport}
    */
-  doBlockUser: function (id=0, report_status=0) {
+  doDealGoodsReport: function (id=0, report_status=0) {
     wx.showLoading({
       title: '操作提交中..'
     });
     wx.request({
-      url: app.buildUrl("/report/block"),
+      url: app.buildUrl("/report/deal"),
       header: app.getRequestHeader(),
       data: {
         id: id,

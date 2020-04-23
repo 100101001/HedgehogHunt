@@ -1,29 +1,45 @@
 <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
-<view class="item-container">
-  <view class="label">姓名</view>
-  <view class="num">等级</view>
+
+<view class="table">
+  <view class="tr bg-w">
+    <view class="th">管理员ID</view>
+    <view class="th">姓名</view>
+    <view class="th ">级别</view>
+    <view class="th ">联系方式</view>
+    <view class="th ">操作</view>
+  </view>
+  <block wx:for="{{user_list}}" wx:key="{{code}}">
+    <view class="tr {{index % 2 === 0? 'bg-g': ''}}">
+      <view class="td">{{item.uid}}</view>
+      <view class="td">{{item.name}}</view>
+      <view class="td">{{item.level}}</view>
+      <view class="td">
+        <view class="op-btn" catchtap="openContact" data-mobile="{{item.mobile}}" data-email="{{item.email}}">联络</view>
+      </view>
+      <view class="td">
+        <view class="op-btn" wx:if="{{item.status}}" bindtap="toDeleteUser" data-id="{{item.member_id}}">删除</view>
+      </view>
+    </view>
+  </block>
 </view>
-<block wx:for="{{user_list}}" wx:key="index" wx:if="{{show_user}}">
-  <view class="hrz"></view>
-  <view class="item-container">
-      <view class="label">{{item.name}}</view>
-      <view class="num">{{item.level}}--------- id: {{item.member_id}}</view>
-    <view class="delete" wx:if="{{item.status}}" bindtap="deleteUser" data-id="{{item.uid}}">删除</view>
-    <view class="restore" wx:if="{{!item.status}}" bindtap="restoreUser" data-id="{{item.uid}}">恢复</view>
-  </view>
-    <view class="item-container">
-      <view class="label">{{item.mobile}}</view>
-      <view class="num">{{item.email}}</view>
-  </view>
-</block>
-<view class="hrz"></view>
-<form class="goods-box" bindsubmit="formSubmit">
-  <input name="name" class="inputbox" placeholder="姓名"></input>
-  <input name="level" class="inputbox" placeholder="管理员等级" type="number"></input>
-  <input name="member_id" class="inputbox" placeholder="会员id" type="number"></input>
-  <input name="mobile" class="inputbox" placeholder="电话" type="number"></input>
-  <input name="email" class="inputbox" placeholder="邮箱"></input>
-  <button class="submit-btn" form-type="submit">提交添加</button>
-</form>
-  <button class="show-btn" bindtap="changeShowUser" wx:if="{{show_user}}">收起列表</button>
-  <button class="show-btn" bindtap="changeShowUser" wx:if="{{!show_user}}">展开列表</button>
+
+
+
+<lyx-modal hidden="{{hiddenAddUser}}" noCancel="true" bindconfirm="closeAddUser" confirmText="取消" title="添加管理员">
+  <form class="goods-box" bindsubmit="formSubmit">
+    <input name="name" class="inputbox" placeholder="姓名" value="{{form_info}}"></input>
+    <input name="level" class="inputbox" placeholder="管理员等级" type="number" value="{{form_info}}"></input>
+    <input name="member_id" class="inputbox" placeholder="会员id" type="number" value="{{form_info}}"></input>
+    <input name="mobile" class="inputbox" placeholder="电话" type="number" value="{{form_info}}"></input>
+    <input name="email" class="inputbox" placeholder="邮箱" value="{{form_info}}"></input>
+    <button class="submit-btn" form-type="submit">提交添加</button>
+  </form>
+</lyx-modal>
+
+<button class="show-btn" bindtap="openAddUser" wx:if="{{hiddenAddUser}}">添加管理员</button>
+
+<lyx-modal hidden="{{hiddenContact}}" noCancel="true" confirmText="关闭" bindconfirm="closeContact" title="联系方式">
+  <view catchtap="copyContact" data-text="{{mobile}}" data-id="0">手机： {{mobile}}</view>
+  <view catchtap="copyContact" data-text="{{email}}" data-id="1">邮箱： {{email}}</view>
+</lyx-modal>
+

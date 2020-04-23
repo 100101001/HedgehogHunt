@@ -1,13 +1,30 @@
-<!--pages/jmall/my/controls/index.wxml-->
-<view class="hrz"></view>
-<view class="item-container" bindtap="toAddAdm" wx:if="{{is_adm}}">
-  <view class="label">添加管理员</view>
-  <image src="/images/icons/next.png" mode="aspectFit"></image>
-</view>
-<view class="hrz"></view>
-<view class="item-container" bindtap="toReleaseAdv" wx:if="{{is_adm}}">
-  <view class="label">发布广告</view>
-  <image src="/images/icons/next.png" mode="aspectFit"></image>
-</view>
-<import src="../../pages/template/items/item-template.wxml"/>
-<template is="item-template" data="{{items}}"/>
+<!--/controls/pages/index.wxml-->
+<view class="fundation_message">举报申诉</view>
+<block wx:for="{{items}}" wx:key="index">
+  <view class="userinfo_container" bindtap="{{item.act}}" hover-class="navigator-clicked" hover-stay-time="1000">
+    <view class="title" hover-class="navigator-clicked" hover-stay-time="1000">{{item.label}}</view>
+    <view class="next" hover-class="navigator-clicked" hover-stay-time="1000">
+      <image class='next_img' src='{{item.icons}}'></image>
+    </view>
+  </view>
+</block>
+
+<view class="fundation_message">用户管理</view>
+<block wx:for="{{items1}}" wx:key="index">
+  <view class="userinfo_container" bindtap="{{item.act}}" hover-class="navigator-clicked" hover-stay-time="1000">
+    <view class="title" hover-class="navigator-clicked" hover-stay-time="1000">{{item.label}}</view>
+    <view class="next" hover-class="navigator-clicked" hover-stay-time="1000">
+      <image class='next_img' src='{{item.icons}}'></image>
+    </view>
+  </view>
+</block>
+
+<view class="fundation_message">统计反馈</view>
+<block wx:for="{{items2}}" wx:key="index">
+  <view class="userinfo_container" bindtap="{{item.act}}" hover-class="navigator-clicked" hover-stay-time="1000">
+    <view class="title" hover-class="navigator-clicked" hover-stay-time="1000">{{item.label}}</view>
+    <view class="next" hover-class="navigator-clicked" hover-stay-time="1000">
+      <image class='next_img' src='{{item.icons}}'></image>
+    </view>
+  </view>
+</block>

@@ -7,8 +7,9 @@ const app = getApp();
 /**
  * simpleMemberInfo 用户是否有二维码
  * @param cb_complete
+ * @param cb_fail  服务器无响应时，设置为默认的用户信息
  */
-const simpleMemberInfo = function (cb_complete=()=>{}) {
+const simpleMemberInfo = function (cb_complete=()=>{}, cb_fail=()=>{}) {
   wx.request({
     url: app.buildUrl("/member/simple/info"),
     header: app.getRequestHeader(),
@@ -16,6 +17,7 @@ const simpleMemberInfo = function (cb_complete=()=>{}) {
       cb_complete(res.data['data'])
     }, fail: (res) => {
       app.serverBusy();
+      cb_fail()
     }
   })
 };
@@ -115,12 +117,7 @@ Page({
   setUserInfo: function (regFlag=false) {
     if (!regFlag) {
       //未注册，设置默认头像
-      let userInfo = app.globalData.unRegUserInfo;
-      this.setData({
-        total_new: 0,
-        hasQrcode: userInfo['has_qr_code'],
-        userInfo: userInfo
-      })
+      this.setDefaultUserInfo()
     } else {
       // 注册后端获取
       util.getNewRecommend((data) => {
@@ -128,15 +125,23 @@ Page({
           total_new: data.total_new
         })
       });
-      let call_back = (userInfo) => {
+      let cb_complete = (userInfo) => {
         this.setData({
           hasQrcode: userInfo['has_qr_code'],
           userInfo: userInfo
         })
       };
       //已经注册了获取用户信息
-      simpleMemberInfo(call_back)
+      simpleMemberInfo(cb_complete, this.setDefaultUserInfo)
     }
+  },
+  setDefaultUserInfo: function(){
+    let userInfo = app.globalData.unRegUserInfo;
+    this.setData({
+      total_new: 0,
+      hasQrcode: userInfo['has_qr_code'],
+      userInfo: userInfo
+    })
   },
   /**
    * 快速跳转"我的","购物"页面
