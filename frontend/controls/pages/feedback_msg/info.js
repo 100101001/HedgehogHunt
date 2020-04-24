@@ -54,7 +54,7 @@ Page({
             content: '确认拉黑？',
             success: function (res) {
                 wx.request({
-                    url: app.buildUrl("/feedback/block"),
+                    url: app.buildUrl("/feedback/more_record"),
                     header: app.getRequestHeader(),
                     data: {
                         select_member_id: select_member_id,

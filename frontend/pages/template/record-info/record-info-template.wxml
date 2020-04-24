@@ -65,7 +65,7 @@
     <!---------------------------底部脚栏--------------------------->
 
     <!--寻物启事帖子-->
-    <view wx:if="{{info.business_type==0}}">
+    <view wx:if="{{info.business_type==0 && op_status!==4}}">
       <!---待寻回区和预寻回区-->
       <!--待寻回帖，作者-->
       <view class="footer-box" wx:if="{{info.is_auth && info.status==1}}">
@@ -155,7 +155,7 @@
     <!------------------------------寻物启事脚步结束--------------------------------->
 
     <!------------------------------失物招领的底部开始---------------------------->
-    <view wx:if="{{info.business_type==1 && op_status!=4}}">
+    <view wx:if="{{info.business_type==1 && op_status!==4}}">
 
       <!---待认领区和预认领区-->
       <!--待认领帖，作者-->
@@ -259,7 +259,7 @@
     <!------------------------------失物招领的底部结束---------------------------->
 
     <!------------------------------归还帖子的底部开始---------------------------->
-    <view wx:if="{{info.business_type==2 && op_status!=4}}">
+    <view wx:if="{{info.business_type==2 && op_status!==4}}">
 
       <!--已拒绝-->
       <!--归还寻物的作者-->
@@ -346,11 +346,18 @@
     <!---------------------归还贴结束------------------>
 
     <!--管理员用户视图，和管理员操作-->
-    <view class="footer-box" wx:if="{{op_status==4}}">
-      <view class="join-shop-cart" catchtap="dealGoodsReport" data-report_status="2"  wx:if="{{info.report_status!==2}}">拉黑举报者</view>
-      <view class="now-buy" catchtap="dealGoodsReport" data-report_status="3" wx:if="{{info.report_status!==3}}">拉黑发布者</view>
-      <view class="join-shop-cart grey" catchtap="dealGoodsReport" data-report_status="4" wx:if="{{info.report_status!==4}}">无违规</view>
-      <view class="join-shop-cart light-grey" catchtap="dealGoodsReport" data-report_status="5" wx:if="{{info.report_status!==5}}">屏蔽</view>
+    <view class="footer-box" wx:if="{{op_status===4}}">
+      <view class="shop-cart-btn" catchtap="goHome" wx:if="{{info.report_status===2 || info.report_status>=3}}">
+        <image src="/images/icons/home_select.png"></image>
+        <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>返回</view>
+      </view>
+      <view class="join-shop-cart grey" catchtap="dealGoodsReport" data-report_status="2" wx:if="{{ info.report_status===1 || info.report_status===3}}">无违规</view>
+      <view class="join-shop-cart light-grey" catchtap="dealGoodsReport" data-report_status="3" wx:if="{{info.report_status=== 1 || info.report_status === 2}}">屏蔽帖</view>
+      <view class="join-shop-cart" catchtap="dealGoodsReport" data-report_status="4"  wx:if="{{info.report_status===1 || info.report_status ===2}}">拉黑举报者</view>
+      <view class="now-buy" catchtap="dealGoodsReport" data-report_status="5" wx:if="{{info.report_status===1 || info.report_status ===3}}">拉黑发布者</view>
+      <view class="join-shop-cart grey" catchtap="deleteReport"  wx:if="{{info.report_status===4 || info.report_status ===5}}">删除举报</view>
+      <view class="now-buy light-grey" wx:if="{{info.report_status===4}}">已拉黑举报者</view>
+      <view class="now-buy light-grey" wx:if="{{info.report_status===5}}">已拉黑发布者</view>
     </view>
 
   </view>

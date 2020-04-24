@@ -1,2 +1,12 @@
-<import src="../../../pages/template/items/item-template.wxml" />
-<template is="item-template" data="{{items}}"/>
+<view class="table">
+  <view class="tr bg-w">
+    <view class="th">统计项</view>
+    <view class="th">数量</view>
+  </view>
+  <block wx:for="{{items}}" wx:key="uid">
+    <view class="tr {{index % 2 === 0? 'bg-g': 'bg-w'}}">
+      <view class="td">{{item.label}}</view>
+      <view class="td">{{item.num}}</view>
+    </view>
+  </block>
+</view>

@@ -1,1 +1,39 @@
-@import "../../../pages/template/items/item-template.wxss";
+page{
+background-color: rgba(222,222,222,0.3);
+}
+.table {
+border: 0px solid darkgray;
+}
+/**表格标题***/
+.th {
+font-weight: bold;
+width: 50%;
+justify-content: center;
+background: #DEB887;
+color: #fff;
+display: flex;
+height: 3rem;
+align-items: center;
+}
+/**表格行****/
+.tr {
+display: flex;
+width: 100%;
+justify-content: center;
+height: 3rem;
+align-items: center;
+}
+/****行内单个表格元素****/
+.td {
+color: #888888;
+width:50%;
+justify-content: center;
+text-align: center;
+}
+/**表格行背景色交替****/
+.bg-w{
+background: rgba(255,228, 181, 0.4);
+}
+.bg-g{
+background: #FFFFF0;
+}

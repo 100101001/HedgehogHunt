@@ -7,7 +7,7 @@
         <text class="release_date">{{updated_time}}</text>
       </view>
       <view class="status-container {{top? 'status-lefter': ''}}">{{status_desc}}</view>
-      <view class="report {{top? 'report-lefter': ''}}" catchtap="toReport" data-id="{{id}}">
+      <view class="report {{top? 'report-lefter': ''}}" catchtap="toReport" data-id="{{id}}" wx:if="{{op_status && op_status!==4}}">
         <image src="/images/icons/report.png"></image>
         <text>举报</text>
       </view>
@@ -19,7 +19,7 @@
       <image class="goods_image" src="{{main_image}}" mode="aspectFill"></image>
       <view class="summary_container">
         <view class="goods_message">
-          <text wx:if="{{business_type ==1}}" style='color: #f7931e; font-size:20rpx'>#拾得#</text>
+          <text wx:if="{{business_type == 1}}" style='color: #f7931e; font-size:20rpx'>#拾得#</text>
           <text wx:if="{{business_type == 0}}" style='color: #f7931e; font-size:20rpx'>#丢失#</text>
           <text wx:if="{{business_type == 2}}" style='color: #f7931e; font-size:20rpx'>#归还#</text>
           <view class="goods_owner">{{goods_name}}</view>
