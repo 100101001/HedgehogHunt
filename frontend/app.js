@@ -365,15 +365,16 @@ App({
    */
   login: function () {
     //已登录就不再重复登录
-    if (this.globalData.regFlag && this.getCache("token") != "") {
-      //已登录
-      if(this.globalData.isScanQrcode){
-        //已登录用户扫码
-        this.qrCodeNavigate();
-      } else {
-        this.onLoginSuccessShowToast('已登录');
-      }
-    }
+    // if (this.globalData.regFlag && this.getCache("token") != "") {
+    //   //已登录
+    //   util.checkMemberStatus()
+    //   if(this.globalData.isScanQrcode){
+    //     //已登录用户扫码
+    //     this.qrCodeNavigate();
+    //   } else {
+    //     this.onLoginSuccessShowToast('已登录');
+    //   }
+    // }
     this.doLogin()
   },
   /***
@@ -411,15 +412,17 @@ App({
           success: (res) => {
             let resp = res.data;
             if (resp['code'] !== 200) {
-              //非注册用户
               if (resp['code'] === -2) {
+                //非注册用户
                 //缓存session-key和openid（用于注册）
                 this.setCache("loginInfo", resp['data']);
                 if (isScanQrcode) {
                   //未注册用户扫码
                   this.qrCodeNavigate()
                 }
-              };
+                return
+              }
+
               this.alert({content: resp['msg']});
               return
             }
