@@ -1,0 +1,136 @@
+
+
+swiper{
+ height: 460rpx;
+}
+
+image {
+width: 100%;
+height: 100%
+}
+
+.table {
+position: absolute;
+top: 100rpx;
+width: 100%;
+border: 0px solid darkgray;
+}
+
+#table-header {
+position: absolute;
+top: 0rpx;
+z-index: 100;
+}
+
+/**表格标题***/
+.th {
+font-weight: bold;
+width: 33.3%;
+justify-content: center;
+background: #DEB887;
+color: #fff;
+display: flex;
+height: 3rem;
+align-items: center;
+}
+/**表格行****/
+.tr {
+display: flex;
+width: 100%;
+justify-content: center;
+/*height: 3rem;*/
+align-items: center;
+}
+/****行内单个表格元素****/
+.td {
+color: #888888;
+width:33.3%;
+justify-content: center;
+padding: 10rpx 0;
+text-align: center;
+}
+/**表格行背景色交替****/
+.bg-w{
+background: snow;
+}
+.bg-g{
+background: #FFFFF0;
+}
+
+/**表格最后一列的操作管理员的按钮**/
+.op-btn{
+width: 80rpx;
+height: 60rpx;
+border-radius: 10rpx;
+background-color: #f7931e;
+font-size: 26rpx;
+margin: 10rpx auto;
+display: flex;
+color: #fff;
+text-align: center;
+justify-content: center;
+align-items: center;
+}
+.reject {
+background-color: #888888;
+}
+.accept {
+background-color: #87CEFA;
+}
+.restore{
+background-color: #009578;
+}
+/**申诉输入框**/
+.inputbox{
+outline-style: none ;
+border: 3rpx solid #ccc;
+box-shadow:4rpx 4rpx 10rpx #333333;
+border-radius: 30rpx;
+margin: 30rpx auto;
+height: 200rpx;
+font-size: 30rpx;
+padding: 10rpx 10rpx;
+margin-left: -10rpx;
+}
+/**申诉输入**/
+textarea{
+width: 100%;
+}
+/**申诉输入占位**/
+.appeal-placeholder{
+text-align: center;
+font-size: 30rpx;
+}
+/**申诉输入框聚焦**/
+.input-focus {
+  border: 5rpx solid #fff;
+  box-shadow:4rpx 4rpx 10rpx #f7931e;
+}
+/**申诉输入框为空**/
+.input-empty {
+  text-align: center;
+}
+/**申诉输入框输入过多**/
+.input-warn{
+border: 5rpx solid #fff;
+box-shadow:4rpx 4rpx 10rpx red;
+}
+/**申诉提交按钮**/
+.submit-btn{
+background-color:#f7931e;
+font-size: 26rpx;
+font-weight: 600;
+text-align: center;
+color:#fff;
+border-radius: 20rpx;
+width: 200rpx;
+margin: 50rpx auto;
+margin-bottom: 0rpx;
+}
+
+.grey {
+  font-color: #f7931e;
+  background-color: rgba(225, 225, 225, 1);
+}
+
+

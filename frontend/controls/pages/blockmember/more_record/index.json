@@ -2,5 +2,5 @@
   "usingComponents": {
     "lyx-modal": "/components/lyx-modal/lyx-modal"
   },
-  "navigationBarTitleText": "后台管理用户"
+  "navigationBarTitleText": "封号记录"
 }

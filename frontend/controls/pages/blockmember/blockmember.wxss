@@ -1,66 +1,81 @@
-@import "../../../pages/template/info-auth-data/info-auth-template.wxss";
-@import "../feedback/index.wxss";
-.container{
-  margin-top: 120rpx;
+page{
+  background-color: rgba(222,222,222,0.3);
 }
 
-.type-container{
-  display: flex;
-  flex-direction: row;
+
+#table-header {
   position: fixed;
-  top:0;
-  left: 0;
-  width: 750rpx;
-  background-color: #fff;
+  top: 0rpx;
+  z-index: 100;
 }
 
-.type-navbar{
-  white-space: nowrap;
-  height: 88rpx;
-  width: 750rpx;
-  background-color: #fff;
-}
-::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  color: transparent;
-}
-
-.type-box {
-  width: 375rpx;
-  box-sizing: content-box;
-  font-size: 24rpx;
-  line-height: 84rpx;
-  text-align: center;
-  display: inline-block;
-  overflow: hidden;
-}
-
-.type-navbar-item {
-  border-bottom: 4rpx solid #fff;
-}
-
-.type-item-on {
-  border-bottom: 4rpx solid #f7931e;
-  color: #f7931e;
-}
-
-.summary{
-  font-size:28rpx;
-}
-
-.hrz{
-  border: 1rpx solid #eee;
+.table {
+  position: absolute;
+  top: 100rpx;
   width: 100%;
-  margin-bottom: 10rpx;
-  margin-top: 10rpx;
+  border: 0px solid darkgray;
+}
+/**表格标题***/
+.th {
+  font-weight: bold;
+  width: 33.3%;
+  justify-content: center;
+  background: #DEB887;
+  color: #fff;
+  display: flex;
+  height: 3rem;
+  align-items: center;
+}
+/**表格行****/
+.tr {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  height: 3rem;
+  align-items: center;
+}
+/****行内单个表格元素****/
+.td {
+  color: #888888;
+  width:33.3%;
+  justify-content: center;
+  text-align: center;
+}
+/**表格行背景色交替****/
+.bg-w{
+  background: snow;
+}
+.bg-g{
+  background: #FFFFF0;
 }
 
-.tips-views{
-  display: flex;
+/**表格最后一列的操作管理员的按钮**/
+.op-btn{
+  width: 80rpx;
+  height: 60rpx;
+  border-radius: 10rpx;
+  background-color: #f7931e;
   font-size: 26rpx;
+  margin: 10rpx auto;
+  display: flex;
+  color: #fff;
+  text-align: center;
   justify-content: center;
-  opacity: 0.7;
-  align-content: center;
-  margin-top:40rpx;
+  align-items: center;
+}
+.restore{
+  background-color: #87CEFA;
+}
+
+/**申诉提交按钮**/
+.submit-btn{
+  background-color:#f7931e;
+  font-size: 30rpx;
+  font-weight: bold;
+  text-align: center;
+  color:#fff;
+  border-radius: 20rpx;
+  width: 180rpx;
+  margin: 30rpx auto;
+  margin-bottom: 0rpx;
 }

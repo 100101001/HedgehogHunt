@@ -1,32 +1,37 @@
 <!--pages/jmall/my/controls/feedback_msg/index.wxml-->
 <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
-<view class="type-container">
-  <scroll-view class="type-navbar">
-    <view class="type-box" wx:for-items="{{feedback_cat}}" wx:for-item="cat" wx:key="index">
-      <view id="{{cat.id}}" class="type-navbar-item {{statusId == cat.id ? 'type-item-on' : ''}}" bindtap="statusTypeClick">
-        {{cat.name}}
+
+<view class="block-member-container">
+  <view class="tr bg-w" id="table-header">
+    <view class="th">ID</view>
+    <view class="th">昵称</view>
+    <view class="th">头像</view>
+    <view class="th ">详情</view>
+    <view class="th ">操作</view>
+  </view>
+  <view class="table" >
+    <block wx:for="{{block_list}}" wx:key="uid">
+      <view class="tr {{index % 2 === 0? 'bg-g': ''}}">
+        <view class="td">{{item.id}}</view>
+        <view class="td">{{item.auther_name}}</view>
+        <view class="td"><image style="width: 60rpx; height: 60rpx;border-radius: 50%;" src="{{item.avatar}}" /></view>
+        <view class="td">
+          <view class="op-btn" catchtap="openDetail"
+                data-index="{{index}}">详情</view>
+        </view>
+        <view class="td">
+          <view class="op-btn restore" bindtap="toRestoreMember" data-id="{{item.id}}">恢复</view>
+        </view>
       </view>
-    </view>
-  </scroll-view>
+    </block>
+  </view>
+
 </view>
 
-<view class="container">
-  <block wx:for="{{block_list}}" wx:key="block_member_index">
-    <view class="auth-data">
-      <view style="width:110rpx;float:left;" class="auth-item">
-        <image style="width: 100rpx; height: 100rpx;border-radius: 50%;" src="{{item.avatar}}"></image>
-      </view>
-      <view style="width:550rpx;float:left;margin-left:35rpx;" class="auth-item">
-        <view>{{item.auther_name}}</view>
-        <view class="updated-time">{{item.updated_time}}</view>
-      </view>
-      <view class="report" catchtap="toRestoreMember" data-id="{{ item.id }}">
-        <image src="/images/icons/edit-red.png" mode="aspectFit"></image>
-        <text>恢复</text>
-      </view>
-    </view>
-      <view class="hrz"></view>
-  </block>
-</view>
-<view class="tips-views" wx:if="{{!loadingMore}}">没有更多记录了~</view>
-<view class="tips-views" wx:if="{{loadingMore}}">上滑加载更多～</view>
+<lyx-modal hidden="{{hiddenDetail}}" noCancel="true" confirmText="关闭" bindconfirm="closeDetail" title="用户详情">
+  <view>创建时间： {{detail.created_time}}</view>
+  <view>拉黑时间： {{detail.updated_time}}</view>
+  <view>管理员ID： {{detail.user_id}}</view>
+  <view>拉黑原因： {{detail.status === -1? '恶意举报': '恶意发帖'}}</view>
+  <button class="submit-btn" bindtap="toGetMoreDetail" data-id="{{detail.id}}">更多</button>
+</lyx-modal>

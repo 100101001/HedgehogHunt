@@ -1,14 +1,14 @@
 <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
 
+<view class="tr bg-w" id="table-header">
+  <view class="th">管理员ID</view>
+  <view class="th">姓名</view>
+  <view class="th ">级别</view>
+  <view class="th ">联系方式</view>
+  <view class="th ">操作</view>
+</view>
 <view class="table">
-  <view class="tr bg-w">
-    <view class="th">管理员ID</view>
-    <view class="th">姓名</view>
-    <view class="th ">级别</view>
-    <view class="th ">联系方式</view>
-    <view class="th ">操作</view>
-  </view>
-  <block wx:for="{{user_list}}" wx:key="{{code}}">
+  <block wx:for="{{user_list}}" wx:key="uid">
     <view class="tr {{index % 2 === 0? 'bg-g': ''}}">
       <view class="td">{{item.uid}}</view>
       <view class="td">{{item.name}}</view>

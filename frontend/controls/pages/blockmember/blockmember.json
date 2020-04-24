@@ -1,3 +1,5 @@
 {
-  "usingComponents": {}
+  "usingComponents": {
+    "lyx-modal": "/components/lyx-modal/lyx-modal"
+  }
 }

@@ -2,9 +2,11 @@
 <loading hidden="{{loadingHidden}}">上传第{{i}}张图片..</loading>
 <view>
   <form class="goods-box" bindsubmit="formSubmit">
-    <view class="summary">
-      <textarea class="summary" name="summary" placeholder="{{text_placeholder}}"></textarea>
-    </view>
+
+    <textarea name="summary" class="inputbox {{focus? 'input-focus': ''}} {{warn? 'input-warn': ''}}"
+              placeholder="{{text_placeholder}}" value="{{form_info}}"
+              bindinput="feedbackInput" bindfocus="feedbackFocus" bindblur='feedbackBlur'></textarea>
+
     <view class="pics-list">
       <view wx:for="{{imglist}}" class="pics-item" wx:key="index">
         <image src="{{item}}" mode="aspectFill" bindtap="previewImage"></image>
@@ -14,6 +16,6 @@
         <image class="add-pic-icon" src="/images/icons/add-pics.png"></image>
       </view>
     </view>
-    <button class="submit-btn" form-type="submit">提交反馈</button>
+    <button class="submit-btn" form-type="submit" disabled="{{empty || submit_disabled}}">提交反馈</button>
   </form>
 </view>

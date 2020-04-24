@@ -1,0 +1,72 @@
+<view class="tr bg-w" id="table-header">
+  <view class="th">管理员ID</view>
+  <view class="th ">操作备注</view>
+  <view class="th ">操作时间</view>
+  <view class="th ">详情</view>
+  <view class="th ">操作</view>
+</view>
+<view class="table">
+  <block wx:for="{{user_op_list}}" wx:key="uid">
+    <view class="tr {{index % 2 === 0? 'bg-g': ''}}">
+      <view class="td">{{item.id}}</view>
+      <view class="td">{{item.note}}</view>
+      <view class="td">{{item.created_time}}</view>
+      <!--查看详情，图片和描述和物主-->
+      <view class="td"> <view class="op-btn" data-index="{{index}}" bindtap="openGoodsDetail">详情</view></view>
+      <!--用户的操作-->
+      <view class="td" wx:if="{{op_status===1}}">
+        <!--是一个拉黑记录-->
+        <wxs src="../../../../utils/pageUtil.wxs" module="tools"></wxs>
+        <view wx:if="{{item.new_status!==1}}">
+          <!--可以申诉--->
+          <view  wx:if="{{item.status===0}}" class="op-btn" bindtap="openAppeal"
+                data-index="{{index}}">{{tools.block_status(item.status)}}</view>
+          <!--可以查看申诉状态--->
+          <view wx:if="{{item.status!==0}}" class="op-btn grey" data-index="{{index}}">{{tools.block_status(item.status)}}</view>
+        </view>
+        <!--不是一个拉黑记录-->
+        <view wx:else>
+          <view class="op-btn">无</view>
+        </view>
+      </view>
+
+      <!--管理员操作-->
+      <view class="td" wx:if="{{op_status===2}}">
+        <!--是一个申诉记录-->
+        <view wx:if="{{item.status===1}}">
+          <view class="op-btn reject" bindtap="toTurnDownBlockAppeal" data-id="{{item.id}}" data-index="{{index}}">驳回</view>
+          <view class="op-btn accept" bindtap="toAcceptBlockAppeal" data-id="{{item.id}}" data-index="{{index}}">接受</view>
+        </view>
+        <!--不是一个申诉记录-->
+        <view wx:else>
+          <view class="op-btn grey">{{tools.block_status(item.status)}}</view>
+        </view>
+      </view>
+    </view>
+
+  </block>
+</view>
+
+
+<lyx-modal hidden="{{hiddenGoodsDetail}}" noCancel="true" bindconfirm="closeGoodsDetail" confirmText="关闭" title="原贴详情">
+ <!--图片-->
+  <swiper class="swiper_box" autoplay="true" interval="3000" duration="1000" circular="true">
+    <block wx:for="{{goods.pics}}" wx:key="index">
+      <swiper-item>
+        <image src="{{item}}" bindtap="previewItemImage" data-index="{{index}}" class="slide-image" width="355" height="150" mode="aspectFit" lazy-load="true" />
+      </swiper-item>
+    </block>
+  </swiper>
+  <view>物名：{{goods.name}}</view>
+  <view>物主：{{goods.owner_name}}</view>
+  <view>手机：{{goods.mobile}}</view>
+  <view>放置位置：{{goods.loc}}</view>
+  <view>描述：{{goods.summary}}</view>
+</lyx-modal>
+
+<lyx-modal hidden="{{hiddenAppeal}}" noCancel="true" bindconfirm="closeAppeal" confirmText="取消" title="申诉理由">
+  <form class="goods-box" bindsubmit="formSubmit">
+    <textarea name="reason" class="inputbox {{focus? 'input-focus': ''}} {{warn? 'input-warn': ''}}  {{empty? 'input-empty':''}}" placeholder="申诉理由不超过140字" placeholder-class="appeal-placeholder" bindinput="appealInput" value="{{form_info}}" bindfocus="appealFocus" bindblur='appealBlur'></textarea>
+    <button class="submit-btn" form-type="submit">提交</button>
+  </form>
+</lyx-modal>

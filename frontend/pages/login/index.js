@@ -56,7 +56,12 @@ const checkReg = function (openid, cb_comp = (isReg) => {}) {
       openid: openid
     },
     success: (res) => {
-      let is_reg = res.data['data']['is_reg'];
+      let resp = res.data;
+      if (resp['code'] !== 200) {
+        app.alert({content: resp['msg']});
+        return;
+      }
+      let is_reg = resp['data']['is_reg'];
       if (is_reg) {
         //未登录的注册用户，直接登录
         app.login();

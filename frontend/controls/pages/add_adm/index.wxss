@@ -1,17 +1,25 @@
-
-.table {
-  border: 0px solid darkgray;
+#table-header {
+  position: fixed;
+  top: 0rpx;
+  z-index: 100;
 }
 /**表格标题***/
 .th {
   font-weight: bold;
   width: 20%;
   justify-content: center;
-  background: #FFE4B5;
+  background: #DEB887;
   color: #fff;
   display: flex;
   height: 3rem;
   align-items: center;
+}
+
+.table {
+  border: 0px solid darkgray;
+  position: absolute;
+  top: 100rpx;
+  width: 100%;
 }
 /**表格行****/
 .tr {
@@ -30,7 +38,7 @@
 }
 /**表格行背景色交替****/
 .bg-w{
-  background: snow;
+  background: #FFE4B5;
 }
 .bg-g{
   background: #FFFFF0;

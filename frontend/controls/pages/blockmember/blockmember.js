@@ -9,13 +9,14 @@ Page({
     feedback_cat: [
       {
         id: 0,
-        name: '未申诉'
+        name: '所有用户'
       },
       {
         id: 2,
-        name: '申诉'
+        name: '申诉记录'
       }],
     statusId: 0,
+    hiddenDetail: true
   },
   onLoad: function (res) {
   },
@@ -50,10 +51,7 @@ Page({
    * @param e
    */
   getBlockMemberList: function (e) {
-    if (!this.data.loadingMore) {
-      return;
-    }
-    if (this.data.processing) {
+    if (!this.data.loadingMore || this.data.processing) {
       return;
     }
     this.setData({
@@ -78,7 +76,6 @@ Page({
           block_list: this.data.block_list.concat(block_list),
           p: this.data.p + 1,
           processing: false,
-          loadingHidden: true,
           loadingMore: resp['data']['has_more']
         });
       },
@@ -98,11 +95,24 @@ Page({
    * @param e
    */
   toRestoreMember: function (e) {
+    app.alert({
+      content: '该操作不可逆，确认恢复？',
+      showCancel: true,
+      cb_confirm: ()=>{
+        this.doRestoreMember(e.currentTarget.dataset.id)
+      }
+    })
+  },
+  /**
+   * 恢复被拉黑的用户
+   * @param id
+   */
+  doRestoreMember: function(id){
     wx.request({
       url: app.buildUrl("/member/restore"),
       header: app.getRequestHeader(),
       data: {
-        id: e.currentTarget.dataset.id
+        id: id
       },
       success: (res) => {
         wx.showToast({
@@ -122,6 +132,7 @@ Page({
       }
     })
   },
+
   /**
    * 触底加载
    * @param e
@@ -134,4 +145,34 @@ Page({
       this.getBlockMemberList();
     }, 500)
   },
+  /**
+   * 查看拉黑详情
+   * @param e
+   */
+  openDetail: function (e) {
+    let index = e.currentTarget.dataset.index;
+    this.setData({
+      index: index,
+      detail: this.data.block_list[index],
+      hiddenDetail: false
+    })
+  },
+  /**
+   * 关闭拉黑详情
+   * @param e
+   */
+  closeDetail: function (e) {
+    this.setData({
+      hiddenDetail: true,
+      detail: {}
+    })
+  },
+  /**
+   * 查看申诉和拉黑记录
+   * @param e
+   */
+  toGetMoreDetail: function (e) {
+    let member_id = e.currentTarget.dataset.id;
+    wx.navigateTo({url: 'more_record/index?op_status=2&id='+member_id})
+  }
 });

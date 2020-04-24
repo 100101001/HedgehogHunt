@@ -14,6 +14,12 @@ const simpleMemberInfo = function (cb_complete=()=>{}, cb_fail=()=>{}) {
     url: app.buildUrl("/member/simple/info"),
     header: app.getRequestHeader(),
     success: (res) => {
+      let resp = res.data;
+      if (resp['code']!==200) {
+        cb_fail()
+        app.alert({content: resp['msg']});
+        return
+      }
       cb_complete(res.data['data'])
     }, fail: (res) => {
       app.serverBusy();

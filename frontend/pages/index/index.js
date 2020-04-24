@@ -18,13 +18,21 @@ Page({
   goToIndex: function () {
     let goods_id = this.data.goods_id;
     let member_status = app.globalData.member_status;
-    if (member_status == 0) {
+    let id = app.globalData.id;
+    if (member_status !== 1) {
+      app.alert({
+        title: '封号告示',
+        content: '因恶意操作，您的账号已被封锁。如有异议点击确定查看详情和进行申诉。',
+        showCancel: true,
+        cb_confirm: ()=>{
+          wx.navigateTo({url: '/controls/pages/blockmember/more_record/index?op_status=1&id='+id})
+        }
+      });
       return
     }
-    let id = app.globalData.id;
     this.setData({
       member_status: member_status,
-    })
+    });
     if (id) {
       this.setData({
         id: id
