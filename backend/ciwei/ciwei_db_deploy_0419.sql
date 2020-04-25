@@ -226,16 +226,19 @@ CREATE TABLE `cart`  (
 DROP TABLE IF EXISTS `feedback`;
 CREATE TABLE `feedback`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `uu_id` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '唯一标识',
   `user_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '处理反馈消息的管理员id',
   `member_id` int(11) UNSIGNED NOT NULL COMMENT '反馈消息的会员id',
+  `nickname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '反馈消息的会员名',
+  `avatar` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '反馈消息的会员头像',
   `summary` varchar(10000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   `main_image` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '主图',
   `pics` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '组图',
+  `views` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '阅读管理员id',
   `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 1：已读 0：未读',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `ix_feedback_status`(`status`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '反馈表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -264,7 +267,7 @@ CREATE TABLE `goods`  (
   `return_goods_id` int(11) UNSIGNED NULL DEFAULT 0 COMMENT '归还的寻物启示ID',
   `return_goods_openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '归还的寻物启示OPENID',
   `status` tinyint(1) UNSIGNED NOT NULL DEFAULT 7 COMMENT '1:待, 2:预, 3:已, 5:管理员删, 7:发布者创建中, 8:发布者被管理员拉黑',
-  `view_count` int(11) NOT NULL DEFAULT 0 COMMENT '总浏览次数',
+  `view_count` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '总浏览次数',
   `top_expire_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '置顶过期时间',
   `recommended_times` int(11) NOT NULL DEFAULT 1 COMMENT '总匹配过失/拾物次数',
   `report_status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '被举报后的状态，用于存储举报的状态值',
@@ -468,6 +471,26 @@ CREATE TABLE `member_sms_pkg_change_log`  (
   INDEX `ix_member_sms_pkg_change_log_member_id`(`member_id`) USING BTREE,
   INDEX `ix_member_sms_pkg_change_log_pkg_id`(`pkg_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员短信包通知次数变更表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for member_status_change_log
+-- ----------------------------
+DROP TABLE IF EXISTS `member_status_change_log`;
+CREATE TABLE `member_status_change_log`  (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `member_id` int(11) UNSIGNED NOT NULL COMMENT '会员id',
+  `openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '第三方id',
+  `old_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '会员旧状态 状态 1：有效 0：无效 -1:无效',
+  `new_status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '会员新状态 状态 1：有效 0：无效 -1:无效',
+  `user_id` int(11) UNSIGNED NOT NULL COMMENT '操作的管理员id',
+  `goods_id` int(11) UNSIGNED NOT NULL COMMENT '相关的物品id',
+  `note` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '备注字段',
+  `member_reason` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '申诉理由',
+  `status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '记录状态 0:无申诉 1:申诉 2:申诉成功 3:申诉驳回',
+  `created_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `ix_member_status_change_log_member_id`(`member_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员状态变更记录' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for order
@@ -776,6 +799,7 @@ CREATE TABLE `user`  (
   `sex` tinyint(1) NOT NULL DEFAULT 0 COMMENT '1：男 2：女 0：没填写',
   `avatar` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '头像',
   `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '1：有效 0：无效',
+  `op_uid` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '操作管理员id',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`uid`) USING BTREE
