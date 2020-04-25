@@ -12,9 +12,8 @@ import json
 import requests
 
 from application import app, db
-from common.cahce import CacheOpService, CacheQueryService
+from common.cahce import CacheOpService, CacheQueryService, CacheOpUtil
 from common.libs import LogService
-from common.libs.Helper import getCurrentDate
 from common.libs.recommend.v2 import SyncService
 from common.models.ciwei.Appeal import Appeal
 from common.models.ciwei.Goods import Good
@@ -85,73 +84,108 @@ class MemberService:
         return member_info, user_info
 
     @staticmethod
-    def updateCredits(member_id=0, quantity=5):
+    def updateCredits(member_info=None, member_id=0, quantity=5):
         """
         更新会员积分
-        :param quantity: 变更积分数，默认 5
         :param member_id:
+        :param quantity: 变更积分数，默认 5
+        :param member_info:
         :return:
         """
-        if not member_id:
+        if not member_info and not member_id or not quantity:
             return
         # 发布成功，用户积分涨5
-        member_info = Member.query.filter_by(id=member_id).first()
         if member_info:
-            member_info.credits += quantity
+            updated = {'credits': member_info.credits + quantity}
+            Member.query.filter_by(id=member_info.id).update(updated, synchronize_session=False)
+            CacheOpUtil.updateModelDict(model=member_info, updated=updated)
             CacheOpService.setMemberCache(member_info=member_info)
-            db.session.add(member_info)
+        else:
+            member_info = Member.query.filter_by(id=member_id).first()
+            if member_info:
+                member_info.credits += quantity
+                CacheOpService.setMemberCache(member_info=member_info)
+                db.session.add(member_info)
 
     @staticmethod
-    def updateName(member_id=0, name=""):
+    def updateName(member_info=None, member_id=0, name=""):
         """
         更新会员的姓名
         :param member_id:
+        :param member_info:
         :param name:
         :return:
         """
-        if not member_id or not name:
+        if not member_info and not member_id or not name:
             return
-        member_info = Member.query.filter_by(id=member_id).first()
         if member_info:
-            member_info.name = name
+            updated = {'name': name}
+            Member.query.filter_by(id=member_info.id).update(updated, synchronize_session=False)
+            CacheOpUtil.updateModelDict(model=member_info, updated=updated)
             CacheOpService.setMemberCache(member_info=member_info)
-            db.session.add(member_info)
+        else:
+            member_info = Member.query.filter_by(id=member_id).first()
+            if member_info:
+                member_info.name = name
+                CacheOpService.setMemberCache(member_info=member_info)
+                db.session.add(member_info)
 
     @staticmethod
-    def updateSmsNotify(member_id=0, sms_times=0):
+    def updateSmsNotify(member_info=None, member_id=0, sms_times=0):
         """
         更新剩余通知次数，缓存写入
         :param member_id:
+        :param member_info:
         :param sms_times:
         :return:
         """
-        if not sms_times or not member_id:
+        if not sms_times or not member_info and not member_id:
             return
-        member_info = Member.query.filter_by(id=member_id).first()
         if member_info:
-            LogService.setMemberNotifyTimesChange(member_info=member_info, unit=sms_times, old_times=member_info.left_notify_times, note="短信充值")
-            member_info.left_notify_times += sms_times
+            LogService.setMemberNotifyTimesChange(member_info=member_info, unit=sms_times,
+                                                  old_times=member_info.left_notify_times, note="短信充值")
+            updated = {'left_notify_times': member_info.left_notify_times + sms_times}
+            Member.query.filter_by(id=member_info.id).update(updated, synchronize_session=False)
+            CacheOpUtil.updateModelDict(model=member_info, updated=updated)
             CacheOpService.setMemberCache(member_info=member_info)
-            db.session.add(member_info)
+        else:
+            member_info = Member.query.filter_by(id=member_id).first()
+
+            if member_info:
+                LogService.setMemberNotifyTimesChange(member_info=member_info, unit=sms_times,
+                                                      old_times=member_info.left_notify_times, note="短信充值")
+                member_info.left_notify_times += sms_times
+                CacheOpService.setMemberCache(member_info=member_info)
+                db.session.add(member_info)
 
     @staticmethod
-    def updateBalance(member_id=0, unit=0, note=''):
+    def updateBalance(member_info=None, member_id=0, unit=0, note=''):
         """
         余额在购物，(被)答谢，通知，充值等情况下更新
         :param member_id:
+        :param member_info:
         :param unit:
         :param note:
         :return:
         """
-        if not member_id or not unit:
+        if not member_info and not member_id or not unit:
             return
-        member_info = Member.query.filter_by(id=member_id).first()
-        if member_info:
+
+        if not member_info:
+            member_info = Member.query.filter_by(id=member_id).first()
+            if member_info:
+                LogService.setMemberBalanceChange(member_info=member_info, unit=unit, old_balance=member_info.balance,
+                                                  note=note)
+                member_info.balance += unit
+                CacheOpService.setMemberCache(member_info=member_info)
+                db.session.add(member_info)
+        else:
             LogService.setMemberBalanceChange(member_info=member_info, unit=unit, old_balance=member_info.balance,
                                               note=note)
-            member_info.balance += unit
+            updated = {'balance': member_info.balance + unit}
+            Member.query.filter_by(id=member_info.id).update(updated, synchronize_session=False)
+            CacheOpUtil.updateModelDict(model=member_info, updated=updated)
             CacheOpService.setMemberCache(member_info=member_info)
-            db.session.add(member_info)
 
     @staticmethod
     def addSmsPkg(openid=''):
@@ -162,9 +196,11 @@ class MemberService:
         db.session.add(pkg)
 
     @staticmethod
-    def blockMember(member_id=0, user_id=0):
+    def blockMember(member_id=0, user_id=0, goods_id=0, block_status=0, block_reason=""):
         """
-
+        :param goods_id:
+        :param block_reason:
+        :param block_status: -1恶意举报, 0恶意发帖
         :param user_id:
         :param member_id:
         :return:
@@ -172,7 +208,12 @@ class MemberService:
         if not member_id or not user_id:
             return
         # 会员状态标记
-        Member.query.filter_by(id=member_id).update({'status': 0}, synchronize_session=False)
+        member_info = Member.query.filter_by(id=member_id).first()
+        LogService.setMemberStatusChange(member_info=member_info, old_status=member_info.status,
+                                         new_status=block_status, note=block_reason, user_id=user_id, goods_id=goods_id)
+        member_info.status = block_status
+        member_info.user_id = user_id
+        CacheOpService.setMemberCache(member_info=member_info)
         db.session.commit()
         # 物品举报状态标记
         # 取出来id再更新是为了ES同步
@@ -195,7 +236,12 @@ class MemberService:
         if not member_id or not user_id:
             return
             # 会员状态标记
-        Member.query.filter_by(id=member_id).update({'status': 1}, synchronize_session=False)
+        member_info = Member.query.filter_by(id=member_id).first()
+        LogService.setMemberStatusChange(member_info=member_info, old_status=member_info.status,
+                                         new_status=1, note="账号解封", user_id=user_id)
+        member_info.status = 1
+        member_info.user_id = user_id
+        CacheOpService.setMemberCache(member_info=member_info)
         db.session.commit()
         # 物品举报状态标记
         # 取出来id再更新是为了ES同步
@@ -206,6 +252,10 @@ class MemberService:
             db.session.commit()
             SyncService.syncUpdatedGoodsToESBulk(goods_ids=goods_ids, updated=updated)
         return True
+
+    @staticmethod
+    def appealStatusChangeRecord(log_id=0, reason=''):
+        LogService.appealMemberStatusChangeLog(log_id=log_id, reason=reason)
 
     @staticmethod
     def setRecommendStatus(member_id=0, goods_id=0, new_status=1, old_status=0):

@@ -20,18 +20,19 @@ def before_request_api():
     if '/api' not in path:
         return
 
-    member_info = check_member_login()
-    g.member_info = None
-    if member_info:
-        g.member_info = member_info
-
     pattern = re.compile('%s' % "|".join(api_ignore_urls))
     if pattern.match(path):
         return
+    # if path in api_ignore_urls:
+    #     return
 
-    if not member_info:
-        resp = {'code': -1, 'msg': 'please login~', 'data': {}}
-        return jsonify(resp)
+    member_info = check_member_login()
+    g.member_info = None
+    if member_info:
+        if member_info.status != 1:
+            resp = {'code': -1, 'msg': '因恶意操作，您已被封号，如有异议请申诉', 'data': {}}
+            return resp
+        g.member_info = member_info
 
     return
 
@@ -60,12 +61,6 @@ def check_member_login():
             member_info = Member.query.filter_by(id=member_id).first()
             CacheOpService.setMemberCache(member_info=member_info)
     except Exception:
-        return False
-
-    if member_info is None:
-        return False
-
-    if member_info.status != 1:
         return False
 
     return member_info

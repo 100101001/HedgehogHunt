@@ -4,7 +4,6 @@ import decimal
 from sqlalchemy.dialects.mssql import TINYINT
 from sqlalchemy.dialects.mysql import INTEGER
 
-
 from application import db
 from datetime import datetime
 
@@ -50,6 +49,9 @@ class Good(db.Model):
 
     @property
     def status_desc(self):
+        if self.report_status != 0:
+            # 作者可以看到 1的帖子
+            return self.report_status_desc
         if self.business_type == 1:
             status_mapping = {
                 '1': '待认领',
@@ -83,8 +85,8 @@ class Good(db.Model):
         report_status_mapping = {
             '1': '待处理',
             '0': '无违规',
-            '3': '作者被封号的起因帖',  # 账号回复后也不在恢复的帖子
-            '5': '商品违规但不拉黑人员',
-            '6': '作者被封号',
+            '3': '已屏蔽',  # 同时作者账号被拉黑，即使恢复账号后也不在恢复的帖子
+            '5': '已屏蔽',
+            '6': '封号贴',
         }
         return report_status_mapping[str(self.report_status)]

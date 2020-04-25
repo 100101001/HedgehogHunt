@@ -70,14 +70,14 @@ def userRegister():
         resp['msg'] = "添加失败"
         return jsonify(resp)
 
-    op_res, op_msg = UserService.addNewUser(reg_info=req, member_id=member_id)
+    op_res, op_msg = UserService.addNewUser(reg_info=req, member_id=member_id, op_member_id=member_info.id)
     resp['code'] = 200 if op_res else -1
     resp['msg'] = op_msg
     return jsonify(resp)
 
 
-@route_api.route("/user/delete", methods=['GET', 'POST'])
-def userDelete():
+@route_api.route("/user/block", methods=['GET', 'POST'])
+def userBlock():
     resp = {'code': -1, 'msg': '删除成功', 'data': {}}
     req = request.values
 
@@ -86,11 +86,32 @@ def userDelete():
         resp['msg'] = "请先登录"
         return jsonify(resp)
 
-    member_id = req.get('id', -1)
-    if member_id == -1:
-        resp['msg'] = "删除失败"
+    blk_mid = req.get('id', -1)
+    if blk_mid == -1:
+        resp['msg'] = "操作失败"
         return jsonify(resp)
+    op_res, op_msg = UserService.blockUser(blk_member_id=blk_mid, op_member_id=member_info.id)
+    resp['code'] = 200 if op_res else -1
+    resp['msg'] = op_msg
+    return jsonify(resp)
 
-    UserService.deleteUser(member_id=member_id)
-    resp['code'] = 200
+
+@route_api.route("/user/restore", methods=['GET', 'POST'])
+def userRestore():
+    resp = {'code': -1, 'msg': '删除成功', 'data': {}}
+    req = request.values
+
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = "请先登录"
+        return resp
+
+    restore_mid = req.get('id', -1)
+    if restore_mid == -1:
+        resp['msg'] = "操作失败"
+        return resp
+
+    op_res, op_msg = UserService.restoreUser(restore_member_id=restore_mid, op_member_id=member_info.id)
+    resp['code'] = 200 if op_res else -1
+    resp['msg'] = op_msg
     return jsonify(resp)

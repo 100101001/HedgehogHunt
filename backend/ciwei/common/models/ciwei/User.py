@@ -19,6 +19,7 @@ class User(db.Model):
     email = db.Column(db.String(100), nullable=False, default='', comment="邮箱地址")
     sex = db.Column(TINYINT(), nullable=False, default=0, comment="1：男 2：女 0：没填写")
     avatar = db.Column(db.String(200), nullable=False, default='', comment="头像")
+    op_uid = db.Column(INTEGER(11, unsigned=True), nullable=False, comment="操作的管理员id")
     status = db.Column(TINYINT(), nullable=False, default=1, comment="1：有效 0：无效")
     updated_time = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now,
                              comment="最后一次更新时间")

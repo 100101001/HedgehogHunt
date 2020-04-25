@@ -11,7 +11,7 @@ import uuid
 
 param_getter = {
     'ids2': lambda str_list: [int(i) for i in str_list],
-    'ids': lambda ids_str: [eval(i) for i in ids_str[1:-1].split(',')] if ids_str else None
+    'ids': lambda ids_str: [eval(i) for i in ids_str[1:-1].split(',') if i] if ids_str else None
 }
 
 

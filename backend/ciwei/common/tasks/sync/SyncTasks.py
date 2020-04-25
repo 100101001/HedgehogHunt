@@ -18,6 +18,8 @@ def syncNewGoodsToRedis(goods_info=None):
     :param goods_info:
     :return:
     """
+    if goods_info.get('status') != 1 or goods_info.get('business_type') == 2:
+        return
     goods = Good()
     goods.__dict__ = goods_info
     SyncService.syncNewGoodsToRedis(goods_info=goods)
@@ -43,7 +45,7 @@ def syncDelGoodsToRedis(goods_ids=None, business_type=0):
     :param goods_ids:
     :return:
     """
-    if business_type not in (0, 1):
+    if business_type == 2:
         return
     for goods_id in goods_ids:
         SyncService.syncDelGoodsToRedis(goods_id=goods_id, business_type=business_type)

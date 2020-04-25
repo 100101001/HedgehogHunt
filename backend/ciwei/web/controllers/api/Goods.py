@@ -305,13 +305,13 @@ def endCreate():
             # 寻物归还
             lost_goods = Good.query.filter_by(id=lost_id, status=1).first()
             if lost_goods and cas.exec_wrap(lost_id, ['nil', 1], 2):
-                GoodsService.returnToLostSuccess(return_goods=goods_info, lost_goods=lost_goods)
+                GoodsService.returnToLostSuccess(return_goods=goods_info, lost_goods=lost_goods, author=member_info)
             else:
                 goods_info.business_type = 1
-                GoodsService.releaseGoodsSuccess(goods_info=goods_info)
+                GoodsService.releaseGoodsSuccess(goods_info=goods_info, author=member_info)
         elif notify_id:
             # 扫码归还
-            GoodsService.scanReturnSuccess(scan_goods=goods_info, notify_id=notify_id)
+            GoodsService.scanReturnSuccess(scan_goods=goods_info, notify_id=notify_id, author=member_info)
         else:
             resp['msg'] = "发布失败"
             jsonify(resp)
@@ -322,7 +322,7 @@ def endCreate():
             'need_recommend': int(req.get('keyword_modified', 0)),
             'modified': int(req.get('modified', 0))
         } if is_edit else None
-        GoodsService.releaseGoodsSuccess(goods_info=goods_info, edit_info=edit_info)
+        GoodsService.releaseGoodsSuccess(goods_info=goods_info, edit_info=edit_info, author=member_info)
 
     resp['code'] = 200
     return jsonify(resp)
@@ -1068,11 +1068,12 @@ def goodsInfo():
         return jsonify(resp)
     goods_info = Good.query.filter_by(id=goods_id).first()
     if not goods_info or goods_info.status == 7:
-        resp['msg'] = '作者已删除' if goods_info.report_status == 0 else '管理员已删除本贴'
+        resp['msg'] = '作者已删除'
         return jsonify(resp)
     if goods_info.report_status != 0:
-        resp['msg'] = '帖子被举报，已冻结'
-        return jsonify(resp)
+        resp['msg'] = '帖子遭举报，已冻结待管理员处理。若无违规将解冻，否则将被系统自动屏蔽。'
+        return resp
+
 
     # 浏览量
     has_read = int(req.get('read', 1))
@@ -1178,7 +1179,6 @@ def goodsReport():
     SyncService.syncUpdatedGoodsToES(goods_id=goods_id, updated={'report_status': 1})
     # redis 候选去除(底层判断，上层透明)
     SyncTasks.syncDelGoodsToRedis.delay(goods_ids=[goods_id], business_type=reporting_goods.business_type)
-
     cas.exec(goods_id, 7, status)  # 解锁
     resp['code'] = 200
     return jsonify(resp)
@@ -1309,8 +1309,6 @@ def unmarkGoodsToSysInBatch():
 @time_log
 def test9():
     from sqlalchemy import func
-    good = Good.query.first()
-    goods_id = good.id
-    db.session.commit()
-    print(good.id)
-    return str(good.id)
+    goods = Good.query.first()
+    goods.__dict__.update({'id': 5})
+    return str("")

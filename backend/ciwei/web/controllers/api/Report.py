@@ -125,18 +125,18 @@ def reportDeal():
         resp['msg'] = "操作失败"
         return resp
 
-    user = UserService.getUser(member_id=member_info.id)
+    user = UserService.getUserByMid(member_id=member_info.id)
     if not user:
         resp['msg'] = "您不是管理员，操作失败"
         return resp
 
-    if report_status == 5:
+    if report_status == 2:
+        ReportService.recoverGoods(goods_id=goods_id, user_id=user.uid)
+    elif report_status == 3:
         ReportService.blockGoods(goods_id=goods_id, user_id=user.uid)
     elif report_status == 4:
-        ReportService.recoverGoods(goods_id=goods_id, user_id=user.uid)
-    elif report_status == 2:
         ReportService.blockReporter(goods_id=goods_id, user_id=user.uid)
-    elif report_status == 3:
+    elif report_status == 5:
         ReportService.blockReleaser(goods_id=goods_id, user_id=user.uid)
     resp['code'] = 200
     return jsonify(resp)

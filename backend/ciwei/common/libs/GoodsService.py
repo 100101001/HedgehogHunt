@@ -112,13 +112,15 @@ def releaseReturn(author_info=None, release_info=None, is_scan_return=False):
     return model_goods
 
 
-def returnToLostSuccess(return_goods=None, lost_goods=None):
+def returnToLostSuccess(return_goods=None, lost_goods=None, author=None):
     """
     寻物归还结束发帖
     :param return_goods:
     :param lost_goods: 
     :return: 
     """
+    if not return_goods or not lost_goods or not author:
+        return
     lost_id = lost_goods.id
     return_goods.status = 1
     return_goods.return_goods_id = lost_id
@@ -132,7 +134,7 @@ def returnToLostSuccess(return_goods=None, lost_goods=None):
     lost_goods.status = 2
     db.session.add(lost_goods)
     db.session.add(return_goods)
-    MemberService.updateCredits(member_id=return_goods.member_id)
+    MemberService.updateCredits(member_info=author)
     db.session.commit()
     # 新归还帖
     SyncService.syncGoodsToES(goods_info=return_goods, edit=False)
@@ -150,7 +152,7 @@ def returnToLostSuccess(return_goods=None, lost_goods=None):
                                                             'rcv_openid': lost_goods.openid})
 
 
-def scanReturnSuccess(scan_goods=None, notify_id=''):
+def scanReturnSuccess(scan_goods=None, notify_id='', author=None):
     """
     扫码归还结束发帖
     ES同步和发送短信
@@ -159,9 +161,11 @@ def scanReturnSuccess(scan_goods=None, notify_id=''):
     :return:
     """
     # 链接归还的对象，直接就是对方的物品(如若不是可举报)
+    if not scan_goods or not scan_goods or not author:
+        return
     scan_goods.qr_code_openid = notify_id
     db.session.add(scan_goods)
-    MemberService.updateCredits(member_id=scan_goods.member_id)
+    MemberService.updateCredits(member_info=author)
     db.session.commit()
     # ES同步
     SyncService.syncGoodsToES(goods_info=scan_goods, edit=False)
@@ -176,7 +180,7 @@ def scanReturnSuccess(scan_goods=None, notify_id=''):
     SmsTasks.notifyQrcodeOwner.delay(params=params)
 
 
-def releaseGoodsSuccess(goods_info=None, edit_info=None):
+def releaseGoodsSuccess(goods_info=None, edit_info=None, author=None):
     """
     普通帖子结束发帖（可能是编辑）
     :param goods_info:
@@ -191,7 +195,7 @@ def releaseGoodsSuccess(goods_info=None, edit_info=None):
     goods_status = goods_info.status
     db.session.add(goods_info)
     if not is_edit:
-        MemberService.updateCredits(member_id=goods_info.member_id)
+        MemberService.updateCredits(member_info=author)
     # ES同步
     SyncService.syncGoodsToES(goods_info=goods_info, edit=is_edit)
     # RS同步

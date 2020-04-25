@@ -8,6 +8,7 @@
 """
 import json
 
+from application import APP_CONSTANTS
 from common.cahce import redis_conn_db_1, CacheKeyGetter
 from common.models.ciwei.Member import Member
 from common.models.ciwei.User import User
@@ -42,9 +43,10 @@ def getMemberCache(member_id=0):
     return member_info
 
 
+
 def getUserCache(member_id=0):
     """
-    获取单个管理员用户缓存
+    根据member_id获取单个管理员用户缓存
     :param member_id:
     :return:
     """
@@ -63,14 +65,22 @@ def getAllUserCache():
     获取所有管理员用户
     :return:
     """
+    is_all_key = CacheKeyGetter.isAllUserKey()
     user_key = CacheKeyGetter.allUserKey()
+    is_all = redis_conn_db_1.hget(user_key, is_all_key)
+    if not is_all:
+        # 并不包含所有管理员
+        return None
     users = redis_conn_db_1.hvals(user_key)
-    for i in range(len(users)):
+    real_users = []
+    for item in users:
+        if item == APP_CONSTANTS['is_all_user_val']:
+            continue
         user = User()
-        user.__dict__ = json.loads(users[i])
-        users[i] = user
+        user.__dict__ = json.loads(item)
+        real_users.append(user)
     redis_conn_db_1.expire(user_key, 3600)
-    return users
+    return real_users
 
 
 def getGoodsIncrReadCache(goods_id=0):

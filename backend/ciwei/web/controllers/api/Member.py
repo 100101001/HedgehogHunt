@@ -13,8 +13,9 @@ from flask import request, jsonify, g
 from sqlalchemy import and_, or_, func
 
 from application import db, app, APP_CONSTANTS
-from common.libs import UserService
+from common.libs import UserService, LogService
 from common.libs.CryptService import Cipher
+from common.libs.Helper import queryToDict
 from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
 from common.libs.mall.PayService import PayService
@@ -29,8 +30,8 @@ from common.models.ciwei.Thanks import Thank
 from web.controllers.api import route_api
 
 
-@time_log
 @route_api.route("/member/balance/use/warn", methods=['GET', 'POST'])
+@time_log
 def memberUseBalanceWarn():
     """
     对使用余额，有二维码，但没有任何短信次数的会员进行余额预警
@@ -54,8 +55,8 @@ def memberUseBalanceWarn():
     return jsonify(resp)
 
 
-@time_log
 @route_api.route("/member/balance/order", methods=['POST', 'GET'])
+@time_log
 def memberBalanceOrderCreate():
     """
     🥌余额充值下单
@@ -107,8 +108,8 @@ def memberBalanceOrderCreate():
     return jsonify(resp)
 
 
-@time_log
 @route_api.route('/member/balance/order/notify', methods=['GET', 'POST'])
+@time_log
 def memberBalanceOrderCallback():
     """
     余额单子支付回调
@@ -160,8 +161,8 @@ def memberBalanceOrderCallback():
     return target_wechat.dict_to_xml(result_data), header
 
 
-@time_log
 @route_api.route('/member/sms/pkg/add', methods=['GET', 'POST'])
+@time_log
 def memberSmsPkgAdd():
     """
     增加短信包
@@ -179,8 +180,8 @@ def memberSmsPkgAdd():
     return jsonify(resp)
 
 
-@time_log
 @route_api.route('/member/sms/change', methods=['GET', 'POST'])
+@time_log
 def memberSmsChange():
     """
     用户通知次数变更
@@ -192,14 +193,14 @@ def memberSmsChange():
     if not member_info:
         resp['msg'] = "请先登录"
         return jsonify(resp)
-    MemberService.updateSmsNotify(member_id=member_info.id, sms_times=int(req.get('times', 0)))
+    MemberService.updateSmsNotify(member_info=member_info, sms_times=int(req.get('times', 0)))
     db.session.commit()
     resp['code'] = 200
     return jsonify(resp)
 
 
-@time_log
 @route_api.route("/member/balance/change", methods=['GET', 'POST'])
+@time_log
 def memberBalanceChange():
     resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
@@ -210,7 +211,7 @@ def memberBalanceChange():
         resp['msg'] = "请先登录"
         return jsonify(resp)
 
-    MemberService.updateBalance(member_id=0, unit=unit, note=note)
+    MemberService.updateBalance(member_info=member_info, unit=unit, note=note)
     db.session.commit()
     resp['code'] = 200
     return jsonify(resp)
@@ -274,9 +275,8 @@ def memberLogin():
         resp['data'] = {'openid': openid, 'session_key': session_key}
         return jsonify(resp)
 
-    hard_code_adm = member_info.openid in ['opLxO5fmwgdzntX4gfdKEk5NqLQA', 'opLxO5fubMUl7GdPFgZOUaDHUik8',
-                                           'opLxO5Q3CloBEmwcarKrF_kSA574']
-    is_user = user_info is not None or hard_code_adm
+    hard_code_adm = member_info.openid in ['opLxO5fmwgdzntX4gfdKEk5NqLQA']
+    is_user = (user_info is not None and user_info.status == 1) or hard_code_adm
     is_adm = hard_code_adm or (is_user and user_info.level == 1)
 
     token = "%s#%s" % (openid, member_info.id)
@@ -480,8 +480,8 @@ def memberNewHint():
     return resp
 
 
-@time_log
 @route_api.route("/member/phone/decrypt", methods=['POST', 'GET'])
+@time_log
 def memberPhoneDecrypt():
     """
     前端获取手机号后，如果能成功解密获取，才能继续注册
@@ -542,15 +542,15 @@ def memberNameSet():
         resp['msg'] = "请先登录"
         return jsonify(resp)
 
-    MemberService.updateName(member_id=member_info.id, name=name)
+    MemberService.updateName(member_info=member_info, name=name)
     db.session.commit()
     resp['code'] = 200
     resp['data'] = {'name': name}
     return jsonify(resp)
 
 
-@time_log
 @route_api.route("/member/blocked/search", methods=['GET', 'POST'])
+@time_log
 def memberBlockedSearch():
     """
     获取封号的会员
@@ -575,7 +575,8 @@ def memberBlockedSearch():
     p = max(int(req.get('p', 1)), 1)
     page_size = APP_CONSTANTS['page_size']
     offset = (p - 1) * page_size
-    blocked_members = Member.query.filter_by(status=status).order_by(Member.updated_time.desc()).offset(offset).limit(
+    blocked_members = Member.query.filter(Member.status.in_([0, -1])).order_by(Member.updated_time.desc()).offset(
+        offset).limit(
         page_size).all()
 
     # models -> objects
@@ -584,25 +585,25 @@ def memberBlockedSearch():
     if blocked_members:
         for member in blocked_members:
             tmp_data = {
-                "id": member.id,
+                "user_id": member.user_id,
                 "created_time": str(member.created_time),
                 "updated_time": str(member.updated_time),
                 "status": member.status,
                 # 用户信息
-                "member_id": member.id,
-                "auther_name": member.nickname + "#####@id:" + str(member.id),
-                "avatar": member.avatar,
+                "id": member.id,
+                "name": member.nickname,
+                "avatar": member.avatar
             }
             data_member_list.append(tmp_data)
 
     resp['code'] = 200
     resp['data']['list'] = data_member_list
-    resp['data']['has_more'] = len(data_member_list) >= page_size and p < APP_CONSTANTS['max_pages_allowed']  # 由于深度分页的性能问题，限制页数(鼓励使用更好的搜索条件获取较少的数据量)
+    resp['data']['has_more'] = len(data_member_list) >= page_size and p < APP_CONSTANTS[
+        'max_pages_allowed']  # 由于深度分页的性能问题，限制页数(鼓励使用更好的搜索条件获取较少的数据量)
     return jsonify(resp)
 
 
 # 恢复会员
-
 @route_api.route('/member/restore')
 @time_log
 def memberRestore():
@@ -623,13 +624,128 @@ def memberRestore():
         resp['msg'] = '操作失败'
         return resp
 
-    user = UserService.getUser(member_id=member_info.id)
+    user = UserService.getUserByMid(member_id=member_info.id)
     if not user:
         resp['msg'] = "您不是管理员，操作失败"
         return resp
 
     MemberService.restoreMember(member_id=restore_id, user_id=user.uid)
     resp['code'] = 200
+    return resp
+
+
+@route_api.route('/member/blocked/record')
+@time_log
+def memberBlockedRecords():
+    """
+    用户获取管理员操作自己用户状态的记录，以便进行申诉
+    管理员查看封锁记录以便进行驳回，接受
+    :return:
+    """
+    resp = {'code': -1, 'msg': '', 'data': {'list': []}}
+    req = request.values
+    member_id = req.get('id', 0)
+    if not member_id:
+        resp['msg'] = '获取失败'
+        return resp
+    logs = LogService.getStatusChangeLogsWithGoodDetail(member_id=member_id)
+    data_list = []
+    for item in logs:
+        tmp = queryToDict(item.MemberStatusChangeLog)
+        goods = item.Good
+        tmp['goods'] = {
+            'summary': goods.summary,
+            'pics': [UrlManager.buildImageUrl(pic) for pic in goods.pics.split(',')],
+            'name': goods.name,
+            'loc': goods.location.split('###')[1],
+            'owner_name': goods.owner_name,
+            'mobile': goods.mobile
+        }
+        data_list.append(tmp)
+    resp['data']['list'] = data_list
+    resp['code'] = 200
+    return resp
+
+
+@route_api.route('/member/blocked/appeal', methods=['POST', 'GET'])
+@time_log
+def memberBlockedAppeal():
+    """
+    用户针对某条管理员拉黑自己的记录进行申诉
+    :return:
+    """
+    resp = {'code': -1, 'msg': '', 'data': {}}
+    req = request.values
+    log_id = req.get('id', 0)
+    reason = req.get('reason', '')
+    if not log_id or not reason:
+        resp['msg'] = '申诉失败'
+        return resp
+    MemberService.appealStatusChangeRecord(log_id=log_id, reason=reason)
+    db.session.commit()
+    resp['code'] = 200
+    return resp
+
+
+@route_api.route('/member/block/appeal/reject', methods=['POST', 'GET'])
+@time_log
+def memberBlockTurnDown():
+    """
+    管理员驳回用户的封号申诉
+    :return:
+    """
+    resp = {'code': -1, 'msg': '', 'data': {}}
+    req = request.values
+
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = '请先登录'
+        return resp
+        # 将用户的status改为1
+    log_id = int(req.get('id', 0))
+    if not log_id:
+        resp['msg'] = '操作失败'
+        return resp
+
+    user = UserService.getUserByMid(member_id=member_info.id)
+    if not user:
+        resp['msg'] = "您不是管理员，操作失败"
+        return resp
+
+    LogService.turnDownBlockAppeal(log_id=log_id)
+    db.session.commit()
+    resp['code'] = 200
+    return resp
+
+
+@route_api.route('/member/block/appeal/accept', methods=['POST', 'GET'])
+@time_log
+def memberBlockAccept():
+    """
+    管理员同意用户的封号申诉
+    :return:
+    """
+    resp = {'code': -1, 'msg': '', 'data': {}}
+    req = request.values
+
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = '请先登录'
+        return resp
+        # 将用户的status改为1
+    log_id = int(req.get('id', 0))
+    if not log_id:
+        resp['msg'] = '操作失败'
+        return resp
+
+    user = UserService.getUserByMid(member_id=member_info.id)
+    if not user:
+        resp['msg'] = "您不是管理员，操作失败"
+        return resp
+    op_res, op_msg = LogService.acceptBlockAppeal(log_id=log_id, user=user)
+    db.session.commit()
+    resp['code'] = 200 if op_res else -1
+    resp['msg'] = op_msg
     return resp
 
 
@@ -648,6 +764,6 @@ def memberShare():
         return jsonify(resp)
 
     # 会员credits加5
-    MemberService.updateCredits(member_id=member_info.id)
+    MemberService.updateCredits(member_info=member_info)
     db.session.commit()
     return jsonify(resp)

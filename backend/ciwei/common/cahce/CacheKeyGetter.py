@@ -52,17 +52,16 @@ def goodsReadKeyPrefixPattern():
     return "read_*"
 
 
-def userKey(member_id=0):
-    """
-
-    :param member_id:
-    :return:
-    """
-    return "user_{0}".format(member_id)
-
-
 def allUserKey():
     return "all_users"
+
+
+def isAllUserKey():
+    """
+
+    :return:
+    """
+    return "is_all"
 
 
 def wxTokenKey():

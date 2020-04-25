@@ -9,10 +9,13 @@
 import json
 
 from application import db
+from common.libs import UserService
 from common.libs.sms.SMSService import PRODUCT_NAME
+from common.models.ciwei.Goods import Good
 from common.models.ciwei.logs.change.MemberBalanceChangeLog import MemberBalanceChangeLog
 from common.models.ciwei.logs.change.MemberNotifyTimeChangeLog import MemberNotifyTimeChangeLog
 from common.models.ciwei.logs.change.MemberSmsPkgChangeLog import MemberSmsPkgChangeLog
+from common.models.ciwei.logs.change.MemberStatusChangeLog import MemberStatusChangeLog
 from common.models.ciwei.logs.thirdservice.AcsSmsSendLog import AcsSmsSendLog
 from common.models.ciwei.logs.thirdservice.WechatServerApiLog import WechatServerApiLog
 
@@ -121,3 +124,70 @@ def addWechatApiCallLog(url='', token='', req_data=None, resp_data=None):
     api_log_model.resp_data = json.dumps(resp_data)
     db.session.add(api_log_model)
     db.session.commit()
+
+
+def setMemberStatusChange(member_info=None, user_id=0, old_status=0, new_status=0, goods_id=0, note="恶意发帖"):
+    """
+    记录会员账户余额变化
+    :param goods_id:
+    :param user_id:
+    :param new_status:
+    :param old_status:
+    :param member_info:
+    :param note:
+    :return:
+    """
+    change_log_model = MemberStatusChangeLog()
+    change_log_model.user_id = user_id
+    change_log_model.goods_id = goods_id
+    change_log_model.member_id = member_info.id
+    change_log_model.openid = member_info.openid
+    change_log_model.old_status = old_status
+    change_log_model.new_status = new_status
+    change_log_model.note = note
+    db.session.add(change_log_model)
+
+
+def getStatusChangeLogsWithGoodDetail(member_id=0):
+    records = MemberStatusChangeLog.query.join(Good, Good.id == MemberStatusChangeLog.goods_id).filter(
+        MemberStatusChangeLog.member_id == member_id).add_entity(Good).all()
+    return records
+
+
+def appealMemberStatusChangeLog(log_id=0, reason=''):
+    """
+    用户给出申诉理由
+    :param log_id:
+    :param reason:
+    :return:
+    """
+    MemberStatusChangeLog.query.filter_by(id=log_id).update({'member_reason': reason, 'status': 1},
+                                                            synchronize_session=False)
+
+
+def acceptBlockAppeal(log_id=0, user=None):
+    """
+    管理员同意申诉，比较管理员级别
+    :param user:
+    :param log_id:
+    :return:
+    """
+
+    log = MemberStatusChangeLog.query.filter_by(id=log_id).first()
+    origin_user_id = log.user_id
+    origin_user = UserService.getUserByUid(user_id=origin_user_id)
+    if user.level > origin_user.level:
+        return False, '您的级别过低，无权限进行此操作'
+    MemberStatusChangeLog.query.filter_by(id=log_id).update({'status': 2, 'user_id': user.uid},
+                                                            synchronize_session=False)
+    return True, '操作成功'
+
+
+def turnDownBlockAppeal(log_id=0):
+    """
+    管理员拒绝申诉
+    :param log_id:
+    :return:
+    """
+    MemberStatusChangeLog.query.filter_by(id=log_id).update({'status': 3},
+                                                            synchronize_session=False)

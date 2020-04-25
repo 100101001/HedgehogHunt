@@ -179,14 +179,14 @@ def thanksReport():
     report.record_type = 0  # 标识链接的是Thank ID
     db.session.add(report)
 
-    MemberService.updateCredits(member_id=member_info.id)
+    MemberService.updateCredits(member_info=member_info)
     db.session.commit()
     resp['code'] = 200
     return jsonify(resp)
 
 
 # 查询所有记录
-@route_api.route("/thanks/reports-search", methods=['GET', 'POST'])
+@route_api.route("/thanks/reports/search", methods=['GET', 'POST'])
 @time_log
 def thanksReportSearch():
     """

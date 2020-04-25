@@ -66,15 +66,19 @@ def recordSearch():
         query = RecordService.getMyAppeal(member_id=member_info.id, appeal_status=status)
     elif op_status == 2:
         # 推荐列表
-        query = RecordService.getMyRecommend(member_id=member_info.id, goods_status=status, only_new=req.get('only_new', '') == 'true')
+        query = RecordService.getMyRecommend(member_id=member_info.id, goods_status=status,
+                                             only_new=req.get('only_new', '') == 'true')
 
-    search_rule = RecordService.searchBarFilter(owner_name=req.get('owner_name', ''), goods_name=str(req.get('mix_kw', '')))
+    search_rule = RecordService.searchBarFilter(owner_name=req.get('owner_name', ''),
+                                                goods_name=str(req.get('mix_kw', '')))
+    # 由于 unselectable 只是给大家看看(认领者，作者，申诉者，被归还者)，用户无法进行记录的批量操作，推荐谨慎起见，只可见未被举报的
+    report_rule = Good.report_status == 0 if op_status == 2 else Good.report_status.in_([0, 1])
     # 分页排序
     p = max(int(req.get('p', 1)), 1)
     page_size = APP_CONSTANTS['page_size']
     offset = (p - 1) * page_size
     order_rule = Recommend.rel_score.desc() if op_status == 2 else Good.id.desc()
-    goods_list = query.filter(search_rule).order_by(order_rule).offset(offset).limit(page_size).all()
+    goods_list = query.filter(report_rule, search_rule).order_by(order_rule).offset(offset).limit(page_size).all()
 
     # 将对应的用户信息取出来，组合之后返回
     record_list = []
@@ -88,7 +92,8 @@ def recordSearch():
 
     resp['code'] = 200
     resp['data']['list'] = record_list
-    resp['data']['has_more'] = len(goods_list) >= page_size and p < APP_CONSTANTS['max_pages_allowed']  # 由于深度分页的性能问题，限制页数(鼓励使用更好的搜索条件获取较少的数据量)
+    resp['data']['has_more'] = len(goods_list) >= page_size and p < APP_CONSTANTS[
+        'max_pages_allowed']  # 由于深度分页的性能问题，限制页数(鼓励使用更好的搜索条件获取较少的数据量)
     return resp
 
 
@@ -138,7 +143,7 @@ def recordDelete():
         op_res = RecordService.deleteMyAppeal(goods_ids=id_list, member_id=member_info.id)
     elif op_status == 4:
         # 物品和举报状态为 5
-        user_info = UserService.getUser(member_id=member_info.id)
+        user_info = UserService.getUserByMid(member_id=member_info.id)
         if user_info:
             op_res = RecordService.deleteGoodsReport(goods_ids=id_list, user_id=user_info.uid)
     resp['code'] = 200 if op_res else -1

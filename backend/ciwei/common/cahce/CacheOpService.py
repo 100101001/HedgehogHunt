@@ -8,6 +8,7 @@
 """
 import json
 
+from application import APP_CONSTANTS
 from common.cahce import redis_conn_db_1, CacheKeyGetter, CacheKeyReverse
 from common.libs.Helper import queryToDict
 from common.loggin.decorators import time_log
@@ -77,18 +78,16 @@ def removePreMarkCache(found_ids=None, member_id=0):
 
 
 @time_log
-def setUsersCache(users=None):
+def setUsersCache(users=None, is_all=False):
     all_user_key = CacheKeyGetter.allUserKey()
     for user in users:
         if user is not None:
+            # 设置 user_id -> member_Id
             redis_conn_db_1.hset(all_user_key, user.member_id, json.dumps(queryToDict(user)))
-            redis_conn_db_1.expire(all_user_key, 3600)
-
-
-@time_log
-def delUserCache(member_id=0):
-    all_user_key = CacheKeyGetter.allUserKey()
-    redis_conn_db_1.hdel(all_user_key, member_id)
+    if is_all:
+        is_all_key = CacheKeyGetter.isAllUserKey()
+        redis_conn_db_1.hset(all_user_key, is_all_key, APP_CONSTANTS['is_all_user_val'])
+    redis_conn_db_1.expire(all_user_key, 3600)
 
 
 @time_log

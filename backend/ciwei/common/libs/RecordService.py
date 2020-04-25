@@ -118,7 +118,7 @@ def deleteGoodsReport(goods_ids=None, user_id=0):
     """
     if not goods_ids or not user_id:
         return False
-    Report.query.filter(Report.record_type == 1, Report.record_id.in_(goods_ids)). \
+    Report.query.filter(Report.record_type == 1, Report.record_id.in_(goods_ids), Report.deleted_by == 0). \
         update({'deleted_by': user_id}, synchronize_session=False)
     db.session.commit()
     return True
