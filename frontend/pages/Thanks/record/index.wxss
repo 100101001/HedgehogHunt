@@ -62,7 +62,9 @@ page {
 }
 
 .type-navbar-item {
-  border-bottom: 4rpx solid #fff;
+  color: #999;
+  font-weight: bold;
+  border-bottom: 10rpx solid #FFE4B5;
   display: flex;
   font-size: 28rpx;
   flex-direction: row;
