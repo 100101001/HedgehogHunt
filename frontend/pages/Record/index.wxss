@@ -86,6 +86,9 @@ page {
   font-size: 28rpx;
   border-bottom: 10rpx solid #FFE4B5;
   letter-spacing: 3rpx;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
 }
 /***状态栏每一项被选中**/
 .type-item-on {

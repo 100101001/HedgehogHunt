@@ -11,7 +11,7 @@ const deleteLinkLostGoods = function (id_list = [], status=0) {
     url: app.buildUrl('/goods/link/lost/del'),
     header: app.getRequestHeader(),
     data: {
-      id: id_list,
+      ids: id_list,
       status: status
     },
     success: res => {
@@ -35,7 +35,7 @@ const deleteLinkReturnGoods = function (id_list = []) {
     url: app.buildUrl('/goods/link/return/del'),
     header: app.getRequestHeader(),
     data: {
-      id: id_list
+      ids: id_list
     },
     success: res => {
       if (res.data['code'] !== 200) {

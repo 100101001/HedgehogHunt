@@ -16,7 +16,7 @@ Page({
       {
         label: "物品申诉",
         icons: "/images/icons/next.png",
-        act: "toCheckThanksReport",
+        act: "toCheckGoodsAppeal",
       }
     ],
     items1: [
@@ -55,6 +55,9 @@ Page({
   //     url: '/pages/adv/release/adv-release',
   //   })
   // },
+  /**
+   * 添加管理员
+   */
   toAddAdm: function () {
     wx.navigateTo({
       url: 'add_adm/index',
@@ -66,6 +69,14 @@ Page({
   toCheckReport: function () {
     wx.navigateTo({
       url: '/pages/Record/index?op_status=4',
+    })
+  },
+  /**
+   * 检查申诉记录
+   */
+  toCheckGoodsAppeal: function () {
+    wx.navigateTo({
+      url: '/pages/Record/index?op_status=6',
     })
   },
   /**

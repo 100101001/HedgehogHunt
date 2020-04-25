@@ -1,4 +1,4 @@
-// /controls/pages/feedback_msg/index.js
+
 const app = getApp();
 Page({
   data: {

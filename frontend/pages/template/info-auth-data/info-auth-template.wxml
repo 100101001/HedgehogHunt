@@ -25,5 +25,4 @@
       </view>
     </view>
   </view>
-<!--  <view class="submit-btn" bindtap="noRule" wx:if="{{ check_report && goods_status==3 }}">无违规</view>-->
 </template>

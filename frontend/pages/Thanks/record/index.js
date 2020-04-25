@@ -54,8 +54,7 @@ Page({
       infos: infos,
       check_status_id: infos['check_status_id'],
       only_new: infos['only_new'],
-      op_status: op_status,
-      all_thanks_checked: false //用于更新查看状态（只看了收到，还是发出也都看了）
+      op_status: op_status
     });
     this.onPullDownRefresh()
   },
@@ -205,12 +204,19 @@ Page({
    * @param e
    */
   toBlock: function (e) {
+    app.alert({
+      content: '操作不可逆，确认操作？',
+      showCancel: true,
+      cb_confirm: ()=>{this.doBlock(e.currentTarget.dataset.id, e.currentTarget.dataset.report_status)}
+    })
+  },
+  doBlock: function(thank_id, report_status){
     wx.request({
-      url: app.buildUrl("/thanks/block"),
+      url: app.buildUrl("/thanks/report/deal"),
       header: app.getRequestHeader(),
       data: {
-        report_id: e.currentTarget.dataset.report_id,
-        report_status: e.currentTarget.dataset.report_status,
+        thank_id: thank_id,
+        report_status: report_status,
       },
       success:  (res) => {
         let resp = res.data;
@@ -360,51 +366,62 @@ Page({
       content: "为维护平台环境，欢迎举报色情及诈骗、恶意广告等违规信息！同时，恶意举报将会被封号，请谨慎操作，确认举报？",
       showCancel: true,
       cb_confirm: () => {
-        wx.showLoading({
-          title: '信息提交中..'
-        });
-        wx.request({
-          url: app.buildUrl("/thanks/report"),
-          header: app.getRequestHeader(),
-          data: {
-            id: e.currentTarget.dataset.id
-          },
-          success: (res) => {
-            let resp = res.data;
-            if (resp['code'] !== 200) {
-              app.alert({
-                content: resp['msg']
-              });
-              return;
-            }
-            wx.showToast({
-              title: '举报成功，感谢！',
-              icon: 'success',
-              duration: 1000,
-              success: (res) => {
-                setTimeout(this.onPullDownRefresh, 700)
-              }
-            });
-          },
-          fail: (res) => {
-            app.serverBusy();
-          },
-          complete: (res) => {
-            wx.hideLoading();
-          }
-        });
+        this.doReport(e.currentTarget.dataset.index)
       },
     });
   },
-  recordTypeClick: function(e) {
+  doReport: function(index) {
+    wx.showLoading({
+      title: '信息提交中..'
+    });
+    wx.request({
+      url: app.buildUrl("/thanks/report"),
+      header: app.getRequestHeader(),
+      data: {
+        id: this.data.infos.list[index].id
+      },
+      success: (res) => {
+        let resp = res.data;
+        if (resp['code'] !== 200) {
+          app.alert({
+            content: resp['msg']
+          });
+          return;
+        }
+        wx.showToast({
+          title: '举报成功，感谢！',
+          icon: 'success',
+          duration: 1000
+        });
+        //前端隐藏举报项
+        let received_thanks = this.data.infos;
+        received_thanks.list.splice(index, 1);
+        this.setData({
+          infos: received_thanks
+        });
+      },
+      fail: (res) => {
+        app.serverBusy();
+      },
+      complete: (res) => {
+        wx.hideLoading();
+      }
+    });
+  },
+  checkReportClick: function(e) {
     //选择一次分类时返回选中值
     let infos = this.data.infos;
-    infos.check_status_id = e.currentTarget.id * 1;
+    //选择一次分类时返回选中值
+    let old_status_id = infos.check_status_id;
+    infos.check_status_id = e.currentTarget.id;
     this.setData({
       infos: infos,
       check_status_id: e.currentTarget.id,
     });
-    this.onPullDownRefresh();
+    //如果不一致
+    if (old_status_id !== infos.check_status_id) {
+      this.onPullDownRefresh()
+    }
   },
   radioChange: function() {
     //选择一次分类时返回选中值
@@ -416,31 +433,25 @@ Page({
     });
     this.onPullDownRefresh();
   },
-  checkReportClick: function (e) {
-    let infos = this.data.infos
-    //从答谢收到切换到了发出时，更新tips
-    if (this.data.check_status_id == 0 && e.currentTarget.id == 1) {
-      this.data.all_thanks_checked = true
-    }
+  recordTypeClick: function (e) {
+    let infos = this.data.infos;
     //选择一次分类时返回选中值
-    infos.check_status_id = e.currentTarget.id
+    let old_status_id = infos.check_status_id;
+    infos.check_status_id = e.currentTarget.id;
     this.setData({
       infos: infos,
       check_status_id: e.currentTarget.id,
     });
-    this.onPullDownRefresh()
+    //如果不一致
+    if (old_status_id !== infos.check_status_id) {
+      this.onPullDownRefresh()
+    }
   },
   onUnload: function () {
     if (this.data.op_status !== 4) {
       wx.request({
-        url: app.buildUrl("/thanks/update-status"),
-        header: app.getRequestHeader(),
-        data: {
-          all: this.data.all_thanks_checked
-        },
-        success: res => {
-          app.getNewRecommend()
-        }
+        url: app.buildUrl("/thanks/read"),
+        header: app.getRequestHeader()
       })
     }
   }

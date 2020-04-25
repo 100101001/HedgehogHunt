@@ -111,7 +111,7 @@ Page({
   },
   goFeedback: function () {
     wx.navigateTo({
-      url: '/controls/pages/feedback/index',
+      url: 'feedback/index',
     })
   },
   goRecord: function (event) {

@@ -1,4 +1,4 @@
-<!--pages/jmall/my/controls/feedback/index.wxml-->
+<!--pages/Mine/feedback/index.wxml-->
 <loading hidden="{{loadingHidden}}">上传第{{i}}张图片..</loading>
 <view>
   <form class="goods-box" bindsubmit="formSubmit">

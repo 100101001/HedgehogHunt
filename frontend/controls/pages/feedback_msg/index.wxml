@@ -1,4 +1,4 @@
-<!--pages/jmall/my/controls/feedback_msg/index.wxml-->
+<!--/controls/pages/feedback_msg/index.wxml-->
 <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
 
 <view class="tr bg-w" id="table-header">

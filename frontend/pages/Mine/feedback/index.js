@@ -1,4 +1,4 @@
-// pages/jmall/my/controls/feedback/index.js
+// pages/Mine/feedback/index.js
 const app = getApp();
 Page({
   data: {

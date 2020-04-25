@@ -13,6 +13,7 @@
     "pages/login/index",
     "pages/Mine/connect/index",
     "pages/Mine/userinfo/index",
+    "pages/Mine/feedback/index",
     "pages/Find/edit/edit",
     "pages/Qrcode/Mobile/index",
     "pages/Homepage/official-account/index"
@@ -42,8 +43,8 @@
         "pages/add_adm/index",
         "pages/blockmember/blockmember",
         "pages/blockmember/more_record/index",
-        "pages/feedback/index",
-        "pages/feedback_msg/index"
+        "pages/feedback_msg/index",
+        "pages/goods_appeal/index"
       ]
     }
   ],

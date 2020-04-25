@@ -1,4 +1,4 @@
-var app = getApp();
+const app = getApp();
 Page({
   data: {
     loadingMore: true,
@@ -6,16 +6,6 @@ Page({
     block_list: [],
     p: 1,
     loadingHidden: true,
-    feedback_cat: [
-      {
-        id: 0,
-        name: '所有用户'
-      },
-      {
-        id: 2,
-        name: '申诉记录'
-      }],
-    statusId: 0,
     hiddenDetail: true
   },
   onLoad: function (res) {

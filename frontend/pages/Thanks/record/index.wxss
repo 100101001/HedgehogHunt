@@ -174,7 +174,9 @@ page {
   justify-content: center;
   text-align: center;
 }
-
+.lefter {
+  margin-right: 60rpx;
+}
 .report{
   width: 35rpx;
   display: flex;

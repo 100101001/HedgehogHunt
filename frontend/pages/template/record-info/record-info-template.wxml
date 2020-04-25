@@ -217,8 +217,8 @@
           <view class="join-shop-cart" catchtap="{{info.is_auth? 'goTips': ''}}">物品已取回</view>
           <!--状态“操作”区 认领者未答谢可去答谢，否则显示已答谢，作者只能看是否被答谢过了--->
           <view wx:if="{{info.is_owner}}">
-            <view class="now-buy" catchtap="goThanks" wx:if="{{!info.is_thanked}}">去答谢</view>
-            <view class="now-buy" wx:if="{{info.is_thanked}}">已答谢</view>
+            <view class="now-buy" catchtap="goThanks" wx:if="{{info.status!==4}}">去答谢</view>
+            <view class="now-buy" wx:if="{{info.status===4}}">已答谢</view>
           </view>
           <view wx:if="{{info.is_auth}}">
             <view class="now-buy">{{info.is_thanked? '已答谢': '待答谢'}}</view>
@@ -334,8 +334,8 @@
         <view class="join-shop-cart grey" catchtap="goDeleteGotbackReturn" wx:if="{{info.is_origin_deleted}}">原寻物贴已被删</view>
         <!--状态操作区: 归还者可取消归还-->
         <view wx:if="{{!info.is_auth}}">
-          <view class="now-buy" catchtap="goThanks" wx:if="{{!info.is_thanked}}">去答谢</view>
-          <view class="now-buy" wx:if="{{info.is_thanked}}">已答谢</view>
+          <view class="now-buy" catchtap="goThanks" wx:if="{{info.status!==4}}">去答谢</view>
+          <view class="now-buy" wx:if="{{info.status===4}}">已答谢</view>
         </view>
         <view wx:if="{{info.is_auth}}">
           <view class="now-buy {{info.is_no_thanks && !info.is_thanked? 'light-grey': ''}}" catchtap="goTips" >{{info.is_thanked? '已答谢': (info.is_no_thanks? '未答谢':'待答谢')}}</view>
