@@ -12,12 +12,12 @@ Page({
   onShow: function () {
     this.getUserList();
   },
-  toDeleteUser: function(e){
+  toBlockUser: function(e){
     app.alert({
-      content: '确定删除？',
+      content: '确定冻结？',
       showCancel: true,
       cb_confirm: ()=>{
-        this.doOpOnUser("/user/delete", e.currentTarget.dataset.id)
+        this.doOpOnUser("/user/block", e.currentTarget.dataset.id)
       }
     })
   },
@@ -35,7 +35,7 @@ Page({
    * @param url
    * @param mid
    */
-  doOpOnUser: function(url="/user/delete", mid=0){
+  doOpOnUser: function(url="/user/block", mid=0){
     this.setData({
       loadingHidden: false
     });

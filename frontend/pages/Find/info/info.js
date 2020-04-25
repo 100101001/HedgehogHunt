@@ -319,16 +319,61 @@ Page({
       }
     })
   },
+
+  toDeleteReport: function(e){
+    app.alert({
+      content: '确认删除？',
+      showCancel: true,
+      cb_confirm: this.deleteReport
+    })
+  },
+  /**
+   * 删除举报
+   * @param e
+   */
+  deleteReport: function(){
+    wx.request({
+      url: app.buildUrl('/record/delete'),
+      header: app.getRequestHeader(),
+      data: {
+        id_list: [this.data.goods_id],
+        op_status: this.data.op_status // 4
+      },
+      success: (res) => {
+        let resp = res.data;
+        if (resp['code'] === 200) {
+          app.alert({
+            content: '删除成功',
+            cb_confirm: wx.navigateBack
+          })
+        } else {
+          app.alert({
+            content: '删除失败，请稍后重试'
+          })
+        }
+      },
+      fail: (res) => {
+        app.serverBusy()
+      }
+    })
+  },
   /**
    * 处理举报 {@see doDealGoodsReport}
    */
   dealGoodsReport: function (e) {
+    let content;
+    let report_status = e.currentTarget.dataset.report_status * 1;
+    if (report_status > 3) {
+      content = '拉黑该用户代表默认本帖' + (report_status === 4 ? '无' : '') + '违规，此操作不可逆转，确认操作？'
+    } else {
+      content = '确认本帖' + (report_status === 2 ? '无' : '') + '违规？'
+    }
     app.alert({
       title: '举报处理',
-      content: '确认操作？',
+      content: content,
       showCancel: true,
       cb_confirm: () => {
-        this.doDealGoodsReport(this.data.goods_id, e.currentTarget.dataset.report_status);
+        this.doDealGoodsReport(this.data.goods_id, report_status);
       }
     });
   },
@@ -340,7 +385,7 @@ Page({
       title: '操作提交中..'
     });
     wx.request({
-      url: app.buildUrl("/report/deal"),
+      url: app.buildUrl("/report/goods/deal"),
       header: app.getRequestHeader(),
       data: {
         id: id,
@@ -641,7 +686,7 @@ Page({
    */
   doAppeal: function (id = 0, status = 3) {
     wx.request({
-      url: app.buildUrl('/goods/appeal'),
+      url: app.buildUrl('/goods/more_record'),
       header: app.getRequestHeader(),
       data: {
         id: id, // 物品ID

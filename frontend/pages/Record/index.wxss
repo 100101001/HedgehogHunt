@@ -23,21 +23,19 @@ page {
   top:70rpx;
   left: 0;
   width: 750rpx;
-  background-color: #fff;
+  background-color: #FFE4B5;
 }
 
 .type-navbar {
   white-space: nowrap;
   height: 68rpx;
   width: 375rpx;
-  background-color: #fff;
 }
 
 .type-navbar-check-report {
   white-space: nowrap;
   height: 68rpx;
   width: 750rpx;
-  background-color: #fff;
 }
 
 ::-webkit-scrollbar {
@@ -57,6 +55,7 @@ page {
 }
 
 
+
 .type-box-four {
   width: 185rpx;
 }
@@ -67,7 +66,7 @@ page {
 
 
 .status-box-two{
-    width: 375rpx;
+   width: 375rpx;
 }
 
 .type-box-five{
@@ -80,13 +79,20 @@ page {
   overflow: hidden;
 }
 
+/***状态栏每一项**/
 .type-navbar-item {
-  border-bottom: 4rpx solid #fff;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
+  color: #999;
+  font-weight: bold;
+  font-size: 28rpx;
+  border-bottom: 10rpx solid #FFE4B5;
+  letter-spacing: 3rpx;
 }
-
+/***状态栏每一项被选中**/
+.type-item-on {
+  border-bottom: 10rpx solid #f7931e;
+  color: #f7931e;
+}
+/***状态栏新消息提示**/
 .content_tip {
   font-size: 20rpx;
   font-weight: 600;
@@ -102,11 +108,7 @@ page {
   border-radius: 50%;
 }
 
-.type-item-on {
-  border-bottom: 4rpx solid #f7931e;
-  color: #f7931e;
-}
-
+/**下方循环数据列表**/
 .message_container {
   display: flex;
   flex-direction: column;
@@ -114,14 +116,12 @@ page {
   align-items: center;
   margin-top: 140rpx;
 }
-
 .item_message{
   display: flex;
   flex-direction: row;
   justify-content: space-around;
   align-items: center;
 }
-
 
 radio .wx-radio-input {
     width: 34rpx;

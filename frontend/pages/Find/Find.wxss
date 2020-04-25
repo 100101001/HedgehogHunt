@@ -10,47 +10,9 @@ page {
 }
 
 
-/***遮罩层***/
-.shade{
-  width:100%;
-  height:100%;
-  top:0;
-  background:rgba(0,0,0,0.5);
-  overflow: scroll;
-  /*要显示在wrap的上面 */
-  z-index: 100;
-  position: fixed;
-}
-
-/***显示教程***/
-.show{
-  display: block;
-}
-/***隐藏教程***/
-.hide{
-  display: none;
-}
-
-/***右滑食指图***/
-.finger{
-  width: 100rpx;
-  height: 100rpx;
-  position: fixed;
-  top: 50%;
-  left: 10%;
-  animation: moveleft 1s infinite linear;
-}
 
 
-@keyframes moveleft{
-  0%{ left: 10%; }
-  25%{ left: 25%; }
-  50%{ left: 50%; }
-  75%{ left: 75%; }
-  100%{ left: 80%; }
-}
-
-
+/***让状态切换栏吸附在顶部**/
 .fixed-tab{
   position: fixed;
   top: 71rpx;
@@ -60,38 +22,6 @@ page {
 }
 
 @import "../template/floating-ball/floating-ball-template.wxss";
-/*.ball{*/
-/*  border-radius: 50rpx;*/
-/*  background-color: rgba(102,153,255, 0.3);*/
-/*  animation: bubble 5s infinite ease-in-out;*/
-/*  top: 500rpx;*/
-/*  right: 50rpx;*/
-/*  position: fixed;*/
-/*  width: 100rpx;*/
-/*  height: 100rpx;*/
-/*  z-index: 10;*/
-/*}*/
-
-/*.ball-extra{*/
-/*  background-color: rgba(255,204,255, 0.5);*/
-/*}*/
-
-/*.business_type{*/
-/*  font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;*/
-/*  font-size:60rpx;*/
-/*  font-weight: bold;*/
-/*  color:#fff;*/
-/*  line-height:50rpx;*/
-/*  letter-spacing:3rpx;*/
-/*  margin: 25rpx 22rpx;*/
-/*}*/
-
-/*@keyframes bubble{*/
-/*  0% {transform: scale(1);}*/
-/*  25% {transform: scale(1.1);}*/
-/*  50% {transform: scale(1);}*/
-/*  75% {transform: scale(1.1);}*/
-/*}*/
 
 .search_container {
   align-items: center;
@@ -200,7 +130,7 @@ swiper-item image {
   white-space: nowrap;
   height: 64rpx;
   width: 100%;
-  background-color: #fff;
+  background-color: #FFE4B5;
 }
 
 ::-webkit-scrollbar {
@@ -212,7 +142,10 @@ swiper-item image {
 .type-box {
   width: 185rpx;
   box-sizing: content-box;
-  font-size: 24rpx;
+  font-size: 26rpx;
+  color: #A0522D;
+  letter-spacing: 3rpx;
+  font-weight: bold;
   line-height: 60rpx;
   text-align: center;
   display: inline-block;
@@ -224,11 +157,11 @@ swiper-item image {
 /*}*/
 
 .type-navbar-item {
-  border-bottom: 4rpx solid #fff;
+  border-bottom: 10rpx solid #FFE4B5;
 }
 
 .type-item-on {
-  border-bottom: 4rpx solid #f7931e;
+  border-bottom: 10rpx solid #f7931e;
   color: #f7931e;
   font-weight: 600rpx;
 }

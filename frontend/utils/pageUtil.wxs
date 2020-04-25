@@ -31,9 +31,22 @@ var block_status = function (status) {
     return "已驳回"
   }
 };
+/**
+ * 仅显示日期
+ * @param val
+ * @returns {string}
+ */
+var date = function (val) {
+  return val.substring(2, 11)
+};
 
+var views = function(arr=[]) {
+  return arr.filter(function (value) { return value !==''}).length
+};
 module.exports = {
   sub : sub,
   level: level,
-  block_status: block_status
+  block_status: block_status,
+  date: date,
+  views: views
 };

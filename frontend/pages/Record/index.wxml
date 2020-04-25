@@ -14,7 +14,7 @@
       <view class="item_message">
         <radio class="radio" hidden="{{infos.saveHidden}}" data-index="{{index}}" bindtap="selectTap" checked="{{item.selected}}"
         disabled="{{item.unselectable}}"/>
-        <template is="goodsItem" data="{{...item}}" />
+        <template is="goodsItem" data="{{...item, op_status}}" />
       </view>
     </block>
   </view>

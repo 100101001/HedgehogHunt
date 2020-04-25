@@ -66,7 +66,7 @@ Page({
     this.setData({
       p: 1,
       infos: infos,
-      loadingMoreHidden: true
+      loadingMore: true
     });
     if (this.data.op_status === 4) {
       this.getReportList();
@@ -92,8 +92,7 @@ Page({
   },
   //获取信息列表
   getThanksList: function(e) {
-    let that = this;
-    if (!this.data.loadingMoreHidden || this.data.processing) {
+    if (!this.data.loadingMore || this.data.processing) {
       return;
     }
     this.setData({
@@ -126,7 +125,7 @@ Page({
         //修改save的状态
         this.setData({
           p: this.data.p + 1,
-          loadingMoreHidden: data['has_more'] !== 0,
+          loadingMore: data['has_more'],
         });
         this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), goods_list);
       },
@@ -141,58 +140,52 @@ Page({
       },
     })
   },
-  //获取信息列表
+  /**
+   * 获取被举报的答谢
+   * @param e
+   */
   getReportList: function(e) {
-    var that = this;
-    if (!that.data.loadingMoreHidden) {
+    if (!this.data.loadingMore || this.data.processing)  {
       return;
     }
-    if (that.data.processing) {
-      return;
-    }
-    that.setData({
+    this.setData({
       processing: true,
       loadingHidden: false
     });
     wx.request({
-      url: app.buildUrl("/thanks/reports-search"),
+      url: app.buildUrl("/thanks/reports/search"),
       header: app.getRequestHeader(),
       data: {
-        report_status: that.data.check_status_id,
-        mix_kw: that.data.goods_name,
-        owner_name: that.data.owner_name,
-        p: that.data.p,
+        report_status: this.data.check_status_id,
+        mix_kw: this.data.goods_name,
+        owner_name: this.data.owner_name,
+        p: this.data.p,
         //仅获取还未处理过的列表
-        only_new: that.data.only_new
+        only_new: this.data.only_new
       },
-      success: function(res) {
-        var resp = res.data;
-        if (resp.code !== 200) {
+      success: (res) => {
+        let resp = res.data;
+        if (resp['code'] !== 200) {
           app.alert({
-            'content': resp.msg
+            content : resp['msg']
           });
           return
         }
-        var goods_list = resp.data.list;
+        let goods_list = resp['data']['list'];
         goods_list = app.cutStr(goods_list);
-        goods_list = that.data.infos.list.concat(goods_list),
-          //修改save的状态
-          that.setData({
-            p: that.data.p + 1,
-          });
-        if (resp.data.has_more === 0) {
-          that.setData({
-            loadingMoreHidden: false,
-          })
-        }
-        that.setPageData(that.getSaveHide(), that.allSelect(), that.noSelect(), goods_list);
+        goods_list = this.data.infos.list.concat(goods_list);
+        //修改save的状态
+        this.setData({
+          p: this.data.p + 1,
+          loadingMore: resp['data']['has_more']
+        });
+        this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), goods_list);
       },
-      fail: function(res) {
+      fail: (res) => {
         app.serverBusy();
-        return;
       },
-      complete: function(res) {
-        that.setData({
+      complete: (res) => {
+        this.setData({
           processing: false,
           loadingHidden: true
         });

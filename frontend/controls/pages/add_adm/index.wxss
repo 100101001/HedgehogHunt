@@ -38,7 +38,7 @@
 }
 /**表格行背景色交替****/
 .bg-w{
-  background: #FFE4B5;
+  background: rgba(255,228, 181, 0.4);
 }
 .bg-g{
   background: #FFFFF0;
@@ -66,24 +66,28 @@
   margin: 50rpx auto;
   margin-bottom: 0rpx;
 }
-/**表格最后一列的操作管理员的按钮**/
+/**表格最后2列的操作和查看管理员详情的按钮**/
 .op-btn{
   width: 80rpx;
   height: 60rpx;
   border-radius: 10rpx;
   background-color: #f7931e;
   font-size: 26rpx;
-  margin-left: 30rpx;
+  margin: 0 auto;
   display: flex;
   color: #fff;
   text-align: center;
   justify-content: center;
   align-items: center;
 }
-.restore{
-  background-color: #009578;
+.grey {
+  background-color: #cdcdcd;
 }
-.show-btn{
+.restore {
+  background-color: #87CEFA;
+}
+/**新增管理员的按钮**/
+.add-btn{
   background-color:#f7931e;
   font-size: 26rpx;
   font-weight: 600;

@@ -1,125 +1,94 @@
 /**标签页栏**/
-.container{
-  margin-top: 120rpx;
+swiper{
+ height: 460rpx;
 }
-.type-container{
-  display: flex;
-  flex-direction: row;
-  position: fixed;
-  top:0;
-  left: 0;
-  width: 750rpx;
-  background-color: #FFE4B5;
-  z-index: 100;
+
+image {
+border-radius: 10rpx;
+width: 100%;
+height: 100%
 }
-.type-navbar{
-  white-space: nowrap;
-  height: 88rpx;
-  width: 750rpx;
-  background-color: #FFE4B5;
+
+.table {
+position: absolute;
+top: 100rpx;
+width: 100%;
+border: 0px solid darkgray;
 }
-::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  color: transparent;
+
+#table-header {
+position: absolute;
+top: 0rpx;
+z-index: 100;
 }
-.type-box {
-  width: 375rpx;
-  box-sizing: content-box;
-  font-size: 24rpx;
-  line-height: 84rpx;
-  text-align: center;
-  display: inline-block;
-  overflow: hidden;
+
+/**表格标题***/
+.th {
+font-weight: bold;
+width: 20%;
+justify-content: center;
+background: #DEB887;
+color: #fff;
+display: flex;
+height: 3rem;
+align-items: center;
 }
-.type-navbar-item {
-  color: #f7931e;
-  font-weight: bold;
-  font-size: 28rpx;
-  height: 83rpx;
+/**表格行****/
+.tr {
+display: flex;
+width: 100%;
+justify-content: center;
+/*height: 3rem;*/
+align-items: center;
 }
-.type-item-on {
-  border-bottom: 7rpx solid #fff;
-  color: #fff;
+/****行内单个表格元素****/
+.td {
+color: #888888;
+width: 20%;
+justify-content: center;
+padding: 10rpx 0;
+text-align: center;
 }
-.container{
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-/*  margin-top: 125rpx;*/
+/**表格行背景色交替****/
+.bg-w{
+background: rgba(255,228, 181, 0.4);
+}
+.bg-g{
+background: #FFFFF0;
+}
+
+/**表格最后一列的操作管理员的按钮**/
+.op-btn{
+width: 80rpx;
+height: 60rpx;
+border-radius: 10rpx;
+background-color: #f7931e;
+font-size: 26rpx;
+margin: 10rpx auto;
+display: flex;
+color: #fff;
+text-align: center;
+justify-content: center;
+align-items: center;
 }
 
 
-
-.image {
-  border-radius: 10rpx;
-  height: 100rpx;
-  width: 100rpx;
-  margin-left: -40
+/**隐藏已读，显示已读的按钮**/
+.unread-btn{
+background-color:#f7931e;
+font-size: 26rpx;
+font-weight: 600;
+text-align: center;
+color:#fff;
+position:fixed;
+left:530rpx;
+top:870rpx;
+padding: 3rpx 30rpx 3rpx 30rpx;
+border-radius: 20rpx;
 }
-
-.text_container{
-  font-size: 24rpx;
-  opacity: 0.7;
-  margin-left: 40rpx;
+.grey {
+background: #cdcdcd;
 }
-.content{
-  font-size: 26rpx;
-  font-weight: 600;
-  margin-bottom: 10rpx;
-  color:#e64340;
+.blue {
+background-color: #87CEFA;
 }
-.hrz{
-  border: 1rpx solid #eee;
-  width: 100%;
-  margin-bottom: 10rpx;
-  margin-top: 10rpx;
-}
-
-.tips-views{
-  display: flex;
-  font-size: 26rpx;
-  justify-content: center;
-  opacity: 0.7;
-  align-content: center;
-  margin-top: 100rpx;
-}
-
-.no-read{
-  font-size: 26rpx;
-  color: #fff;
-  height: 80rpx;
-  width: 80rpx;
-  background-color: #009578;
-  border-radius: 10rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 20rpx;
-}
-
-.read{
-  height: 80rpx;
-  width: 80rpx;
-  background-color: #e64340;
-  border-radius: 10rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-   font-size: 26rpx;
-  color: #fff;
-  margin-left: 20rpx;
-}
-
-
-
-.tips-views{
-  display: flex;
-  font-size: 26rpx;
-  justify-content: center;
-  opacity: 0.7;
-  align-content: center;
-  margin-top:40rpx;
-}
-

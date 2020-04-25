@@ -171,10 +171,10 @@ Page({
           app.alert({content: resp['msg']});
           return;
         }
-        let op_list = this.data.block_list;
+        let op_list = this.data.user_op_list;
         op_list[index].status = status;
         this.setData({
-          block_list: op_list
+          user_op_list: op_list
         });
         wx.showToast({title: '操作成功', duration: 800, mask: true})
       },

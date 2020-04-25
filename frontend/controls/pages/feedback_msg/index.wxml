@@ -1,27 +1,57 @@
 <!--pages/jmall/my/controls/feedback_msg/index.wxml-->
 <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
-<view class="type-container">
-    <scroll-view class="type-navbar">
-      <view class="type-box" wx:for-items="{{feedback_cat}}" wx:for-item="cat" wx:key="index">
-        <view data-id="{{cat.id}}" class="type-navbar-item {{statusId == cat.id ? 'type-item-on' : ''}}" bindtap="statusTypeClick">
-          {{cat.name}}
-        </view>
-      </view>
-    </scroll-view>
+
+<view class="tr bg-w" id="table-header">
+  <view class="th ">用户ID</view>
+  <view class="th ">昵称</view>
+  <view class="th ">头像</view>
+  <view class="th ">反馈时间</view>
+  <view class="th ">详情</view>
+  <view class="th ">操作</view>
 </view>
-<block wx:for="{{feedback_list}}" wx:if="{{feedback_list.length}}" wx:key="id">
-  <view class="container" bindtap='toFeedBackDetail' data-id="{{item.id}}">
-    <image class="image" src="{{item.main_image}}" mode="aspectFill"></image>
-    <view class="text_container">
-      <view class="content">{{item.summary}}</view>
-      <view>反馈时间：{{item.created_time}}</view>
-      <!--查看的时间-->
-      <view>查看时间：{{item.updated_time}}</view>
+<view class="table">
+  <block wx:for="{{feedback_list}}" wx:key="uid">
+    <view class="tr {{index % 2 === 0? 'bg-g': 'bg-w'}}" wx:if="{{!only_unread || !item.viewed}}">
+      <view class="td">{{item.member_id}}</view>
+      <view class="td">{{item.nickname}}</view>
+      <view class="td">
+        <image src="{{item.avatar}}" style="width: 72rpx; height:72rpx;border-radius:42rpx;margin:8rpx auto; margin-bottom:6rpx;"></image>
+      </view>
+      <wxs src="../../../utils/pageUtil.wxs" module="tools"></wxs>
+      <view class="td">{{tools.date(item.created_time)}}</view>
+      <!--查看详情，图片和描述和物主-->
+      <view class="td"> <view class="op-btn" data-index="{{index}}" bindtap="openFeedbackDetail">详情</view></view>
+      <!--操作-->
+      <view class="td">
+          <view  wx:if="{{!item.viewed}}" class="op-btn blue" bindtap="markRead"
+                 data-index="{{index}}">已读</view>
+          <view wx:if="{{item.viewed}}" class="op-btn grey" data-index="{{index}}" bindtap="delFeedback">删除</view>
+      </view>
     </view>
-    <view wx:if="{{item.status==1}}" class="no-read">未读</view>
-    <view wx:if="{{item.status==0}}" class="read">已阅</view>
+  </block>
+</view>
+
+<button class="unread-btn {{unly_read? 'blue':'grey'}}" bindtap="hideReadFeedback" wx:if="{{hiddenFeedbackDetail && hiddenReadDetail}}">{{only_unread? '显示已读':'隐藏已读'}}</button>
+
+<lyx-modal hidden="{{hiddenFeedbackDetail}}" noCancel="true" bindconfirm="closeFeedbackDetail" confirmText="关闭" title="反馈详情">
+  <!--图片-->
+  <swiper class="swiper_box" autoplay="true" interval="3000" duration="1000" circular="true">
+    <block wx:for="{{feedback.pics}}" wx:key="index">
+      <swiper-item>
+        <image src="{{item}}" bindtap="previewItemImage" data-index="{{index}}" class="slide-image" width="355" height="150" mode="aspectFit" lazy-load="true" />
+      </swiper-item>
+    </block>
+  </swiper>
+  <view>描述：{{feedback.summary}}</view>
+  <view bindtap="openViewDetail">阅读量：{{tools.views(feedback.views)}}</view>
+  <view>时间：{{feedback.created_time}}</view>
+</lyx-modal>
+
+
+<lyx-modal hidden="{{hiddenReadDetail}}" noCancel="true" bindconfirm="closeViewDetail" confirmText="关闭" title="浏览详情">
+  <!--图片-->
+  <view wx:for="{{feedback.views}}">
+    <view wx:if="{{item}}">管理员ID: {{item}}</view>
   </view>
   <view class="hrz"></view>
-</block>
-<view class="tips-views" wx:if="{{!loadingMoreHidden}}">没有更多记录了~</view>
-<view class="tips-views" wx:if="{{loadingMoreHidden}}">上滑加载更多～</view>
+</lyx-modal>

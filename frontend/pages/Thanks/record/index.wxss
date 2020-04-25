@@ -25,14 +25,14 @@ page {
   white-space: nowrap;
   height: 68rpx;
   width: 375rpx;
-  background-color: #fff;
+  background-color: #FFE4B5;
 }
 
 .type-navbar-check-report {
   white-space: nowrap;
   height: 68rpx;
   width: 750rpx;
-  background-color: #fff;
+  background-color: #FFE4B5;
 }
 
 ::-webkit-scrollbar {
@@ -64,14 +64,21 @@ page {
 .type-navbar-item {
   border-bottom: 4rpx solid #fff;
   display: flex;
+  font-size: 28rpx;
   flex-direction: row;
   justify-content: center;
 }
 
 .type-item-on {
-  border-bottom: 4rpx solid #f7931e;
+  border-bottom: 10rpx solid #f7931e;
   color: #f7931e;
 }
+
+.type-box-five {
+  width: 150rpx;
+}
+
+
 .content_tip {
   font-size: 20rpx;
   font-weight: 600;

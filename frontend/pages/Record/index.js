@@ -348,25 +348,26 @@ Page({
     else if (op_status === 4) {
       title = '举报记录';
       //管理后台
-      check_cat = [{
-        id: 1,
-        name: '待处理'
-      },
+      check_cat = [
         {
-          id: 3,
-          name: '发布者'
+          id: 1,
+          name: '待处理'
         },
         {
           id: 2,
-          name: '举报者'
-        },
-        {
-          id: 4,
           name: '无违规'
         },
         {
-          id: 5,
+          id: 3,
           name: '已屏蔽'
+        },
+        {
+          id: 4,
+          name: '举报者'
+        },
+        {
+          id: 5,
+          name: '发布者'
         }
       ]
     }
@@ -593,6 +594,7 @@ Page({
         //修改save的状态
         this.setData({
           p: this.data.p + 1,
+          all_selected_disabled: this.data.all_selected_disabled && allUnEditableGood(goods_list),  // 都需要不存在才不禁用
           loadingMore: data['has_more']
         });
         this.setPageData(this.getSaveHide(), this.allSelect(), this.noSelect(), goods_list);
@@ -1145,11 +1147,12 @@ Page({
    */
   checkReportClick: function (e) {
     //选择一次分类时返回选中值
+    let status = e.currentTarget.id * 1
     let infos = this.data.infos;
-    infos.check_status_id = e.currentTarget.id;
+    infos.check_status_id = status;
     this.setData({
       infos: infos,
-      check_status_id: e.currentTarget.id,
+      check_status_id: status
     });
     this.onPullDownRefresh();
   },

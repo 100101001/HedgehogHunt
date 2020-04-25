@@ -9,7 +9,7 @@
 </view>
 <view class="table">
   <block wx:for="{{user_list}}" wx:key="uid">
-    <view class="tr {{index % 2 === 0? 'bg-g': ''}}">
+    <view class="tr {{index % 2 === 0? 'bg-g': 'bg-w'}}">
       <view class="td">{{item.uid}}</view>
       <view class="td">{{item.name}}</view>
       <view class="td">{{item.level}}</view>
@@ -17,14 +17,15 @@
         <view class="op-btn" catchtap="openContact" data-mobile="{{item.mobile}}" data-email="{{item.email}}">联络</view>
       </view>
       <view class="td">
-        <view class="op-btn" wx:if="{{item.status}}" bindtap="toDeleteUser" data-id="{{item.member_id}}">删除</view>
+        <view class="op-btn grey" wx:if="{{item.status}}" bindtap="toBlockUser" data-id="{{item.member_id}}">冻结</view>
+        <view class="op-btn restore" wx:if="{{!item.status}}" bindtap="toRestoreUser" data-id="{{item.member_id}}">恢复</view>
       </view>
     </view>
   </block>
 </view>
 
 
-
+<button class="add-btn" bindtap="openAddUser" wx:if="{{hiddenAddUser}}">添加管理员</button>
 <lyx-modal hidden="{{hiddenAddUser}}" noCancel="true" bindconfirm="closeAddUser" confirmText="取消" title="添加管理员">
   <form class="goods-box" bindsubmit="formSubmit">
     <input name="name" class="inputbox" placeholder="姓名" value="{{form_info}}"></input>
@@ -35,8 +36,6 @@
     <button class="submit-btn" form-type="submit">提交添加</button>
   </form>
 </lyx-modal>
-
-<button class="show-btn" bindtap="openAddUser" wx:if="{{hiddenAddUser}}">添加管理员</button>
 
 <lyx-modal hidden="{{hiddenContact}}" noCancel="true" confirmText="关闭" bindconfirm="closeContact" title="联系方式">
   <view catchtap="copyContact" data-text="{{mobile}}" data-id="0">手机： {{mobile}}</view>

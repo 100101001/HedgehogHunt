@@ -13,7 +13,7 @@
     <block wx:for="{{block_list}}" wx:key="uid">
       <view class="tr {{index % 2 === 0? 'bg-g': ''}}">
         <view class="td">{{item.id}}</view>
-        <view class="td">{{item.auther_name}}</view>
+        <view class="td">{{item.name}}</view>
         <view class="td"><image style="width: 60rpx; height: 60rpx;border-radius: 50%;" src="{{item.avatar}}" /></view>
         <view class="td">
           <view class="op-btn" catchtap="openDetail"

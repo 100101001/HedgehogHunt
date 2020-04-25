@@ -144,6 +144,7 @@ const getNewRecommend = function(cb_complete=(data={})=>{}){
 /**
  * 检查物品是否被申诉了（去答谢之前，以及创建答谢时）
  * @param goods_id
+ * @param status
  * @param cb_success
  */
 const checkGoodsStatus =  function (goods_id=0, status=0, cb_success=()=>{}){
@@ -180,7 +181,7 @@ const DES3_Decrypt =function (data, key) {
 const DES3_Encrypt = function (data,key) {
   let des3en = BASE64.encoder(DES3.encrypt(key, data));
   return des3en;
-}
+};
 
 /**
  * 将小程序的API封装成支持Promise的API
