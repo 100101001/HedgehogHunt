@@ -68,7 +68,7 @@ class WeChatService:
 
     def dict_to_xml(self, dict_data):
         """
-        dict to xml
+        把字典数据转成xml格式
         :rtype: object
         :param dict_data:
         :return:
@@ -81,7 +81,7 @@ class WeChatService:
 
     def xml_to_dict(self, xml_data):
         """
-        xml to dict
+        解析xml数据成 k-v字典
         :param xml_data:
         :return:
         """
@@ -110,14 +110,13 @@ class WeChatService:
             url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={}&secret={}".format(
                 app.config['OPENCS_APP']['appid'], app.config['OPENCS_APP']['appkey'])
 
-            wxResp = requests.get(url)
-            if 'access_token' not in wxResp.json().keys():
-                data = wxResp.json()
-                app.logger.error("failed to get token! Errcode: %s, Errmsg:%s", data['errcode'], data['errmsg'])
+            wxResp = requests.get(url).json()
+            if 'access_token' not in wxResp.keys():
+                app.logger.error("failed to get token! Errcode: %s, Errmsg:%s", wxResp['errcode'], wxResp['errmsg'])
                 return None
             else:
-                CacheOpService.setWxToken(wxResp.json())
-                return token['token']
+                CacheOpService.setWxToken(wxResp)
+                return wxResp.get('access_token')
         else:
             return token
 

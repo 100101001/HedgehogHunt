@@ -86,6 +86,7 @@ def doAutoRecommendGoods(goods_info=None, edit=False):
     app.logger.warn("推荐结束")
     if need_notification:
         # 有需要发送消息的，异步批量的发送订阅消息
+        app.logger.info("发送订阅消息")
         SubscribeTasks.send_recommend_subscribe_in_batch.delay(lost_list=need_notification,
                                                                found_goods=queryToDict(goods_info))
 

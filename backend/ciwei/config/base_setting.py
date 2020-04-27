@@ -2,7 +2,7 @@ from celery.schedules import crontab
 
 SERVER_PORT = 8999
 # IP = '127.0.0.1'
-IP = '192.168.1.116'
+IP = '192.168.0.116'
 # IP='100.68.70.139'
 # IP='47.102.201.193'
 DEBUG = True
@@ -47,7 +47,7 @@ CELERYBEAT_SCHEDULE = {
         'options': {'queue': 'mall_queue', 'routing_key': 'for_mall', 'delivery_mode': 'transient'}  # 定时清理的消息如果丢失是没有关系的
     },
     'incr_read_count_to_db_every_day': {
-        'task': 'sync.incr_read_count_to_db',
+        'task': 'sync2.incr_read_count_to_db',
         'schedule':  crontab(minute=25, hour=2),  # 每天的凌晨执行任务
         'options': {'queue': 'sync_queue', 'routing_key': 'for_sync'}
     }
@@ -141,7 +141,8 @@ ES = {
 
 # 过滤url，登录页面本身的url要跳过
 API_IGNORE_URLS = [
-    '^/api'
+    '/api/member/blocked/record',
+    '/api/member/blocked/appeal'
 ]
 
 STATUS_MAPPING = {
@@ -228,6 +229,17 @@ CONSTANTS = {
     },
     'default_lost_loc': '不知道###不知道###0###0',
     'default_loc': ['不知道', '不知道', 0, 0],
+    'is_all_user_val': '1',
+    'report': {
+      'stuff_type': {
+          'goods': 1,
+          'thanks': 0
+      },
+      'handler_name': {
+          'goods': 'goods',
+          'thanks': 'thanks'
+      }
+    },
     'page_size': 10,
     'max_pages_allowed': 50,
     'sp_product': {
@@ -250,15 +262,5 @@ CONSTANTS = {
         'free_sms': {
             'times': 5
         }
-    },
-    'goods': {
-        'report_status': {
-            'releaser_block': 3,
-            'reporter_block': 2,
-            'block': 5,
-            'soft_block': 6,
-            'clean': 0
-        }
     }
-
 }

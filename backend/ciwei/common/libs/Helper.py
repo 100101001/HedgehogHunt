@@ -15,6 +15,19 @@ param_getter = {
 }
 
 
+def isInstance(target, *args):
+    """
+    是否是某个类型实例的包装
+    :param target:
+    :param args:
+    :return:
+    """
+    for arg in args:
+        if isinstance(target, arg):
+            return True
+    return False
+
+
 def iPagination(params):
     import math
 
@@ -265,7 +278,7 @@ def convert_datetime(value):
     if value:
         if isinstance(value, (cdatetime, DateTime)):
 
-            return value.strftime("%Y-%m-%d %H:%M")
+            return value.strftime("%Y-%m-%d %H:%M:%S")
 
         elif isinstance(value, (date, Date)):
 

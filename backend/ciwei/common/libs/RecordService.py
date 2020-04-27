@@ -6,19 +6,20 @@
 @file: RecordService.py
 @desc: 
 """
+import datetime
+
 from sqlalchemy import and_, or_
 
 from application import db, APP_CONSTANTS
-from common.cahce import cas, CacheQueryService
+from common.cahce import cas
 from common.libs.UrlManager import UrlManager
-from common.libs.recommend.v2 import SyncService
 from common.models.ciwei.Appeal import Appeal
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Recommend import Recommend
 from common.models.ciwei.Report import Report
 from common.models.ciwei.Thanks import Thank
-from common.tasks.sync import SyncTasks
+from common.search.decorators import goods_record_db_search, goods_record_es_search
 
 
 def deleteMyRelease(goods_ids=None, biz_type=0, status=0):
@@ -36,12 +37,9 @@ def deleteMyRelease(goods_ids=None, biz_type=0, status=0):
         # 保证申诉和删除不冲突
         if cas.exec(item_id, status, 7):
             ok_ids.append(item_id)
-    Good.query.filter(Good.id.in_(ok_ids), Good.status == status).update({'status': 7}, synchronize_session=False)
+    Good.query.filter(Good.id.in_(ok_ids), Good.status == status).update({'status': 7},
+                                                                         redis_arg=int(biz_type))
     db.session.commit()
-    SyncService.syncSoftDeleteGoodsToESBulk(goods_ids=goods_ids)
-    if status == 1 and biz_type != 2:
-        # 删除了待匹配的物品(失物招领和寻物启事的biz_type=1/0)
-        SyncTasks.syncDelGoodsToRedis.delay(goods_ids=goods_ids, business_type=biz_type)
     return True
 
 
@@ -124,65 +122,166 @@ def deleteGoodsReport(goods_ids=None, user_id=0):
     return True
 
 
-def getMyRelease(member_id=0, biz_type=0, status=0):
-    return Good.query.filter_by(member_id=member_id, status=status, business_type=biz_type)
+class GoodsRecordSearchHandler:
+    __strategy_map = {
+        -1: '_getPublicRelease',
+        0: '_getMyRelease',
+        1: '_getMyMark',
+        2: '_getMyRecommend',
+        4: '_getReportedGoods',
+        5: '_getMyReturnNotice',
+        6: '_getMyAppeal'
+    }
+
+    @staticmethod
+    def deal(op_status, **kwargs):
+        strategy = GoodsRecordSearchHandler.__strategy_map.get(op_status)
+        handler = getattr(GoodsRecordSearchHandler, strategy, None)
+        if handler:
+            return handler(**kwargs)
+
+    @staticmethod
+    @goods_record_db_search
+    def _getReportedGoods(report_status=0, **kwargs):
+        """
+        获取所有举报物品
+        :param report_status:
+        :param kwargs:
+        :return:
+        """
+        return Good.query.join(Report, Report.record_id == Good.id).filter(Report.record_type == 1,
+                                                                           Report.status == report_status,
+                                                                           Report.deleted_by == 0)
+
+    @staticmethod
+    @goods_record_es_search
+    def _getPublicRelease(biz_type=0, status=0, **kwargs):
+        """
+        公开的物品帖子记录
+        :param biz_type:
+        :param status:
+        :param kwargs:
+        :return:
+        """
+        report_status_must = {"match": {"report_status": 0}}  # 举报帖子将暂时隐藏
+        biz_type_must = {"match": {"business_type": biz_type}}
+        status_must = {"match": {"status": status}}
+        must = [biz_type_must, report_status_must, status_must]
+        query = {
+            'query': {
+                "bool": {
+                    'must': must
+                }
+            },
+            "from": 0,
+            "size": 0,
+            "sort": {
+                "top_expire_time": {
+                    "order": "desc"
+                }
+            }
+        }
+        return query
+
+    @staticmethod
+    @goods_record_es_search
+    def _getMyRelease(member_id=0, biz_type=0, status=0, **kwargs):
+        """
+        发布记录
+        :param member_id:
+        :param biz_type:
+        :param status:
+        :param kwargs:
+        :return:
+        """
+        report_status_should = [{"match": {"report_status": 0}}, {"match": {"report_status": 1}}]  # 举报帖子将暂时隐藏
+        biz_type_must = {"match": {"business_type": biz_type}}
+        status_must = {"match": {"status": status}}
+        member_must = {"match": {"member_id": member_id}}
+        must = [member_must, biz_type_must, status_must]
+        query = {
+            'query': {
+                "bool": {
+                    'must': must,
+                    'should': report_status_should,
+                    'minimum_should_match': 1
+                },
+            },
+            "from": 0,
+            "size": 0,
+            "sort": {
+                "id": {
+                    "order": "desc"
+                }
+            }
+        }
+        return query
+
+    @staticmethod
+    @goods_record_db_search
+    def _getMyMark(member_id=0, status=0, **kwargs):
+        """
+        获取认领记录
+        :param member_id:
+        :param status:
+        :return:
+        """
+        return Good.query.join(Mark, Good.id == Mark.goods_id).filter(Mark.member_id == member_id,
+                                                                      Mark.status == status,
+                                                                      Good.business_type == 1)
+
+    @staticmethod
+    @goods_record_db_search
+    def _getMyReturnNotice(member_openid='', status=0, **kwargs):
+        """
+        获取归还通知
+        :param member_openid:
+        :param status:
+        :return:
+        """
+        return Good.query.filter(and_(Good.business_type == 2,
+                                      Good.status == status,
+                                      # 两类归还都要
+                                      or_(Good.return_goods_openid == member_openid,
+                                          Good.qr_code_openid == member_openid)))
+
+    @staticmethod
+    @goods_record_db_search
+    def _getMyAppeal(member_id=0, status=0, **kwargs):
+        """
+        获取申诉记录
+        :param member_id:
+        :param status:
+        :return:
+        """
+        return Good.query.join(Appeal, Good.id == Appeal.goods_id).filter(Appeal.member_id == member_id,
+                                                                          Appeal.status == status)
+
+    @staticmethod
+    @goods_record_db_search
+    def _getMyRecommend(member_id=0, status=0, only_new=True, **kwargs):
+        """
+        获取推荐记录
+        :param member_id:
+        :param status:
+        :param only_new:
+        :return:
+        """
+        rule = and_(Recommend.target_member_id == member_id,
+                    Recommend.status == 0 if only_new else Recommend.status != 7,
+                    Good.status == status)
+        return Good.query.join(Recommend,
+                               Recommend.found_goods_id == Good.id).add_entity(Recommend).filter(rule)
 
 
-def getMyMark(member_id=0, mark_status=0):
-    """
-    获取认领记录
-    :param member_id:
-    :param mark_status:
-    :return:
-    """
-    return Good.query.join(Mark, Good.id == Mark.goods_id).filter(Mark.member_id == member_id,
-                                                                  Mark.status == mark_status,
-                                                                  Good.business_type == 1)
+class RecordsSearchHandlers:
+    __search_handlers = []
 
 
-def getMyReturnNotice(member_openid='', return_status=0):
-    """
-    获取归还通知的SQL
-    :param member_openid:
-    :param return_status:
-    :return:
-    """
-    return Good.query.filter(and_(Good.business_type == 2,
-                                  Good.status == return_status,
-                                  # 两类归还都要
-                                  or_(Good.return_goods_openid == member_openid,
-                                      Good.qr_code_openid == member_openid)))
-
-
-def getMyAppeal(member_id=0, appeal_status=0):
-    """
-
-    :param member_id:
-    :param appeal_status:
-    :return:
-    """
-    return Good.query.join(Appeal, Good.id == Appeal.goods_id).filter(Appeal.member_id == member_id,
-                                                                      Appeal.status == appeal_status)
-
-
-def getMyRecommend(member_id=0, goods_status=0, only_new=True):
-    """
-
-    :param member_id:
-    :param goods_status:
-    :param only_new:
-    :return:
-    """
-    rule = and_(Recommend.target_member_id == member_id,
-                Recommend.status == 0 if only_new else Recommend.status != 7,
-                Good.status == goods_status)
-    return Good.query.join(Recommend,
-                           Recommend.found_goods_id == Good.id).add_entity(Recommend).filter(rule)
-
-
-def searchBarFilter(owner_name='', address='', goods_name=''):
+def searchBarFilter(owner_name='', address='', goods_name='', record_type=0):
     """
     获取记录页的搜索过滤条件
+    :param record_type:
     :param owner_name:
     :param address:
     :param goods_name:
@@ -190,13 +289,18 @@ def searchBarFilter(owner_name='', address='', goods_name=''):
     """
     # 搜索框筛选
     # 物主名 owner_name 或 物品名name
+    stuffs = [Good, Thank]
+    stuff = stuffs[record_type]
     rules = []
     if owner_name:
         fil_str = '%'.join([ch for ch in owner_name])
-        rules.append(Good.owner_name.ilike("%{0}%".format(fil_str)))
+        rules.append(stuff.owner_name.ilike("%{0}%".format(fil_str)))
     if goods_name:
         fil_str = '%'.join([ch for ch in goods_name])
-        rules.append(Good.name.ilike("%{0}%".format(fil_str)))
+        if hasattr(stuff, 'name'):
+            rules.append(stuff.name.ilike("%{0}%".format(fil_str)))
+        elif hasattr(stuff, 'goods_name'):
+            rules.append(stuff.goods_name.ilike("%{0}%".format(fil_str)))
     return and_(*rules)
 
 
@@ -238,7 +342,9 @@ def makeRecordData(item=None, op_status=0, status=0, now=None):
         "main_image": UrlManager.buildImageUrl(item.main_image),
         "selected": False,  # 供前端选中删除记录用的属性
         "unselectable": is_appealed or is_pre_mark_fail or unconfirmed_returned_lost or is_reported,  # 前端编辑禁止选中
-        "top": item.top_expire_time > now,  # 是否为置顶记录
+        "top": item.top_expire_time > now if op_status else datetime.datetime.strptime(item.top_expire_time,
+                                                                                       "%Y-%m-%dT%H:%M:%S") > now,
+        # 是否为置顶记录
         "updated_time": str(item.updated_time)
     }
     return record
@@ -288,7 +394,7 @@ def getMyReceivedThanks(member_id=0, only_new=False):
     """
 
     status_rule = Thank.status == 0 if only_new else Thank.status.in_([0, 1])
-    query = Thank.query.filter(Thank.target_member_id == member_id, status_rule)
+    query = Thank.query.filter(Thank.target_member_id == member_id, status_rule, Thank.report_status == 0)
     return query
 
 

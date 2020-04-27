@@ -12,6 +12,7 @@ from application import db
 from common.libs import UserService
 from common.libs.sms.SMSService import PRODUCT_NAME
 from common.models.ciwei.Goods import Good
+from common.models.ciwei.Thanks import Thank
 from common.models.ciwei.logs.change.MemberBalanceChangeLog import MemberBalanceChangeLog
 from common.models.ciwei.logs.change.MemberNotifyTimeChangeLog import MemberNotifyTimeChangeLog
 from common.models.ciwei.logs.change.MemberSmsPkgChangeLog import MemberSmsPkgChangeLog
@@ -126,10 +127,11 @@ def addWechatApiCallLog(url='', token='', req_data=None, resp_data=None):
     db.session.commit()
 
 
-def setMemberStatusChange(member_info=None, user_id=0, old_status=0, new_status=0, goods_id=0, note="恶意发帖"):
+def setMemberStatusChange(member_info=None, user_id=0, old_status=0, new_status=0, stuff_id=0, stuff_type=1, note="恶意发帖"):
     """
-    记录会员账户余额变化
-    :param goods_id:
+    记录会员账户状态变化
+    :param stuff_type:
+    :param stuff_id:
     :param user_id:
     :param new_status:
     :param old_status:
@@ -139,7 +141,8 @@ def setMemberStatusChange(member_info=None, user_id=0, old_status=0, new_status=
     """
     change_log_model = MemberStatusChangeLog()
     change_log_model.user_id = user_id
-    change_log_model.goods_id = goods_id
+    change_log_model.stuff_id = stuff_id
+    change_log_model.stuff_type = stuff_type  # 物品或者答谢
     change_log_model.member_id = member_info.id
     change_log_model.openid = member_info.openid
     change_log_model.old_status = old_status
@@ -148,9 +151,12 @@ def setMemberStatusChange(member_info=None, user_id=0, old_status=0, new_status=
     db.session.add(change_log_model)
 
 
-def getStatusChangeLogsWithGoodDetail(member_id=0):
-    records = MemberStatusChangeLog.query.join(Good, Good.id == MemberStatusChangeLog.goods_id).filter(
-        MemberStatusChangeLog.member_id == member_id).add_entity(Good).all()
+def getStatusChangeLogsWithStuffDetail(member_id=0, stuff_type=0):
+    stuffs = [Thank, Good]
+    stuff = stuffs[stuff_type]
+    records = MemberStatusChangeLog.query.join(stuff, stuff.id == MemberStatusChangeLog.stuff_id). \
+        filter(MemberStatusChangeLog.member_id == member_id,
+               MemberStatusChangeLog.stuff_type == stuff_type).add_entity(Good).all()
     return records
 
 
@@ -191,3 +197,5 @@ def turnDownBlockAppeal(log_id=0):
     """
     MemberStatusChangeLog.query.filter_by(id=log_id).update({'status': 3},
                                                             synchronize_session=False)
+
+

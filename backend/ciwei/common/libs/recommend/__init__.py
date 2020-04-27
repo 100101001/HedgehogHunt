@@ -6,12 +6,7 @@
 @file: __init__.py.py
 @desc: 建立ES索引和index；建立redis的连接。
 """
-from application import es
 
-
-class RecommendServiceStartUp:
-    def __init__(self):
-        self.es = es
 
 
 

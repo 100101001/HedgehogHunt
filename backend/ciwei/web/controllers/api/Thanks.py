@@ -8,14 +8,13 @@
 """
 
 from flask import request, jsonify, g
-from sqlalchemy import or_
 
 from application import app, db, APP_CONSTANTS
 from common.libs import RecordService, ThanksService
 from common.libs.Helper import param_getter, queryToDict
 from common.libs.MemberService import MemberService
+from common.libs.ReportService import ReportHandlers, REPORT_CONSTANTS
 from common.loggin.decorators import time_log
-from common.models.ciwei.Member import Member
 from common.models.ciwei.Report import Report
 from common.models.ciwei.Thanks import Thank
 from common.models.ciwei.User import User
@@ -26,11 +25,11 @@ from web.controllers.api import route_api
 @route_api.route("/thanks/search", methods=['GET', 'POST'])
 @time_log
 def thanksSearch():
-    resp = {'code': -1, 'msg': 'search thanks successfully(thanks)', 'data': {}}
+    resp = {'code': -1, 'msg': '', 'data': {}}
     # 登录
     member_info = g.member_info
     if not member_info:
-        resp['msg'] = "没有相关用户信息"
+        resp['msg'] = "请先登录"
         return jsonify(resp)
     # 参数检查
     req = request.values
@@ -68,6 +67,7 @@ def thanksSearch():
                 "auther_name": item.nickname,  # 答谢者
                 "avatar": item.avatar,  # 答谢者头像
                 "selected": False,  # 前端编辑用
+                "unselectable": item.report_status != 0
             }  # 组装答谢
             thanks_records.append(thank)  #
     resp['data']['list'] = thanks_records
@@ -76,25 +76,17 @@ def thanksSearch():
     return resp
 
 
-@route_api.route("/thanks/update-status", methods=['GET', 'POST'])
+@route_api.route("/thanks/read", methods=['GET', 'POST'])
 @time_log
 def thankStatusUpdate():
     """
-    退出页面时，按用户点击过的状态栏，自动更新答谢为已读
+    退出页面时，自动更新答谢为已读
     :return:
     """
-    req = request.values
     member_info = g.member_info
     if not member_info:
         return ""
-    query = Thank.query.filter(Thank.status.in_([0, 1]))
-    is_all = req.get('all', '') == 'true'
-    if is_all:
-        _rule = or_(Thank.target_member_id == member_info.id, Thank.member_id == member_info.id)
-        query = query.filter(_rule)
-    else:
-        query = query.filter_by(target_member_id=member_info.id)
-    query.update({'status': 1}, synchronize_session=False)
+    Thank.query.filter_by(target_member_id=member_info.id, status=0).update({'status': 1}, synchronize_session=False)
     db.session.commit()
     return ""
 
@@ -116,13 +108,14 @@ def thanksCreate():
         req = request.values
         thank_model = ThanksService.sendThanksToGoods(send_member=member_info, thanked_goods=req, thank_info=req)
         # 标记goods方便详情帖子获取是否已经答谢过（答谢接口频率低于详情），和记录接口查看已答谢记录
-        business_type = req.get('business_type', 0)
+        business_type = int(req.get('business_type', 0))
         if business_type == 1:
             # 帖子和认领记录一起更新
             ThanksService.updateThankedFoundStatus(found_id=thank_model.goods_id, send_member_id=member_info.id)
         elif business_type == 2:
             # 归还和寻物帖子一起更新
             ThanksService.updateThankedReturnStatus(return_id=thank_model.goods_id)
+        thanks_info = queryToDict(thank_model)
         db.session.commit()
         resp['code'] = 200
     except Exception as e:
@@ -132,7 +125,7 @@ def thanksCreate():
         return resp
     try:
         # 即使发生了异常也不会影响已经支付答谢过的
-        SubscribeTasks.send_thank_subscribe.delay(thank_info=queryToDict(thank_model))
+        SubscribeTasks.send_thank_subscribe.delay(thank_info=thanks_info)
     except Exception as e:
         app.logger.error('{0}: {1}'.format(request.path, str(e)))
     return resp
@@ -165,7 +158,7 @@ def thanksReport():
         return resp
 
     # 标记举报
-    reporting_thank.report_status = 1
+    reporting_thank.report_status = reporting_thank.status = 1
     db.session.add(reporting_thank)
     # 新增举报记录
     report = Report()
@@ -220,9 +213,9 @@ def thanksReportSearch():
     return jsonify(resp)
 
 
-@route_api.route('/thanks/block')
+@route_api.route('/thanks/report/deal')
 @time_log
-def thanksBlock():
+def thanksReportDeal():
     """
     拉黑答谢的举报者或者发布者
     :return:
@@ -235,8 +228,8 @@ def thanksBlock():
         resp['msg'] = "用户信息异常"
         return jsonify(resp)
     report_status = int(req.get('report_status', -1))
-    report_id = int(req.get('report_id', -1))
-    if report_id == -1 or report_status not in (2, 3, 4):
+    thank_id = int(req.get('thank_id', -1))
+    if thank_id == -1 or report_status not in (2, 3, 4, 5):
         resp['msg'] = '操作失败'
         return resp
 
@@ -244,18 +237,10 @@ def thanksBlock():
     if not user_info:
         resp['msg'] = "您无管理员权限"
         return resp
-    # TODO 拉黑这里状态干嘛用的
-    report_info = Report.query.filter_by(id=report_id).first()
-    thanks_info = Thank.query.filter_by(id=report_info.record_id).first()
-    report_info.status = thanks_info.report_status = report_status
-    report_info.user_id = thanks_info.user_id = user_info.uid
-    db.session.add(report_info)
-    db.session.add(thanks_info)
-    # TODO:检查 report_status
-    if report_status in (2, 3):
-        Member.query.filter_by(id=report_info.member_id if report_status == 3 else report_info.report_member_id). \
-            update({'status': 0}, synchronize_session=False)
-    db.session.commit()
+
+    ReportHandlers.getHandler(REPORT_CONSTANTS['handler_name']['thanks']).deal(op_status=report_status, thank_id=thank_id,
+                                                                            user_id=user_info.uid)
+
     resp['code'] = 200
     return resp
 

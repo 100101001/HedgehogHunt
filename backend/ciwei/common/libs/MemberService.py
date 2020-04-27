@@ -14,13 +14,13 @@ import requests
 from application import app, db
 from common.cahce import CacheOpService, CacheQueryService, CacheOpUtil
 from common.libs import LogService
-from common.libs.recommend.v2 import SyncService
 from common.models.ciwei.Appeal import Appeal
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Member import Member
 from common.models.ciwei.MemberSmsPkg import MemberSmsPkg
 from common.models.ciwei.Recommend import Recommend
+from common.models.ciwei.Thanks import Thank
 from common.models.ciwei.User import User
 
 
@@ -196,9 +196,10 @@ class MemberService:
         db.session.add(pkg)
 
     @staticmethod
-    def blockMember(member_id=0, user_id=0, goods_id=0, block_status=0, block_reason=""):
+    def blockMember(member_id=0, user_id=0, stuff_id=0, stuff_type=2, block_status=0, block_reason=""):
         """
-        :param goods_id:
+        :param stuff_type:
+        :param stuff_id:
         :param block_reason:
         :param block_status: -1恶意举报, 0恶意发帖
         :param user_id:
@@ -210,24 +211,24 @@ class MemberService:
         # 会员状态标记
         member_info = Member.query.filter_by(id=member_id).first()
         LogService.setMemberStatusChange(member_info=member_info, old_status=member_info.status,
-                                         new_status=block_status, note=block_reason, user_id=user_id, goods_id=goods_id)
+                                         new_status=block_status, note=block_reason, user_id=user_id, stuff_id=stuff_id,
+                                         stuff_type=stuff_type)
         member_info.status = block_status
         member_info.user_id = user_id
         CacheOpService.setMemberCache(member_info=member_info)
         db.session.commit()
         # 物品举报状态标记
-        # 取出来id再更新是为了ES同步
-        goods_ids = Good.query.filter(Good.member_id == member_id, Good.report_status == 0).with_entities(Good.id).all()
-        if goods_ids:
-            updated = {'report_status': 6, 'user_id': user_id}
-            Good.query.filter(Good.id.in_(goods_ids)).update(updated, synchronize_session=False)
-            db.session.commit()
-            SyncService.syncUpdatedGoodsToESBulk(goods_ids=goods_ids, updated=updated)
+        updated = {'report_status': 6, 'user_id': user_id}
+        Good.query.filter(Good.member_id == member_id, Good.report_status == 0).update(updated)
+        db.session.commit()
+        Thank.query.filter(Thank.member_id == member_id, Thank.report_status == 0).update(updated,
+                                                                                          synchronize_session=False)
+        db.session.commit()
 
     @staticmethod
     def restoreMember(member_id=0, user_id=0):
         """
-
+        账号解封
         :param user_id:
         :param member_id:
         :return:
@@ -244,14 +245,12 @@ class MemberService:
         CacheOpService.setMemberCache(member_info=member_info)
         db.session.commit()
         # 物品举报状态标记
-        # 取出来id再更新是为了ES同步
-        goods_ids = Good.query.filter(Good.member_id == member_id, Good.report_status == 6).with_entities(Good.id).all()
-        if goods_ids:
-            updated = {'report_status': 0, 'user_id': user_id}
-            Good.query.filter(Good.id.in_(goods_ids)).update(updated, synchronize_session=False)
-            db.session.commit()
-            SyncService.syncUpdatedGoodsToESBulk(goods_ids=goods_ids, updated=updated)
-        return True
+        updated = {'report_status': 0, 'user_id': user_id}
+        Good.query.filter(Good.member_id == member_id, Good.report_status == 6).update(updated)
+        db.session.commit()
+        Thank.query.filter(Thank.member_id == member_id, Thank.report_status == 6). \
+            update(updated, synchronize_session=False)
+        db.session.commit()
 
     @staticmethod
     def appealStatusChangeRecord(log_id=0, reason=''):

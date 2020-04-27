@@ -17,6 +17,7 @@ from common.libs import UserService, LogService
 from common.libs.CryptService import Cipher
 from common.libs.Helper import queryToDict
 from common.libs.MemberService import MemberService
+from common.libs.ReportService import REPORT_CONSTANTS
 from common.libs.UrlManager import UrlManager
 from common.libs.mall.PayService import PayService
 from common.libs.mall.WechatService import WeChatService
@@ -644,23 +645,43 @@ def memberBlockedRecords():
     """
     resp = {'code': -1, 'msg': '', 'data': {'list': []}}
     req = request.values
-    member_id = req.get('id', 0)
+    member_id = int(req.get('id', 0))
     if not member_id:
         resp['msg'] = '获取失败'
         return resp
-    logs = LogService.getStatusChangeLogsWithGoodDetail(member_id=member_id)
+    stuff_type = int(req.get('status', 0))
+    if stuff_type not in REPORT_CONSTANTS['stuff_type']:
+        resp['msg'] = '获取失败'
+        return resp
+
+    logs = LogService.getStatusChangeLogsWithStuffDetail(member_id=member_id, stuff_type=stuff_type)
+
+    def detailTransformer(stuff_typo=0):
+        if stuff_typo == REPORT_CONSTANTS['stuff_type']['goods']:
+            def transform(good):
+                return {
+                    'summary': good.summary,
+                    'pics': [UrlManager.buildImageUrl(pic) for pic in good.pics.split(',')],
+                    'name': good.name,
+                    'loc': good.location.split('###')[1],
+                    'owner_name': good.owner_name,
+                    'mobile': good.mobile
+                }
+            return transform
+        else:
+            def transform(thank):
+                return {
+                    'thanked_mid': thank.target_member_id,
+                    'summary': thank.summary,
+                    'reward': str(thank.thank_price)
+                }
+            return transform
+
+    transformer = detailTransformer(stuff_type)
     data_list = []
     for item in logs:
         tmp = queryToDict(item.MemberStatusChangeLog)
-        goods = item.Good
-        tmp['goods'] = {
-            'summary': goods.summary,
-            'pics': [UrlManager.buildImageUrl(pic) for pic in goods.pics.split(',')],
-            'name': goods.name,
-            'loc': goods.location.split('###')[1],
-            'owner_name': goods.owner_name,
-            'mobile': goods.mobile
-        }
+        tmp['stuff'] = transformer(item[1])  # 可以用 item.Good, item.Thank。为了统一用下标
         data_list.append(tmp)
     resp['data']['list'] = data_list
     resp['code'] = 200

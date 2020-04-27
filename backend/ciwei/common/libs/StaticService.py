@@ -9,7 +9,7 @@
 from sqlalchemy import func
 
 from application import es, db
-from common.libs.recommend.v2.SyncService import ES_CONSTANTS
+from common.sync.core.base.EsService import ES_CONSTANTS
 from common.models.ciwei.Feedback import Feedback
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Member import Member

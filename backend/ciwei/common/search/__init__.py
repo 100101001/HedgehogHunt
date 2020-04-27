@@ -2,11 +2,10 @@
 """
 @author: github/100101001
 @contact: 17702113437@163.com
-@time: 2020/4/14 下午4:10
+@time: 2020/4/28 上午2:08
 @file: __init__.py.py
-@desc: elastic search的初始配置
+@desc:  elastic search的初始配置
 """
-
 from elasticsearch import Elasticsearch
 
 

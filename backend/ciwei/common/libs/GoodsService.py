@@ -14,14 +14,13 @@ from application import db, APP_CONSTANTS
 from common.cahce import cas, CacheQueryService, CacheOpService
 from common.libs.Helper import queryToDict
 from common.libs.MemberService import MemberService
+from common.libs.UploadService import UploadService
 from common.libs.UrlManager import UrlManager
-from common.libs.recommend.v2 import SyncService
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
 from common.tasks.recommend.v2 import RecommendTasks
 from common.tasks.sms import SmsTasks
 from common.tasks.subscribe import SubscribeTasks
-from common.tasks.sync import SyncTasks
 
 
 def releaseLost(author_info=None, release_info=None):
@@ -115,6 +114,7 @@ def releaseReturn(author_info=None, release_info=None, is_scan_return=False):
 def returnToLostSuccess(return_goods=None, lost_goods=None, author=None):
     """
     寻物归还结束发帖
+    :param author:
     :param return_goods:
     :param lost_goods: 
     :return: 
@@ -135,27 +135,24 @@ def returnToLostSuccess(return_goods=None, lost_goods=None, author=None):
     db.session.add(lost_goods)
     db.session.add(return_goods)
     MemberService.updateCredits(member_info=author)
-    db.session.commit()
+
+    info = {'goods_name': return_goods.name,
+            'returner': return_goods.nickname,
+            'return_date': return_goods.created_time.strftime(
+                "%Y-%m-%d %H:%M:%S"),
+            'rcv_openid': lost_goods.openid}
     # 新归还帖
-    SyncService.syncGoodsToES(goods_info=return_goods, edit=False)
-    # 更新寻贴
-    SyncService.syncUpdatedGoodsToES(goods_id=lost_id, updated={'return_goods_id': return_id,
-                                                                'return_goods_openid': return_goods.openid,
-                                                                'confirm_time': now,
-                                                                'status': 2})
-    SyncTasks.syncDelGoodsToRedis.delay(goods_ids=[lost_id], business_type=0)
+    # MADE
+    db.session.commit()
     # 异步发送订阅消息
-    SubscribeTasks.send_return_subscribe.delay(return_info={'goods_name': return_goods.name,
-                                                            'returner': return_goods.nickname,
-                                                            'return_date': return_goods.created_time.strftime(
-                                                                "%Y-%m-%d %H:%M:%S"),
-                                                            'rcv_openid': lost_goods.openid})
+    SubscribeTasks.send_return_subscribe.delay(return_info=info)
 
 
 def scanReturnSuccess(scan_goods=None, notify_id='', author=None):
     """
     扫码归还结束发帖
     ES同步和发送短信
+    :param author:
     :param scan_goods:
     :param notify_id:
     :return:
@@ -166,9 +163,8 @@ def scanReturnSuccess(scan_goods=None, notify_id='', author=None):
     scan_goods.qr_code_openid = notify_id
     db.session.add(scan_goods)
     MemberService.updateCredits(member_info=author)
+    # MADE
     db.session.commit()
-    # ES同步
-    SyncService.syncGoodsToES(goods_info=scan_goods, edit=False)
     # 通知
     params = {
         'location': scan_goods.location,
@@ -183,6 +179,7 @@ def scanReturnSuccess(scan_goods=None, notify_id='', author=None):
 def releaseGoodsSuccess(goods_info=None, edit_info=None, author=None):
     """
     普通帖子结束发帖（可能是编辑）
+    :param author:
     :param goods_info:
     :param edit_info:
     :return:
@@ -191,20 +188,53 @@ def releaseGoodsSuccess(goods_info=None, edit_info=None, author=None):
     is_edit = edit_info is not None
     if not is_edit:
         goods_info.status = 1
-
-    goods_status = goods_info.status
     db.session.add(goods_info)
     if not is_edit:
         MemberService.updateCredits(member_info=author)
-    # ES同步
-    SyncService.syncGoodsToES(goods_info=goods_info, edit=is_edit)
-    # RS同步
-    serializable_goods_info = queryToDict(goods_info)
-    if goods_status == 1:
-        SyncTasks.syncNewGoodsToRedis.delay(goods_info=serializable_goods_info)
-    # 匹配
-    RecommendTasks.autoRecommendGoods.delay(edit_info=edit_info, goods_info=serializable_goods_info)
+
+    # MADE
     db.session.commit()
+    RecommendTasks.autoRecommendGoods.delay(edit_info=edit_info, goods_info=queryToDict(goods_info))
+
+
+def editGoods(goods_id=0, edit_info=None):
+    """
+    编辑信息
+    :param goods_id:
+    :param edit_info:
+    :return:
+    """
+    goods_info = Good.query.filter_by(id=goods_id).first()
+    if not goods_info:
+        return None
+    goods_info.pics = ""
+    goods_info.main_image = ""
+    goods_info.name = edit_info['goods_name']
+    goods_info.owner_name = edit_info['owner_name']
+    goods_info.summary = edit_info['summary']
+    location = edit_info['location'].split(",")
+
+    goods_info.location = "###".join(location)
+    goods_info.business_type = edit_info['business_type']
+    goods_info.mobile = edit_info['mobile']
+    # 修改成置顶贴子
+    if int(edit_info.get('is_top', 0)):
+        goods_info.top_expire_time = datetime.datetime.now() + datetime.timedelta(days=int(edit_info['days']))
+    goods_info.updated_time = datetime.datetime.now()
+
+    img_list = edit_info['img_list']
+    img_list_status = UploadService.filterUpImages(img_list)
+
+    def __needImageUpload():
+        for s in img_list_status:
+            if not s:
+                return True
+        return False
+
+    goods_info.status = 7 if __needImageUpload() else 1  # 暂时设置为不可见
+    db.session.add(goods_info)
+    db.session.commit()
+    return img_list_status
 
 
 def getNoMarksAfterDelPremark(found_ids=None, member_id=0):
@@ -356,7 +386,7 @@ def getReturnGoodsInfo(goods_info=None, member_info=None):
         lost_goods_status = Good.query.filter_by(id=lost_goods_id).with_entities(Good.status).first()
         is_origin_del = lost_goods_status[0] == 7
         more_data = {'return_goods_id': lost_goods_id,
-                     'is_origin_deleted': is_origin_del,   # 寻物已删
+                     'is_origin_deleted': is_origin_del,  # 寻物已删
                      # 通知也删了，不再会有感谢
                      'is_no_thanks': not goods_info.return_goods_openid and is_origin_del,
                      'op_time': goods_info.finish_time.strftime("%Y-%m-%d %H:%M")}
@@ -401,8 +431,7 @@ def makeGoodsCommonInfoData(goods_info=None, show_location=False, is_auth=False)
         "status_desc": str(goods_info.status_desc),
         "status": goods_status,
         "view_count": getGoodsReadCount(goods_info),  # 浏览量
-        "updated_time": str(goods_info.updated_time), # 被编辑的时间 or 首次发布的时间
+        "updated_time": str(goods_info.updated_time),  # 被编辑的时间 or 首次发布的时间
         'show_location': show_location
     }
     return data
-

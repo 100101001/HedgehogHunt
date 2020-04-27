@@ -7,37 +7,33 @@
 @desc: 
 """
 from application import celery
-from common.libs.recommend.v2 import SyncService
+from common.libs.Helper import isInstance
 from common.models.ciwei.Goods import Good
+from common.sync.core.base import RedisService
 
 
-@celery.task(name='sync.recommend_new', property=10)
-def syncNewGoodsToRedis(goods_info=None):
+@celery.task(name='sync.recommend_add', property=10)
+def addGoodsToRedis(goods_ids=None, goods_info=None):
     """
-    新帖子发布
+    新的统一向redis添加候选物品的方法，通过id向数据库查取数据后插入redis
     :param goods_info:
-    :return:
-    """
-    if goods_info.get('status') != 1 or goods_info.get('business_type') == 2:
-        return
-    goods = Good()
-    goods.__dict__ = goods_info
-    SyncService.syncNewGoodsToRedis(goods_info=goods)
-
-
-@celery.task(name='sync.recommend_recover_batch', property=10)
-def synRecoverGoodsToRedis(goods_ids=None):
-    """
-    物品从  n -> 1
     :param goods_ids:
     :return:
     """
-    goods_infos = Good.query.filter(Good.id.in_(goods_ids)).all()
-    for goods_info in goods_infos:
-        SyncService.syncNewGoodsToRedis(goods_info=goods_info)
+    if goods_ids:
+        if isInstance(goods_ids, list, set):
+            goods = Good.query.filter(Good.id.in_(goods_ids)).all()
+            RedisService.syncNewGoodsToRedis(*goods)
+        else:
+            goods = Good.query.filter_by(id=goods_ids).first()
+            RedisService.syncNewGoodsToRedis(goods)
+    if goods_info:
+        goods = Good()
+        goods.__dict__ = goods_info
+        RedisService.syncNewGoodsToRedis(goods)
 
 
-@celery.task(name='sync.recommend_del_batch', property=10)
+@celery.task(name='sync.recommend_del', property=10)
 def syncDelGoodsToRedis(goods_ids=None, business_type=0):
     """
     物品从 1 -> n
@@ -47,8 +43,10 @@ def syncDelGoodsToRedis(goods_ids=None, business_type=0):
     """
     if business_type == 2:
         return
-    for goods_id in goods_ids:
-        SyncService.syncDelGoodsToRedis(goods_id=goods_id, business_type=business_type)
+    if isInstance(goods_ids, list, set):
+        RedisService.syncDelGoodsToRedis(*goods_ids, business_type=business_type)
+    else:
+        RedisService.syncDelGoodsToRedis(goods_ids, business_type=business_type)
 
 
 @celery.task(name='sync.incr_read_count_to_db', property=5)

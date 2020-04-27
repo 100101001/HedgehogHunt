@@ -13,6 +13,7 @@ from flask import request, jsonify, g
 from application import APP_CONSTANTS
 from common.libs import RecordService, UserService
 from common.libs.Helper import param_getter
+from common.libs.RecordService import GoodsRecordSearchHandler
 from common.loggin.decorators import time_log
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Recommend import Recommend
@@ -30,7 +31,7 @@ def recordSearch():
     3. 搜索框
     :return:分页搜索列表,是否还有更多
     """
-    resp = {'code': -1, 'msg': 'search record successfully(search)', 'data': {}}
+    resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
 
     # 检查登陆
@@ -44,47 +45,31 @@ def recordSearch():
         resp['msg'] = "加载失败"
         return jsonify(resp)
 
-    query = Good.query
 
-    # 页面,选项卡筛选
-    # 获取操作值op_status（哪个记录页面）,看用户是查看哪种信息
-    # 0 自己发布的
-    # 1 自己认领的
-    # 2 系统推荐的
     op_status = int(req.get('op_status', -1))
-    if op_status == 0:
-        query = RecordService.getMyRelease(member_id=member_info.id, status=status, biz_type=int(req['business_type']))
-    elif op_status == 1:
-        # 非已经答谢
-        # 认领列表，找出状态为status{0[待取回],1[已取回],2[已答谢]}的
-        query = RecordService.getMyMark(member_id=member_info.id, mark_status=status)
-    elif op_status == 5:
-        # 归还列表，找出状态为status{1[待取回]，2[已取回],3[已答谢]}的
-        query = RecordService.getMyReturnNotice(member_openid=member_info.openid, return_status=status)
-    elif op_status == 6:
-        # 获取处理状态为status的申诉物品
-        query = RecordService.getMyAppeal(member_id=member_info.id, appeal_status=status)
-    elif op_status == 2:
-        # 推荐列表
-        query = RecordService.getMyRecommend(member_id=member_info.id, goods_status=status,
-                                             only_new=req.get('only_new', '') == 'true')
 
-    search_rule = RecordService.searchBarFilter(owner_name=req.get('owner_name', ''),
-                                                goods_name=str(req.get('mix_kw', '')))
-    # 由于 unselectable 只是给大家看看(认领者，作者，申诉者，被归还者)，用户无法进行记录的批量操作，推荐谨慎起见，只可见未被举报的
+    p = int(req.get('p', 1))
     report_rule = Good.report_status == 0 if op_status == 2 else Good.report_status.in_([0, 1])
-    # 分页排序
-    p = max(int(req.get('p', 1)), 1)
-    page_size = APP_CONSTANTS['page_size']
-    offset = (p - 1) * page_size
     order_rule = Recommend.rel_score.desc() if op_status == 2 else Good.id.desc()
-    goods_list = query.filter(report_rule, search_rule).order_by(order_rule).offset(offset).limit(page_size).all()
-
+    goods_list = GoodsRecordSearchHandler.deal(op_status,
+                                          member_id=member_info.id, member_openid=member_info.openid,
+                                          biz_type=int(req.get('business_type')), status=status,
+                                          # 搜索栏和分页排序参数
+                                          owner_name=req.get('owner_name'),
+                                          goods_name=req.get('mix_kw'),
+                                          p=p,
+                                          report_rule=report_rule,
+                                          order_rule=order_rule)
     # 将对应的用户信息取出来，组合之后返回
     record_list = []
     if goods_list:
         now = datetime.datetime.now()
         for item in goods_list:
+            if op_status == 0:
+                item = item.get('_source')
+                goods = Good()
+                goods.__dict__ = item
+                item = goods
             # 只返回状态没有被并发改变的物品
             record = RecordService.makeRecordData(item=item, op_status=op_status, status=status, now=now)
             if record:
@@ -92,7 +77,7 @@ def recordSearch():
 
     resp['code'] = 200
     resp['data']['list'] = record_list
-    resp['data']['has_more'] = len(goods_list) >= page_size and p < APP_CONSTANTS[
+    resp['data']['has_more'] = len(goods_list) >= APP_CONSTANTS['page_size'] and p < APP_CONSTANTS[
         'max_pages_allowed']  # 由于深度分页的性能问题，限制页数(鼓励使用更好的搜索条件获取较少的数据量)
     return resp
 

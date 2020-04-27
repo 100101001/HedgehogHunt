@@ -25,7 +25,10 @@ def setMemberCache(member_info=None):
     if not member_info:
         return
     mem_key = CacheKeyGetter.memberKey(member_info.id)
-    redis_conn_db_1.set(mem_key, json.dumps(queryToDict(member_info)))
+    if isinstance(member_info, dict):
+        redis_conn_db_1.set(mem_key, json.dumps(member_info))
+    else:
+        redis_conn_db_1.set(mem_key, json.dumps(queryToDict(member_info)))
     redis_conn_db_1.expire(mem_key, 3600)
 
 
