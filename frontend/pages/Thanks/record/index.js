@@ -21,19 +21,20 @@ Page({
       },
         {
           id: 2,
-          name: '发布者'
-        },
-        {
-          id: 3,
-          name: '举报者'
-        },
-        {
-          id: 4,
           name: '无违规'
         },
         {
-          id: 5,
+          id: 3,
           name: '已隐藏'
+        },
+
+        {
+          id: 4,
+          name: '举报者'
+        },
+        {
+          id: 5,
+          name: '发布者'
         }
       ];
       infos['check_status_id'] = 1;

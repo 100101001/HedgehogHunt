@@ -287,7 +287,6 @@ radio .wx-radio-input.wx-radio-input-checked::before {
 }
 
 .block-btn-container view{
-  background-color: #f7931e;
   border-radius: 10rpx;
   padding: 10rpx 30rpx 10rpx 30rpx;
   color: #fff;
@@ -323,4 +322,22 @@ radio .wx-radio-input.wx-radio-input-checked::before {
   border-radius: 2px;
   width:auto;
   margin-top: 10rpx;
+}
+
+.block-user {
+   background-color:  #999;
+   color: #fff;
+   border-radius: 10rpx;
+   padding: 0rpx 10rpx;
+   font-size: 26rpx;
+   box-shadow:4rpx 4rpx 10rpx #333333;
+   margin-top: -12rpx;
+}
+.recover-thank {
+  background-color: #87CEFA;
+  box-shadow:4rpx 4rpx 10rpx #333333;
+}
+.block-thank {
+  background-color:  #999;
+  box-shadow:4rpx 4rpx 10rpx #333333;
 }

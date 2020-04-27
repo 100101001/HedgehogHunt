@@ -5,9 +5,20 @@ Page({
     log_id: 0,
     hiddenAppeal: true,
     user_op_list: [],
-    hiddenGoodsDetail: true,
+    hiddenStuffDetail: true,
     warn: false,
-    focus: false
+    focus: false,
+    stuff_type: 1,
+    stuff_types: [
+      {
+        id: 1,
+        label: '物品'
+      },
+      {
+        id: 0,
+        label: '答谢'
+      }
+    ]
   },
   onLoad: function (options) {
     let op_status = options.op_status *1;
@@ -16,13 +27,16 @@ Page({
       op_status: op_status,  //管理员恢复账户前进入查看2，还是用户申诉进入查看1
       id: id  //会员id
     });
-    this.getMemberBlockedRecords(id)
+    this.getMemberBlockedRecords()
   },
-  getMemberBlockedRecords: function(id){
+  getMemberBlockedRecords: function(){
     wx.request({
       url: app.buildUrl('/member/blocked/record'),
       header: app.getRequestHeader(),
-      data: {id: id},
+      data: {
+        id: this.data.id,  //会员ID
+        stuff_type: this.data.stuff_type //拉黑类型
+      },
       success: (res) => {
         let resp = res.data;
         if (resp['code']!==200) {
@@ -35,6 +49,16 @@ Page({
         })
       }
     })
+  },
+  stuffTypeClick: function(e){
+    let new_type = e.currentTarget.id * 1;
+    let old_type = this.data.stuff_type;
+    this.setData({
+      stuff_type: e.currentTarget.id * 1
+    });
+    if(new_type !== old_type) {
+      this.getMemberBlockedRecords()
+    }
   },
   appealInput: function(e){
     this.setData({
@@ -183,18 +207,20 @@ Page({
       }
     })
   },
-  openGoodsDetail: function (e){
+  openStuffDetail: function (e){
     let index= e.currentTarget.dataset.index;
-    let op_list = this.data.user_op_list;
+    let ele = this.data.user_op_list[index];
     this.setData({
-      hiddenGoodsDetail: false,
-      goods: op_list[index].goods
+      hiddenStuffDetail: false,
+      stuff: ele.stuff,
+      stuff_type: ele.stuff_type
     })
   },
-  closeGoodsDetail: function (e) {
+  closeStuffDetail: function (e) {
     this.setData({
-      hiddenGoodsDetail: true,
-      goods: null
+      hiddenStuffDetail: true,
+      stuff: {},
+      stuff_type: 2
     })
   },
   /**

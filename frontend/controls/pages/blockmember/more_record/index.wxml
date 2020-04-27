@@ -1,3 +1,14 @@
+<!--选项卡-->
+<view class="type-container">
+  <scroll-view class="type-navbar-check-report" scroll-x="true">
+    <view class="type-box  type-box-two"  wx:for="{{stuff_types}}" wx:for-item="cat" wx:key="index">
+      <view id="{{cat.id}}" class="type-navbar-item {{stuff_type === cat.id ? 'type-item-on' : ''}}" bindtap="stuffTypeClick">
+        {{cat.name}}
+      </view>
+    </view>
+  </scroll-view>
+</view>
+
 <view class="tr bg-w" id="table-header">
   <view class="th">管理员ID</view>
   <view class="th ">操作备注</view>
@@ -12,7 +23,7 @@
       <view class="td">{{item.note}}</view>
       <view class="td">{{item.created_time}}</view>
       <!--查看详情，图片和描述和物主-->
-      <view class="td"> <view class="op-btn" data-index="{{index}}" bindtap="openGoodsDetail">详情</view></view>
+      <view class="td"> <view class="op-btn" data-index="{{index}}" bindtap="openStuffDetail">详情</view></view>
       <!--用户的操作-->
       <view class="td" wx:if="{{op_status===1}}">
         <!--是一个拉黑记录-->
@@ -48,22 +59,35 @@
 </view>
 
 
-<lyx-modal hidden="{{hiddenGoodsDetail}}" noCancel="true" bindconfirm="closeGoodsDetail" confirmText="关闭" title="原贴详情">
- <!--图片-->
-  <swiper class="swiper_box" autoplay="true" interval="3000" duration="1000" circular="true">
-    <block wx:for="{{goods.pics}}" wx:key="index">
-      <swiper-item>
-        <image src="{{item}}" bindtap="previewItemImage" data-index="{{index}}" class="slide-image" width="355" height="150" mode="aspectFit" lazy-load="true" />
-      </swiper-item>
-    </block>
-  </swiper>
-  <view>物名：{{goods.name}}</view>
-  <view>物主：{{goods.owner_name}}</view>
-  <view>手机：{{goods.mobile}}</view>
-  <view>放置位置：{{goods.loc}}</view>
-  <view>描述：{{goods.summary}}</view>
+<!--管理员查看申诉物品可见--->
+<lyx-modal hidden="{{hiddenStuffDetail}}" noCancel="true" bindconfirm="closeStuffDetail" confirmText="关闭" title="{{stuff_type === 1? '原贴详情': '答谢详情'}}">
+ <!---->
+  <view wx:if="{{stuff_type === 1}}">
+    <!--图片-->
+    <swiper class="swiper_box" autoplay="true" interval="3000" duration="1000" circular="true">
+      <block wx:for="{{goods.pics}}" wx:key="index">
+        <swiper-item>
+          <image src="{{item}}" bindtap="previewItemImage" data-index="{{index}}" class="slide-image" width="355" height="150" mode="aspectFit" lazy-load="true" />
+        </swiper-item>
+      </block>
+    </swiper>
+    <view>物名：{{stuff.name}}</view>
+    <view>物主：{{stuff.owner_name}}</view>
+    <view>手机：{{stuff.mobile}}</view>
+    <view>放置位置：{{stuff.loc}}</view>
+    <view>描述：{{stuff.summary}}</view>
+  </view>
+  <view wx:else>
+    <view>被答谢者ID： {{stuff.thanked_mid}}</view>
+    <view>答谢内容：{{stuff.summary}}</view>
+    <view>答谢金额：{{stuff.reward}} 元</view>
+  </view>
 </lyx-modal>
 
+
+
+
+<!--用户申诉可见--->
 <lyx-modal hidden="{{hiddenAppeal}}" noCancel="true" bindconfirm="closeAppeal" confirmText="取消" title="申诉理由">
   <form class="goods-box" bindsubmit="formSubmit">
     <textarea name="reason" class="inputbox {{focus? 'input-focus': ''}} {{warn? 'input-warn': ''}}  {{empty? 'input-empty':''}}" placeholder="申诉理由不超过140字" placeholder-class="appeal-placeholder" bindinput="appealInput" value="{{form_info}}" bindfocus="appealFocus" bindblur='appealBlur'></textarea>

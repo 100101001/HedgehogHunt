@@ -378,7 +378,7 @@ Page({
       this.setData({submitDisable: false});
       return;
     }
-    data['status'] = this.data.info.status;
+    data['status'] = this.data.origin_info.status;
     data['business_type'] = this.data.business_type;
     data['img_list'] = img_list;
     data['location'] = this.data.location;

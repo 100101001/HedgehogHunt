@@ -155,11 +155,11 @@
     <!------------------------------寻物启事脚步结束--------------------------------->
 
     <!------------------------------失物招领的底部开始---------------------------->
-    <view wx:if="{{info.business_type==1 && op_status!==4}}">
+    <view wx:if="{{info.business_type===1 && op_status!==4}}">
 
       <!---待认领区和预认领区-->
       <!--待认领帖，作者-->
-      <view class="footer-box" wx:if="{{info.is_auth && info.status==1}}">
+      <view class="footer-box" wx:if="{{info.is_auth && info.status===1}}">
         <view class="shop-cart-btn" catchtap="goHome">
           <image src="/images/icons/home_select.png"></image>
           <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>返回</view>
@@ -172,7 +172,7 @@
 
       <!--待认领贴，预认领贴-->
       <!--无操作用户可认领-->
-      <view class="footer-box" wx:if="{{(!show_location) && (info.status==1 || info.status ==2)}}">
+      <view class="footer-box" wx:if="{{(!show_location) && (info.status===1 || info.status===2)}}">
         <view class="shop-cart-btn" catchtap="goHome">
           <image src="/images/icons/home_select.png"></image>
           <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>返回</view>
@@ -191,7 +191,7 @@
 
       <!--预认领区-->
       <!--作者，预认领者-->
-      <view class="footer-box" wx:if="{{show_location && info.status==2}}">
+      <view class="footer-box" wx:if="{{show_location && info.status===2}}">
         <!--返回-->
         <view class="shop-cart-btn" catchtap="goHome">
           <image src="/images/icons/home_select.png"></image>
@@ -206,7 +206,7 @@
 
 
       <!---已认领区-->
-      <view wx:if="{{info.status==3 || info.status ==4}}">
+      <view wx:if="{{info.status===3 || info.status ===4}}">
         <!--作者、已认领者-->
         <view class="footer-box" wx:if="{{info.is_auth || info.is_owner}}">
           <view class="shop-cart-btn" catchtap="goHome">
@@ -221,7 +221,7 @@
             <view class="now-buy" wx:if="{{info.status===4}}">已答谢</view>
           </view>
           <view wx:if="{{info.is_auth}}">
-            <view class="now-buy">{{info.is_thanked? '已答谢': '待答谢'}}</view>
+            <view class="now-buy">{{info.status===4? '已答谢': '待答谢'}}</view>
           </view>
         </view>
 
@@ -241,7 +241,7 @@
       </view>
 
       <!--申诉处理中区-->
-      <view wx:if="{{info.status == 5}}">
+      <view wx:if="{{info.status === 5}}">
         <view class="footer-box">
           <view class="shop-cart-btn" catchtap="goHome">
             <image src="/images/icons/home_select.png"></image>
@@ -259,11 +259,11 @@
     <!------------------------------失物招领的底部结束---------------------------->
 
     <!------------------------------归还帖子的底部开始---------------------------->
-    <view wx:if="{{info.business_type==2 && op_status!==4}}">
+    <view wx:if="{{info.business_type===2 && op_status!==4}}">
 
       <!--已拒绝-->
       <!--归还寻物的作者-->
-      <view class="footer-box" wx:if="{{info.status==0 && info.is_auth}}">
+      <view class="footer-box" wx:if="{{info.status===0 && info.is_auth}}">
         <view class="shop-cart-btn" catchtap="goHome">
           <image src="/images/icons/home_select.png"></image>
           <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>返回</view>
@@ -275,7 +275,7 @@
 
       <!--待确认-->
       <!--原寻物启事的发布者--->
-      <view class="footer-box" wx:if="{{info.status==1 && !info.is_auth}}">
+      <view class="footer-box" wx:if="{{info.status===1 && !info.is_auth}}">
         <view class="shop-cart-btn" catchtap="goHome">
           <image src="/images/icons/home_select.png"></image>
           <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'> 返回 </view>
@@ -294,7 +294,7 @@
 
       <!--待确认-->
       <!--归还寻物的作者-->
-      <view class="footer-box" wx:if="{{info.status==1 && info.is_auth}}">
+      <view class="footer-box" wx:if="{{info.status===1 && info.is_auth}}">
         <view class="shop-cart-btn" catchtap="goHome">
           <image src="/images/icons/home_select.png"></image>
           <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>返回</view>
@@ -306,7 +306,7 @@
 
 
       <!--待取回，作者，寻物者，二维码码主-->
-      <view class="footer-box" wx:if="{{info.status==2}}">
+      <view class="footer-box" wx:if="{{info.status===2}}">
         <view class="shop-cart-btn" catchtap="goHome">
           <image src="/images/icons/home_select.png"></image>
           <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>返回</view>
@@ -324,7 +324,7 @@
       </view>
 
       <!--已取回，作者，寻物贴帖主，-->
-      <view class="footer-box" wx:if="{{info.status==3 || info.status==4}}">
+      <view class="footer-box" wx:if="{{info.status===3 || info.status===4}}">
         <view class="shop-cart-btn" catchtap="goHome">
           <image src="/images/icons/home_select.png"></image>
           <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>返回</view>
@@ -338,7 +338,7 @@
           <view class="now-buy" wx:if="{{info.status===4}}">已答谢</view>
         </view>
         <view wx:if="{{info.is_auth}}">
-          <view class="now-buy {{info.is_no_thanks && !info.is_thanked? 'light-grey': ''}}" catchtap="goTips" >{{info.is_thanked? '已答谢': (info.is_no_thanks? '未答谢':'待答谢')}}</view>
+          <view class="now-buy {{info.is_no_thanks && info.status!==4? 'light-grey': ''}}" catchtap="goTips" >{{info.status===4? '已答谢': (info.is_no_thanks? '未答谢':'待答谢')}}</view>
         </view>
       </view>
     </view>
@@ -347,7 +347,7 @@
 
     <!--管理员用户视图，和管理员操作-->
     <view class="footer-box" wx:if="{{op_status===4}}">
-      <view class="shop-cart-btn" catchtap="goHome" wx:if="{{info.report_status===2 || info.report_status>=3}}">
+      <view class="shop-cart-btn" catchtap="goHome" wx:if="{{info.report_status>2 || info.report_status === 2}}">
         <image src="/images/icons/home_select.png"></image>
         <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>返回</view>
       </view>

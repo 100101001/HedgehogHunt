@@ -1,5 +1,66 @@
 
 
+
+/*顶部导航栏*/
+.type-container{
+display: flex;
+flex-direction: row;
+position: fixed;
+top: 0;
+left: 0;
+width: 750rpx;
+background-color: #fff;
+}
+
+.type-navbar {
+white-space: nowrap;
+height: 68rpx;
+width: 375rpx;
+background-color: #FFE4B5;
+}
+
+.type-navbar-check-report {
+white-space: nowrap;
+height: 68rpx;
+width: 750rpx;
+background-color: #FFE4B5;
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  color: transparent;
+}
+
+.type-box {
+  width: 375rpx;
+  box-sizing: content-box;
+  font-size: 24rpx;
+  line-height: 64rpx;
+  text-align: center;
+  display: inline-block;
+  overflow: hidden;
+}
+
+/***状态栏每一项**/
+.type-navbar-item {
+  color: #999;
+  font-weight: bold;
+  font-size: 28rpx;
+  border-bottom: 10rpx solid #FFE4B5;
+  letter-spacing: 3rpx;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+/***状态栏每一项被选中**/
+.type-item-on {
+  border-bottom: 10rpx solid #f7931e;
+  color: #f7931e;
+}
+
+
+/**********************表格**********************/
 swiper{
  height: 460rpx;
 }
@@ -11,14 +72,14 @@ height: 100%
 
 .table {
 position: absolute;
-top: 100rpx;
+top: 188rpx;
 width: 100%;
 border: 0px solid darkgray;
 }
 
 #table-header {
 position: absolute;
-top: 0rpx;
+top: 88rpx;
 z-index: 100;
 }
 
@@ -76,9 +137,6 @@ background-color: #cdcdcd;
 }
 .accept {
 background-color: #87CEFA;
-}
-.restore{
-background-color: #009578;
 }
 /**申诉输入框**/
 .inputbox{
