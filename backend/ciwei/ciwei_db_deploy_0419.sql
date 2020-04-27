@@ -483,13 +483,16 @@ CREATE TABLE `member_status_change_log`  (
   `old_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '会员旧状态 状态 1：有效 0：无效 -1:无效',
   `new_status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '会员新状态 状态 1：有效 0：无效 -1:无效',
   `user_id` int(11) UNSIGNED NOT NULL COMMENT '操作的管理员id',
-  `goods_id` int(11) UNSIGNED NOT NULL COMMENT '相关的物品id',
+  `stuff_id` int(11) UNSIGNED NOT NULL COMMENT '相关的物品或答谢id',
+  `stuff_type` tinyint(1) NOT NULL DEFAULT 0 COMMENT '1：物品 2：答谢',
   `note` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '备注字段',
   `member_reason` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '申诉理由',
   `status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '记录状态 0:无申诉 1:申诉 2:申诉成功 3:申诉驳回',
   `created_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `ix_member_status_change_log_member_id`(`member_id`) USING BTREE
+  INDEX `ix_member_status_change_log_member_id`(`member_id`) USING BTREE,
+  INDEX `ix_member_status_change_log_stuff_id`(`stuff_id`) USING BTREE,
+  INDEX `ix_member_status_change_log_stuff_type`(`stuff_type`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员状态变更记录' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
