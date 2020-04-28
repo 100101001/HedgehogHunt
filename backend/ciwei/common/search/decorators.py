@@ -13,12 +13,13 @@ from common.libs import RecordService
 from common.sync.core.base.EsService import ES_CONSTANTS
 
 
-def goods_record_db_search(func):
+def db_search(func):
     @wraps(func)
     def search_and_paginate(*args, **kwargs):
         query = func(*args, **kwargs)
         search_rule = RecordService.searchBarFilter(owner_name=kwargs.get('owner_name', ''),
-                                                    goods_name=kwargs.get('mix_kw', ''))
+                                                    goods_name=kwargs.get('mix_kw', ''),
+                                                    record_type=int(kwargs.get('record_type', 1)))
         p = max(int(kwargs.get('p', 1)), 1)
         page_size = APP_CONSTANTS['page_size']
         offset = (p - 1) * page_size
@@ -34,7 +35,7 @@ def goods_record_db_search(func):
     return search_and_paginate
 
 
-def goods_record_es_search(func):
+def es_search(func):
     @wraps(func)
     def search_and_paginate(*args, **kwargs):
         query = func(*args, **kwargs)

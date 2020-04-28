@@ -68,12 +68,13 @@ def syncGoodsToES(goods_info=None, edit=False):
     if edit:
         try:
             res = es.update(index=ES_CONSTANTS['INDEX'], id=goods_id, body={'doc': body})
+            app.logger.info("搜索数据更新: " + str(res))
         except NotFoundError as e:
             res = str(e)
             app.logger.error(res)
     else:
         res = es.create(index=ES_CONSTANTS['INDEX'], id=goods_id, body=body)
-    app.logger.info("搜索数据插入: " + str(res))
+        app.logger.info("搜索数据插入: " + str(res))
     return res
 
 

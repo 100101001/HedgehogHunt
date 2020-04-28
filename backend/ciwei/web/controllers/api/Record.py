@@ -11,9 +11,9 @@ import datetime
 from flask import request, jsonify, g
 
 from application import APP_CONSTANTS
-from common.libs import RecordService, UserService
+from common.libs import RecordService
 from common.libs.Helper import param_getter
-from common.libs.RecordService import GoodsRecordSearchHandler
+from common.libs.RecordService import RecordHandlers
 from common.loggin.decorators import time_log
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Recommend import Recommend
@@ -45,21 +45,27 @@ def recordSearch():
         resp['msg'] = "加载失败"
         return jsonify(resp)
 
-
+    """
+    op_status=0, 用户的发布记录
+    op_status=1, 用户的认领记录
+    op_status=5, 用户的归还通知
+    op_status=6, 用户的申诉列表
+    op_status=2, 用户的推荐列表
+    """
     op_status = int(req.get('op_status', -1))
 
     p = int(req.get('p', 1))
     report_rule = Good.report_status == 0 if op_status == 2 else Good.report_status.in_([0, 1])
     order_rule = Recommend.rel_score.desc() if op_status == 2 else Good.id.desc()
-    goods_list = GoodsRecordSearchHandler.deal(op_status,
-                                          member_id=member_info.id, member_openid=member_info.openid,
-                                          biz_type=int(req.get('business_type')), status=status,
-                                          # 搜索栏和分页排序参数
-                                          owner_name=req.get('owner_name'),
-                                          goods_name=req.get('mix_kw'),
-                                          p=p,
-                                          report_rule=report_rule,
-                                          order_rule=order_rule)
+    goods_list = RecordHandlers.get('goods').search().deal(op_status,
+                                                           member_id=member_info.id, member_openid=member_info.openid,
+                                                           biz_type=int(req.get('business_type')), status=status,
+                                                           # 搜索栏和分页排序参数
+                                                           owner_name=req.get('owner_name'),
+                                                           goods_name=req.get('mix_kw'),
+                                                           p=p,
+                                                           report_rule=report_rule,
+                                                           order_rule=order_rule)
     # 将对应的用户信息取出来，组合之后返回
     record_list = []
     if goods_list:
@@ -105,31 +111,17 @@ def recordDelete():
     op_status=0, 用户的发布记录
     op_status=1, 用户的认领记录
     op_status=5, 用户的归还通知
+    op_status=6, 用户的申诉列表
     op_status=2, 用户的推荐列表
     op_status=4, 管理员的举报列表
     """
     op_status = int(req.get('op_status', -1))
     id_list = param_getter['ids'](req.get('id_list', None))
     status = int(req.get('status', -7))
-    op_res = False
-    if op_status == 0:
-        op_res = RecordService.deleteMyRelease(goods_ids=id_list, biz_type=int(req.get('biz_type', 2)), status=status)
-    elif op_status == 1:
-        # 删除认领记录（已取回，已答谢）
-        op_res = RecordService.deleteMyMark(goods_ids=id_list, member_id=member_info.id, status=status)
-    elif op_status == 5:
-        # 删除记录 ！= 删帖子（不是作者），只需解除人的链接即可
-        op_res = RecordService.deleteReturnNotice(goods_ids=id_list, status=status)
-    elif op_status == 2:
-        # 推荐删除（更新为7）
-        op_res = RecordService.deleteRecommendNotice(goods_ids=id_list, member_id=member_info.id)
-    elif op_status == 6:
-        # 申诉只能删除已处理完毕的记录
-        op_res = RecordService.deleteMyAppeal(goods_ids=id_list, member_id=member_info.id)
-    elif op_status == 4:
-        # 物品和举报状态为 5
-        user_info = UserService.getUserByMid(member_id=member_info.id)
-        if user_info:
-            op_res = RecordService.deleteGoodsReport(goods_ids=id_list, user_id=user_info.uid)
+    op_res = RecordHandlers.get('goods').delete().deal(op_status,
+                                                       goods_ids=id_list,
+                                                       status=status,
+                                                       member_id=member_info.id,
+                                                       biz_type=int(req.get('biz_type', 2)))
     resp['code'] = 200 if op_res else -1
     return resp

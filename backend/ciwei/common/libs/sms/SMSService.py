@@ -16,7 +16,7 @@ from aliyunsdkcore.client import AcsClient
 import uuid
 from aliyunsdkcore.profile import region_provider
 from aliyunsdkcore.http import method_type as MT
-from application import app, db
+from application import app
 from common.models.ciwei.logs.thirdservice.AcsSmsSendLog import AcsSmsSendLog
 
 

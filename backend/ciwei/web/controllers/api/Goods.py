@@ -13,10 +13,10 @@ from flask import request, jsonify, g
 
 from application import db, app, APP_CONSTANTS
 from common.cahce import cas, CacheOpService
-from common.libs import GoodsService, ReportService
+from common.libs import GoodsService
 from common.libs.Helper import param_getter
 from common.libs.MemberService import MemberService
-from common.libs.RecordService import GoodsRecordSearchHandler
+from common.libs.RecordService import RecordHandlers
 from common.libs.UploadService import UploadService
 from common.libs.UrlManager import UrlManager
 from common.libs.mall.PayService import PayService
@@ -340,13 +340,13 @@ def goodsSearchV2():
         return jsonify(resp)
 
     p = int(req.get('p', 1))
-    goods_list = GoodsRecordSearchHandler.deal(op_status=-1,
-                                               status = status,
-                                               biz_type=business_type,
-                                               owner_name=req.get('owner_name'),
-                                               goods_name=req.get('mix_kw'),
-                                               filter_address=req.get('filter_address'),
-                                               p=p)
+    goods_list = RecordHandlers.get('goods').search().deal(op_status=-1,
+                                                           status=status,
+                                                           biz_type=business_type,
+                                                           owner_name=req.get('owner_name'),
+                                                           goods_name=req.get('mix_kw'),
+                                                           filter_address=req.get('filter_address'),
+                                                           p=p)
 
 
     def status_desc(goods_status):
@@ -397,6 +397,7 @@ def goodsSearchV2():
                 "business_type": item.get('business_type'),
                 "summary": item.get('summary'),
                 "main_image": UrlManager.buildImageUrl(item.get('main_image')),
+                "auther_id": item.get('member_id'),
                 "auther_name": item.get('nickname'),
                 "avatar": item.get('avatar'),
                 "selected": False,
@@ -1007,7 +1008,7 @@ def goodsInfo():
         data = GoodsService.getFoundGoodsInfo(goods_info=goods_info, member_info=member_info)
         GoodsService.setRecommendRead(is_recommend_src=int(req.get('op_status', 0)) == 2,
                                       has_read=has_read, member_info=member_info, goods_id=goods_id)
-    elif business_type == 2:
+    else:
         data = GoodsService.getReturnGoodsInfo(goods_info=goods_info, member_info=member_info)
 
     db.session.commit()
@@ -1052,46 +1053,6 @@ def fetchGoodsInfoForThanks():
         "avatar": goods_info.avatar,
         "updated_time": str(goods_info.updated_time),  # 被编辑的时间 or 首次发布的时间
     }
-    resp['code'] = 200
-    return jsonify(resp)
-
-
-@route_api.route("/goods/report", methods=['GET', 'POST'])
-@time_log
-def goodsReport():
-    """
-    举报物品/答谢
-    :return: 成功
-    """
-    resp = {'code': -1, 'msg': '举报成功', 'data': {}}
-    req = request.values
-
-    # 检查登陆
-    # 检查参数：举报id, 举报类型record_type
-    member_info = g.member_info
-    if not member_info:
-        resp['msg'] = '没有用户信息，无法完成举报！请授权登录'
-        return jsonify(resp)
-    goods_id = int(req.get('id', -1))
-    status = int(req.get('status', -1))  # 用户视图中以为的状态
-    if goods_id == -1 or status == -1:
-        resp['msg'] = "举报失败"
-        return jsonify(resp)
-    # 物品信息已有了违规标记
-    reporting_goods = Good.query.filter_by(id=goods_id).first()
-    if reporting_goods.report_status != 0:
-        resp['msg'] = "该条信息已被举报过，管理员处理中"
-        return resp
-
-    if not cas.exec(goods_id, status, 7):  # 用户视图中以为的状态正确，进入critical op 区
-        resp['msg'] = "操作冲突，请稍后重试"
-        return jsonify(resp)
-    # 物品举报标记
-    reporting_goods.report_status = 1
-    db.session.add(reporting_goods)
-    ReportService.newGoodReport(reporting_goods=reporting_goods, reporting_member=member_info)
-    db.session.commit()
-    cas.exec(goods_id, 7, status)  # 解锁
     resp['code'] = 200
     return jsonify(resp)
 

@@ -7,13 +7,16 @@
 """
 from flask import request, jsonify, g
 
-from application import APP_CONSTANTS
-from common.libs import RecordService, ReportService, UserService
-from common.libs.RecordService import GoodsRecordSearchHandler
-from common.libs.ReportService import ReportHandlers, REPORT_CONSTANTS
-from common.libs.UrlManager import UrlManager
+from application import APP_CONSTANTS, db
+from common.cahce import cas
+from common.libs import UserService
+from common.libs.RecordService import RecordHandlers
+from common.libs.ReportService import ReportHandlers, ReportRecordMakers
+from common.loggin.decorators import time_log
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Report import Report
+from common.models.ciwei.Thanks import Thank
+from common.models.ciwei.User import User
 from web.controllers.api import route_api
 
 
@@ -35,37 +38,11 @@ def reportGoodsInfo():
     # 获取举报和物品信息
     reported_goods = Good.query.join(Report, Good.id == Report.record_id).add_entity(Report).filter(
         Good.id == goods_id).first()
-    goods, report = reported_goods.Good, reported_goods.Report
-    location_list = goods.location.split("###")
-    location_list[2] = eval(location_list[2])
-    location_list[3] = eval(location_list[3])
-    resp['data']['info'] = {
-        "id": goods.id,
-        "goods_name": goods.name,
-        "owner_name": goods.owner_name,
-        "summary": goods.summary,
-        "view_count": goods.view_count,
-        "main_image": UrlManager.buildImageUrl(goods.main_image),
-        "pics": [UrlManager.buildImageUrl(i) for i in goods.pics.split(",")],
-        "updated_time": str(goods.updated_time),
-        "location": location_list,
-        "business_type": goods.business_type,
-        "mobile": goods.mobile,
-        "status_desc": str(goods.status_desc),
-        "status": goods.status,
-        # 作者和举报信息
-        "auther_name": goods.nickname,
-        "avatar": goods.avatar,
-        "report_status": report.status
-    }
-    # 举报者身份信息
-    resp['data']['report_auth_info'] = {
-        "avatar": report.report_member_avatar,
-        "auther_name": report.report_member_nickname,
-        "updated_time": str(report.updated_time),
-        "is_auth": False,
-        "is_reporter": True,
-        "goods_status": goods.status,
+
+    info, reporter = ReportRecordMakers.get('goods_detail')(reported_goods=reported_goods)
+    resp['data'] = {
+        'info': info,
+        'report_auth_info': reporter
     }
     return resp
 
@@ -76,38 +53,23 @@ def reportGoodsSearch():
     管理员获取物品举报记录
     :return:
     """
-    resp = {'code': -1, 'msg': '', 'data': {}}
+    resp = {'code': -1, 'msg': '获取失败', 'data': {}}
     req = request.values
     p = int(req.get('p', 1))
     status = int(req.get('status', -1))  # 举报的状态
     if status not in (1, 2, 3, 4, 5):
         return resp
 
-    reported_goods = GoodsRecordSearchHandler.deal(op_status=4,
-                                  report_status=status,
-                                  owner_name=req.get('owner_name'),
-                                  goods_name=req.get('mix_kw'),
-                                  p=p,
-                                  order_rule=Good.id.desc())
-
-
+    reported_goods = RecordHandlers.get('goods').search().deal(op_status=4,
+                                                               report_status=status,
+                                                               owner_name=req.get('owner_name'),
+                                                               goods_name=req.get('mix_kw'),
+                                                               p=p,
+                                                               order_rule=Good.id.desc())
     reported_goods_records = []
     if reported_goods:
         for item in reported_goods:
-            goods = {
-                "id": item.id,  # 物品id
-                "goods_name": item.name,  # 物品名
-                "owner_name": item.owner_name,  # 物主
-                "updated_time": str(item.updated_time),  # 编辑 or 新建时间
-                "business_type": item.business_type,  # 寻物/失物招领
-                "summary": item.summary,  # 描述
-                "main_image": UrlManager.buildImageUrl(item.main_image),  # 首图
-                "auther_name": item.nickname,  # 作者昵称
-                "avatar": item.avatar,  # 作者头像
-                "selected": False,  # 前段编辑属性
-                "location": item.location.split("###")[1],  # 概要显示
-                "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
-            }  # 数据组装
+            goods = ReportRecordMakers.get('goods_record')(reported_goods=item)
             reported_goods_records.append(goods)
     resp['code'] = 200
     resp['data']['list'] = reported_goods_records
@@ -116,8 +78,48 @@ def reportGoodsSearch():
     return jsonify(resp)
 
 
+@route_api.route("/report/thanks/search", methods=['GET', 'POST'])
+@time_log
+def reportThankSearch():
+    """
+    搜出所有被举报的答谢
+    :return:
+    """
+    resp = {'code': -1, 'msg': '', 'data': {}}
+    req = request.values
+
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = "请先登录"
+        return resp
+
+    # 获取操作值，看用户是查看收到的还是发出的答谢信息
+    report_status = int(req.get('report_status', -1))
+    if report_status == -1:
+        resp['msg'] = "获取失败"
+        return resp
+
+    reported_thanks = RecordHandlers.get('thanks').search().deal(2, report_status=report_status,
+                                                                 # 搜索,分页,排序
+                                                                 owner_name=req.get('owner_name'),
+                                                                 goods_name=req.get('mix_kw'),
+                                                                 p=int(req.get('p', 1)),
+                                                                 order_rule=Report.id.desc())
+
+    reported_thank_records = []
+    if reported_thanks:
+        for reported_thank in reported_thanks:
+            reported_thank_record = ReportRecordMakers.get('thanks')(reported_thank=reported_thank)
+            reported_thank_records.append(reported_thank_record)
+
+    resp['code'] = 200
+    resp['data']['list'] = reported_thank_records
+    resp['data']['has_more'] = len(reported_thank_records) >= APP_CONSTANTS['page_size']
+    return jsonify(resp)
+
+
 @route_api.route('/report/goods/deal')
-def reportDeal():
+def reportGoodsDeal():
     """
     拉黑举报者2/发布者3/无违规4
     :return:
@@ -139,8 +141,107 @@ def reportDeal():
         resp['msg'] = "您不是管理员，操作失败"
         return resp
 
-    ReportHandlers.getHandler(REPORT_CONSTANTS['handler_name']['goods']).deal(op_status=report_status, goods_id=goods_id,
-                                                                           user_id=user_info.uid)
+    ReportHandlers.get('goods').deal(report_status, goods_id=goods_id, user_id=user_info.uid)
 
+    resp['code'] = 200
+    return jsonify(resp)
+
+
+@route_api.route('/report/thanks/deal')
+@time_log
+def reportThanksDeal():
+    """
+    拉黑答谢的举报者或者发布者
+    :return:
+    """
+    resp = {'code': -1, 'msg': '', 'data': {}}
+    req = request.values
+
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = "用户信息异常"
+        return jsonify(resp)
+    report_status = int(req.get('report_status', -1))
+    thank_id = int(req.get('thank_id', -1))
+    if thank_id == -1 or report_status not in (2, 3, 4, 5):
+        resp['msg'] = '操作失败'
+        return resp
+
+    user_info = User.query.filter_by(member_id=member_info.id).first()
+    if not user_info:
+        resp['msg'] = "您无管理员权限"
+        return resp
+
+    ReportHandlers.get('thanks').deal(report_status, thank_id=thank_id, user_id=user_info.uid)
+
+    resp['code'] = 200
+    return resp
+
+
+@route_api.route("/report/goods", methods=['GET', 'POST'])
+@time_log
+def reportGoods():
+    """
+    举报物品/答谢
+    :return: 成功
+    """
+    resp = {'code': -1, 'msg': '举报成功', 'data': {}}
+    req = request.values
+
+    # 检查登陆
+    # 检查参数：举报id, 举报类型record_type
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = '没有用户信息，无法完成举报！请授权登录'
+        return jsonify(resp)
+    goods_id = int(req.get('id', -1))
+    status = int(req.get('status', -1))  # 用户视图中以为的状态
+    if goods_id == -1 or status == -1:
+        resp['msg'] = "举报失败"
+        return jsonify(resp)
+    # 物品信息已有了违规标记
+    reporting_goods = Good.query.filter_by(id=goods_id).first()
+    if reporting_goods.report_status != 0:
+        resp['msg'] = "该条信息已被举报过，管理员处理中"
+        return resp
+
+    if not cas.exec(goods_id, status, 7):  # 用户视图中以为的状态正确，进入critical op 区
+        resp['msg'] = "操作冲突，请稍后重试"
+        return jsonify(resp)
+    # 物品举报标记
+    ReportHandlers.get('goods').deal(1, reporting_goods=reporting_goods, reporting_member=member_info)
+    db.session.commit()
+    cas.exec(goods_id, 7, status)  # 解锁
+    resp['code'] = 200
+    return jsonify(resp)
+
+
+@route_api.route("/report/thanks", methods=['GET', 'POST'])
+@time_log
+def reportThanks():
+    """
+    举报物品/答谢
+    :return: 成功
+    """
+    resp = {'code': -1, 'msg': '举报成功', 'data': {}}
+    req = request.values
+
+    # 检查登陆
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = '没有用户信息，无法完成举报！请授权登录'
+        return jsonify(resp)
+    thank_id = int(req.get('id', -1))
+    if thank_id == -1:
+        resp['msg'] = "举报失败"
+        return jsonify(resp)
+    # 答谢信息违规
+    reporting_thank = Thank.query.filter_by(id=thank_id).first()
+    if reporting_thank.report_status != 0:
+        resp['msg'] = "该条信息已被举报过，管理员处理中"
+        return resp
+
+    ReportHandlers.get('thanks').deal(1, reporting_thanks=reporting_thank, reporting_member=member_info)
+    db.session.commit()
     resp['code'] = 200
     return jsonify(resp)

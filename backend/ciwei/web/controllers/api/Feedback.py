@@ -120,7 +120,7 @@ def endFeedbackCreate():
     if not feedback_id:
         resp['msg'] = "提交失败"
         return resp
-    feedback_info = Feedback.query.filter_by(id=feedback_id).with_for_update().first()
+    feedback_info = Feedback.query.filter_by(id=int(feedback_id)).with_for_update().first()
     if not feedback_info:
         resp['msg'] = '提交失败'
         return resp

@@ -228,25 +228,3 @@ def checkVerifyCode():
             resp['code'] = -1
             resp['msg'] = "验证失败"
             return jsonify(resp)
-
-
-@route_api.route("/qrcode", methods=['GET', 'POST'])
-def testUnlimitedQrcode():
-    # 调API获取二维码
-    resp = {}
-    from common.libs.mall.WechatService import WeChatService
-    member_info = Member.query.filter_by(id=100002).first()
-    token = WeChatService.get_wx_token()
-    # 二维码的编码信息
-    code_data = {
-        'openid': member_info.openid,
-        'name': member_info.name
-    }
-    wx_resp = requests.post(
-        "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}".format(token),
-        json={"scene": jsonify(code_data), "width": 280, "page": "pages/index/index"})
-
-    path = QrCodeService.save_wx_qr_code(member_info, wx_resp)
-    resp['code'] = 200
-    resp['data'] = {'qr_code_url': UrlManager.buildImageUrl(path, image_type='QR_CODE')}
-    return jsonify(resp)

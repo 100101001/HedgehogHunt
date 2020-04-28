@@ -17,7 +17,6 @@ from common.libs import UserService, LogService
 from common.libs.CryptService import Cipher
 from common.libs.Helper import queryToDict
 from common.libs.MemberService import MemberService
-from common.libs.ReportService import REPORT_CONSTANTS
 from common.libs.UrlManager import UrlManager
 from common.libs.mall.PayService import PayService
 from common.libs.mall.WechatService import WeChatService
@@ -604,7 +603,7 @@ def memberBlockedSearch():
     return jsonify(resp)
 
 
-# 恢复会员
+
 @route_api.route('/member/restore')
 @time_log
 def memberRestore():
@@ -650,14 +649,14 @@ def memberBlockedRecords():
         resp['msg'] = '获取失败'
         return resp
     stuff_type = int(req.get('status', 0))
-    if stuff_type not in REPORT_CONSTANTS['stuff_type']:
+    if stuff_type not in APP_CONSTANTS['stuff_type']:
         resp['msg'] = '获取失败'
         return resp
 
     logs = LogService.getStatusChangeLogsWithStuffDetail(member_id=member_id, stuff_type=stuff_type)
 
     def detailTransformer(stuff_typo=0):
-        if stuff_typo == REPORT_CONSTANTS['stuff_type']['goods']:
+        if stuff_typo == APP_CONSTANTS['stuff_type']['goods']:
             def transform(good):
                 return {
                     'summary': good.summary,

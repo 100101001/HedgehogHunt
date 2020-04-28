@@ -1,7 +1,11 @@
-#!/usr/bin/python3.6.8
-#Editor weichaoxu
-
-# -*- coding:utf-8 -*-
+# encoding: utf-8
+"""
+@author: github/100101001
+@contact: 17702113437@163.com
+@time: 2020/4/24 下午6:43
+@file: Adv.py
+@desc:
+"""
 from common.models.ciwei.Member import Member
 from common.models.ciwei.Adv import Adv
 from common.libs.Helper import getUuid
@@ -20,7 +24,7 @@ from common.libs.MemberService import MemberService
 
 @route_api.route("/adv/create", methods=['GET', 'POST'])
 def createAdvs():
-    resp = {'code': 200, 'msg': 'create goods data successfully(goods/add)', 'data': {}}
+    resp = {'code': 200, 'msg': '', 'data': {}}
     req = request.values
 
     member_info = g.member_info

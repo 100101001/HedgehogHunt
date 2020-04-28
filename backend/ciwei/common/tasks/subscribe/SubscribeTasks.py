@@ -9,6 +9,7 @@
 import requests
 
 from application import celery, app, APP_CONSTANTS, db
+from common.libs.Helper import getCurrentDate
 from common.libs.mall.WechatService import WeChatService
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Member import Member
@@ -99,7 +100,7 @@ def send_recommend_subscribe_in_batch(lost_list=None, found_goods=None):
 
     recommend_data = {
         "thing1": {"value": found_goods.get('name')},
-        "time2": {"value": found_goods.get('created_time')},
+        "time2": {"value": found_goods.get('created_time', getCurrentDate())},
         "thing3": {"value": found_goods.get('location').split('###')[1]},
     }
 
@@ -128,9 +129,9 @@ def send_thank_subscribe(thank_info=None):
     """
     thank_data = {
         "thing1": {"value": thank_info.get('nickname')},
-        "amount2": {"value": thank_info.get('thank_price')},
+        "amount2": {"value": thank_info.get('thank_price', 0)},
         "thing3": {"value": thank_info.get('summary')},
-        "date4": {"value": thank_info.get('created_time')}
+        "date4": {"value": thank_info.get('created_time', getCurrentDate())}
     }
     openid = Good.query.filter_by(id=thank_info.get('goods_id')).with_entities(Good.openid).first()
     if openid:

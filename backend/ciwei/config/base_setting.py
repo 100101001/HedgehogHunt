@@ -230,15 +230,9 @@ CONSTANTS = {
     'default_lost_loc': '不知道###不知道###0###0',
     'default_loc': ['不知道', '不知道', 0, 0],
     'is_all_user_val': '1',
-    'report': {
-      'stuff_type': {
-          'goods': 1,
-          'thanks': 0
-      },
-      'handler_name': {
-          'goods': 'goods',
-          'thanks': 'thanks'
-      }
+    'stuff_type': {
+        'goods': 1,
+        'thanks': 0
     },
     'page_size': 10,
     'max_pages_allowed': 50,

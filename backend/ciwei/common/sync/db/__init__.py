@@ -12,8 +12,8 @@ from flask_sqlalchemy import BaseQuery
 class SyncQuery(BaseQuery):
     def update(self, values, synchronize_session=None, update_args=None, redis_arg=None):
         def __setRedisArg(arg=None):
-            if arg == -1:
-                return {'typo': 'rem', 'rem': dict(business_type=arg)}
+            if arg in (-1, 0):
+                return {'typo': 'rem', 'rem': dict(business_type=-arg)}
             elif arg == 1:
                 return {'typo': 'add', 'add': dict()}
 
