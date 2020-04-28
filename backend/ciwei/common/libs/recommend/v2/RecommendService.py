@@ -17,23 +17,22 @@ from common.libs.recommend.v2.SynonymsService import SynonymsService
 from common.models.ciwei.Recommend import Recommend
 from common.tasks.subscribe import SubscribeTasks
 
-synonyms = SynonymsService()
-distance = DistanceService()
-
 
 class RecommendHandler:
+    synonyms = SynonymsService()
+    distance = DistanceService()
 
-    @staticmethod
-    def filter(**kwargs):
-        subclass = RecommendHandler.__subclasses__()
+    @classmethod
+    def filter(cls, **kwargs):
+        subclass = cls.__subclasses__()
         if subclass:
             next_handler = subclass[0]
             next_filter = getattr(next_handler, 'filter')
             if next_filter:
                 next_filter(**kwargs)
 
-    @staticmethod
-    def _doAutoRecommendGoods(goods_info=None, edit=False):
+    @classmethod
+    def _doAutoRecommendGoods(cls, goods_info=None, edit=False):
         """
         自动匹配推荐
         :param edit:
@@ -42,7 +41,7 @@ class RecommendHandler:
         app.logger.warn("推荐中")
 
         release_type = goods_info.business_type
-        goods_list = RecommendHandler.__doFilterPossibleGoods(goods_info)
+        goods_list = cls.__doFilterPossibleGoods(goods_info)
         # 记录需要发送订阅消息的lost_goods
         # 新增推荐记录
         need_notification = []
@@ -51,11 +50,11 @@ class RecommendHandler:
             target_member_id = good.get('member_id') if release_type == 1 else goods_info.member_id  # 获得寻物启示贴主id
             lost_goods_id = good_id if release_type == 1 else goods_info.id  # 如果发布的是失物招领，lost_id就是匹配上的物品列表的id
             found_goods_id = good_id if release_type == 0 else goods_info.id  # 如果发布的是寻物启事，found_id就是匹配上的物品列表的id
-            new_recommend = RecommendHandler.__addRecommendGoods(target_member_id=target_member_id,
-                                                                 found_goods_id=found_goods_id,
-                                                                 lost_goods_id=lost_goods_id,
-                                                                 rel_score=good.get('score', 1),
-                                                                 edit=edit)
+            new_recommend = cls.__addRecommendGoods(target_member_id=target_member_id,
+                                                    found_goods_id=found_goods_id,
+                                                    lost_goods_id=lost_goods_id,
+                                                    rel_score=good.get('score', 1),
+                                                    edit=edit)
 
             if new_recommend and release_type == 1:
                 # 如果发布了失物招领，需要给新匹配上的寻物启示发匹配成功通知
@@ -103,19 +102,19 @@ class RecommendHandler:
         # 是新的推荐
         return repeat_recommend is None
 
-    @staticmethod
-    def __doFilterPossibleGoods(goods_info=None):
+    @classmethod
+    def __doFilterPossibleGoods(cls, goods_info=None):
         name = goods_info.name
-        cls_dict = synonyms.getWordClasses(name)
+        cls_dict = cls.synonyms.getWordClasses(name)
         if not cls_dict['noun']:
             app.logger.info("es document match")
-            return RecommendHandler.__doFilterPossibleGoods_ES(goods_info)
+            return cls.__doFilterPossibleGoods_ES(goods_info)
         else:
-            app.logger.info("redis k-v search")
-            return RecommendHandler.__doFilterPossibleGoods_Redis(goods_info, cls_dict)
+            app.logger.info("redis k-v match")
+            return cls.__doFilterPossibleGoods_Redis(goods_info, cls_dict)
 
-    @staticmethod
-    def __doFilterPossibleGoods_Redis(goods_info=None, cls_dict=None):
+    @classmethod
+    def __doFilterPossibleGoods_Redis(cls, goods_info=None, cls_dict=None):
         release_type = goods_info.business_type
         # 物品范围
         redis_conn = redis_conn_db_3 if release_type else redis_conn_db_4
@@ -137,7 +136,7 @@ class RecommendHandler:
             possibles.append(data)
 
         if goods_info.os_location != APP_CONSTANTS['default_lost_loc']:  # 发布了寻物启事，且不记得东西丢哪了，就不筛了
-            possibles = distance.filterNearbyGoods(goods_list=possibles, found_location=goods_info.os_location)
+            possibles = cls.distance.filterNearbyGoods(goods_list=possibles, found_location=goods_info.os_location)
 
         # 权重
         adj_keys = cls_dict['adj']
@@ -162,14 +161,14 @@ class RecommendHandler:
 
         return possibles
 
-    @staticmethod
-    def __doFilterPossibleGoods_ES(goods_info=None):
+    @classmethod
+    def __doFilterPossibleGoods_ES(cls, goods_info=None):
         """
         当没有同义词的时候，选择ES做类似MYSQL上进行的检索
         :param goods_info:
         :return:
         """
-        key_words = synonyms.getSearchWords(input_word=goods_info.name)
+        key_words = cls.synonyms.getSearchWords(input_word=goods_info.name)
         must_syms = key_words['noun']
         should_syms = key_words['adj']
 
@@ -202,7 +201,7 @@ class RecommendHandler:
                 possibles.append(data)
 
         if goods_info.os_location != APP_CONSTANTS['default_lost_loc']:
-            possibles = distance.filterNearbyGoods(goods_list=possibles, found_location=goods_info.os_location)
+            possibles = cls.distance.filterNearbyGoods(goods_list=possibles, found_location=goods_info.os_location)
         return possibles
 
 
@@ -223,8 +222,8 @@ class NoModifiedHandler:
 class ModifiedHandler(RecommendHandler):
     next = NoModifiedHandler
 
-    @staticmethod
-    def filter(edit_info=None, goods_info=None, **kwargs):
+    @classmethod
+    def filter(cls, edit_info=None, goods_info=None, **kwargs):
         if edit_info and edit_info.get('need_recommend'):
             Recommend.query.filter(Recommend.found_goods_id == goods_info.id,
                                    Recommend.status != 7).update({'status': 7}, synchronize_session=False)
@@ -238,8 +237,8 @@ class ModifiedHandler(RecommendHandler):
 class ReleaseHandler(RecommendHandler):
     next = ModifiedHandler
 
-    @staticmethod
-    def filter(edit_info=None, goods_info=None, **kwargs):
+    @classmethod
+    def filter(cls, edit_info=None, goods_info=None, **kwargs):
         if not edit_info:
             super()._doAutoRecommendGoods(goods_info=goods_info, edit=False)
             return

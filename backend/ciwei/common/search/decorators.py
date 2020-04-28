@@ -25,7 +25,7 @@ def db_search(func):
         offset = (p - 1) * page_size
         # 举报的filter可有可无
         report_rule = kwargs.get('report_rule')
-        if report_rule:
+        if report_rule is not None:
             query.filter(report_rule)
         # 排序规则必须有
         order_rule = kwargs.get('order_rule')

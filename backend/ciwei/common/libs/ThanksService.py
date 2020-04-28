@@ -12,7 +12,7 @@ from decimal import Decimal
 from sqlalchemy import or_
 
 from application import db
-from common.cahce import cas
+from common.cahce.GoodsCasUtil import GoodsCasUtil
 from common.libs.MemberService import MemberService
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
@@ -60,7 +60,7 @@ def updateThankedFoundStatus(found_id=0, send_member_id=0):
     """
     if not found_id or not send_member_id:
         return
-    if cas.exec_wrap(found_id, ['nil', 3], 4):
+    if GoodsCasUtil.exec_wrap(found_id, ['nil', 3], 4):
         # 如果没有被删除就更新为已答谢，否则不更新
         Good.query.filter_by(id=found_id, status=3).update({'status': 4, 'thank_time': datetime.datetime.now()})
     Mark.query.filter(Mark.member_id == send_member_id,
@@ -79,8 +79,8 @@ def updateThankedReturnStatus(return_id=0):
     lost_id = Good.query.filter_by(id=return_id).with_entities(Good.return_goods_id).first()
     # 对方可能正好删除了归还帖子，但寻物贴只有答谢者自己才能删除的帖子，不可能并发操作
     updated = {'status': 4, 'thank_time': datetime.datetime.now()}
-    cas.exec_wrap(lost_id, ['nil', 3], 4)  # 寻物贴只有自己能操作状态，所以不会冲突
-    if cas.exec_wrap(return_id, ['nil', 3], 4):  # 归还帖对方可以删除让状态变为 7
+    GoodsCasUtil.exec_wrap(lost_id, ['nil', 3], 4)  # 寻物贴只有自己能操作状态，所以不会冲突
+    if GoodsCasUtil.exec_wrap(return_id, ['nil', 3], 4):  # 归还帖对方可以删除让状态变为 7
         # 不存在并发操作
         Good.query.filter(or_(Good.id == return_id, Good.id == lost_id[0]),
                           Good.status == 3).update(updated)

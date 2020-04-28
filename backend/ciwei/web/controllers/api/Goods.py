@@ -12,7 +12,8 @@ from decimal import Decimal
 from flask import request, jsonify, g
 
 from application import db, app, APP_CONSTANTS
-from common.cahce import cas, CacheOpService
+from common.cahce import CacheOpService
+from common.cahce.GoodsCasUtil import GoodsCasUtil
 from common.libs import GoodsService
 from common.libs.Helper import param_getter
 from common.libs.MemberService import MemberService
@@ -301,7 +302,7 @@ def endCreate():
         if lost_id != -1:
             # 寻物归还
             lost_goods = Good.query.filter_by(id=lost_id, status=1).first()
-            if lost_goods and cas.exec_wrap(lost_id, ['nil', 1], 2):
+            if lost_goods and GoodsCasUtil.exec_wrap(lost_id, ['nil', 1], 2):
                 GoodsService.returnToLostSuccess(return_goods=goods_info, lost_goods=lost_goods, author=member_info)
             else:
                 goods_info.business_type = 1
@@ -387,7 +388,7 @@ def goodsSearchV2():
             item = item.get('_source')
             item_id = item.get('id')
             item_status = item.get('status')
-            if not cas.exec_wrap(item_id, [item_status, 'nil'], item_status):
+            if not GoodsCasUtil.exec_wrap(item_id, [item_status, 'nil'], item_status):
                 continue
             tmp_data = {
                 "id": item_id,
@@ -437,7 +438,7 @@ def goodsApply():
         resp['msg'] = '认领失败'
         return jsonify(resp)
 
-    if not cas.exec(goods_id, status, 7):
+    if not GoodsCasUtil.exec(goods_id, status, 7):
         # 取消认领会 2——> 1，所以设置 7
         resp['msg'] = '操作冲突，请稍后重试'
         return jsonify(resp)
@@ -456,7 +457,7 @@ def goodsApply():
     CacheOpService.addPreMarkCache(goods_id=goods_id, member_id=member_id)
 
     # CAS 解锁
-    cas.exec(goods_id, 7, 2)
+    GoodsCasUtil.exec(goods_id, 7, 2)
     resp['code'] = 200
     return jsonify(resp)
 
@@ -522,21 +523,11 @@ def returnGoodsDelInBatch():
         return jsonify(resp)
 
     lost_ids = Good.query.filter(Good.id.in_(return_ids)).with_entities(Good.return_goods_id).distinct().all()
-    total_goods_num = len(return_ids)
-    # 原子公开
-    for i in range(total_goods_num):
-        ok1 = cas.exec(return_ids[i], status, 7)
-        ok2 = cas.exec_wrap(lost_ids[i][0], [2, 'nil'], 1)
-        if not ok1 or not ok2:
-            for o in range(i):
-                cas.exec(lost_ids[o][0], 1, 2)
-                cas.exec(return_ids[o], 7, status)
-            if ok1:
-                cas.exec(return_ids[i], 7, status)
-            if ok2:
-                cas.exec(lost_ids[i][0], 1, 2)
-            resp['msg'] = '操作冲突，请稍后重试'
-            return jsonify(resp)
+
+    cas_res = GoodsCasUtil.judgePair(return_ids, status, 7, lost_ids, 2, 1)
+    if not cas_res:
+        resp['msg'] = '操作冲突，请稍后重试'
+        return jsonify(resp)
 
     # 寻物启示
     Good.query.filter(Good.id.in_(lost_ids), Good.status == 2).update({'status': 1, 'return_goods_id': 0, 'return_goods_openid': ''},
@@ -567,11 +558,9 @@ def returnGoodsToFoundInBatch():
         resp['msg'] = "操作失败"
         return jsonify(resp)
 
-    total_goods_num = len(return_ids)
     if status == 0:
         # 公开已拒绝的归还贴（只有作者能操作）
-        for r_id in return_ids:
-            cas.exec(r_id, 0, 1)
+        GoodsCasUtil.set(return_ids, exp_val=0, new_val=1)
         Good.query.filter(Good.id.in_(return_ids), Good.status == status).update(
             {'status': 1, 'business_type': 1, 'top_expire_time': datetime.datetime.now()},
             redis_arg=1)
@@ -580,19 +569,10 @@ def returnGoodsToFoundInBatch():
         # 公开待确认的归还贴
         lost_ids = Good.query.filter(Good.id.in_(return_ids)).with_entities(Good.return_goods_id).distinct().all()
         # 原子公开
-        for i in range(total_goods_num):
-            ok1 = cas.exec(return_ids[i], status, 1)
-            ok2 = cas.exec_wrap(lost_ids[i][0], [2, 'nil'], 1)
-            if not ok1 or not ok2:
-                for o in range(i):
-                    cas.exec(lost_ids[o][0], 1, 2)
-                    cas.exec(return_ids[o], 1, status)
-                if ok1:
-                    cas.exec(return_ids[i], 1, status)
-                if ok2:
-                    cas.exec(lost_ids[i][0], 1, 2)
-                resp['msg'] = '操作冲突，请稍后重试'
-                return jsonify(resp)
+        cas_res = GoodsCasUtil.judgePair(return_ids, status, 1, lost_ids, 2, 1)
+        if not cas_res:
+            resp['msg'] = '操作冲突，请稍后重试'
+            return jsonify(resp)
 
         # 寻物启
         Good.query.filter(Good.id.in_(lost_ids),
@@ -631,23 +611,14 @@ def returnGoodsRejectInBatch():
         resp['msg'] = "请先登录"
         return jsonify(resp)
 
-    total_goods_num = len(return_ids)
     lost_ids = Good.query.filter(Good.id.in_(return_ids)).with_entities(Good.return_goods_id).all()
 
     # 原子拒绝
-    for i in range(total_goods_num):
-        ok1 = cas.exec(return_ids[i], status, 0)
-        ok2 = cas.exec_wrap(lost_ids[i][0], [2, 'nil'], 1)
-        if not ok1 or not ok2:
-            for o in range(i):
-                cas.exec(lost_ids[o][0], 1, 2)
-                cas.exec(return_ids[o], 0, status)
-            if ok1:
-                cas.exec(return_ids[i], 0, status)
-            if ok2:
-                cas.exec(lost_ids[i][0], 1, 2)
-            resp['msg'] = '操作冲突，请稍后重试'
-            return jsonify(resp)
+    cas_res = GoodsCasUtil.judgePair(return_ids, status, 0, lost_ids, 2, 1)
+
+    if not cas_res:
+        resp['msg'] = '操作冲突，请稍后重试'
+        return jsonify(resp)
 
     # 寻物启示
     Good.query.filter(Good.id.in_(lost_ids), Good.status == 2).update({'status': 1, 'return_goods_id': 0, 'return_goods_openid': ''},
@@ -676,7 +647,7 @@ def returnGoodsConfirm():
         return jsonify(resp)
 
     # 原子确认
-    if not cas.exec(goods_id, status, 2):
+    if not GoodsCasUtil.exec(goods_id, status, 2):
         resp['msg'] = '操作冲突，请稍后重试'
         return jsonify(resp)
 
@@ -712,14 +683,10 @@ def returnLinkLostDelInBatch():
 
     lost_ids = Good.query.filter(Good.id.in_(return_ids)).with_entities(Good.return_goods_id).all()
 
-    ok_lost_ids = []
-    # 原子删除（归还贴和寻物贴在3,4时状态是一样的），这里除了举报不会起冲突，保险和必须的更新redis状态
-    for item in lost_ids:
-        if cas.exec_wrap(item[0], [status, 'nil'], 7):
-            ok_lost_ids.append(item[0])
-
-    # 寻物启事
-    Good.query.filter(Good.id.in_(ok_lost_ids), Good.status == status).update({'status': 7})
+    ok_lost_ids = GoodsCasUtil.filter(lost_ids, exp_val=status, new_val=7)
+    if ok_lost_ids:
+        # 寻物启事
+        Good.query.filter(Good.id.in_(ok_lost_ids), Good.status == status).update({'status': 7})
     db.session.commit()
     resp['code'] = 200
     return jsonify(resp)
@@ -784,22 +751,10 @@ def returnGoodsGotbackInBatch():
         # 在待取回的归还贴中(批量)操作确认
         lost_ids = Good.query.filter(Good.id.in_(goods_ids)).with_entities(
             Good.return_goods_id).distinct().all()
-
-        # 原子取回
-        for i in range(total_goods_num):
-            ok1 = cas.exec(goods_ids[i], status, 3)
-            ok2 = cas.exec_wrap(lost_ids[i][0], [status, 'nil'], 3)
-            if not ok1 or not ok2:
-                for o in range(i):
-                    cas.exec(lost_ids[o][0], 3, status)
-                    cas.exec(goods_ids[o], 3, status)
-                if ok1:
-                    cas.exec(goods_ids[i], 3, status)
-                if ok2:
-                    cas.exec(lost_ids[i][0], 3, status)
-                resp['msg'] = '操作冲突，请稍后重试'
-                return jsonify(resp)
-
+        cas_res = GoodsCasUtil.judgePair(goods_ids, status, 3, lost_ids, status, 3)
+        if not cas_res:
+            resp['msg'] = '操作冲突，请稍后重试'
+            return jsonify(resp)
         # 寻物启事
         Good.query.filter(Good.id.in_(lost_ids), Good.status == 2).update(lost_updated)
         # 归还
@@ -813,21 +768,10 @@ def returnGoodsGotbackInBatch():
         return_ids = Good.query.filter(Good.id.in_(goods_ids)).with_entities(
             Good.return_goods_id).distinct().all()
 
-        # 原子取回
-        for i in range(total_goods_num):
-            ok1 = cas.exec(goods_ids[i], status, 3)
-            ok2 = cas.exec_wrap(return_ids[i][0], [status, 'nil'], 3)
-            if not ok1 or not ok2:
-                for o in range(i):
-                    cas.exec(return_ids[o][0], 3, status)
-                    cas.exec(goods_ids[o], 3, status)
-                if ok1:
-                    cas.exec(goods_ids[i], 3, status)
-                if ok2:
-                    cas.exec(return_ids[i][0], 3, status)
-                resp['msg'] = '操作冲突，请稍后重试'
-                return jsonify(resp)
-
+        cas_res = GoodsCasUtil.judgePair(goods_ids, status, 3, return_ids, status, 3)
+        if not cas_res:
+            resp['msg'] = '操作冲突，请稍后重试'
+            return jsonify(resp)
         # 归还
         Good.query.filter(Good.id.in_(return_ids), Good.status == 2).update(return_updated)
         # 寻物启事
@@ -861,15 +805,11 @@ def returnGoodsCleanInBatch():
         resp['msg'] = '删除失败'
         return jsonify(resp)
 
-    total_goods_num = len(goods_ids)
+    cas_res = GoodsCasUtil.judge(goods_ids, exp_val=status, new_val=7)
+    if not cas_res:
+        resp['msg'] = '操作冲突，请稍后重试'
+        return jsonify(resp)
 
-    # 原子删除
-    for i in range(total_goods_num):
-        if not cas.exec(goods_ids[i], status, 7):
-            for o in range(i):
-                cas.exec(goods_ids[o], 7, status)
-            resp['msg'] = '操作冲突，请稍后重试'
-            return jsonify(resp)
 
     if business_type == 2:
         # 删除归还贴需要注意，同时置空通知链接
@@ -903,22 +843,17 @@ def goodsGotbackInBatch():
     if goods_ids is None or status != 2:
         resp['msg'] = '确认失败'
         return jsonify(resp)
+    cas_res = GoodsCasUtil.judge(goods_ids, exp_val=status, new_val=3)
+    if not cas_res:
+        resp['msg'] = '操作冲突，请稍后重试'
+        return jsonify(resp)
 
     # 失物招领贴的认领事务
     member_id = member_info.id
-    total_goods_num = len(goods_ids)
-
-    # 原子取回
-    for i in range(total_goods_num):
-        if not cas.exec(goods_ids[i], status, 3):
-            for o in range(i):
-                cas.exec(goods_ids[o], 3, status)
-            resp['msg'] = '操作冲突，请稍后重试'
-            return jsonify(resp)
-
     Good.query.filter(Good.id.in_(goods_ids), Good.status == status).update({'status': 3, 'owner_id': member_id,
-                                                                             'finish_time': datetime.datetime.now()})
+                                                                        'finish_time': datetime.datetime.now()})
     # 不加锁是因为，不影响goods的认领计数，且是一个人的操作
+
     MemberService.markedGoods(member_id=member_id, goods_ids=goods_ids)
     db.session.commit()
     # 异步发送消息
@@ -947,7 +882,7 @@ def goodsAppeal():
         resp['msg'] = '申诉失败，请刷新后重试'
         return jsonify(resp)
 
-    if not cas.exec(goods_id, status, 5):
+    if not GoodsCasUtil.exec(goods_id, status, 5):
         resp['msg'] = '操作冲突，请稍后重试，如紧急可联系技术人员'
         return jsonify(resp)
 
@@ -1038,7 +973,7 @@ def fetchGoodsInfoForThanks():
         resp['msg'] = '答谢失败'
         return jsonify(resp)
     goods_status = goods_info.status
-    if not cas.exec_wrap(goods_id, ['nil', goods_status], goods_status):
+    if not GoodsCasUtil.exec_wrap(goods_id, ['nil', goods_status], goods_status):
         # 虽然数据库还没更新，但内存的原子操作已经更新了 WR
         resp['msg'] = '操作冲突，请稍后重试'
         return jsonify(resp)
@@ -1078,14 +1013,14 @@ def editGoods():
         resp['msg'] = "数据上传失败"
         return jsonify(resp)
     status = int(req.get('status', -1))
-    if not cas.exec(goods_id, status, 7):
+    if not GoodsCasUtil.exec(goods_id, status, 7):
         resp['msg'] = "操作冲突，请稍后重试"
         return jsonify(resp)
     img_list_status = GoodsService.editGoods(goods_id, req)
     if not img_list_status:
         resp['msg'] = "数据上传失败"
         return jsonify(resp)
-    cas.exec(goods_id, 7, status)
+    GoodsCasUtil.exec(goods_id, 7, status)
     # 通过链接发送之后的图片是逗号连起来的字符串
 
     resp['id'] = goods_id
@@ -1109,7 +1044,7 @@ def goodsStatus():
         resp['msg'] = '操作失败，稍后重试'
         return jsonify(resp)
 
-    if not cas.exec(goods_id, status, status):
+    if not GoodsCasUtil.exec(goods_id, status, status):
         # 已经进入详情页面了
         resp['msg'] = '操作冲突，请稍后重试'
         return jsonify(resp)
@@ -1134,12 +1069,7 @@ def unmarkGoodsToSysInBatch():
         return jsonify(resp)
 
     # CAS并发保护
-    ok_goods_id = []
-    for item_id in goods_ids:
-        # 原子删除
-        if cas.exec(item_id, status, 7):
-            ok_goods_id.append(item_id)
-
+    ok_goods_id = GoodsCasUtil.filter(goods_ids, exp_val=status, new_val=7)
     updated = {'member_id': APP_CONSTANTS['sys_author']['member_id'],
                'openid': APP_CONSTANTS['sys_author']['openid'],
                'nickname': APP_CONSTANTS['sys_author']['nickname'],
@@ -1147,9 +1077,7 @@ def unmarkGoodsToSysInBatch():
     Good.query.filter(Good.status == status, Good.id.in_(ok_goods_id)).update(updated)
     db.session.commit()
     # CAS并发保护
-    for item_id in ok_goods_id:
-        # 原子发布
-        cas.exec(item_id, 7, status)
+    GoodsCasUtil.set(ok_goods_id, exp_val=7, new_val=status)
 
     resp['code'] = 200
     return jsonify(resp)

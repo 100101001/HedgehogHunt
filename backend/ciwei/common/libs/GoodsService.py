@@ -11,7 +11,8 @@ import datetime
 from sqlalchemy import func
 
 from application import db, APP_CONSTANTS
-from common.cahce import cas, CacheQueryService, CacheOpService
+from common.cahce import CacheQueryService, CacheOpService
+from common.cahce.GoodsCasUtil import GoodsCasUtil
 from common.libs.Helper import queryToDict
 from common.libs.MemberService import MemberService
 from common.libs.UploadService import UploadService
@@ -253,7 +254,7 @@ def getNoMarksAfterDelPremark(found_ids=None, member_id=0):
             # 缓存不命中
             cnt = db.session.query(func.count(Mark.id)).filter(Mark.goods_id == found_id, Mark.status != 7).scalar()
             no_mark = cnt == 0
-        if no_mark and cas.exec(found_id, 2, 1):
+        if no_mark and GoodsCasUtil.exec(found_id, 2, 1):
             # 这里不会出问题，因为认领那里，进入后设置成了 7，缓存和数据库都提交后，才会被设置成2。
             no_marks.append(found_id)
     return no_marks

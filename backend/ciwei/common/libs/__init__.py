@@ -6,3 +6,26 @@
 @file: __init__.py
 @desc:
 """
+class A:
+    @staticmethod
+    def func(a):
+        print("jjj")
+
+class B(A):
+    @classmethod
+    def func(cls, a):
+        super().func("a")
+        print("nnn")
+        cls.func2("aa")
+        cls.func3("3")
+
+    @classmethod
+    def func2(cls, n):
+        print("222")
+
+    @staticmethod
+    def func3(a):
+        print("3333")
+
+if __name__ == "__main__":
+    B.func("a")

@@ -14,13 +14,13 @@ from common.models.ciwei.Report import Report
 from common.models.ciwei.Thanks import Thank
 
 
-
 class ReportHandler:
     """
     各类举报通用方法，如：
     新增举报
     设置举报标记
     """
+
     @staticmethod
     def newStuffReport(reporting_stuff=None, reporting_member=None, record_type='goods'):
         """
@@ -93,39 +93,37 @@ class GoodsReportHandler(ReportHandler):
         if handler:
             handler(**kwargs)
 
-    @staticmethod
-    def _reportGoods(reporting_goods=None, reporting_member=None):
+    @classmethod
+    def _reportGoods(cls, reporting_goods=None, reporting_member=None):
         super().newStuffReport(reporting_stuff=reporting_goods, reporting_member=reporting_member,
                                record_type='goods')
 
-
-
-    @staticmethod
-    def _recoverGoods(goods_id=0, user_id=0):
+    @classmethod
+    def _recoverGoods(cls, goods_id=0, user_id=0):
         """
         无违规，涉及Good标记清除和redis恢复
         :param goods_id:
         :param user_id:
         :return:
         """
-        GoodsReportHandler.__setGoodReportDealt(goods_id=goods_id, report_status=2, reported_stuff_status=0,
-                                                user_id=user_id)
+        cls.__setGoodReportDealt(goods_id=goods_id, report_status=2, reported_stuff_status=0,
+                                 user_id=user_id)
         db.session.commit()
 
-    @staticmethod
-    def _blockGoods(goods_id=0, user_id=0):
+    @classmethod
+    def _blockGoods(cls, goods_id=0, user_id=0):
         """
         违规物，删除
         :param goods_id:
         :param user_id:
         :return:
         """
-        GoodsReportHandler.__setGoodReportDealt(goods_id=goods_id, report_status=3, reported_stuff_status=3,
-                                                user_id=user_id)
+        cls.__setGoodReportDealt(goods_id=goods_id, report_status=3, reported_stuff_status=3,
+                                 user_id=user_id)
         db.session.commit()
 
-    @staticmethod
-    def _blockGoodsReporter(goods_id=0, user_id=0):
+    @classmethod
+    def _blockGoodsReporter(cls, goods_id=0, user_id=0):
         """
         拉黑举报用户，把其所有正常的帖子也软封锁
         涉及Good标记清除和redis恢复
@@ -133,33 +131,33 @@ class GoodsReportHandler(ReportHandler):
         :param user_id:
         :return:
         """
-        reported_goods = GoodsReportHandler.__setGoodReportDealt(goods_id=goods_id, report_status=4,
-                                                                 reported_stuff_status=0, user_id=user_id)
+        reported_goods = cls.__setGoodReportDealt(goods_id=goods_id, report_status=4,
+                                                  reported_stuff_status=0, user_id=user_id)
         # 软封锁账户，提前记录，避免后面再次查数据库
         blocked_member_id = reported_goods.Report.report_member_id
         # redis 候选同步，提交前提前转换，避免后面再次查数据库
         db.session.commit()
         # 因为会员被拉黑了，所以相当于所有的物品都因为被举报而封锁
-        GoodsReportHandler.__blockGoodsMember(member_id=blocked_member_id, user_id=user_id, goods_id=goods_id,
-                                              block_status=-1)
+        cls.__blockGoodsMember(member_id=blocked_member_id, user_id=user_id, goods_id=goods_id,
+                               block_status=-1)
 
-    @staticmethod
-    def _blockGoodsReleaser(goods_id=0, user_id=0):
+    @classmethod
+    def _blockGoodsReleaser(cls, goods_id=0, user_id=0):
         """
         拉黑发布者，删除本举报贴，把其所有正常的帖子也软封锁
         :param goods_id:
         :param user_id:
         :return:
         """
-        reported_goods = GoodsReportHandler.__setGoodReportDealt(goods_id=goods_id, report_status=5,
-                                                                 reported_stuff_status=5,
-                                                                 user_id=user_id)
+        reported_goods = cls.__setGoodReportDealt(goods_id=goods_id, report_status=5,
+                                                  reported_stuff_status=5,
+                                                  user_id=user_id)
         # 软封锁账户，提前记录，避免后面再次查数据库
         blocked_member_id = reported_goods.Report.member_id
         db.session.commit()
         # 因为会员被拉黑了，所以相当于所有的物品都因为被举报而封锁
-        GoodsReportHandler.__blockGoodsMember(member_id=blocked_member_id, user_id=user_id, goods_id=goods_id,
-                                              block_status=0)
+        cls.__blockGoodsMember(member_id=blocked_member_id, user_id=user_id, goods_id=goods_id,
+                               block_status=0)
 
     @staticmethod
     def __blockGoodsMember(member_id=0, user_id=0, goods_id=0, block_status=0):
@@ -175,8 +173,8 @@ class GoodsReportHandler(ReportHandler):
                                   stuff_type=APP_CONSTANTS['stuff_type']['goods'],
                                   block_reason="恶意发帖" if not block_status else '恶意举报', block_status=block_status)
 
-    @staticmethod
-    def __setGoodReportDealt(goods_id=0, report_status=2, reported_stuff_status=0, user_id=0):
+    @classmethod
+    def __setGoodReportDealt(cls, goods_id=0, report_status=2, reported_stuff_status=0, user_id=0):
         """
         物品举报包装方法
         :param goods_id:
@@ -186,10 +184,10 @@ class GoodsReportHandler(ReportHandler):
         :return:
         """
         return super().setStuffReportDealt(stuff_id=goods_id,
-                                   stuff_type=APP_CONSTANTS['stuff_type']['goods'],
-                                   report_status=report_status,
-                                   reported_stuff_status=reported_stuff_status,
-                                   user_id=user_id)
+                                           stuff_type=APP_CONSTANTS['stuff_type']['goods'],
+                                           report_status=report_status,
+                                           reported_stuff_status=reported_stuff_status,
+                                           user_id=user_id)
 
 
 class ThankReportHandler(ReportHandler):
@@ -206,13 +204,13 @@ class ThankReportHandler(ReportHandler):
         if handler:
             handler(**kwargs)
 
-    @staticmethod
-    def _reportThanks(reporting_thanks=None, reporting_member=None):
+    @classmethod
+    def _reportThanks(cls, reporting_thanks=None, reporting_member=None):
         super().newStuffReport(reporting_stuff=reporting_thanks, reporting_member=reporting_member,
                                record_type='thanks')
 
-    @staticmethod
-    def _recoverThanks(thank_id=0, user_id=0):
+    @classmethod
+    def _recoverThanks(cls, thank_id=0, user_id=0):
         """
         答谢无违规
         :param thank_id:
@@ -221,12 +219,12 @@ class ThankReportHandler(ReportHandler):
         """
         if not thank_id or not user_id:
             return
-        ThankReportHandler.__setThankReportDealt(thank_id=thank_id, report_status=2, reported_stuff_status=0,
-                                                 user_id=user_id)
+        cls.__setThankReportDealt(thank_id=thank_id, report_status=2, reported_stuff_status=0,
+                                  user_id=user_id)
         db.session.commit()
 
-    @staticmethod
-    def _blockThanks(thank_id=0, user_id=0):
+    @classmethod
+    def _blockThanks(cls, thank_id=0, user_id=0):
         """
         屏蔽答谢
         :param thank_id:
@@ -235,41 +233,41 @@ class ThankReportHandler(ReportHandler):
         """
         if not thank_id or not user_id:
             return
-        ThankReportHandler.__setThankReportDealt(thank_id=thank_id, report_status=3, reported_stuff_status=3,
-                                                 user_id=user_id)
+        cls.__setThankReportDealt(thank_id=thank_id, report_status=3, reported_stuff_status=3,
+                                  user_id=user_id)
         db.session.commit()
 
-    @staticmethod
-    def _blockThankReceiver(thank_id=0, user_id=0):
+    @classmethod
+    def _blockThankReceiver(cls, thank_id=0, user_id=0):
         """
         收到答谢的举报者
         :param thank_id:
         :param user_id:
         :return:
         """
-        reported_thanks = ThankReportHandler.__setThankReportDealt(thank_id=thank_id, report_status=4,
-                                                                   reported_stuff_status=0,
-                                                                   user_id=user_id)
+        reported_thanks = cls.__setThankReportDealt(thank_id=thank_id, report_status=4,
+                                                    reported_stuff_status=0,
+                                                    user_id=user_id)
         blk_mid = reported_thanks.Report.report_member_id
         db.session.commit()
-        ThankReportHandler.__blockThankMember(member_id=blk_mid, user_id=user_id,
-                                              thank_id=thank_id, block_status=-1)
+        cls.__blockThankMember(member_id=blk_mid, user_id=user_id,
+                               thank_id=thank_id, block_status=-1)
 
-    @staticmethod
-    def _blockThankSender(thank_id=0, user_id=0):
+    @classmethod
+    def _blockThankSender(cls, thank_id=0, user_id=0):
         """
         发出答谢的人，被举报的人
         :param thank_id:
         :param user_id:
         :return:
         """
-        reported_thanks = ThankReportHandler.__setThankReportDealt(thank_id=thank_id, report_status=5,
-                                                                   reported_stuff_status=5,
-                                                                   user_id=user_id)
+        reported_thanks = cls.__setThankReportDealt(thank_id=thank_id, report_status=5,
+                                                    reported_stuff_status=5,
+                                                    user_id=user_id)
         blk_mid = reported_thanks.Report.member_id
         db.session.commit()
-        ThankReportHandler.__blockThankMember(member_id=blk_mid, user_id=user_id,
-                                              thank_id=thank_id, block_status=0)
+        cls.__blockThankMember(member_id=blk_mid, user_id=user_id,
+                               thank_id=thank_id, block_status=0)
 
     @staticmethod
     def __blockThankMember(member_id=0, user_id=0, thank_id=0, block_status=0):
@@ -285,8 +283,8 @@ class ThankReportHandler(ReportHandler):
                                   stuff_type=APP_CONSTANTS['stuff_type']['thanks'], stuff_id=thank_id,
                                   block_reason='恶意答谢' if not block_status else '恶意举报', block_status=block_status)
 
-    @staticmethod
-    def __setThankReportDealt(thank_id=0, report_status=2, reported_stuff_status=0, user_id=0):
+    @classmethod
+    def __setThankReportDealt(cls, thank_id=0, report_status=2, reported_stuff_status=0, user_id=0):
         """
         答谢举报处理包装方法
         :param thank_id:
@@ -296,10 +294,10 @@ class ThankReportHandler(ReportHandler):
         :return:
         """
         return super().setStuffReportDealt(stuff_id=thank_id,
-                                   stuff_type=APP_CONSTANTS['stuff_type']['thanks'],
-                                   report_status=report_status,
-                                   reported_stuff_status=reported_stuff_status,
-                                   user_id=user_id)
+                                           stuff_type=APP_CONSTANTS['stuff_type']['thanks'],
+                                           report_status=report_status,
+                                           reported_stuff_status=reported_stuff_status,
+                                           user_id=user_id)
 
 
 class ReportHandlers:

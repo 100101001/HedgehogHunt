@@ -6,3 +6,19 @@
 @file: __init__.py.py
 @desc:
 """
+
+
+def func(*member_Id, a=None, **kwargs):
+    for i in member_Id:
+        if i == 1:
+            i = 2
+        print(i)
+    print(a)
+    print(str(member_Id))
+def warp(*args, **kwargs):
+    func(*args, **kwargs)
+
+
+
+if __name__ == '__main__':
+    warp([1,2,3,4],"hh", b="hh")

@@ -8,7 +8,7 @@
 from flask import request, jsonify, g
 
 from application import APP_CONSTANTS, db
-from common.cahce import cas
+from common.cahce.GoodsCasUtil import GoodsCasUtil
 from common.libs import UserService
 from common.libs.RecordService import RecordHandlers
 from common.libs.ReportService import ReportHandlers, ReportRecordMakers
@@ -205,13 +205,13 @@ def reportGoods():
         resp['msg'] = "该条信息已被举报过，管理员处理中"
         return resp
 
-    if not cas.exec(goods_id, status, 7):  # 用户视图中以为的状态正确，进入critical op 区
+    if not GoodsCasUtil.exec(goods_id, status, 7):  # 用户视图中以为的状态正确，进入critical op 区
         resp['msg'] = "操作冲突，请稍后重试"
         return jsonify(resp)
     # 物品举报标记
     ReportHandlers.get('goods').deal(1, reporting_goods=reporting_goods, reporting_member=member_info)
     db.session.commit()
-    cas.exec(goods_id, 7, status)  # 解锁
+    GoodsCasUtil.exec(goods_id, 7, status)  # 解锁
     resp['code'] = 200
     return jsonify(resp)
 
