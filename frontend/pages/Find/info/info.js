@@ -442,7 +442,7 @@ Page({
       title: '信息提交中..'
     });
     wx.request({
-      url: app.buildUrl("/goods/report"),
+      url: app.buildUrl("/report/goods"),
       header: app.getRequestHeader(),
       data: {
         id: id,

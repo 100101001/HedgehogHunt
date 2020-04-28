@@ -411,35 +411,31 @@ App({
           },
           success: (res) => {
             let resp = res.data;
+            if (resp['code'] === -2) {
+              //未注册
+              this.onLoginUnRegSetData(resp['data']);
+              return
+            }
             if (resp['code'] !== 200) {
-              if (resp['code'] === -2) {
-                //非注册用户
-                //缓存session-key和openid（用于注册）
-                this.setCache("loginInfo", resp['data']);
-                if (isScanQrcode) {
-                  //未注册用户扫码
-                  this.qrCodeNavigate()
-                }
-                return
-              }
-
+              //其他情况
               this.alert({content: resp['msg']});
               return
             }
-            //成功获取用户状态信息，进行全局缓存
+            //已注册，获取了用户数据，进行全局设置
             this.onLoginSuccessSetData(res);
             if (isScanQrcode) {
-              //已注册用户(扫码时未登录，刚登录)扫码
+              //扫码，另行判断
               this.qrCodeNavigate()
             } else {
-              //登陆成功的用户提示
+              //不扫码就提示一下登录了
               this.onLoginSuccessShowToast('登录成功')
             }
           },
           fail: (res) => {
-            this.serverBusy()
+            this.serverBusy();
+            this.loginComplete();
             if (isScanQrcode) {
-              this.cancelQrcodeScan()
+              this.cancelQrcodeScan();
             }
           }
         })
@@ -448,6 +444,25 @@ App({
         this.alert({content: '网络开小差了，请稍后再试'})
       }
     })
+  },
+  onLoginUnRegSetData: function(data) {
+    this.setCache("loginInfo", data);
+    this.loginComplete();
+    if (this.globalData.isScanQrcode) {
+      //未注册用户扫码
+      this.qrCodeNavigate()
+    }
+  },
+  /**
+   * 首次登录检查完用户状态，首页才显示逛一逛
+   */
+  loginComplete: function() {
+    this.globalData.indexPage.setData({
+      isLogging: false
+    });
+    if (!this.globalData.isScanQrcode) {
+      this.globalData.indexPage = null;
+    }
   },
   /**
    * onLoginSuccessSetData 用户注册or登录后设置全局数据
@@ -465,6 +480,7 @@ App({
     this.globalData.id = data.id;
     this.globalData.openid = data.token.split("#")[0];
     this.globalData.regFlag = true;
+    this.loginComplete();
   },
   /**
    * onLoginSuccessShowToast 向非扫码登录的用户显示登陆成功的提示信息
@@ -537,12 +553,12 @@ App({
           method: 'POST',
           data: userInfo,
           success: (res) => {
-            let resp = res.data
-            if (resp['code'] != 200) {
-              this.alert({content: resp['msg']})
+            let resp = res.data;
+            if (resp['code'] !== 200) {
+              this.alert({content: resp['msg']});
               return
             }
-            this.onLoginSuccessSetData(res)
+            this.onLoginSuccessSetData(res);
             if (isScanQrcode) {
               //注册用户是扫码进入注册的，继续去发布
               this.continueScanQrcodeAfterReg()
@@ -654,7 +670,7 @@ App({
     wx.showActionSheet({
       itemList: ['绑定手机号', '随便扫扫'],
       success: (res) => {
-        if (res.tapIndex == 0) {
+        if (res.tapIndex === 0) {
           //绑定手机号
           wx.navigateTo({
             url: "/pages/Qrcode/Mobile/index"

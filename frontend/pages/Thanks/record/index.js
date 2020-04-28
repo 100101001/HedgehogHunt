@@ -7,7 +7,7 @@ Page({
     goods_name: "",
     business_type: ""
   },
-  onLoad: function(options) {
+  onLoad: function (options) {
     let op_status = options.op_status * 1;
     let infos = {
       list: [],
@@ -15,7 +15,7 @@ Page({
       only_new: true
     };
     if (op_status === 4) {
-      infos['check_cat']  = [{
+      infos['check_cat'] = [{
         id: 1,
         name: '待处理'
       },
@@ -39,7 +39,7 @@ Page({
       ];
       infos['check_status_id'] = 1;
     } else {
-      infos['check_cat']  =[{
+      infos['check_cat'] = [{
         id: 0,
         name: '收到',
         value: app.globalData.thanks_new,
@@ -75,23 +75,23 @@ Page({
     }
   },
   //上滑加载
-  onReachBottom: function(e) {
+  onReachBottom: function (e) {
     //延时500ms处理加载
-    setTimeout(()=> {
+    setTimeout(() => {
       this.setData({
         loadingHidden: true
       });
       this.getThanksList();
     }, 500);
   },
-  listenerNameInput: function(e) {
+  listenerNameInput: function (e) {
     this.setData({owner_name: e.detail.value});
   },
-  listenerGoodsNameInput: function(e) {
+  listenerGoodsNameInput: function (e) {
     this.setData({goods_name: e.detail.value});
   },
   //获取信息列表
-  getThanksList: function(e) {
+  getThanksList: function (e) {
     if (!this.data.loadingMore || this.data.processing) {
       return;
     }
@@ -144,8 +144,8 @@ Page({
    * 获取被举报的答谢
    * @param e
    */
-  getReportList: function(e) {
-    if (!this.data.loadingMore || this.data.processing)  {
+  getReportList: function (e) {
+    if (!this.data.loadingMore || this.data.processing) {
       return;
     }
     this.setData({
@@ -153,7 +153,7 @@ Page({
       loadingHidden: false
     });
     wx.request({
-      url: app.buildUrl("/thanks/reports/search"),
+      url: app.buildUrl("/report/thanks/search"),
       header: app.getRequestHeader(),
       data: {
         report_status: this.data.check_status_id,
@@ -167,7 +167,7 @@ Page({
         let resp = res.data;
         if (resp['code'] !== 200) {
           app.alert({
-            content : resp['msg']
+            content: resp['msg']
           });
           return
         }
@@ -192,7 +192,7 @@ Page({
       },
     })
   },
-  selectTap: function(e) {
+  selectTap: function (e) {
     let index = e.currentTarget.dataset.index;
     let list = this.data.infos.list;
     if (index !== "" && index != null) {
@@ -208,18 +208,20 @@ Page({
     app.alert({
       content: '操作不可逆，确认操作？',
       showCancel: true,
-      cb_confirm: ()=>{this.doBlock(e.currentTarget.dataset.id, e.currentTarget.dataset.report_status)}
+      cb_confirm: () => {
+        this.doBlock(e.currentTarget.dataset.id, e.currentTarget.dataset.report_status)
+      }
     })
   },
-  doBlock: function(thank_id, report_status){
+  doBlock: function (thank_id, report_status) {
     wx.request({
-      url: app.buildUrl("/thanks/report/deal"),
+      url: app.buildUrl("/report/thanks/deal"),
       header: app.getRequestHeader(),
       data: {
         thank_id: thank_id,
         report_status: report_status,
       },
-      success:  (res) => {
+      success: (res) => {
         let resp = res.data;
         if (resp['code'] !== 200) {
           app.alert({
@@ -231,12 +233,12 @@ Page({
           title: '操作成功！',
           icon: 'success',
           duration: 1000,
-          success: (res)=>{
+          success: (res) => {
             setTimeout(this.onPullDownRefresh, 800)
           }
         });
       },
-      fail:  (res) => {
+      fail: (res) => {
         app.serverBusy();
       },
       complete: (res) => {
@@ -260,7 +262,7 @@ Page({
     return noSelect;
   },
   //计算是否全选了
-  allSelect: function() {
+  allSelect: function () {
     let list = this.data.infos.list;
     let allSelect = true;
     for (let i = 0; i < list.length; i++) {
@@ -274,7 +276,7 @@ Page({
   /**
    * 如果全选按钮选中的情况下，点击全选，所有都反选
    */
-  bindAllSelect: function() {
+  bindAllSelect: function () {
     let currentAllSelect = this.data.infos.allSelect;
     let list = this.data.infos.list;
     for (let i = 0; i < list.length; i++) {
@@ -285,7 +287,7 @@ Page({
   /**
    * 关闭/打开操作，且默认所有不选中
    */
-  editTap: function() {
+  editTap: function () {
     let list = this.data.infos.list;
     for (let i = 0; i < list.length; i++) {
       list[i].selected = false;
@@ -293,7 +295,7 @@ Page({
     this.setPageData(!this.getSaveHide(), this.allSelect(), this.noSelect(), list);
   },
   //选中完成默认全选
-  saveTap: function() {
+  saveTap: function () {
     let list = this.data.infos.list;
     for (let i = 0; i < list.length; i++) {
       let curItem = list[i];
@@ -301,10 +303,10 @@ Page({
     }
     this.setPageData(!this.getSaveHide(), this.allSelect(), this.noSelect(), list);
   },
-  getSaveHide: function() {
+  getSaveHide: function () {
     return this.data.infos.saveHidden;
   },
-  setPageData: function(saveHidden, allSelect, noSelect, list) {
+  setPageData: function (saveHidden, allSelect, noSelect, list) {
     this.setData({
       infos: {
         list: list,
@@ -319,7 +321,7 @@ Page({
   /**
    * deleteSelected 删除选中答谢/举报记录
    */
-  deleteSelected: function() {
+  deleteSelected: function () {
     let list = this.data.infos.list;
     let id_list = [];
     for (let i = 0; i < list.length; i++) {
@@ -333,7 +335,8 @@ Page({
       header: app.getRequestHeader(),
       data: {
         id_list: id_list,
-        op_status:this.data.op_status,
+        op_status: this.data.op_status,
+        status: this.data.check_status_id
       },
       success: (res) => {
         let resp = res.data;
@@ -371,12 +374,12 @@ Page({
       },
     });
   },
-  doReport: function(index) {
+  doReport: function (index) {
     wx.showLoading({
       title: '信息提交中..'
     });
     wx.request({
-      url: app.buildUrl("/thanks/report"),
+      url: app.buildUrl("/report/thanks"),
       header: app.getRequestHeader(),
       data: {
         id: this.data.infos.list[index].id
@@ -409,7 +412,7 @@ Page({
       }
     });
   },
-  checkReportClick: function(e) {
+  checkReportClick: function (e) {
     //选择一次分类时返回选中值
     let infos = this.data.infos;
     //选择一次分类时返回选中值
@@ -424,7 +427,7 @@ Page({
       this.onPullDownRefresh()
     }
   },
-  radioChange: function() {
+  radioChange: function () {
     //选择一次分类时返回选中值
     let infos = this.data.infos;
     infos.only_new = !this.data.only_new;

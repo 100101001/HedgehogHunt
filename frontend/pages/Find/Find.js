@@ -37,6 +37,7 @@ Page({
       })
     }
     this.setData({
+      member_id: app.globalData.id, //用户的ID，没有注册就是0
       business_type: business_type,
       categories: categories,  // 类别
       goods_name: '',  // 物品名
@@ -171,7 +172,7 @@ Page({
       title: '信息提交中..'
     });
     wx.request({
-      url: app.buildUrl("/goods/report"),
+      url: app.buildUrl("/report/goods"),
       header: app.getRequestHeader(),
       data: {
         id: id,

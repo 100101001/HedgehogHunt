@@ -50,7 +50,7 @@
     <view class="message_container">
       <block wx:for="{{goods_list}}" wx:key="index">
         <view class="goods_message">
-          <template is="goodsItem" data="{{...item}}"/>
+          <template is="goodsItem" data="{{...item, member_id}}"/>
         </view>
       </block>
     </view>

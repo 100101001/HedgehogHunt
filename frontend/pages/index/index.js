@@ -9,14 +9,14 @@ Page({
     userInfo: {},
     member_status: 1,
     goods_id: 0,
-    isScanQrcode: true
+    isScanQrcode: true,
+    isLogging: true
   },
   /**
    * goToIndex
    * 点击首页逛一逛，如果用户状态为封锁，就进入不了
    */
   goToIndex: function () {
-    let goods_id = this.data.goods_id;
     let member_status = app.globalData.member_status;
     let id = app.globalData.id;
     if (member_status !== 1) {
@@ -31,23 +31,11 @@ Page({
       return
     }
     this.setData({
-      member_status: member_status,
+      member_status: member_status
     });
-    if (id) {
-      this.setData({
-        id: id
-      })
-    }
-    /****(member_id干什么用的？？***/
-    if (goods_id) {
-      wx.navigateTo({
-        url: '/pages/Find/info?goods_id=' + goods_id,
-      })
-    } else {
-      wx.navigateTo({
-        url: '/pages/Homepage/index',
-      })
-    }
+    wx.navigateTo({
+      url: '/pages/Homepage/index',
+    })
   },
   onLoad: function (options) {
     wx.setNavigationBarTitle({
@@ -59,6 +47,7 @@ Page({
       this.setData({
         isScanQrcode: false
       });
+      app.globalData.indexPage = this;
       app.globalData.isScanQrcode = false;
       app.globalData.qrcodeOpenid = "";
     } else {

@@ -11,7 +11,7 @@
       </view>
       <view class="bd">
         <image class="logo" src="/images/more/logo.png" mode="aspectFill" style="transform:rotateZ360deg"></image>
-        <view class="confirm-btn" catchtap='goToIndex' wx:if="{{!isScanQrcode}}">
+        <view class="confirm-btn" catchtap='goToIndex' wx:if="{{!isScanQrcode && !isLogging}}">
           <text>逛一逛</text>
         </view>
         <text class="copyright">Copyright ©鲟回-失物招领</text>
