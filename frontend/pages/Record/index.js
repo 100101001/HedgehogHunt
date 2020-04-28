@@ -184,36 +184,10 @@ const giveUnmarkedFoundToSystem = function (goods_ids = [], status=1, that) {
 };
 
 /**
- * gotbackPremarkGoods
- * @param goods_ids
- * @param status
- * @param that
+ * 根据此进行全选按钮禁用
+ * @param goods_list
+ * @returns {boolean}
  */
-const gotbackPremarkGoods = function (goods_ids = [], status= 2, that) {
-  wx.request({
-    url: app.buildUrl('/goods/gotback'),
-    header: app.getRequestHeader(),
-    data: {
-      ids: goods_ids,
-      status: status
-    },
-    success: res => {
-      let resp = res.data;
-      if (resp['code'] !== 200) {
-        app.alert({content: resp['msg']});
-        return
-      }
-      //关闭编辑栏和刷新
-      that.editTap();
-      that.onPullDownRefresh();
-    },
-    fail: res => {
-      app.serverBusy()
-    }
-  })
-};
-
-
 const allUnEditableGood = function (goods_list) {
   let arr =  goods_list.filter((item)=>{return item.unselectable});
   return arr.length === goods_list.length
@@ -774,14 +748,17 @@ Page({
         let op_status = this.data.op_status;
         let url;
         let biz_type;
+        let status;
         if (op_status == 1) {
           url = '/goods/gotback';
           biz_type = 1; //认领记录
+          status = 2;  //因为check的是认领
         } else if (op_status == 5 || op_status == 0) {
           url = '/goods/return/gotback';
           biz_type = this.data.business_type;  //0对应发布记录的寻物启事[该页的全选可能会禁掉]或者2对应
+          status = this.data.check_status_id;
         }
-        this.doGotbackReturnGoods(url, id_list, biz_type, this.data.check_status_id)
+        this.doGotbackReturnGoods(url, id_list, biz_type, status)
       }
     });
   },

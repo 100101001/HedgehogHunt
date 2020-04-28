@@ -41,7 +41,7 @@
       <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected">删除</view>
     </view>
 
-    <!--发布记录，答谢记录-->
+    <!--发布记录-->
     <view wx:if="{{op_status==0 && business_type==0}}">
       <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected" wx:if="{{check_status_id!=2}}">删除</view>
       <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="confirmSelected"  wx:if="{{check_status_id==2}}">确认取回</view>
