@@ -1,0 +1,64 @@
+@import '../blockmember/more_record/index.wxss';
+.label {
+ font-weight:bold;
+}
+
+.dealt {
+background-color: #cdcdcd;
+}
+
+.contact {
+background-color: #87CEFA;
+}
+.del {
+ background-color: #cdcdcd;
+}
+
+/**申诉输入框**/
+.inputbox{
+outline-style: none ;
+border: 3rpx solid #ccc;
+box-shadow:4rpx 4rpx 10rpx #333333;
+border-radius: 30rpx;
+margin: 30rpx auto;
+height: 230rpx;
+font-size: 30rpx;
+padding: 10rpx 10rpx;
+margin-left: -10rpx;
+}
+/**申诉输入**/
+textarea{
+width: 100%;
+}
+/**申诉输入占位**/
+.appeal-placeholder{
+text-align: center;
+font-size: 30rpx;
+}
+/**申诉输入框聚焦**/
+.input-focus {
+border: 5rpx solid #fff;
+box-shadow:4rpx 4rpx 10rpx #f7931e;
+}
+/**申诉输入框为空**/
+.input-empty {
+text-align: center;
+}
+/**申诉输入框输入过多**/
+.input-warn{
+border: 5rpx solid #fff;
+box-shadow:4rpx 4rpx 10rpx red;
+}
+/**申诉提交按钮**/
+.submit-btn{
+background-color:#f7931e;
+font-size: 25rpx;
+font-weight: 600;
+text-align: center;
+color:#fff;
+border-radius: 20rpx;
+width: 150rpx;
+margin: 50rpx auto;
+margin-bottom: 0rpx;
+box-shadow:4rpx 4rpx 4rpx #999;
+}

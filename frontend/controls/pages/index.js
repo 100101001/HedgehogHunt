@@ -76,7 +76,7 @@ Page({
    */
   toCheckGoodsAppeal: function () {
     wx.navigateTo({
-      url: '/pages/Record/index?op_status=6',
+      url: 'goods_appeal/index',
     })
   },
   /**

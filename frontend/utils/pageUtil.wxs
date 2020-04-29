@@ -22,7 +22,7 @@ var level = function(val) {
 
 var block_status = function (status) {
   if (status === 0) {
-    return "申诉"
+    return "待申诉"
   } else if (status === 1) {
     return "申诉中"
   } else if (status === 2) {

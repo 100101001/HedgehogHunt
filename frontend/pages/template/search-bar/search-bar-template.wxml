@@ -90,8 +90,7 @@
 
     <!--管理员的举报记录-->
     <view wx:if="{{op_status==4}}">
-      <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected"
-            wx:if="{{check_status_id==1}}">禁止操作
+      <view class="to-pay-btn no-select" wx:if="{{check_status_id==1}}">禁止操作
       </view>
       <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected"
             wx:if="{{check_status_id!=1}}">删除

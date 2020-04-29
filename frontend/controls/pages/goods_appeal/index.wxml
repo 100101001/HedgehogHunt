@@ -1,0 +1,73 @@
+<!--controls/pages/goods_appeal-->
+<view class="type-container">
+  <scroll-view class="type-navbar-check-report" scroll-x="true">
+    <view class="type-box  type-box-two"  wx:for="{{appeal_status}}" wx:for-item="cat" wx:key="index">
+      <view id="{{cat.id}}" class="type-navbar-item {{status === cat.id ? 'type-item-on' : ''}}" bindtap="statusClick">
+        {{cat.name}}
+      </view>
+    </view>
+  </scroll-view>
+</view>
+
+<wxs src="../../../utils/pageUtil.wxs" module="tools"></wxs>
+<view class="tr bg-w" id="table-header">
+  <view class="th">用户ID</view>
+  <view class="th ">昵称</view>
+  <view class="th ">详情</view>
+  <view class="th ">联络</view>
+  <view class="th ">操作</view>
+</view>
+<view class="table">
+  <block wx:for="{{appeal_list}}" wx:key="id">
+    <view class="tr {{index % 2 === 0? 'bg-g': ''}}">
+      <view class="td">{{item.member_id}}</view>
+      <view class="td">{{item.contact.appealing.nickname}}</view>
+      <!--查看详情，图片和描述和物主-->
+      <view class="td">
+        <view class="op-btn" data-index="{{index}}" bindtap="openStuffDetail">详情</view>
+      </view>
+      <!--联络用户-->
+      <view class="td">
+        <view class="op-btn contact" catchtap="openContact" data-index="{{index}}">联络</view>
+      </view>
+      <!--标记已处理与删除-->
+      <view class="td">
+        <view wx:if="{{item.status===0}}" class="op-btn dealt" data-index="{{index}}" bindtap="openDeal">已处理</view>
+        <view wx:else  class="op-btn del" data-index="{{index}}"  bindtap="deleteDealtAppeal">删除</view>
+      </view>
+    </view>
+  </block>
+</view>
+
+
+  <!--管理员查看申诉物品可见--->
+<lyx-modal hidden="{{hiddenStuffDetail}}" noCancel="true" bindconfirm="closeStuffDetail" confirmText="关闭" title="原贴详情">
+  <!--图片-->
+  <swiper class="swiper_box" autoplay="true" interval="3000" duration="1000" circular="true">
+    <block wx:for="{{stuff.pics}}" wx:key="index">
+      <swiper-item>
+        <image src="{{item}}" bindtap="previewItemImage" data-index="{{index}}" class="slide-image" width="355" height="150" mode="aspectFit" lazy-load="true" />
+      </swiper-item>
+    </block>
+  </swiper>
+  <view><text class="label">物名：</text>{{stuff.name}}</view>
+  <view><text class="label">物主：</text>{{stuff.owner_name}}</view>
+  <view><text class="label">手机：</text>{{stuff.mobile}}</view>
+  <view><text class="label">放置位置：</text>{{stuff.loc}}</view>
+  <view><text class="label">描述：</text>{{stuff.summary}}</view>
+</lyx-modal>
+
+
+<!--联系用户--->
+<lyx-modal hidden="{{hiddenContact}}" noCancel="true" confirmText="关闭" bindconfirm="closeContact" title="联系方式">
+  <view catchtap="copyContact" data-text="{{contact.appealing.mobile}}" data-id="0"><text class="label">申诉者手机：</text> {{contact.appealing.mobile}}</view>
+  <view catchtap="copyContact" data-text="{{contact.appealed.mobile}}" data-id="0"><text class="label">认领者手机：</text> {{contact.appealed.mobile}}</view>
+</lyx-modal>
+
+<!--管理员提交处理结果--->
+<lyx-modal hidden="{{hiddenDeal}}" noCancel="true" bindconfirm="closeDeal" confirmText="取消" title="申诉结果">
+  <form class="goods-box" bindsubmit="formSubmit">
+    <textarea minlength="50" maxlength="280" name="result" class="inputbox {{focus? 'input-focus': ''}} {{warn? 'input-warn': ''}}  {{empty? 'input-empty':''}}" placeholder="申诉结果不少于50字，不多于280字" placeholder-class="appeal-placeholder" bindinput="appealInput" value="{{form_info}}" bindfocus="appealFocus" bindblur='appealBlur'></textarea>
+    <button class="submit-btn" form-type="submit">提交</button>
+  </form>
+</lyx-modal>

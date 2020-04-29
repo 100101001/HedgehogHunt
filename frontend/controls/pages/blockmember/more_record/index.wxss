@@ -72,14 +72,14 @@ height: 100%
 
 .table {
 position: absolute;
-top: 188rpx;
+top: 168rpx;
 width: 100%;
 border: 0px solid darkgray;
 }
 
 #table-header {
 position: absolute;
-top: 88rpx;
+top: 68rpx;
 z-index: 100;
 }
 
@@ -131,7 +131,14 @@ color: #fff;
 text-align: center;
 justify-content: center;
 align-items: center;
+box-shadow: 4rpx 4rpx 4rpx #999;
 }
+.reason-btn {
+ width: 120rpx;
+ background-color: #cdcdcd;
+ box-shadow: 4rpx 4rpx 4rpx #999;
+}
+
 .reject {
 background-color: #cdcdcd;
 }

@@ -5,6 +5,14 @@ Page({
     processing: false,
     block_list: [],
     p: 1,
+    stuff_type: 1,
+    stuff_types: [{
+      id: 0,
+      name: '答谢'
+    }, {
+        id: 1,
+        name: '物品'
+    }],
     loadingHidden: true,
     hiddenDetail: true
   },
@@ -29,7 +37,7 @@ Page({
   statusTypeClick: function (e) {
     //选择一次分类时返回选中值
     this.setData({
-      statusId: e.currentTarget.id * 1,
+      stuff_type: e.currentTarget.id * 1,
       p: 1,
       block_list: [],
       loadingMore: true
@@ -52,8 +60,7 @@ Page({
       url: app.buildUrl("/member/blocked/search"),
       header: app.getRequestHeader(),
       data: {
-        p: this.data.p,
-        status: this.data.statusId,
+        p: this.data.p
       },
       success: (res) => {
         let resp = res.data;

@@ -9,6 +9,7 @@
   </scroll-view>
 </view>
 
+<wxs src="../../../../utils/pageUtil.wxs" module="tools"></wxs>
 <view class="tr bg-w" id="table-header">
   <view class="th">管理员ID</view>
   <view class="th ">操作备注</view>
@@ -21,19 +22,18 @@
     <view class="tr {{index % 2 === 0? 'bg-g': ''}}">
       <view class="td">{{item.id}}</view>
       <view class="td">{{item.note}}</view>
-      <view class="td">{{item.created_time}}</view>
+      <view class="td">{{tools.date(item.created_time)}}</view>
       <!--查看详情，图片和描述和物主-->
       <view class="td"> <view class="op-btn" data-index="{{index}}" bindtap="openStuffDetail">详情</view></view>
       <!--用户的操作-->
       <view class="td" wx:if="{{op_status===1}}">
         <!--是一个拉黑记录-->
-        <wxs src="../../../../utils/pageUtil.wxs" module="tools"></wxs>
         <view wx:if="{{item.new_status!==1}}">
           <!--可以申诉--->
-          <view  wx:if="{{item.status===0}}" class="op-btn" bindtap="openAppeal"
-                data-index="{{index}}">{{tools.block_status(item.status)}}</view>
+          <view  wx:if="{{item.status===0}}" class="op-btn recover" bindtap="openAppeal"
+                data-index="{{index}}">申诉</view>
           <!--可以查看申诉状态--->
-          <view wx:if="{{item.status!==0}}" class="op-btn grey" data-index="{{index}}">{{tools.block_status(item.status)}}</view>
+          <view wx:else class="op-btn grey" data-index="{{index}}">{{tools.block_status(item.status)}}</view>
         </view>
         <!--不是一个拉黑记录-->
         <view wx:else>
@@ -65,7 +65,7 @@
   <view wx:if="{{stuff_type === 1}}">
     <!--图片-->
     <swiper class="swiper_box" autoplay="true" interval="3000" duration="1000" circular="true">
-      <block wx:for="{{goods.pics}}" wx:key="index">
+      <block wx:for="{{stuff.pics}}" wx:key="index">
         <swiper-item>
           <image src="{{item}}" bindtap="previewItemImage" data-index="{{index}}" class="slide-image" width="355" height="150" mode="aspectFit" lazy-load="true" />
         </swiper-item>
@@ -76,6 +76,7 @@
     <view>手机：{{stuff.mobile}}</view>
     <view>放置位置：{{stuff.loc}}</view>
     <view>描述：{{stuff.summary}}</view>
+    <view class="op-btn reason-btn" catchtap="openReason">申诉理由</view>
   </view>
   <view wx:else>
     <view>被答谢者ID： {{stuff.thanked_mid}}</view>
@@ -93,4 +94,9 @@
     <textarea name="reason" class="inputbox {{focus? 'input-focus': ''}} {{warn? 'input-warn': ''}}  {{empty? 'input-empty':''}}" placeholder="申诉理由不超过140字" placeholder-class="appeal-placeholder" bindinput="appealInput" value="{{form_info}}" bindfocus="appealFocus" bindblur='appealBlur'></textarea>
     <button class="submit-btn" form-type="submit">提交</button>
   </form>
+</lyx-modal>
+
+<!---管理员查看申诉理由--->
+<lyx-modal hidden="{{hiddenReason}}" noCancel="true" bindconfirm="closeReason" confirmText="关闭" title="申诉理由">
+  <view  class="inputbox">{{reason}}</view>
 </lyx-modal>

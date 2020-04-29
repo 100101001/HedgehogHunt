@@ -686,7 +686,7 @@ Page({
    */
   doAppeal: function (id = 0, status = 3) {
     wx.request({
-      url: app.buildUrl('/goods/more_record'),
+      url: app.buildUrl('/goods/appeal'),
       header: app.getRequestHeader(),
       data: {
         id: id, // 物品ID

@@ -5,6 +5,7 @@ const util = require("../../utils/util");
 /**
  * deleteLinkLostGoods 在删除归还通知的时候删除链接的失物
  * @param id_list
+ * @param status
  */
 const deleteLinkLostGoods = function (id_list = [], status=0) {
   wx.request({
@@ -707,8 +708,25 @@ Page({
       this.toDeleteReceivedReturn(id_list)
     } else if (op_status == 1) {
       this.toDeleteMyMark(id_list)
-    }else {
+    } else if (op_status == 4) {
+      this.toDeleteGoodsReport(id_list)
+    }
+    else {
       this.doDeleteSelected(id_list)
+    }
+  },
+  toDeleteGoodsReport: function(id_list){
+    let status = this.data.check_status_id;
+    //举报状态是待处理不能操作，其他就直接删除
+    if (status !== 1) {
+      app.alert({
+        title: '删除提示',
+        content: '确认删除该举报？',
+        showCancel: true,
+        cb_confirm: () => {
+          this.doDeleteSelected(id_list)
+        }
+      });
     }
   },
   /**

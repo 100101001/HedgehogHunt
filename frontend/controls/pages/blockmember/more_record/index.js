@@ -3,20 +3,21 @@ const app = getApp();
 Page({
   data: {
     log_id: 0,
-    hiddenAppeal: true,
     user_op_list: [],
+    hiddenAppeal: true,
     hiddenStuffDetail: true,
+    hiddenReason: true,
     warn: false,
     focus: false,
     stuff_type: 1,
     stuff_types: [
       {
         id: 1,
-        label: '物品'
+        name: '物品'
       },
       {
         id: 0,
-        label: '答谢'
+        name: '答谢'
       }
     ]
   },
@@ -54,7 +55,7 @@ Page({
     let new_type = e.currentTarget.id * 1;
     let old_type = this.data.stuff_type;
     this.setData({
-      stuff_type: e.currentTarget.id * 1
+      stuff_type: new_type
     });
     if(new_type !== old_type) {
       this.getMemberBlockedRecords()
@@ -136,7 +137,7 @@ Page({
         });
         //关闭申诉弹窗
         wx.showToast({
-          title:'提交成功',
+          title:'请耐心等待处理结果。',
           icon: 'success',
           duration: 800,
           success: (res) => {
@@ -213,14 +214,14 @@ Page({
     this.setData({
       hiddenStuffDetail: false,
       stuff: ele.stuff,
-      stuff_type: ele.stuff_type
+      reason: ele['member_reason']
     })
   },
   closeStuffDetail: function (e) {
     this.setData({
       hiddenStuffDetail: true,
       stuff: {},
-      stuff_type: 2
+      reason: ''
     })
   },
   /**
@@ -233,4 +234,14 @@ Page({
       urls: this.data.goods['pics'] // 需要预览的图片http链接列表
     })
   },
+  openReason: function (e) {
+    this.setData({
+      hiddenReason: false
+    })
+  },
+  closeReason: function (e) {
+    this.setData({
+      hiddenReason: true
+    })
+  }
 });
