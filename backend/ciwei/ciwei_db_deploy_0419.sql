@@ -118,13 +118,16 @@ CREATE TABLE `appeal`  (
   `goods_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '申诉的物品id',
   `member_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '用户id',
   `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 0:待处理 1:已处理完毕',
-  `adm_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '系统指派处理的管理员id',
+  `user_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '系统指派处理的管理员id',
+  `result` varchar(300) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '处理结果备注',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
+  `deleted_by` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '删除申诉的管理员id',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_appeal_member_id`(`member_id`) USING BTREE,
   INDEX `ix_appeal_goods_id`(`goods_id`) USING BTREE,
-  INDEX `ix_appeal_status`(`status`) USING BTREE
+  INDEX `ix_appeal_status`(`status`) USING BTREE,
+  INDEX `ix_appeal_deleted_by`(`deleted_by`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '申诉表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
