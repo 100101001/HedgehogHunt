@@ -239,7 +239,9 @@ curl 操作
     curl localhost:9200/goods/_doc?pretty -H "Content-Type:application/json" -d '{"query":{"match_all":{}}}'
     # 按id查询
     curl localhost:9200/goods/_doc/${id}?pretty
-      
+    # 按id更新
+    curl -XPOST localhost:9200/goods/_doc/${id}/_update?pretty -H "Content-Type:application/json" -d '{"doc" : {"member_id": 100004 ,"openid":"opLxO5cE7MXKPxj2ndOxnvxkoek0", , "nickname": "lpx", "avatar":"https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKeoQUBJZ40FDibYOQKAYJJGXxMWZ8FehDrNZ4gYw98qwMaCyPBwDd1kbLqa1Z3mUTOdAZjchIYcLw/132"}}'
+    update goods set member_id=100004,openid='opLxO5cE7MXKPxj2ndOxnvxkoek0',nickname='lpx',avatar='https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKeoQUBJZ40FDibYOQKAYJJGXxMWZ8FehDrNZ4gYw98qwMaCyPBwDd1kbLqa1Z3mUTOdAZjchIYcLw/132' where id=${id};
 
 gitk --all $( git fsck --no-reflog | awk '/dangling commit/ {print $3}' )
 

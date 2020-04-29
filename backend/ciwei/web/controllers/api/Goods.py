@@ -349,7 +349,6 @@ def goodsSearchV2():
                                                            filter_address=req.get('filter_address'),
                                                            p=p)
 
-
     def status_desc(goods_status):
         if business_type == 1:
             status_mapping = {
@@ -530,10 +529,12 @@ def returnGoodsDelInBatch():
         return jsonify(resp)
 
     # 寻物启示
-    Good.query.filter(Good.id.in_(lost_ids), Good.status == 2).update({'status': 1, 'return_goods_id': 0, 'return_goods_openid': ''},
-                                                                       redis_arg=1)
+    Good.query.filter(Good.id.in_(lost_ids), Good.status == 2).update(
+        {'status': 1, 'return_goods_id': 0, 'return_goods_openid': ''},
+        redis_arg=1)
     # 归还贴
-    Good.query.filter(Good.id.in_(return_ids), Good.status == status).update({'status': 7, 'return_goods_id': 0, 'return_goods_openid': ''})
+    Good.query.filter(Good.id.in_(return_ids), Good.status == status).update(
+        {'status': 7, 'return_goods_id': 0, 'return_goods_openid': ''})
     db.session.commit()
 
     resp['code'] = 200
@@ -621,10 +622,12 @@ def returnGoodsRejectInBatch():
         return jsonify(resp)
 
     # 寻物启示
-    Good.query.filter(Good.id.in_(lost_ids), Good.status == 2).update({'status': 1, 'return_goods_id': 0, 'return_goods_openid': ''},
-                                                                      redis_arg=1)
+    Good.query.filter(Good.id.in_(lost_ids), Good.status == 2).update(
+        {'status': 1, 'return_goods_id': 0, 'return_goods_openid': ''},
+        redis_arg=1)
     # 归还贴
-    Good.query.filter(Good.id.in_(return_ids), Good.status == status).update({'status': 0, 'return_goods_id': 0, 'return_goods_openid': ''})
+    Good.query.filter(Good.id.in_(return_ids), Good.status == status).update(
+        {'status': 0, 'return_goods_id': 0, 'return_goods_openid': ''})
     db.session.commit()
     resp['code'] = 200
     return jsonify(resp)
@@ -810,7 +813,6 @@ def returnGoodsCleanInBatch():
         resp['msg'] = '操作冲突，请稍后重试'
         return jsonify(resp)
 
-
     if business_type == 2:
         # 删除归还贴需要注意，同时置空通知链接
         Good.query.filter(Good.id.in_(goods_ids)).update({'status': 7, 'return_goods_openid': ''})
@@ -851,7 +853,7 @@ def goodsGotbackInBatch():
     # 失物招领贴的认领事务
     member_id = member_info.id
     Good.query.filter(Good.id.in_(goods_ids), Good.status == status).update({'status': 3, 'owner_id': member_id,
-                                                                        'finish_time': datetime.datetime.now()})
+                                                                             'finish_time': datetime.datetime.now()})
     # 不加锁是因为，不影响goods的认领计数，且是一个人的操作
 
     MemberService.markedGoods(member_id=member_id, goods_ids=goods_ids)
@@ -859,48 +861,6 @@ def goodsGotbackInBatch():
     # 异步发送消息
     SubscribeTasks.send_found_finish_msg_in_batch.delay(gotback_founds=goods_ids)
 
-    resp['code'] = 200
-    return jsonify(resp)
-
-
-@route_api.route('/goods/appeal', methods=['GET', 'POST'])
-@time_log
-def goodsAppeal():
-    resp = {'code': -1, 'msg': '', 'data': {}}
-    req = request.values
-
-    # 检查登陆
-    # 检查参数物品id, 物品的发布者存在
-    member_info = g.member_info
-    if not member_info:
-        resp['msg'] = '请先登录'
-        return jsonify(resp)
-
-    goods_id = int(req.get('id', -1))
-    status = int(req.get('status', 0))
-    if goods_id == -1 or status not in (3, 4):
-        resp['msg'] = '申诉失败，请刷新后重试'
-        return jsonify(resp)
-
-    if not GoodsCasUtil.exec(goods_id, status, 5):
-        resp['msg'] = '操作冲突，请稍后重试，如紧急可联系技术人员'
-        return jsonify(resp)
-
-    # 公开信息的状态操作加锁
-    goods_info = Good.query.filter_by(id=goods_id, status=status).first()
-    if goods_info is None:
-        resp['msg'] = '申诉失败，请刷新后重试'
-        return jsonify(resp)
-
-    # 申诉事物
-    MemberService.appealGoods(member_id=member_info.id, goods_id=goods_id)
-
-    # 失物招领贴状态
-    now = datetime.datetime.now()
-    goods_info.status = 5
-    goods_info.appeal_time = now
-    db.session.add(goods_info)
-    db.session.commit()
     resp['code'] = 200
     return jsonify(resp)
 
@@ -1086,7 +1046,12 @@ def unmarkGoodsToSysInBatch():
 @route_api.route('/goods/test/9')
 @time_log
 def test9():
-    w = Good()
-    w.status = 1
-    db.session.add(w)
+    from common.models.ciwei.Appeal import Appeal
+    from common.models.ciwei.Member import Member
+    from sqlalchemy import or_
+    from sqlalchemy.orm import aliased
+    appealor = aliased(Member)
+    appealed = aliased(Member)
+    appeal = Appeal.query.join(appealor, appealor.id==Appeal.member_id).add_entity(appealor).join(Good, Good.id == Appeal.goods_id).join(appealed, Good.owner_id == appealed.id).add_entity(
+        Good).add_entity(appealed).all()
     return str("")

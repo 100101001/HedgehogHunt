@@ -9,7 +9,7 @@
 import datetime
 
 from sqlalchemy import and_, or_
-
+from sqlalchemy.orm import aliased
 from application import db, APP_CONSTANTS
 from common.cahce.GoodsCasUtil import GoodsCasUtil
 from common.libs import UserService
@@ -17,6 +17,7 @@ from common.libs.UrlManager import UrlManager
 from common.models.ciwei.Appeal import Appeal
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
+from common.models.ciwei.Member import Member
 from common.models.ciwei.Recommend import Recommend
 from common.models.ciwei.Report import Report
 from common.models.ciwei.Thanks import Thank
@@ -66,8 +67,8 @@ def makeRecordData(item=None, op_status=0, status=0, now=None):
     if not GoodsCasUtil.exec_wrap(item_id, [item_status, 'nil'], item_status):  # 物品状态发生了变更
         return None
     is_pre_mark_fail = item_status != 2 and status == 0 and op_status == 1  # 物品状态已经不是预认领，但认领记录确是预认领
-    is_appealed = item_status == 5  # 物品状态为 5 标示正在做申诉处理
-    # 查看状态为预寻回的发布过的寻物记录，且还没有查看过，说明没有确认是自己的，搜易不能批量操作确认取回
+    is_appealed = item_status == 5 and op_status in (0, 1, 6)  # 物品状态为 5 标示正在做申诉处理
+    # 查看状态为预寻回的发布过的寻物记录，没有确认归还是自己的，所以不能批量操作确认取回
     unconfirmed_returned_lost = item.business_type == 0 and op_status == 0 and item.status == 2 \
                                 and not GoodsCasUtil.exec(item.return_goods_id, 2, 2)  # 如果看过那么一定有状态记录
     is_reported = item.report_status != 0
@@ -209,7 +210,8 @@ class GoodsOpRecordDeleteHandler:
         user_info = UserService.getUserByMid(member_id=member_id)
         if not goods_ids or not user_info or user_info.level > 1:
             return False
-        Report.query.filter(Report.record_type == 1, Report.record_id.in_(goods_ids), Report.deleted_by == 0). \
+        Report.query.filter(Report.record_type == 1, Report.record_id.in_(goods_ids), Report.deleted_by == 0,
+                            Report.status != 1). \
             update({'deleted_by': user_info.uid}, synchronize_session=False)
         db.session.commit()
         return True
@@ -226,7 +228,8 @@ class GoodsRecordSearchHandler:
         2: '_getMyRecommend',
         4: '_getReportedGoods',
         5: '_getMyReturnNotice',
-        6: '_getMyAppeal'
+        6: '_getMyAppeal',
+        7: '_getAppealedGoods'
     }
 
     @staticmethod
@@ -235,6 +238,16 @@ class GoodsRecordSearchHandler:
         handler = getattr(GoodsRecordSearchHandler, strategy, None)
         if handler:
             return handler(record_type=APP_CONSTANTS['stuff_type']['goods'], **kwargs)
+
+    @staticmethod
+    @db_search
+    def _getAppealedGoods(status=0, **kwargs):
+        appealing = aliased(Member)
+        appealed = aliased(Member)
+        return Appeal.query.filter_by(status=status).join(appealing,
+                                                          appealing.id == Appeal.member_id).join(Good,
+                                                                                                 Good.id == Appeal.goods_id).join(
+            appealed, Good.owner_id == appealed.id).add_entity(Good).add_entity(appealing).add_entity(appealed)
 
     @staticmethod
     @db_search
@@ -370,7 +383,6 @@ class GoodsRecordSearchHandler:
                                Recommend.found_goods_id == Good.id).add_entity(Recommend).filter(rule)
 
 
-
 class ThanksRecordDeleteHandler:
     """
     删除答谢相关的记录
@@ -480,7 +492,7 @@ class ThanksRecordSearchHandler:
 
     @staticmethod
     @db_search
-    def _getReportedThanks(report_status=0):
+    def _getReportedThanks(report_status=0, **kwargs):
         """
         获取特定页的举报记录
         :param report_status:

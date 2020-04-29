@@ -16,6 +16,7 @@ from web.controllers.api.Goods import *
 from web.controllers.api.Thanks import *
 from web.controllers.api.Record import *
 from web.controllers.api.Report import *
+from web.controllers.api.Appeal import *
 from web.controllers.api.Feedback import *
 from web.controllers.api.Static import *
 from web.controllers.api.Adv import *

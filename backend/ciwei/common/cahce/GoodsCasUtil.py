@@ -91,8 +91,8 @@ class GoodsCasUtil:
 
     @classmethod
     def exec_wrap(cls, *args, **kwargs):
-        cls.lock.exec_wrap(*args, **kwargs)
+        return cls.lock.exec_wrap(*args, **kwargs)
 
     @classmethod
     def exec(cls, *args, **kwargs):
-        cls.lock.exec(*args, **kwargs)
+        return cls.lock.exec(*args, **kwargs)

@@ -566,18 +566,11 @@ def memberBlockedSearch():
         resp['msg'] = "请先登录"
         return resp
 
-    # 按status筛选用户
-    status = int(req.get('status', -1))
-    if status not in (0, 2):
-        resp['msg'] = '获取失败'
-        return resp
-
     p = max(int(req.get('p', 1)), 1)
     page_size = APP_CONSTANTS['page_size']
     offset = (p - 1) * page_size
     blocked_members = Member.query.filter(Member.status.in_([0, -1])).order_by(Member.updated_time.desc()).offset(
-        offset).limit(
-        page_size).all()
+        offset).limit(page_size).all()
 
     # models -> objects
     # 用户信息列表
@@ -648,8 +641,8 @@ def memberBlockedRecords():
     if not member_id:
         resp['msg'] = '获取失败'
         return resp
-    stuff_type = int(req.get('status', 0))
-    if stuff_type not in APP_CONSTANTS['stuff_type']:
+    stuff_type = int(req.get('stuff_type', 0))
+    if stuff_type not in APP_CONSTANTS['stuff_type'].values():
         resp['msg'] = '获取失败'
         return resp
 
@@ -684,88 +677,6 @@ def memberBlockedRecords():
         data_list.append(tmp)
     resp['data']['list'] = data_list
     resp['code'] = 200
-    return resp
-
-
-@route_api.route('/member/blocked/appeal', methods=['POST', 'GET'])
-@time_log
-def memberBlockedAppeal():
-    """
-    用户针对某条管理员拉黑自己的记录进行申诉
-    :return:
-    """
-    resp = {'code': -1, 'msg': '', 'data': {}}
-    req = request.values
-    log_id = req.get('id', 0)
-    reason = req.get('reason', '')
-    if not log_id or not reason:
-        resp['msg'] = '申诉失败'
-        return resp
-    MemberService.appealStatusChangeRecord(log_id=log_id, reason=reason)
-    db.session.commit()
-    resp['code'] = 200
-    return resp
-
-
-@route_api.route('/member/block/appeal/reject', methods=['POST', 'GET'])
-@time_log
-def memberBlockTurnDown():
-    """
-    管理员驳回用户的封号申诉
-    :return:
-    """
-    resp = {'code': -1, 'msg': '', 'data': {}}
-    req = request.values
-
-    member_info = g.member_info
-    if not member_info:
-        resp['msg'] = '请先登录'
-        return resp
-        # 将用户的status改为1
-    log_id = int(req.get('id', 0))
-    if not log_id:
-        resp['msg'] = '操作失败'
-        return resp
-
-    user = UserService.getUserByMid(member_id=member_info.id)
-    if not user:
-        resp['msg'] = "您不是管理员，操作失败"
-        return resp
-
-    LogService.turnDownBlockAppeal(log_id=log_id)
-    db.session.commit()
-    resp['code'] = 200
-    return resp
-
-
-@route_api.route('/member/block/appeal/accept', methods=['POST', 'GET'])
-@time_log
-def memberBlockAccept():
-    """
-    管理员同意用户的封号申诉
-    :return:
-    """
-    resp = {'code': -1, 'msg': '', 'data': {}}
-    req = request.values
-
-    member_info = g.member_info
-    if not member_info:
-        resp['msg'] = '请先登录'
-        return resp
-        # 将用户的status改为1
-    log_id = int(req.get('id', 0))
-    if not log_id:
-        resp['msg'] = '操作失败'
-        return resp
-
-    user = UserService.getUserByMid(member_id=member_info.id)
-    if not user:
-        resp['msg'] = "您不是管理员，操作失败"
-        return resp
-    op_res, op_msg = LogService.acceptBlockAppeal(log_id=log_id, user=user)
-    db.session.commit()
-    resp['code'] = 200 if op_res else -1
-    resp['msg'] = op_msg
     return resp
 
 

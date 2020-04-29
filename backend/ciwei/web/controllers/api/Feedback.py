@@ -154,7 +154,7 @@ def feedbackSearch():
     p = max(int(req.get('p', 1)), 1)
     page_size = APP_CONSTANTS['page_size']
     offset = (p - 1) * page_size
-    feedbacks = Feedback.query.filter_by(status=0).order_by(Feedback.id.desc()). \
+    feedbacks = Feedback.query.filter_by(status=1).order_by(Feedback.id.desc()). \
         offset(offset).limit(page_size).all()
 
     user = UserService.getUserByMid(member_info.id)
@@ -190,6 +190,10 @@ def feedbackSearch():
 
 @route_api.route('/feedback/status/set', methods=['GET', 'POST'])
 def feedbackStatusSet():
+    """
+    已读反馈和删除反馈
+    :return:
+    """
     resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
 
@@ -207,7 +211,7 @@ def feedbackStatusSet():
     if not user:
         return resp
     user_id = user.uid
-    Feedback.query.filter(Feedback.id.in_(read_ids)).update({'views': str(user_id) if Feedback.views.strip() == '' else
+    Feedback.query.filter(Feedback.id.in_(read_ids)).update({'views': str(user_id) if not Feedback.views else
     Feedback.views + (',{}'.format(user_id))}, synchronize_session=False)
     if user.level == 1 and del_ids:
         Feedback.query.filter(Feedback.id.in_(del_ids), Feedback.status == 0).update({'status': 7}, synchronize_session=False)
