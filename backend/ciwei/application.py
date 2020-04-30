@@ -28,6 +28,7 @@ class Application(Flask):
 # __name__ 就是 application
 app = Application(__name__, template_folder=APP_ROOT + '/web/templates', root_path=APP_ROOT,
                   static_folder=APP_ROOT + '/web/static')
+APP_CONSTANTS = app.config['CONSTANTS']
 # Celery 做异步和定时任务
 from common.tasks import FlaskCelery
 
@@ -44,6 +45,7 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy(query_class=SyncQuery)
 db.init_app(app)
 from common.sync.db.listeners import *
+from common.loggin.db.listeners import *
 # 数据库迁移
 from flask_migrate import Migrate
 from flask_script import Manager
@@ -52,7 +54,7 @@ manager = Manager(app)
 migrate = Migrate(app=app, db=db)
 migrate.init_app(app, db)
 # 应用常数
-APP_CONSTANTS = app.config['CONSTANTS']
+
 # """函数模板,将类中的方法引入进来，注入到"""
 # app.add_template_global(UrlManager.buildStaticUrl, 'buildStaticUrl')
 # app.add_template_global(UrlManager.buildUrl, 'buildUrl')
