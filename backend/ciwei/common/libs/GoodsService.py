@@ -8,11 +8,9 @@
 """
 import datetime
 
-from sqlalchemy import func
-
 from application import db, APP_CONSTANTS
-from common.cahce import CacheQueryService, CacheOpService
 from common.cahce.GoodsCasUtil import GoodsCasUtil
+from common.cahce.core import CacheQueryService, CacheOpService
 from common.libs.Helper import queryToDict
 from common.libs.MemberService import MemberService
 from common.libs.UploadService import UploadService
@@ -31,28 +29,20 @@ def releaseLost(author_info=None, release_info=None):
     :param release_info:
     :return:
     """
-    model_goods = Good()
-    # 作者信息
-    model_goods.member_id = author_info.id
-    model_goods.openid = author_info.openid  # 作者的身份标识，冗余设计，方便订阅消息等
-    model_goods.nickname = author_info.nickname
-    model_goods.avatar = author_info.avatar
-
-    # 物品信息
-    model_goods.name = release_info.get("goods_name", '')  # 物品名，前端发布已判空
-    model_goods.location = release_info.get("location", '').replace(',', '###')  # 住址，前端发布已判空
-    os_location = release_info.get('os_location', '')  # 丢失地址，不记得会留空
-    model_goods.os_location = os_location.replace(',', '###') if os_location else APP_CONSTANTS['default_lost_loc']
-    model_goods.owner_name = release_info.get('owner_name', '无')
-
-    model_goods.summary = release_info.get('summary', '无')
-    model_goods.business_type = 0
-    model_goods.mobile = release_info.get('mobile', '无')
-    # 寻物置顶
+    os_location = release_info.get('os_location')
+    if not os_location:
+        os_location = APP_CONSTANTS['default_lost_loc']
     now = datetime.datetime.now()
-    model_goods.top_expire_time = now if not int(release_info.get('is_top', 0)) else \
+    top_expire = now if not int(release_info.get('is_top', 0)) else \
         now + datetime.timedelta(days=int(release_info['days']))
-    db.session.add(model_goods)
+    model_goods = Good(author_info=author_info, business_type=0,
+                       mobile=release_info.get('mobile', '无'),
+                       name=release_info.get('goods_name'),
+                       owner_name=release_info.get('owner_name', '无'),
+                       summary=release_info.get('summary', '无'),
+                       os_location=os_location,
+                       location=release_info.get('location', ''),
+                       top_expire=top_expire)
     db.session.flush()
     return model_goods
 
@@ -64,23 +54,17 @@ def releaseFound(author_info=None, release_info=None):
     :param release_info:
     :return:
     """
-    model_goods = Good()
-    # 作者信息
-    model_goods.member_id = author_info.id
-    model_goods.openid = author_info.openid  # 作者的身份标识，冗余设计，方便订阅消息等
-    model_goods.nickname = author_info.nickname
-    model_goods.avatar = author_info.avatar
-    model_goods.name = release_info["goods_name"]  # 物品名，前端发布已判空
-    # 物品信息
-    model_goods.os_location = release_info.get("os_location", '').replace(',', '###')  # 发现位置
+    os_location = release_info.get("os_location", '')
     location = release_info.get('location', '')  # 放置位置
-    model_goods.location = location.replace(',', '###') if location else model_goods.os_location  # 如果放置位置留空说明和发现位置一样
-    model_goods.owner_name = release_info.get('owner_name', '无')
-
-    model_goods.summary = release_info.get('summary', '无')
-    model_goods.business_type = 1
-    model_goods.mobile = release_info.get('mobile', '无')
-    db.session.add(model_goods)
+    if not location:
+        location = os_location
+    model_goods = Good(author_info=author_info, business_type=1,
+                       mobile=release_info.get('mobile', '无'),
+                       name=release_info.get('goods_name'),
+                       owner_name=release_info.get('owner_name', '无'),
+                       summary=release_info.get('summary', '无'),
+                       os_location=os_location,
+                       location=location)
     db.session.flush()
     return model_goods
 
@@ -93,94 +77,70 @@ def releaseReturn(author_info=None, release_info=None, is_scan_return=False):
     :param is_scan_return:
     :return:
     """
-    model_goods = Good()
-    # 作者信息
-    model_goods.member_id = author_info.id
-    model_goods.openid = author_info.openid  # 作者的身份标识，冗余设计，方便订阅消息等
-    model_goods.nickname = author_info.nickname
-    model_goods.avatar = author_info.avatar
-    model_goods.name = release_info["goods_name"]  # 物品名，前端发布已判空
-    # 物品信息
-    model_goods.os_location = release_info.get('os_location', '').replace(',', '###')  # 发现位置
-    model_goods.location = release_info.get('location', '').replace(',', '###')  # 放置位置
-    model_goods.owner_name = "鲟回码主" if is_scan_return else release_info.get('owner_name', '无')
-    model_goods.summary = release_info.get('summary', '无')
-    model_goods.business_type = 2
-    model_goods.mobile = release_info.get('mobile', '无')
-    db.session.add(model_goods)
+    owner_name = "鲟回码主" if is_scan_return else release_info.get('owner_name', '无')
+    model_goods = Good(author_info=author_info, business_type=2,
+                       mobile=release_info.get('mobile', '无'),
+                       name=release_info.get('goods_name'),
+                       owner_name=owner_name,
+                       summary=release_info.get('summary', '无'),
+                       os_location=release_info.get('os_location', APP_CONSTANTS['default_lost_loc']),
+                       location=release_info.get('location', APP_CONSTANTS['default_lost_loc']))
     db.session.flush()
     return model_goods
 
 
-def returnToLostSuccess(return_goods=None, lost_goods=None, author=None):
+def returnToLostSuccess(return_goods=None, lost_goods=None):
     """
     寻物归还结束发帖
-    :param author:
     :param return_goods:
     :param lost_goods: 
     :return: 
     """
-    if not return_goods or not lost_goods or not author:
+    if not return_goods or not lost_goods:
         return
-    lost_id = lost_goods.id
-    return_goods.status = 1
-    return_goods.return_goods_id = lost_id
-    return_goods.return_goods_openid = lost_goods.openid  # 用于被归还的用户快速查找归还通知
-    # 寻物贴链接归还贴，状态置为预先寻回
-    return_id = return_goods.id
-    lost_goods.return_goods_id = return_id
-    lost_goods.return_goods_openid = return_goods.openid  # 用于判断是归还用户查看了帖子详情
-    now = datetime.datetime.now()
-    lost_goods.confirm_time = now  # 指的是归还时间
-    lost_goods.status = 2
-    db.session.add(lost_goods)
-    db.session.add(return_goods)
-    MemberService.updateCredits(member_info=author)
-
+    Good.link(return_goods=return_goods, lost_goods=lost_goods)
+    MemberService.updateCredits(member_id=return_goods.member_id)
     info = {'goods_name': return_goods.name,
             'returner': return_goods.nickname,
             'return_date': return_goods.created_time.strftime(
                 "%Y-%m-%d %H:%M:%S"),
             'rcv_openid': lost_goods.openid}
-    # 新归还帖
-    # MADE
-    db.session.commit()
     # 异步发送订阅消息
     SubscribeTasks.send_return_subscribe.delay(return_info=info)
+    db.session.commit()
 
 
-def scanReturnSuccess(scan_goods=None, notify_id='', author=None):
+def scanReturnSuccess(scan_goods=None, notify_id=''):
     """
     扫码归还结束发帖
     ES同步和发送短信
-    :param author:
     :param scan_goods:
     :param notify_id:
     :return:
     """
     # 链接归还的对象，直接就是对方的物品(如若不是可举报)
-    if not scan_goods or not scan_goods or not author:
+    if not scan_goods or not notify_id:
         return
     scan_goods.qr_code_openid = notify_id
     db.session.add(scan_goods)
-    MemberService.updateCredits(member_info=author)
-    # MADE
-    db.session.commit()
+    MemberService.updateCredits(member_id=scan_goods.member_id)
     # 通知
     params = {
         'location': scan_goods.location,
         'goods_name': scan_goods.name,
-        'rcv_openid': notify_id,
-        'trig_openid': scan_goods.openid,
-        'trig_member_id': scan_goods.member_id
+        'trig_rcv': {
+            'rcv_openid': notify_id,
+            'trig_openid': scan_goods.openid,
+            'trig_member_id': scan_goods.member_id
+        }
     }
     SmsTasks.notifyQrcodeOwner.delay(params=params)
+    db.session.commit()
 
 
-def releaseGoodsSuccess(goods_info=None, edit_info=None, author=None):
+def releaseGoodsSuccess(goods_info=None, edit_info=None):
     """
     普通帖子结束发帖（可能是编辑）
-    :param author:
     :param goods_info:
     :param edit_info:
     :return:
@@ -191,11 +151,9 @@ def releaseGoodsSuccess(goods_info=None, edit_info=None, author=None):
         goods_info.status = 1
     db.session.add(goods_info)
     if not is_edit:
-        MemberService.updateCredits(member_info=author)
-
-    # MADE
-    db.session.commit()
+        MemberService.updateCredits(member_id=goods_info.member_id)
     RecommendTasks.autoRecommendGoods.delay(edit_info=edit_info, goods_info=queryToDict(goods_info))
+    db.session.commit()
 
 
 def editGoods(goods_id=0, edit_info=None):
@@ -208,20 +166,6 @@ def editGoods(goods_id=0, edit_info=None):
     goods_info = Good.query.filter_by(id=goods_id).first()
     if not goods_info:
         return None
-    goods_info.pics = ""
-    goods_info.main_image = ""
-    goods_info.name = edit_info['goods_name']
-    goods_info.owner_name = edit_info['owner_name']
-    goods_info.summary = edit_info['summary']
-    location = edit_info['location'].split(",")
-
-    goods_info.location = "###".join(location)
-    goods_info.business_type = edit_info['business_type']
-    goods_info.mobile = edit_info['mobile']
-    # 修改成置顶贴子
-    if int(edit_info.get('is_top', 0)):
-        goods_info.top_expire_time = datetime.datetime.now() + datetime.timedelta(days=int(edit_info['days']))
-    goods_info.updated_time = datetime.datetime.now()
 
     img_list = edit_info['img_list']
     img_list_status = UploadService.filterUpImages(img_list)
@@ -232,7 +176,8 @@ def editGoods(goods_id=0, edit_info=None):
                 return True
         return False
 
-    goods_info.status = 7 if __needImageUpload() else 1  # 暂时设置为不可见
+    goods_info.edit(edit_info=edit_info, img_edited=True)
+    # 暂时设置为不可见
     db.session.add(goods_info)
     db.session.commit()
     return img_list_status
@@ -252,8 +197,7 @@ def getNoMarksAfterDelPremark(found_ids=None, member_id=0):
             no_mark = len(marks) == 2 and str(member_id) in marks
         else:
             # 缓存不命中
-            cnt = db.session.query(func.count(Mark.id)).filter(Mark.goods_id == found_id, Mark.status != 7).scalar()
-            no_mark = cnt == 0
+            no_mark = Mark.isNoMarkOn(goods_id=found_id)
         if no_mark and GoodsCasUtil.exec(found_id, 2, 1):
             # 这里不会出问题，因为认领那里，进入后设置成了 7，缓存和数据库都提交后，才会被设置成2。
             no_marks.append(found_id)

@@ -18,7 +18,17 @@ def func(*member_Id, a=None, **kwargs):
 def warp(*args, **kwargs):
     func(*args, **kwargs)
 
+class A:
+    @staticmethod
+    def _pri(a):
+        print(a)
+
+class B(A):
+    @classmethod
+    def p(cls):
+        super()._pri("h")
 
 
 if __name__ == '__main__':
-    warp([1,2,3,4],"hh", b="hh")
+    #warp([1,2,3,4],"hh", b="hh")
+    B.p()

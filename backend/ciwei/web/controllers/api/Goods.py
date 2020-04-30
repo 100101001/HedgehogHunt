@@ -12,7 +12,7 @@ from decimal import Decimal
 from flask import request, jsonify, g
 
 from application import db, app, APP_CONSTANTS
-from common.cahce import CacheOpService
+from common.cahce.core import CacheOpService
 from common.cahce.GoodsCasUtil import GoodsCasUtil
 from common.libs import GoodsService
 from common.libs.Helper import param_getter
@@ -22,7 +22,7 @@ from common.libs.UploadService import UploadService
 from common.libs.UrlManager import UrlManager
 from common.libs.mall.PayService import PayService
 from common.libs.mall.WechatService import WeChatService
-from common.loggin.decorators import time_log
+from common.loggin.time import time_log
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.GoodsTopOrder import GoodsTopOrder
 from common.tasks.subscribe import SubscribeTasks
@@ -303,13 +303,13 @@ def endCreate():
             # 寻物归还
             lost_goods = Good.query.filter_by(id=lost_id, status=1).first()
             if lost_goods and GoodsCasUtil.exec_wrap(lost_id, ['nil', 1], 2):
-                GoodsService.returnToLostSuccess(return_goods=goods_info, lost_goods=lost_goods, author=member_info)
+                GoodsService.returnToLostSuccess(return_goods=goods_info, lost_goods=lost_goods)
             else:
                 goods_info.business_type = 1
-                GoodsService.releaseGoodsSuccess(goods_info=goods_info, author=member_info)
+                GoodsService.releaseGoodsSuccess(goods_info=goods_info)
         elif notify_id:
             # 扫码归还
-            GoodsService.scanReturnSuccess(scan_goods=goods_info, notify_id=notify_id, author=member_info)
+            GoodsService.scanReturnSuccess(scan_goods=goods_info, notify_id=notify_id)
         else:
             resp['msg'] = "发布失败"
             jsonify(resp)
@@ -320,7 +320,7 @@ def endCreate():
             'need_recommend': int(req.get('keyword_modified', 0)),
             'modified': int(req.get('modified', 0))
         } if is_edit else None
-        GoodsService.releaseGoodsSuccess(goods_info=goods_info, edit_info=edit_info, author=member_info)
+        GoodsService.releaseGoodsSuccess(goods_info=goods_info, edit_info=edit_info)
 
     resp['code'] = 200
     return jsonify(resp)
@@ -491,9 +491,7 @@ def goodsCancelApplyInBatch():
     if status == 2:
         # 对于于认领的物品，状态可能发生变更
         no_marks = GoodsService.getNoMarksAfterDelPremark(found_ids=found_ids, member_id=member_id)
-        no_mark_num = len(no_marks)
-
-        if no_mark_num > 0:
+        if len(no_marks) > 0:
             # 公开信息操作加锁，状态预期和加锁
             # 失物招领状态更新
             Good.query.filter(Good.id.in_(no_marks), Good.status == status).update({'status': 1}, redis_arg=1)
@@ -745,7 +743,6 @@ def returnGoodsGotbackInBatch():
         return jsonify(resp)
 
     member_id = member_info.id
-    total_goods_num = len(goods_ids)
     now = datetime.datetime.now()
 
     lost_updated = {'status': 3, 'finish_time': now}
@@ -927,16 +924,16 @@ def fetchGoodsInfoForThanks():
     goods_id = int(req.get('id', -1))
     if goods_id == -1:
         resp['msg'] = '答谢失败'
-        return jsonify(resp)
+        return resp
     goods_info = Good.query.filter_by(id=goods_id, status=3).first()
     if not goods_info:
         resp['msg'] = '答谢失败'
-        return jsonify(resp)
+        return resp
     goods_status = goods_info.status
     if not GoodsCasUtil.exec_wrap(goods_id, ['nil', goods_status], goods_status):
         # 虽然数据库还没更新，但内存的原子操作已经更新了 WR
         resp['msg'] = '操作冲突，请稍后重试'
-        return jsonify(resp)
+        return resp
     resp['data']['info'] = {
         # 物品帖子数据信息
         "id": goods_info.id,
@@ -949,7 +946,7 @@ def fetchGoodsInfoForThanks():
         "updated_time": str(goods_info.updated_time),  # 被编辑的时间 or 首次发布的时间
     }
     resp['code'] = 200
-    return jsonify(resp)
+    return resp
 
 
 @route_api.route("/goods/edit", methods=['GET', 'POST'])
@@ -959,7 +956,7 @@ def editGoods():
     更新物品信息
     :return: 物品id,图片名->是否在服务器上
     """
-    resp = {'code': -1, 'msg': '', 'data': {}}
+    resp = {'code': -1, 'msg': '数据上传失败', 'data': {}}
     req = request.values
 
     # 检查登陆
@@ -967,26 +964,25 @@ def editGoods():
     member_info = g.member_info
     if not member_info:
         resp['msg'] = '请先登录'
-        return jsonify(resp)
+        return resp
     goods_id = int(req.get('id', -1))
     if goods_id == -1:
-        resp['msg'] = "数据上传失败"
-        return jsonify(resp)
+        return resp
     status = int(req.get('status', -1))
     if not GoodsCasUtil.exec(goods_id, status, 7):
         resp['msg'] = "操作冲突，请稍后重试"
-        return jsonify(resp)
+        return resp
     img_list_status = GoodsService.editGoods(goods_id, req)
     if not img_list_status:
-        resp['msg'] = "数据上传失败"
-        return jsonify(resp)
+        return resp
     GoodsCasUtil.exec(goods_id, 7, status)
     # 通过链接发送之后的图片是逗号连起来的字符串
-
-    resp['id'] = goods_id
-    resp['img_list_status'] = img_list_status
+    resp['data'] = {
+        'id': goods_id,
+        'img_list_status': img_list_status
+    }
     resp['code'] = 200
-    return jsonify(resp)
+    return resp
 
 
 @route_api.route('/goods/status', methods=['GET', 'POST'])
@@ -1048,7 +1044,6 @@ def unmarkGoodsToSysInBatch():
 def test9():
     from common.models.ciwei.Appeal import Appeal
     from common.models.ciwei.Member import Member
-    from sqlalchemy import or_
     from sqlalchemy.orm import aliased
     appealor = aliased(Member)
     appealed = aliased(Member)

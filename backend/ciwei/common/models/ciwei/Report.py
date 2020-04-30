@@ -34,3 +34,33 @@ class Report(db.Model):
             '5': '商品违规但不拉黑人员，我也不看了的记录',  # 举报待处理
         }
         return report_status_mapping[str(self.status)]
+
+
+    @staticmethod
+    def create(record_type=0, reported_record=None, reporter=None):
+        report = Report.query.filter_by(record_id=reported_record.id,
+                                        record_type=record_type).first()
+        if report:
+            report.deleted_by = 0
+            report.status = 1
+        else:
+            report = Report()
+            # 被举报的物品信息链接
+            report.record_id = reported_record.id
+            report.record_type = record_type  # 标识举报链接的是物品ID或者答谢ID
+            report.member_id = reported_record.member_id  # 被举报物品的作者或答谢者
+        # 举报用户的身份信息
+        report.report_member_id = reporter.id
+        report.report_member_nickname = reporter.nickname
+        report.report_member_avatar = reporter.avatar
+        reported_record.report_status = 1  # 待处理举报
+        db.session.add(reported_record)
+        db.session.add(report)
+
+    @staticmethod
+    def setDealt(report=None, status=0, reported_record=None, record_status=0, user_id=0):
+        report.status = status
+        reported_record.report_status = record_status
+        report.user_id = reported_record.user_id = user_id
+        db.session.add(report)
+        db.session.add(reported_record)

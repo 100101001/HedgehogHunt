@@ -8,8 +8,8 @@
 """
 from flask import g
 
-from common.libs import StaticService
-from common.loggin.decorators import time_log
+from common.admin import StaticService
+from common.loggin.time import time_log
 from web.controllers.api import route_api
 
 

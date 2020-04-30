@@ -8,16 +8,84 @@
 from flask import request, jsonify, g
 
 from application import APP_CONSTANTS, db
+from common.admin.ReportService import ReportHandlers, ReportRecordMakers
 from common.cahce.GoodsCasUtil import GoodsCasUtil
-from common.libs import UserService
 from common.libs.RecordService import RecordHandlers
-from common.libs.ReportService import ReportHandlers, ReportRecordMakers
-from common.loggin.decorators import time_log
+from common.loggin.time import time_log
 from common.models.ciwei.Goods import Good
+from common.models.ciwei.Member import Member
 from common.models.ciwei.Report import Report
 from common.models.ciwei.Thanks import Thank
-from common.models.ciwei.User import User
 from web.controllers.api import route_api
+
+
+@route_api.route("/report/goods", methods=['GET', 'POST'])
+@time_log
+def reportGoods():
+    """
+    举报物品/答谢
+    :return: 成功
+    """
+    resp = {'code': -1, 'msg': '举报成功', 'data': {}}
+    req = request.values
+
+    # 检查登陆
+    # 检查参数：举报id, 举报类型record_type
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = '没有用户信息，无法完成举报！请授权登录'
+        return jsonify(resp)
+    goods_id = int(req.get('id', -1))
+    status = int(req.get('status', -1))  # 用户视图中以为的状态
+    if goods_id == -1 or status == -1:
+        resp['msg'] = "举报失败"
+        return jsonify(resp)
+    # 物品信息已有了违规标记
+    reporting_goods = Good.query.filter_by(id=goods_id).first()
+    if reporting_goods.report_status != 0:
+        resp['msg'] = "该条信息已被举报过，管理员处理中"
+        return resp
+
+    if not GoodsCasUtil.exec(goods_id, status, 7):  # 用户视图中以为的状态正确，进入critical op 区
+        resp['msg'] = "操作冲突，请稍后重试"
+        return jsonify(resp)
+    # 物品举报标记
+    ReportHandlers.get('goods').deal(1, reporting_goods=reporting_goods, reporting_member=member_info)
+    db.session.commit()
+    GoodsCasUtil.exec(goods_id, 7, status)  # 解锁
+    resp['code'] = 200
+    return jsonify(resp)
+
+
+@route_api.route("/report/thanks", methods=['GET', 'POST'])
+@time_log
+def reportThanks():
+    """
+    举报物品/答谢
+    :return: 成功
+    """
+    resp = {'code': -1, 'msg': '举报成功', 'data': {}}
+    req = request.values
+
+    # 检查登陆
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = '没有用户信息，无法完成举报！请授权登录'
+        return jsonify(resp)
+    thank_id = int(req.get('id', -1))
+    if thank_id == -1:
+        resp['msg'] = "举报失败"
+        return jsonify(resp)
+    # 答谢信息违规
+    reporting_thank = Thank.query.filter_by(id=thank_id).first()
+    if reporting_thank.report_status != 0:
+        resp['msg'] = "该条信息已被举报过，管理员处理中"
+        return resp
+
+    ReportHandlers.get('thanks').deal(1, reporting_thanks=reporting_thank, reporting_member=member_info)
+    db.session.commit()
+    resp['code'] = 200
+    return jsonify(resp)
 
 
 @route_api.route('/report/goods/info')
@@ -135,15 +203,10 @@ def reportGoodsDeal():
     if goods_id == -1 or report_status not in (2, 3, 4, 5):
         resp['msg'] = "操作失败"
         return resp
-
-    user_info = UserService.getUserByMid(member_id=member_info.id)
-    if not user_info:
-        resp['msg'] = "您不是管理员，操作失败"
-        return resp
-
-    ReportHandlers.get('goods').deal(report_status, goods_id=goods_id, user_id=user_info.uid)
-
-    resp['code'] = 200
+    op_res, op_msg = ReportHandlers.get('goods').deal(report_status, goods_id=goods_id, member_id=member_info.id)
+    db.session.commit()
+    resp['code'] = 200 if op_res else -1
+    resp['msg'] = op_msg
     return jsonify(resp)
 
 
@@ -166,82 +229,55 @@ def reportThanksDeal():
     if thank_id == -1 or report_status not in (2, 3, 4, 5):
         resp['msg'] = '操作失败'
         return resp
-
-    user_info = User.query.filter_by(member_id=member_info.id).first()
-    if not user_info:
-        resp['msg'] = "您无管理员权限"
-        return resp
-
-    ReportHandlers.get('thanks').deal(report_status, thank_id=thank_id, user_id=user_info.uid)
-
-    resp['code'] = 200
+    op_res, op_msg = ReportHandlers.get('thanks').deal(report_status, thank_id=thank_id, member_id=member_info.id)
+    db.session.commit()
+    resp['code'] = 200 if op_res else -1
+    resp['msg'] = op_msg
     return resp
 
 
-@route_api.route("/report/goods", methods=['GET', 'POST'])
+@route_api.route("/member/blocked/search", methods=['GET', 'POST'])
 @time_log
-def reportGoods():
+def memberBlockedSearch():
     """
-    举报物品/答谢
-    :return: 成功
+    获取封号的会员
+    :return: 状态为status的用户信息列表
     """
-    resp = {'code': -1, 'msg': '举报成功', 'data': {}}
-    req = request.values
 
-    # 检查登陆
-    # 检查参数：举报id, 举报类型record_type
-    member_info = g.member_info
-    if not member_info:
-        resp['msg'] = '没有用户信息，无法完成举报！请授权登录'
-        return jsonify(resp)
-    goods_id = int(req.get('id', -1))
-    status = int(req.get('status', -1))  # 用户视图中以为的状态
-    if goods_id == -1 or status == -1:
-        resp['msg'] = "举报失败"
-        return jsonify(resp)
-    # 物品信息已有了违规标记
-    reporting_goods = Good.query.filter_by(id=goods_id).first()
-    if reporting_goods.report_status != 0:
-        resp['msg'] = "该条信息已被举报过，管理员处理中"
-        return resp
-
-    if not GoodsCasUtil.exec(goods_id, status, 7):  # 用户视图中以为的状态正确，进入critical op 区
-        resp['msg'] = "操作冲突，请稍后重试"
-        return jsonify(resp)
-    # 物品举报标记
-    ReportHandlers.get('goods').deal(1, reporting_goods=reporting_goods, reporting_member=member_info)
-    db.session.commit()
-    GoodsCasUtil.exec(goods_id, 7, status)  # 解锁
-    resp['code'] = 200
-    return jsonify(resp)
-
-
-@route_api.route("/report/thanks", methods=['GET', 'POST'])
-@time_log
-def reportThanks():
-    """
-    举报物品/答谢
-    :return: 成功
-    """
-    resp = {'code': -1, 'msg': '举报成功', 'data': {}}
+    resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
 
     # 检查登陆
     member_info = g.member_info
     if not member_info:
-        resp['msg'] = '没有用户信息，无法完成举报！请授权登录'
-        return jsonify(resp)
-    thank_id = int(req.get('id', -1))
-    if thank_id == -1:
-        resp['msg'] = "举报失败"
-        return jsonify(resp)
-    # 答谢信息违规
-    reporting_thank = Thank.query.filter_by(id=thank_id).first()
-    if reporting_thank.report_status != 0:
-        resp['msg'] = "该条信息已被举报过，管理员处理中"
+        resp['msg'] = "请先登录"
         return resp
 
-    ReportHandlers.get('thanks').deal(1, reporting_thanks=reporting_thank, reporting_member=member_info)
-    db.session.commit()
+    p = max(int(req.get('p', 1)), 1)
+    page_size = APP_CONSTANTS['page_size']
+    offset = (p - 1) * page_size
+    blocked_members = Member.query.filter(Member.status.in_([0, -1])).order_by(Member.updated_time.desc()).offset(
+        offset).limit(page_size).all()
+
+    # models -> objects
+    # 用户信息列表
+    data_member_list = []
+    if blocked_members:
+        for member in blocked_members:
+            tmp_data = {
+                "user_id": member.user_id,
+                "created_time": str(member.created_time),
+                "updated_time": str(member.updated_time),
+                "status": member.status,
+                # 用户信息
+                "id": member.id,
+                "name": member.nickname,
+                "avatar": member.avatar
+            }
+            data_member_list.append(tmp_data)
+
     resp['code'] = 200
+    resp['data']['list'] = data_member_list
+    resp['data']['has_more'] = len(data_member_list) >= page_size and p < APP_CONSTANTS[
+        'max_pages_allowed']  # 由于深度分页的性能问题，限制页数(鼓励使用更好的搜索条件获取较少的数据量)
     return jsonify(resp)

@@ -9,7 +9,7 @@
 import jieba.analyse
 
 from common.libs.recommend.preprocess.SynonymProcess import SynonymsProcess
-from common.loggin.decorators import time_log
+from common.loggin.time import time_log
 
 
 class SynonymsService:

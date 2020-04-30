@@ -12,18 +12,15 @@ from decimal import Decimal
 from flask import request, jsonify, g
 from sqlalchemy import and_, or_, func
 
-from application import db, app, APP_CONSTANTS
-from common.libs import UserService, LogService
+from application import db, app
 from common.libs.CryptService import Cipher
-from common.libs.Helper import queryToDict
 from common.libs.MemberService import MemberService
 from common.libs.UrlManager import UrlManager
 from common.libs.mall.PayService import PayService
 from common.libs.mall.WechatService import WeChatService
-from common.loggin.decorators import time_log
+from common.loggin.time import time_log
 from common.models.ciwei.BalanceOder import BalanceOrder
 from common.models.ciwei.Goods import Good
-from common.models.ciwei.Member import Member
 from common.models.ciwei.MemberSmsPkg import MemberSmsPkg
 from common.models.ciwei.Recommend import Recommend
 from common.models.ciwei.Thanks import Thank
@@ -174,7 +171,7 @@ def memberSmsPkgAdd():
         resp['msg'] = "请先登录"
         return jsonify(resp)
 
-    MemberService.addSmsPkg(openid=member_info.openid)
+    MemberService.addSmsPkg(member_info=member_info)
     db.session.commit()
     resp['code'] = 200
     return jsonify(resp)
@@ -193,7 +190,7 @@ def memberSmsChange():
     if not member_info:
         resp['msg'] = "请先登录"
         return jsonify(resp)
-    MemberService.updateSmsNotify(member_info=member_info, sms_times=int(req.get('times', 0)))
+    MemberService.updateSmsNotify(member_id=member_info.id, sms_times=int(req.get('times', 0)))
     db.session.commit()
     resp['code'] = 200
     return jsonify(resp)
@@ -205,20 +202,21 @@ def memberBalanceChange():
     resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
     unit = Decimal(req.get('unit', '0')).quantize(Decimal("0.00"))
-    note = req.get('note', '')
+    # note = req.get('note', '')
     member_info = g.member_info
     if not member_info:
         resp['msg'] = "请先登录"
         return jsonify(resp)
 
-    MemberService.updateBalance(member_info=member_info, unit=unit, note=note)
+    MemberService.updateBalance(member_id=member_info.id, unit=unit)
     db.session.commit()
     resp['code'] = 200
     return jsonify(resp)
 
 
-@time_log
+
 @route_api.route("/member/register", methods=['GET', 'POST'])
+@time_log
 def memberReg():
     """
     会员登陆或注册
@@ -232,23 +230,19 @@ def memberReg():
         resp['msg'] = "注册失败"
         return jsonify(resp)
 
-    model_member = Member()
-    model_member.nickname = req.get('nickName', '')
-    model_member.sex = req.get('gender', '')
-    model_member.avatar = req.get('avatarUrl', '')
-    model_member.openid = openid
-    model_member.mobile = req.get('mobile', '')  # 加密过了的手机
-    db.session.add(model_member)
+    new_member = MemberService.doRegister(nickname=req.get('nickName', ''), sex=req.get('gender', ''),
+                                            avatar=req.get('avatarUrl', ''), openid=openid, mobile=req.get('mobile', ''))
+
     db.session.flush()  # 防止获取id，会再次执行查询
 
-    token = "%s#%s" % (openid, model_member.id)
+    token = "%s#%s" % (openid, new_member.id)
     resp['data'] = {
         'token': token,
         'is_adm': False,
         'is_user': False,
         'has_qrcode': False,
         'member_status': 1,
-        'id': model_member.id
+        'id': new_member.id
     }
     db.session.commit()  # 最后提交
     resp['code'] = 200
@@ -320,9 +314,7 @@ def memberInfo():
     has_qrcode = member_info.has_qr_code
     qr_code_url = "" if not has_qrcode else UrlManager.buildImageUrl(member_info.qr_code, image_type='QR_CODE')
 
-    pkgs = MemberSmsPkg.query.filter(MemberSmsPkg.open_id == member_info.openid,
-                                     MemberSmsPkg.expired_time >= datetime.datetime.now()).all()
-
+    pkgs = MemberSmsPkg.getAllValidPkg(member_id=member_info.id)
     p_times = 0  # 计算套餐包有效期内总数量
     pkg_data_list = []
     for item in pkgs:
@@ -404,15 +396,15 @@ def memberBalanceGet():
     用户信息
     :return: id,昵称,头像,积分,二维码
     """
-    resp = {'code': 200, 'msg': '', 'data': {}}
+    resp = {'code': -1, 'msg': '', 'data': {}}
 
     member_info = g.member_info
     if not member_info:
-        resp['code'] = -1
         resp['msg'] = "请先登录"
         return jsonify(resp)
 
     resp['data'] = {"balance": str(member_info.balance)}
+    resp['code'] = 200
     return jsonify(resp)
 
 
@@ -542,142 +534,11 @@ def memberNameSet():
         resp['msg'] = "请先登录"
         return jsonify(resp)
 
-    MemberService.updateName(member_info=member_info, name=name)
+    MemberService.updateName(member_id=member_info.id, name=name)
     db.session.commit()
     resp['code'] = 200
     resp['data'] = {'name': name}
     return jsonify(resp)
-
-
-@route_api.route("/member/blocked/search", methods=['GET', 'POST'])
-@time_log
-def memberBlockedSearch():
-    """
-    获取封号的会员
-    :return: 状态为status的用户信息列表
-    """
-
-    resp = {'code': -1, 'msg': '', 'data': {}}
-    req = request.values
-
-    # 检查登陆
-    member_info = g.member_info
-    if not member_info:
-        resp['msg'] = "请先登录"
-        return resp
-
-    p = max(int(req.get('p', 1)), 1)
-    page_size = APP_CONSTANTS['page_size']
-    offset = (p - 1) * page_size
-    blocked_members = Member.query.filter(Member.status.in_([0, -1])).order_by(Member.updated_time.desc()).offset(
-        offset).limit(page_size).all()
-
-    # models -> objects
-    # 用户信息列表
-    data_member_list = []
-    if blocked_members:
-        for member in blocked_members:
-            tmp_data = {
-                "user_id": member.user_id,
-                "created_time": str(member.created_time),
-                "updated_time": str(member.updated_time),
-                "status": member.status,
-                # 用户信息
-                "id": member.id,
-                "name": member.nickname,
-                "avatar": member.avatar
-            }
-            data_member_list.append(tmp_data)
-
-    resp['code'] = 200
-    resp['data']['list'] = data_member_list
-    resp['data']['has_more'] = len(data_member_list) >= page_size and p < APP_CONSTANTS[
-        'max_pages_allowed']  # 由于深度分页的性能问题，限制页数(鼓励使用更好的搜索条件获取较少的数据量)
-    return jsonify(resp)
-
-
-
-@route_api.route('/member/restore')
-@time_log
-def memberRestore():
-    """
-    恢复用户
-    :return: 成功
-    """
-    resp = {'code': -1, 'msg': '', 'data': {}}
-    req = request.values
-
-    member_info = g.member_info
-    if not member_info:
-        resp['msg'] = '请先登录'
-        return resp
-    # 将用户的status改为1
-    restore_id = int(req.get('id', 0))
-    if not restore_id:
-        resp['msg'] = '操作失败'
-        return resp
-
-    user = UserService.getUserByMid(member_id=member_info.id)
-    if not user:
-        resp['msg'] = "您不是管理员，操作失败"
-        return resp
-
-    MemberService.restoreMember(member_id=restore_id, user_id=user.uid)
-    resp['code'] = 200
-    return resp
-
-
-@route_api.route('/member/blocked/record')
-@time_log
-def memberBlockedRecords():
-    """
-    用户获取管理员操作自己用户状态的记录，以便进行申诉
-    管理员查看封锁记录以便进行驳回，接受
-    :return:
-    """
-    resp = {'code': -1, 'msg': '', 'data': {'list': []}}
-    req = request.values
-    member_id = int(req.get('id', 0))
-    if not member_id:
-        resp['msg'] = '获取失败'
-        return resp
-    stuff_type = int(req.get('stuff_type', 0))
-    if stuff_type not in APP_CONSTANTS['stuff_type'].values():
-        resp['msg'] = '获取失败'
-        return resp
-
-    logs = LogService.getStatusChangeLogsWithStuffDetail(member_id=member_id, stuff_type=stuff_type)
-
-    def detailTransformer(stuff_typo=0):
-        if stuff_typo == APP_CONSTANTS['stuff_type']['goods']:
-            def transform(good):
-                return {
-                    'summary': good.summary,
-                    'pics': [UrlManager.buildImageUrl(pic) for pic in good.pics.split(',')],
-                    'name': good.name,
-                    'loc': good.location.split('###')[1],
-                    'owner_name': good.owner_name,
-                    'mobile': good.mobile
-                }
-            return transform
-        else:
-            def transform(thank):
-                return {
-                    'thanked_mid': thank.target_member_id,
-                    'summary': thank.summary,
-                    'reward': str(thank.thank_price)
-                }
-            return transform
-
-    transformer = detailTransformer(stuff_type)
-    data_list = []
-    for item in logs:
-        tmp = queryToDict(item.MemberStatusChangeLog)
-        tmp['stuff'] = transformer(item[1])  # 可以用 item.Good, item.Thank。为了统一用下标
-        data_list.append(tmp)
-    resp['data']['list'] = data_list
-    resp['code'] = 200
-    return resp
 
 
 @route_api.route('/member/share')
@@ -687,14 +548,15 @@ def memberShare():
     分享
     :return: 成功
     """
-    resp = {'code': 200, 'msg': '', 'data': {}}
+    resp = {'code': -1, 'msg': '', 'data': {}}
     # 检查登陆
     member_info = g.member_info
     if not member_info:
         resp['msg'] = '请先登录'
-        return jsonify(resp)
+        return resp
 
     # 会员credits加5
-    MemberService.updateCredits(member_info=member_info)
+    MemberService.updateCredits(member_id=member_info.id)
     db.session.commit()
-    return jsonify(resp)
+    resp['code'] = 200
+    return resp

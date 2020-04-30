@@ -45,12 +45,11 @@ def sendThanksToGoods(send_member=None, thanked_goods=None, thank_info=None):
     thanks_model.summary = thank_info.get('thanks_text', '谢谢你的举手之劳！')  # 答谢文字，前端已判空
 
     # 金额转入目标用户余额
-    MemberService.updateBalance(member_id=thanks_model.target_member_id, unit=thanks_model.thank_price, note='答谢赏金')
+    MemberService.updateBalance(member_id=thanks_model.target_member_id, unit=thanks_model.thank_price)
     db.session.add(thanks_model)
     return thanks_model
 
 
-# TODO now func
 def updateThankedFoundStatus(found_id=0, send_member_id=0):
     """
     更新认领记录和拾物状态

@@ -1,5 +1,6 @@
 # coding: utf-8
 from datetime import datetime
+import datetime as dt
 from sqlalchemy.dialects.mysql import INTEGER
 from application import db
 
@@ -15,3 +16,22 @@ class MemberSmsPkg(db.Model):
     expired_time = db.Column(db.DateTime, nullable=False, index=True, default=datetime.now, info='消息包过期时间')
     updated_time = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now, info='最后一次更新时间')
     created_time = db.Column(db.DateTime, nullable=False, default=datetime.now, info='插入时间')
+
+
+
+    def __init__(self, openid='', member_id=0, now=datetime.now()):
+        self.open_id = openid
+        self.member_id = member_id
+        self.left_notify_times = 50
+        self.expired_time = now + dt.timedelta(weeks=156)
+
+    @staticmethod
+    def getOldestValidPkg(openid='', now=datetime.now()):
+        return MemberSmsPkg.query.filter(MemberSmsPkg.open_id == openid,
+                                         MemberSmsPkg.expired_time <= now,
+                                         MemberSmsPkg.left_notify_times > 0).order_by(MemberSmsPkg.id.asc()).first()
+
+    @staticmethod
+    def getAllValidPkg(member_id=0, now=datetime.now()):
+        return MemberSmsPkg.query.filter(MemberSmsPkg.member_id == member_id,
+                                         MemberSmsPkg.expired_time >= now).all()

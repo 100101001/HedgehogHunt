@@ -24,12 +24,10 @@ class RecommendHandler:
 
     @classmethod
     def filter(cls, **kwargs):
-        subclass = cls.__subclasses__()
-        if subclass:
-            next_handler = subclass[0]
-            next_filter = getattr(next_handler, 'filter')
-            if next_filter:
-                next_filter(**kwargs)
+        next_handler = ReleaseHandler
+        next_filter = getattr(next_handler, 'filter', None)
+        if next_filter:
+            next_filter(**kwargs)
 
     @classmethod
     def _doAutoRecommendGoods(cls, goods_info=None, edit=False):
@@ -208,13 +206,13 @@ class RecommendHandler:
 class NoModifiedHandler:
     next = None
 
-    @staticmethod
-    def filter(edit_info=None, goods_info=None, **kwargs):
+    @classmethod
+    def filter(cls, edit_info=None, goods_info=None, **kwargs):
         if edit_info and edit_info.get('modified'):
             Recommend.query.filter(Recommend.found_goods_id == goods_info.id,
                                    Recommend.status != 7).update({'status': 0}, synchronize_session=False)
             db.session.commit()
-        next_handler = NoModifiedHandler.next
+        next_handler = cls.next
         if next_handler:
             next_handler.filter(edit_info=edit_info, goods_info=goods_info, **kwargs)
 
@@ -229,7 +227,7 @@ class ModifiedHandler(RecommendHandler):
                                    Recommend.status != 7).update({'status': 7}, synchronize_session=False)
             super()._doAutoRecommendGoods(goods_info=goods_info, edit=True)
             return
-        next_handler = ModifiedHandler.next
+        next_handler = cls.next
         if next_handler:
             next_handler.filter(edit_info=edit_info, goods_info=goods_info, **kwargs)
 
@@ -242,6 +240,6 @@ class ReleaseHandler(RecommendHandler):
         if not edit_info:
             super()._doAutoRecommendGoods(goods_info=goods_info, edit=False)
             return
-        next_handler = ReleaseHandler.next
+        next_handler = cls.next
         if next_handler:
             next_handler.filter(edit_info=edit_info, goods_info=goods_info, **kwargs)

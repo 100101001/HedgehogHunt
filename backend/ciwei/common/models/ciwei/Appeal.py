@@ -36,3 +36,20 @@ class Appeal(db.Model):
             "1": "已处理",
             "7": "已删除"
         }[str(self.status)]
+
+
+    def __init__(self, goods_id, member_id):
+        self.goods_id = goods_id
+        self.member_id = member_id
+        self.status = 0
+
+    @staticmethod
+    def create(goods_id=None, member_id=None):
+        if not goods_id or not member_id:
+            return
+        appeal = Appeal.query.filter_by(member_id=member_id, goods_id=goods_id).first()
+        if appeal is None:
+            appeal = Appeal(goods_id, member_id)
+        else:
+            appeal.status = 0
+        db.session.add(appeal)

@@ -5,7 +5,7 @@ from sqlalchemy import or_, desc, func, distinct
 from application import db
 from common.libs.Helper import getDictFilterField, selectFilterObj
 from common.libs.UrlManager import UrlManager
-from common.loggin.decorators import time_log
+from common.loggin.time import time_log
 from common.models.ciwei.Member import Member
 from common.models.ciwei.mall.Campus import Campus
 from common.models.ciwei.mall.CampusProduct import CampusProduct

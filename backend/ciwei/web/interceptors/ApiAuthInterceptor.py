@@ -1,20 +1,27 @@
-# -*- coding: utf-8 -*-
-
+# encoding: utf-8
+"""
+@author: github/100101001
+@contact: 17702113437@163.com
+@time: 2019/11/09 下午3:10
+@file: ApiAuthInterceptor.py 过滤器 (在配置文件中配置无需拦截验证的URL)
+@desc:
+"""
 import re
 
-from flask import request, g, jsonify
+from flask import request, g
 
 from application import app
-from common.cahce import CacheQueryService, CacheOpService
+from common.cahce.core import CacheQueryService, CacheOpService
 from common.models.ciwei.Member import Member
 
-'''
-api认证
-'''
 
 
 @app.before_request
 def before_request_api():
+    """
+    封号和登录检测
+    :return:
+    """
     api_ignore_urls = app.config['API_IGNORE_URLS']
     path = request.path
     if '/api' not in path:
@@ -23,8 +30,6 @@ def before_request_api():
     pattern = re.compile('%s' % "|".join(api_ignore_urls))
     if pattern.match(path):
         return
-    # if path in api_ignore_urls:
-    #     return
 
     member_info = check_member_login()
     g.member_info = None
@@ -37,12 +42,11 @@ def before_request_api():
     return
 
 
-'''
-判断用户是否已经登录
-'''
-
-
 def check_member_login():
+    """
+    登录验证
+    :return:
+    """
     auth_cookie = request.headers.get("Authorization")
 
     if auth_cookie is None:

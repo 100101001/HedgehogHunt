@@ -9,8 +9,6 @@
 
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Integer, Text
-
 from sqlalchemy.dialects.mysql import INTEGER
 
 from application import db

@@ -9,15 +9,14 @@
 import datetime
 
 from sqlalchemy import and_, or_
-from sqlalchemy.orm import aliased
+
 from application import db, APP_CONSTANTS
+from common.admin import UserService
 from common.cahce.GoodsCasUtil import GoodsCasUtil
-from common.libs import UserService
 from common.libs.UrlManager import UrlManager
 from common.models.ciwei.Appeal import Appeal
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
-from common.models.ciwei.Member import Member
 from common.models.ciwei.Recommend import Recommend
 from common.models.ciwei.Report import Report
 from common.models.ciwei.Thanks import Thank
@@ -228,8 +227,7 @@ class GoodsRecordSearchHandler:
         2: '_getMyRecommend',
         4: '_getReportedGoods',
         5: '_getMyReturnNotice',
-        6: '_getMyAppeal',
-        7: '_getAppealedGoods'
+        6: '_getMyAppeal'
     }
 
     @staticmethod
@@ -240,17 +238,7 @@ class GoodsRecordSearchHandler:
             return handler(record_type=APP_CONSTANTS['stuff_type']['goods'], **kwargs)
 
     @staticmethod
-    @db_search
-    def _getAppealedGoods(status=0, **kwargs):
-        appealing = aliased(Member)
-        appealed = aliased(Member)
-        return Appeal.query.filter_by(status=status).join(appealing,
-                                                          appealing.id == Appeal.member_id).join(Good,
-                                                                                                 Good.id == Appeal.goods_id).join(
-            appealed, Good.owner_id == appealed.id).add_entity(Good).add_entity(appealing).add_entity(appealed)
-
-    @staticmethod
-    @db_search
+    @db_search()
     def _getReportedGoods(report_status=0, **kwargs):
         """7
         获取所有举报物品
@@ -327,7 +315,7 @@ class GoodsRecordSearchHandler:
         return query
 
     @staticmethod
-    @db_search
+    @db_search()
     def _getMyMark(member_id=0, status=0, **kwargs):
         """
         获取认领记录
@@ -340,7 +328,7 @@ class GoodsRecordSearchHandler:
                                                                       Good.business_type == 1)
 
     @staticmethod
-    @db_search
+    @db_search()
     def _getMyReturnNotice(member_openid='', status=0, **kwargs):
         """
         获取归还通知
@@ -355,7 +343,7 @@ class GoodsRecordSearchHandler:
                                           Good.qr_code_openid == member_openid)))
 
     @staticmethod
-    @db_search
+    @db_search()
     def _getMyAppeal(member_id=0, status=0, **kwargs):
         """
         获取申诉记录
@@ -367,7 +355,7 @@ class GoodsRecordSearchHandler:
                                                                           Appeal.status == status)
 
     @staticmethod
-    @db_search
+    @db_search()
     def _getMyRecommend(member_id=0, status=0, only_new=True, **kwargs):
         """
         获取推荐记录
@@ -464,7 +452,7 @@ class ThanksRecordSearchHandler:
             return handler(record_type=APP_CONSTANTS['stuff_type']['thanks'], **kwargs)
 
     @staticmethod
-    @db_search
+    @db_search()
     def _getMyReceivedThanks(member_id=0, only_new=False, **kwargs):
         """
         获取我收到的别人对我的答谢记录
@@ -478,7 +466,7 @@ class ThanksRecordSearchHandler:
         return query
 
     @staticmethod
-    @db_search
+    @db_search()
     def _getMySendThanks(member_id=0, only_new=False, **kwargs):
         """
         获取我发出的答谢记录
@@ -491,7 +479,7 @@ class ThanksRecordSearchHandler:
         return query
 
     @staticmethod
-    @db_search
+    @db_search()
     def _getReportedThanks(report_status=0, **kwargs):
         """
         获取特定页的举报记录

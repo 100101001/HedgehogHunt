@@ -1,4 +1,11 @@
-# coding: utf-8
+# encoding: utf-8
+"""
+@author: github/100101001
+@contact: 17702113437@163.com
+@time: 2020/1/17 下午10:33
+@file: Member.py
+@desc:
+"""
 import decimal
 from datetime import datetime
 
@@ -34,3 +41,22 @@ class Member(db.Model):
     @property
     def has_qr_code(self):
         return self.qr_code != ""
+
+    def __init__(self, openid='', mobile='', nickname='', avatar='', sex=1):
+        self.openid = openid
+        self.mobile = mobile  # 加密过了的手机
+        self.nickname = nickname
+        self.avatar = avatar
+        self.sex = sex
+
+    @staticmethod
+    def getUnblockedByOpenid(openid=''):
+        return Member.query.filter_by(openid=openid, status=1).first()
+
+    @staticmethod
+    def getById(member_id=0):
+        return Member.query.filter_by(id=member_id).first()
+
+    @staticmethod
+    def getByOpenId(openid=''):
+        return Member.query.filter_by(openid=openid).first()

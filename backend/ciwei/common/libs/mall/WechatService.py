@@ -13,7 +13,7 @@ import xml.etree.ElementTree as ET
 import requests
 
 from application import app
-from common.cahce import CacheQueryService, CacheOpService
+from common.cahce.core import CacheQueryService, CacheOpService
 import base64
 import json
 from Crypto.Cipher import AES

@@ -7,7 +7,8 @@
 @desc: 
 """
 from application import db
-from common.cahce import CacheQueryService, CacheOpService, CacheOpUtil
+from common.cahce import CacheOpUtil
+from common.cahce.core import CacheQueryService, CacheOpService
 from common.models.ciwei.Member import Member
 from common.models.ciwei.User import User
 

@@ -6,6 +6,7 @@ from sqlalchemy.dialects.mysql import INTEGER
 
 from application import db
 from datetime import datetime
+import datetime as dt
 
 
 class Good(db.Model):
@@ -90,3 +91,63 @@ class Good(db.Model):
             '6': '封号贴',
         }
         return report_status_mapping[str(self.report_status)]
+
+
+    def __init__(self, author_info=None, business_type=0, mobile='', name='', owner_name='', summary='',
+                 os_location='', location='', top_expire=datetime.now()):
+        """
+        发布物品
+        """
+        self.member_id = author_info.id
+        self.openid = author_info.openid  # 作者的身份标识，冗余设计，方便订阅消息等
+        self.nickname = author_info.nickname
+        self.avatar = author_info.avatar
+        self.business_type = business_type
+        self.mobile = mobile
+        self.name = name
+        self.summary = summary
+        self.owner_name = owner_name
+        self.os_location = os_location.replace(',', '###')
+        self.location = location.replace(',', '###')
+        self.top_expire_time = top_expire
+        db.session.add(self)
+
+
+    def edit(self, edit_info=None, img_edited=True, now=datetime.now()):
+        """
+        编辑物品
+        """
+        self.pics = ""
+        self.main_image = ""
+        self.name = edit_info['goods_name']
+        self.owner_name = edit_info['owner_name']
+        self.summary = edit_info['summary']
+        self.os_location = edit_info['os_location'].replace(',', '###')
+        self.location = edit_info['location'].replace(',', '###')
+        self.mobile = edit_info['mobile']
+        # 修改成置顶贴子
+        if int(edit_info.get('is_top', 0)):
+            self.top_expire_time = now + dt.timedelta(days=int(edit_info['days']))
+        self.updated_time = now
+        self.status = 7 if img_edited else 1  # 图片编辑了以后
+        db.session.add(self)
+
+    @staticmethod
+    def link(return_goods, lost_goods, now=datetime.now()):
+        """
+        归还贴与寻物互相链接
+        :param return_goods:
+        :param lost_goods:
+        :param now:
+        :return:
+        """
+        return_goods.status = 1
+        return_goods.return_goods_id = lost_goods.id
+        return_goods.return_goods_openid = lost_goods.openid  # 用于被归还的用户快速查找归还通知
+
+        lost_goods.return_goods_id = return_goods.id
+        lost_goods.return_goods_openid = return_goods.openid  # 用于判断是归还用户查看了帖子详情
+        lost_goods.confirm_time = now  # 指的是归还时间
+        lost_goods.status = 2
+        db.session.add(return_goods)
+        db.session.add(lost_goods)

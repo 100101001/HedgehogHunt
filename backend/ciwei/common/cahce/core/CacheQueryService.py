@@ -9,7 +9,8 @@
 import json
 
 from application import APP_CONSTANTS
-from common.cahce import redis_conn_db_1, CacheKeyGetter
+from common.cahce import redis_conn_db_1
+from common.cahce.core import CacheKeyGetter
 from common.models.ciwei.Member import Member
 from common.models.ciwei.User import User
 

@@ -9,13 +9,15 @@
 from flask_sqlalchemy import event
 
 from application import db
+from common.cahce.core import CacheOpService
 from common.libs.Helper import queryToDict
 from common.models.ciwei.Goods import Good
+from common.models.ciwei.Member import Member
 from common.sync.core.GoodsSyncUtil import GoodsSyncUtil
 
 
 @event.listens_for(db.session, 'after_bulk_update')
-def syncUpdateToEs(bulk_update, **kwargs):
+def prepareSyncGoodsParameter(bulk_update, **kwargs):
     """
     一次数据库事务中，批量更新goods后，
     获取到更新过的物品ID，将构造的同步参数设置到session此次DB事务的session中去
@@ -39,7 +41,8 @@ def syncUpdateToEs(bulk_update, **kwargs):
                 sync_args = getattr(bulk_update.session, 'sync_args', None)
                 if not sync_args:
                     # 此次事务中仅有的一次Good的update
-                    bulk_update.session.sync_args = [dict(updated_kwargs=dict(goods_ids=g_ids, updated=bulk_update.values.copy()),
+                    bulk_update.session.sync_args = [
+                        dict(updated_kwargs=dict(goods_ids=g_ids, updated=bulk_update.values.copy()),
                              redis_kwargs=redis_arg)]
                 else:
                     # 此次事务存在多个Good的update
@@ -56,7 +59,7 @@ def syncUpdateToEs(bulk_update, **kwargs):
 
 
 @event.listens_for(db.session, 'after_commit')
-def batchSyncUpdatedGoodsAfterCommit(session):
+def batchSyncUpdatedGoodsToEsAndEsAfterCommit(session):
     """
     提交后，检查有没有bulk_updated的同步需求，并进行同步
     :param session:
@@ -140,3 +143,8 @@ def syncNewGoodsAfterCommit(mapper, connection, target):
 
     sync_arg = dict(new_kwargs=dict(goods_info=target), redis_kwargs=__getRedisArgs())
     GoodsSyncUtil.doSyncBatch(sync_arg)
+
+
+@event.listens_for(Member, 'after_update')
+def syncMemberToCacheAfterUpdate(mapper, connection, target):
+    CacheOpService.setMemberCache(member_info=target)

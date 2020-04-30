@@ -29,3 +29,30 @@ class Feedback(db.Model):
     status = db.Column(TINYINT(), nullable=False, default=0, index=True, comment="状态 1：已读 0：未读")
     updated_time = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now, comment="最后更新时间")
     created_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment="插入时间")
+
+    def __init__(self, author_info=None, summary='', has_img=0):
+        self.member_id = author_info.id
+        self.nickname = author_info.nickname
+        self.avatar = author_info.avatar
+        self.summary = summary
+        self.status = 7 if has_img else 1  # 如果有图片暂时为创建结束
+        db.session.add(self)
+
+    def addImage(self, pic='', total=0):
+        """
+        反馈加图
+        :param pic:
+        :param total:
+        :return:
+        """
+        if not self.pics:
+            pics_list = []
+        else:
+            pics_list = self.pics.split(",")
+        pics_list.append(pic)
+        if len(pics_list) >= total:
+            self.status = 1
+        self.main_image = pics_list[0]
+        self.pics = ",".join(pics_list)
+        db.session.add(self)
+

@@ -1,6 +1,11 @@
-#!/usr/bin/python3.6.8
-
-# -*- coding:utf-8 -*-
+# encoding: utf-8
+"""
+@author: github/100101001
+@contact: 17702113437@163.com
+@time: 2019/12/11 下午5:08
+@file: FeedbackService.py
+@desc:
+"""
 from werkzeug.utils import secure_filename
 from application import app, db
 from common.libs.Helper import getCurrentDate
@@ -8,7 +13,7 @@ import os, stat, uuid
 from common.models.ciwei.Image import Image
 
 
-class UploadService():
+class UploadService:
     @staticmethod
     def uploadByFile(file):
         """
@@ -18,7 +23,7 @@ class UploadService():
         :return: 图片在服务器上的路径
         """
         config_upload = app.config['UPLOAD']
-        resp = {'code': 200, 'msg': 'upload image success', 'data': {}}
+        resp = {'code': 200, 'msg': '上传成功', 'data': {}}
 
         # 检查文件是图片
         # 保存文件到web/static/upload/日期目录下,文件名uuid
@@ -26,7 +31,7 @@ class UploadService():
         filename = secure_filename(file.filename)
         ext = filename.split('.')[-1]
         if ext.lower() not in config_upload['ext']:
-            resp['msg'] = 'not allowed ext file' + ":::" + filename
+            resp['msg'] = '文件后缀{}不合法'.format(ext)
             resp['code'] = -1
             return resp
 

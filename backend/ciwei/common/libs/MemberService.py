@@ -12,15 +12,11 @@ import json
 import requests
 
 from application import app, db
-from common.cahce import CacheOpService, CacheQueryService, CacheOpUtil
-from common.libs import LogService
-from common.models.ciwei.Appeal import Appeal
-from common.models.ciwei.Goods import Good
+from common.cahce.core import CacheQueryService, CacheOpService
 from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Member import Member
 from common.models.ciwei.MemberSmsPkg import MemberSmsPkg
 from common.models.ciwei.Recommend import Recommend
-from common.models.ciwei.Thanks import Thank
 from common.models.ciwei.User import User
 
 
@@ -76,7 +72,7 @@ class MemberService:
         member_info = None
         user_info = None
         if openid:
-            member_info = Member.query.filter_by(openid=openid).first()
+            member_info = Member.getByOpenId(openid=openid)
             if member_info:
                 CacheOpService.setMemberCache(member_info=member_info)
                 user_info = User.query.filter_by(member_id=member_info.id).first()
@@ -84,177 +80,79 @@ class MemberService:
         return member_info, user_info
 
     @staticmethod
-    def updateCredits(member_info=None, member_id=0, quantity=5):
+    def doRegister(nickname='', sex=1, avatar='', openid='', mobile=''):
+        new_member = Member(nickname=nickname, sex=sex, avatar=avatar, openid=openid, mobile=mobile)
+        db.session.add(new_member)
+        return new_member
+
+
+    @staticmethod
+    def updateCredits(member_id=0, quantity=5):
         """
         更新会员积分
         :param member_id:
         :param quantity: 变更积分数，默认 5
-        :param member_info:
         :return:
         """
-        if not member_info and not member_id or not quantity:
+        if not member_id or not quantity:
             return
         # 发布成功，用户积分涨5
+        member_info = Member.getById(member_id)
         if member_info:
-            updated = {'credits': member_info.credits + quantity}
-            Member.query.filter_by(id=member_info.id).update(updated, synchronize_session=False)
-            CacheOpUtil.updateModelDict(model=member_info, updated=updated)
-            CacheOpService.setMemberCache(member_info=member_info)
-        else:
-            member_info = Member.query.filter_by(id=member_id).first()
-            if member_info:
-                member_info.credits += quantity
-                CacheOpService.setMemberCache(member_info=member_info)
-                db.session.add(member_info)
+            member_info.credits += quantity
+            db.session.add(member_info)
 
     @staticmethod
-    def updateName(member_info=None, member_id=0, name=""):
+    def updateName(member_id=0, name=""):
         """
         更新会员的姓名
         :param member_id:
-        :param member_info:
         :param name:
         :return:
         """
-        if not member_info and not member_id or not name:
+        if not member_id or not name:
             return
+
+        member_info = Member.getById(member_id)
         if member_info:
-            updated = {'name': name}
-            Member.query.filter_by(id=member_info.id).update(updated, synchronize_session=False)
-            CacheOpUtil.updateModelDict(model=member_info, updated=updated)
-            CacheOpService.setMemberCache(member_info=member_info)
-        else:
-            member_info = Member.query.filter_by(id=member_id).first()
-            if member_info:
-                member_info.name = name
-                CacheOpService.setMemberCache(member_info=member_info)
-                db.session.add(member_info)
+            member_info.name = name
+            db.session.add(member_info)
 
     @staticmethod
-    def updateSmsNotify(member_info=None, member_id=0, sms_times=0):
+    def updateSmsNotify(member_id=0, sms_times=0):
         """
         更新剩余通知次数，缓存写入
         :param member_id:
-        :param member_info:
         :param sms_times:
         :return:
         """
-        if not sms_times or not member_info and not member_id:
+        if not sms_times or not member_id:
             return
+        member_info = Member.getById(member_id)
         if member_info:
-            LogService.setMemberNotifyTimesChange(member_info=member_info, unit=sms_times,
-                                                  old_times=member_info.left_notify_times, note="短信充值")
-            updated = {'left_notify_times': member_info.left_notify_times + sms_times}
-            Member.query.filter_by(id=member_info.id).update(updated, synchronize_session=False)
-            CacheOpUtil.updateModelDict(model=member_info, updated=updated)
-            CacheOpService.setMemberCache(member_info=member_info)
-        else:
-            member_info = Member.query.filter_by(id=member_id).first()
-
-            if member_info:
-                LogService.setMemberNotifyTimesChange(member_info=member_info, unit=sms_times,
-                                                      old_times=member_info.left_notify_times, note="短信充值")
-                member_info.left_notify_times += sms_times
-                CacheOpService.setMemberCache(member_info=member_info)
-                db.session.add(member_info)
+            member_info.left_notify_times += sms_times
+            db.session.add(member_info)
 
     @staticmethod
-    def updateBalance(member_info=None, member_id=0, unit=0, note=''):
+    def updateBalance(member_id=0, unit=0):
         """
         余额在购物，(被)答谢，通知，充值等情况下更新
         :param member_id:
-        :param member_info:
         :param unit:
-        :param note:
         :return:
         """
-        if not member_info and not member_id or not unit:
+        if not member_id or not unit:
             return
-
-        if not member_info:
-            member_info = Member.query.filter_by(id=member_id).first()
-            if member_info:
-                LogService.setMemberBalanceChange(member_info=member_info, unit=unit, old_balance=member_info.balance,
-                                                  note=note)
-                member_info.balance += unit
-                CacheOpService.setMemberCache(member_info=member_info)
-                db.session.add(member_info)
-        else:
-            LogService.setMemberBalanceChange(member_info=member_info, unit=unit, old_balance=member_info.balance,
-                                              note=note)
-            updated = {'balance': member_info.balance + unit}
-            Member.query.filter_by(id=member_info.id).update(updated, synchronize_session=False)
-            CacheOpUtil.updateModelDict(model=member_info, updated=updated)
-            CacheOpService.setMemberCache(member_info=member_info)
+        member_info = Member.getById(member_id)
+        if member_info:
+            member_info.balance += unit
+            db.session.add(member_info)
 
     @staticmethod
-    def addSmsPkg(openid=''):
-        pkg = MemberSmsPkg()
-        pkg.open_id = openid
-        pkg.left_notify_times = 50
-        pkg.expired_time = datetime.datetime.now() + datetime.timedelta(weeks=156)
+    def addSmsPkg(member_info=None):
+        pkg = MemberSmsPkg(openid=member_info.openid,
+                           member_id=member_info.id)
         db.session.add(pkg)
-
-    @staticmethod
-    def blockMember(member_id=0, user_id=0, stuff_id=0, stuff_type=2, block_status=0, block_reason=""):
-        """
-        :param stuff_type:
-        :param stuff_id:
-        :param block_reason:
-        :param block_status: -1恶意举报, 0恶意发帖
-        :param user_id:
-        :param member_id:
-        :return:
-        """
-        if not member_id or not user_id:
-            return
-        # 会员状态标记
-        member_info = Member.query.filter_by(id=member_id).first()
-        LogService.setMemberStatusChange(member_info=member_info, old_status=member_info.status,
-                                         new_status=block_status, note=block_reason, user_id=user_id, stuff_id=stuff_id,
-                                         stuff_type=stuff_type)
-        member_info.status = block_status
-        member_info.user_id = user_id
-        CacheOpService.setMemberCache(member_info=member_info)
-        db.session.commit()
-        # 物品举报状态标记
-        updated = {'report_status': 6, 'user_id': user_id}
-        Good.query.filter(Good.member_id == member_id, Good.report_status == 0).update(updated)
-        db.session.commit()
-        Thank.query.filter(Thank.member_id == member_id, Thank.report_status == 0).update(updated,
-                                                                                          synchronize_session=False)
-        db.session.commit()
-
-    @staticmethod
-    def restoreMember(member_id=0, user_id=0):
-        """
-        账号解封
-        :param user_id:
-        :param member_id:
-        :return:
-        """
-        # 违规用户状态设置为0.则无法再正常使用
-        if not member_id or not user_id:
-            return
-            # 会员状态标记
-        member_info = Member.query.filter_by(id=member_id).first()
-        LogService.setMemberStatusChange(member_info=member_info, old_status=member_info.status,
-                                         new_status=1, note="账号解封", user_id=user_id)
-        member_info.status = 1
-        member_info.user_id = user_id
-        CacheOpService.setMemberCache(member_info=member_info)
-        db.session.commit()
-        # 物品举报状态标记
-        updated = {'report_status': 0, 'user_id': user_id}
-        Good.query.filter(Good.member_id == member_id, Good.report_status == 6).update(updated)
-        db.session.commit()
-        Thank.query.filter(Thank.member_id == member_id, Thank.report_status == 6). \
-            update(updated, synchronize_session=False)
-        db.session.commit()
-
-    @staticmethod
-    def appealStatusChangeRecord(log_id=0, reason=''):
-        LogService.appealMemberStatusChangeLog(log_id=log_id, reason=reason)
 
     @staticmethod
     def setRecommendStatus(member_id=0, goods_id=0, new_status=1, old_status=0):
@@ -282,19 +180,7 @@ class MemberService:
         """
         if not member_id or not goods_id:
             return False
-        repeat_mark = Mark.query.filter_by(member_id=member_id, goods_id=goods_id).first()
-        if repeat_mark:
-            if repeat_mark.status == 7:
-                # 将被删除的记录状态初始化
-                repeat_mark.status = 0
-                db.session.add(repeat_mark)
-            return repeat_mark.status == 0
-        pre_mark = Mark()
-        pre_mark.business_type = business_type
-        pre_mark.goods_id = goods_id
-        pre_mark.member_id = member_id
-        db.session.add(pre_mark)
-        return True
+        return Mark.pre(member_id=member_id, goods_id=goods_id, business_type=business_type)
 
     @staticmethod
     def hasMarkGoods(member_id=0, goods_id=0):
@@ -310,8 +196,7 @@ class MemberService:
         mark_member_ids = CacheQueryService.getMarkCache(goods_id=goods_id)
         if not mark_member_ids:
             # 缓存不命中, 从数据库获取一个物品的所有认领人的id
-            marks = Mark.query.filter(Mark.goods_id == goods_id,
-                                      Mark.status != 7).all()
+            marks = Mark.getAllOn(goods_id=goods_id)
             mark_member_ids = CacheOpService.setMarkCache(goods_id=goods_id, marks=marks)
         return bool(str(member_id) in mark_member_ids)
 
@@ -322,9 +207,7 @@ class MemberService:
         :param member_id:
         :return: 外面修改Goods状态还要用的mark_key
         """
-        Mark.query.filter(Mark.member_id == member_id,
-                          Mark.goods_id.in_(found_ids),
-                          Mark.status == 0).update({'status': 7}, synchronize_session=False)
+        Mark.mistaken(goods_ids=found_ids, member_id=member_id)
 
     @staticmethod
     def markedGoods(member_id=0, goods_ids=None):
@@ -334,25 +217,4 @@ class MemberService:
         :param goods_ids:
         :return:
         """
-        Mark.query.filter(Mark.member_id == member_id,
-                          Mark.goods_id.in_(goods_ids),
-                          Mark.status == 0).update({'status': 1}, synchronize_session=False)
-
-    @staticmethod
-    def appealGoods(member_id=0, goods_id=0):
-        """
-        新的待处理Appeal
-        :param member_id:
-        :param goods_id:
-        :return:
-        """
-        if not member_id or not goods_id:
-            return False
-        appeal = Appeal.query.filter_by(member_id=member_id, goods_id=goods_id).first()
-        if appeal is None:
-            appeal = Appeal()
-            appeal.member_id = member_id
-            appeal.goods_id = goods_id
-        else:
-            appeal.status = 0
-        db.session.add(appeal)
+        Mark.done(goods_ids=goods_ids, member_id=member_id)

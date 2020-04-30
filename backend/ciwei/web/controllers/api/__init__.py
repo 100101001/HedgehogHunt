@@ -15,12 +15,12 @@ from web.controllers.api.User import *
 from web.controllers.api.Goods import *
 from web.controllers.api.Thanks import *
 from web.controllers.api.Record import *
-from web.controllers.api.Report import *
-from web.controllers.api.Appeal import *
-from web.controllers.api.Feedback import *
-from web.controllers.api.Static import *
-from web.controllers.api.Adv import *
 from web.controllers.api.QrCode import *
+from web.controllers.api.admin.Report import *
+from web.controllers.api.admin.Appeal import *
+from web.controllers.api.admin.Feedback import *
+from web.controllers.api.admin.Static import *
+from web.controllers.api.admin.Adv import *
 from web.controllers.api.mall.Product import *
 from web.controllers.api.mall.Cart import *
 from web.controllers.api.mall.ProductOrder import *

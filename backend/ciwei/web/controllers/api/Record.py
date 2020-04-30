@@ -14,7 +14,7 @@ from application import APP_CONSTANTS
 from common.libs import RecordService
 from common.libs.Helper import param_getter
 from common.libs.RecordService import RecordHandlers
-from common.loggin.decorators import time_log
+from common.loggin.time import time_log
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Recommend import Recommend
 from web.controllers.api import route_api

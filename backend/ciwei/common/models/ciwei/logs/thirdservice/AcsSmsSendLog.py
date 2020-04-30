@@ -8,10 +8,11 @@
 """
 
 from datetime import datetime
-
+import datetime as dt
+from sqlalchemy import func
 from sqlalchemy.dialects.mysql import INTEGER
 
-from application import db
+from application import db, app
 
 
 class AcsSmsSendLog(db.Model):
@@ -35,3 +36,11 @@ class AcsSmsSendLog(db.Model):
     acs_code = db.Column(db.String(32), nullable=False, comment='调用结果代码')
     updated_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment='最后一次更新时间')
     created_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment='创建时间')
+
+    @staticmethod
+    def hasRecentLostNotify(openid='', now=datetime.now(), interval=dt.timedelta(weeks=1)):
+        return db.session.query(func.count(AcsSmsSendLog.id)).filter(AcsSmsSendLog.rcv_openid == openid,
+                                                                     AcsSmsSendLog.template_id ==
+                                                                     app.config['ACS_SMS']['TEMP_IDS']['NOTIFY'],
+                                                                     AcsSmsSendLog.acs_code == "OK",
+                                                                     AcsSmsSendLog.created_time >= now - interval).scalar() > 0
