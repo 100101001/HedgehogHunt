@@ -97,7 +97,7 @@ Page({
     fb_list[index]['views'].push(this.data.user_id);
     this.setData({
       feedback_list: fb_list
-    })
+    });
     this.data.read_ids.push(this.data.feedback_list[index].id);
   },
   onUnload: function () {

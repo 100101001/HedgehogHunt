@@ -13,7 +13,9 @@ background-color: #87CEFA;
 .del {
  background-color: #cdcdcd;
 }
-
+.see-result {
+ width: 130rpx;
+}
 /**申诉输入框**/
 .inputbox{
 outline-style: none ;
@@ -21,7 +23,7 @@ border: 3rpx solid #ccc;
 box-shadow:4rpx 4rpx 10rpx #333333;
 border-radius: 30rpx;
 margin: 30rpx auto;
-height: 230rpx;
+height: 330rpx;
 font-size: 30rpx;
 padding: 10rpx 10rpx;
 margin-left: -10rpx;

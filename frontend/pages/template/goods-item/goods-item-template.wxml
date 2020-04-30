@@ -7,10 +7,11 @@
         <text class="release_date">{{updated_time}}</text>
       </view>
       <view class="status-container {{top? 'status-lefter': ''}}">{{status_desc}}</view>
-      <view class="report {{top? 'report-lefter': ''}}" catchtap="toReport" data-id="{{id}}"
-            wx:if="{{op_status!==4 && op_status!==0 && member_id !== auther_id}}">
+      <view class="report {{top? 'report-lefter': ''}}" catchtap="toReport" data-id="{{id}}" wx:if="{{op_status!==4 && op_status!==0 && member_id !== auther_id}}">
         <image src="/images/icons/report.png"></image>
         <text>举报</text>
+      </view>
+      <view class="report {{top? 'report-lefter': ''}}" catchtap="toReport" data-id="{{id}}" wx:else>
       </view>
       <view class="ribbon" wx:if="{{top}}">
         <text>置顶</text>

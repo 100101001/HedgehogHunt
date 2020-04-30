@@ -18,6 +18,7 @@ Page({
     hiddenContact: true,
     hiddenStuffDetail: true,
     hiddenDeal: true,
+    hiddenResult: true
   },
   onLoad: function (options) {
     this.getAppealRecord()
@@ -98,12 +99,15 @@ Page({
     let index = e.currentTarget.dataset.index;
     this.setData({
       hiddenStuffDetail: false,
-      stuff: this.data.appeal_list[index].stuff
+      stuff: this.data.appeal_list[index].stuff,
+      stuff_index: index
     })
   },
   closeStuffDetail: function () {
     this.setData({
-      hiddenStuffDetail: true
+      hiddenStuffDetail: true,
+      stuff_index: -1,
+      stuff: {}
     })
   },
   openDeal: function (e) {
@@ -120,13 +124,12 @@ Page({
       index: -1  //已处理的
     })
   },
-  doSetAppealDealt: function (index, status, result='') {
+  doSetAppealDealt: function (index, url, result='') {
     wx.request({
-      url: app.buildUrl('/appeal/set/status'),
+      url: app.buildUrl(url),
       header: app.getRequestHeader(),
       data: {
         id: this.data.appeal_list[index].id,
-        status: status,  //设置已处理or已删除
         result: result  //设置已处理的处理结果
       },
       success: (res) => {
@@ -185,7 +188,7 @@ Page({
       content: '操作不可逆，确认已解决并提交处理结果？',
       showCancel: true,
       cb_confirm: () => {
-        this.doSetAppealDealt(this.data.index, 1, info.result);
+        this.doSetAppealDealt(this.data.index, '/goods/appeal/dealt', info.result);
       }
     });
   },
@@ -195,8 +198,18 @@ Page({
       content: '操作不可逆，确认删除？',
       showCancel: true,
       cb_confirm: ()=>{
-        this.doSetAppealDealt(e.currentTarget.dataset.index, 7)
+        this.doSetAppealDealt(e.currentTarget.dataset.index, '/goods/appeal/delete')
       }
+    })
+  },
+  openResult: function (e) {
+    this.setData({
+      hiddenResult: false
+    })
+  },
+  closeResult: function () {
+    this.setData({
+      hiddenResult: true
     })
   }
 });

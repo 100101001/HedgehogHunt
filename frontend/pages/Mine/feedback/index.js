@@ -81,7 +81,7 @@ Page({
       cb_confirm: ()=>{
         let img_list = this.data.imglist;
         let url = "/feedback/create";
-        data['has_img'] = img_list.length !== 0;
+        data['has_img'] = img_list.length;
         this.uploadData(data, url, img_list);
       }
     })
@@ -137,27 +137,25 @@ Page({
         loadingHidden: false,
       });
       //为
-      this.addImage(img_list[i-1], id, n === i)
+      this.addImage(img_list[i-1], id,  n)
     }
   },
   /**
    *
    * @param image_file
    * @param feedback_id
-   * @param end
+   * @param total
    */
-  addImage: function(image_file='', feedback_id=0, end = false){
+  addImage: function(image_file='', feedback_id=0, total=0){
     //图片不存在，则重新上传
     wx.uploadFile({
       url: app.buildUrl('/feedback/add-pics'), //接口地址
       header: app.getRequestHeader(),
       filePath: image_file,//文件路径
-      formData: {'id': feedback_id},
+      formData: {id: feedback_id, total: total},
       name: 'file',//文件名，不要修改，Flask直接读取
       success:  (res) => {
-        if (end) {
-          this.endCreate(feedback_id);
-        }
+         // 后端判断什么时候结束创建
       },
       fail:  (res) => {
         this.setData({
@@ -171,47 +169,6 @@ Page({
         });
       },
     })
-  },
-  /**
-   * 结束创建 endCreate
-   * @param id
-   */
-  endCreate: function (id = 0) {
-    wx.request({
-      url: app.buildUrl("/feedback/end-create"),
-      method: 'POST',
-      header: app.getRequestHeader(),
-      data: {id: id},
-      success: (res) => {
-        let resp = res.data;
-        if (resp['code'] !== 200) {
-          app.alert({content: resp['msg']});
-          this.setData({
-            submit_disabled: false
-          });
-          return
-        }
-        wx.showToast({
-          title: '提交成功,感谢反馈！    ',
-          icon: 'success',
-          duration: 1000,
-          success: (res) => {
-            setTimeout(wx.navigateBack, 800);
-          }
-        });
-      },
-      fail: (res) => {
-        this.setData({
-          submit_disabled: false
-        });
-        app.serverBusy();
-      },
-      complete: (res) => {
-        this.setData({
-          loadingHidden: true
-        });
-      },
-    });
   },
   /**
    * 监听输入

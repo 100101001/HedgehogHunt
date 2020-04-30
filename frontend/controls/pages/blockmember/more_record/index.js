@@ -3,6 +3,7 @@ const app = getApp();
 Page({
   data: {
     log_id: 0,
+    p: 1,
     user_op_list: [],
     hiddenAppeal: true,
     hiddenStuffDetail: true,
@@ -30,7 +31,20 @@ Page({
     });
     this.getMemberBlockedRecords()
   },
+  refresh: function(){
+    this.setData({
+      p: 1,
+      user_op_list: []
+    });
+    this.getMemberBlockedRecords()
+  },
   getMemberBlockedRecords: function(){
+    if (this.data.processing) {
+      return
+    }
+    this.setData({
+      processing: true
+    });
     wx.request({
       url: app.buildUrl('/member/blocked/record'),
       header: app.getRequestHeader(),
@@ -46,8 +60,18 @@ Page({
         }
         //一般不需要分页
         this.setData({
-          user_op_list: resp['data']['list']
+          user_op_list: this.data.user_op_list.concat(resp['data']['list']),
+          p: this.data.p + 1,
+          has_more: resp['data']['has_more']
         })
+      },
+      fail: (res)=>{
+        app.serverBusy()
+      },
+      complete: (res) => {
+        this.setData({
+          processing: true
+        });
       }
     })
   },
@@ -55,10 +79,10 @@ Page({
     let new_type = e.currentTarget.id * 1;
     let old_type = this.data.stuff_type;
     this.setData({
-      stuff_type: new_type
+      stuff_type: new_type,
     });
     if(new_type !== old_type) {
-      this.getMemberBlockedRecords()
+      this.refresh()
     }
   },
   appealInput: function(e){
@@ -243,5 +267,10 @@ Page({
     this.setData({
       hiddenReason: true
     })
+  },
+  onReachBottom: function () {
+    if(this.data.has_more){
+      setTimeout(this.getMemberBlockedRecords, 500)
+    }
   }
 });

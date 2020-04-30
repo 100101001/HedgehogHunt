@@ -55,6 +55,7 @@
   <view><text class="label">手机：</text>{{stuff.mobile}}</view>
   <view><text class="label">放置位置：</text>{{stuff.loc}}</view>
   <view><text class="label">描述：</text>{{stuff.summary}}</view>
+  <view class="op-btn see-result" bindtap="openResult">处理结果</view>
 </lyx-modal>
 
 
@@ -65,9 +66,13 @@
 </lyx-modal>
 
 <!--管理员提交处理结果--->
-<lyx-modal hidden="{{hiddenDeal}}" noCancel="true" bindconfirm="closeDeal" confirmText="取消" title="申诉结果">
+<lyx-modal wx:if="{{status===0}}" hidden="{{hiddenDeal}}" noCancel="true" bindconfirm="closeDeal" confirmText="取消" title="申诉结果">
   <form class="goods-box" bindsubmit="formSubmit">
     <textarea minlength="50" maxlength="280" name="result" class="inputbox {{focus? 'input-focus': ''}} {{warn? 'input-warn': ''}}  {{empty? 'input-empty':''}}" placeholder="申诉结果不少于50字，不多于280字" placeholder-class="appeal-placeholder" bindinput="appealInput" value="{{form_info}}" bindfocus="appealFocus" bindblur='appealBlur'></textarea>
     <button class="submit-btn" form-type="submit">提交</button>
   </form>
+</lyx-modal>
+  <!--管理员查看处理结果--->
+<lyx-modal wx:else hidden="{{hiddenResult}}" noCancel="true" bindconfirm="closeResult" confirmText="关闭" title="申诉结果">
+    <view class="inputbox">{{appeal_list[stuff_index].result}}</view>
 </lyx-modal>
