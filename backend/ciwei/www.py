@@ -10,6 +10,9 @@ from application import app
 from web.controllers.api import route_api
 app.register_blueprint(route_api,url_prefix='/api')
 
+from web.controllers.exception import exception
+app.register_blueprint(exception, url_prefix='/error')
+
 from web.controllers.upload.Upload import route_upload
 app.register_blueprint( route_upload,url_prefix = "/upload" )
 

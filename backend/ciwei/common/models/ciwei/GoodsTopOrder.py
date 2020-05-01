@@ -48,3 +48,14 @@ class GoodsTopOrder(db.Model):
     @property
     def wx_payment_result_notified(self):
         return self.transaction_id != ''
+
+
+
+    def __init__(self, order_sn='', consumer=None, price='', top_charge=0):
+        self.order_sn = order_sn
+        self.member_id = consumer.id
+        self.openid = consumer.openid
+        self.price = Decimal(price).quantize(Decimal('.00'))
+        top_charge = Decimal(top_charge).quantize(Decimal('.00'))
+        self.balance_discount = top_charge-self.price
+        db.session.add(self)

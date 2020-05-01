@@ -6,7 +6,7 @@
 @file: listeners.py
 @desc: 
 """
-from sqlalchemy import event
+from flask_sqlalchemy import event
 
 from common.libs import LogService
 from common.models.ciwei.Member import Member

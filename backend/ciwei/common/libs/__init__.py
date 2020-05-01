@@ -6,3 +6,20 @@
 @file: __init__.py
 @desc:
 """
+
+
+def func(a):
+    return a+1
+
+class B:
+    def __init__(self, a):
+        print(a)
+
+class A:
+    @staticmethod
+    def func():
+        return B
+
+if __name__ == "__main__":
+    a = A.func()("a")
+    c = 1

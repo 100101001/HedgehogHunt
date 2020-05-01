@@ -10,7 +10,12 @@ from application import db
 from common.cahce import CacheOpUtil
 from common.cahce.core import CacheQueryService, CacheOpService
 from common.models.ciwei.Member import Member
-from common.models.ciwei.User import User
+from common.models.ciwei.admin.User import User
+
+
+class UserHandler:
+    pass
+
 
 
 def getAllUsers():
@@ -72,16 +77,7 @@ def addNewUser(reg_info=None, member_id=0, op_member_id=0):
     member_info = Member.query.filter_by(id=member_id).first()
     if not member_info:
         return False, '用户不存在'
-    user = User()
-    user.name = reg_info.get('name', '')
-    user.mobile = reg_info.get('mobile', '')
-    user.email = reg_info.get('email', '')
-    user.level = reg_info.get('level', 1)
-    user.sex = member_info.sex
-    user.avatar = member_info.avatar
-    user.member_id = member_info.id
-    user.op_uid = op_user.uid  # 操作新增管理员的管理员ID
-    db.session.add(user)
+    user = User(reg_info=reg_info, member_info=member_info, op_user=op_user)
     db.session.commit()
     CacheOpService.setUsersCache(users=[user])
     return True, '添加成功'
@@ -115,7 +111,7 @@ def restoreUser(restore_member_id=0, op_member_id=0):
     # 更新数据库有效标示
     updated = {'status': 1, 'op_uid': op_user.uid}
     User.query.filter_by(member_id=restore_member_id).update(updated,
-                                                         synchronize_session=False)
+                                                             synchronize_session=False)
     db.session.commit()
     # 存到缓存
     CacheOpUtil.updateModelDict(model=restore_user, updated=updated)

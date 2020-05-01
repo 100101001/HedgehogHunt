@@ -9,7 +9,7 @@
 from common.admin.decorators import user_op
 from common.libs.MemberService import MemberService
 from common.libs.UploadService import UploadService
-from common.models.ciwei.Feedback import Feedback
+from common.models.ciwei.admin.Feedback import Feedback
 from common.search.decorators import db_search
 
 

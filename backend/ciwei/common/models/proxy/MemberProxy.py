@@ -7,5 +7,26 @@
 @desc: 
 """
 
-if __name__ == "__main__":
-    pass
+
+class MemberProxy:
+    id = 0
+    user_id = 0
+    nickname = ''
+    salt = ''
+    credits = 0
+    balance = 0
+    mobile = ''
+    name = ''
+    location = ''
+    sex = 1
+    avatar = ''
+    qr_code = ''
+    left_notify_times = 0
+    openid = ''
+    status = 1
+    updated_time = 0
+    created_time = 1
+
+    @property
+    def has_qr_code(self):
+        return self.qr_code != ""

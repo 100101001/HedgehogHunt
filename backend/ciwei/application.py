@@ -46,6 +46,7 @@ db = SQLAlchemy(query_class=SyncQuery)
 db.init_app(app)
 from common.sync.db.listeners import *
 from common.loggin.db.listeners import *
+from common.models.triggers import *
 # 数据库迁移
 from flask_migrate import Migrate
 from flask_script import Manager

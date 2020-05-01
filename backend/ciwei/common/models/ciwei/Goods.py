@@ -113,7 +113,7 @@ class Good(db.Model):
         db.session.add(self)
 
 
-    def edit(self, edit_info=None, img_edited=True, now=datetime.now()):
+    def edit(self, edit_info=None, now=datetime.now()):
         """
         编辑物品
         """
@@ -129,7 +129,6 @@ class Good(db.Model):
         if int(edit_info.get('is_top', 0)):
             self.top_expire_time = now + dt.timedelta(days=int(edit_info['days']))
         self.updated_time = now
-        self.status = 7 if img_edited else 1  # 图片编辑了以后
         db.session.add(self)
 
     @staticmethod
@@ -151,3 +150,35 @@ class Good(db.Model):
         lost_goods.status = 2
         db.session.add(return_goods)
         db.session.add(lost_goods)
+
+    @staticmethod
+    def batch_update(*filters, val=None, rds=None):
+        Good.query.filter(*filters).update(val, redis_arg=rds)
+
+    @staticmethod
+    def getLinkId(*goods_ids, batch=True):
+        query = Good.query.filter(Good.id.in_(goods_ids)).with_entities(Good.return_goods_id)
+        if batch:
+            return query.distinct().all()
+        else:
+            return query.first()
+
+    def addImage(self, pic=''):
+        """
+        反馈加图
+        :param pic:
+        :param total:
+        :return:
+        """
+        if not self.pics:
+            pics_list = []
+        else:
+            pics_list = self.pics.split(",")
+        pics_list.append(pic)
+        self.main_image = pics_list[0]
+        self.pics = ",".join(pics_list)
+        db.session.add(self)
+
+    @staticmethod
+    def getById(goods_id=0):
+        return Good.query.filter_by(id=goods_id).first()

@@ -13,7 +13,7 @@ from common.admin import UserService
 from common.admin.decorators import user_op
 from common.cahce.GoodsCasUtil import GoodsCasUtil
 from common.libs import LogService
-from common.models.ciwei.Appeal import Appeal
+from common.models.ciwei.admin.Appeal import Appeal
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Member import Member
 from common.models.ciwei.Thanks import Thank

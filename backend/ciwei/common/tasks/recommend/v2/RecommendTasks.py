@@ -220,11 +220,11 @@ from application import celery
 #         possibles = distance.filterNearbyGoods(goods_list=possibles, found_location=goods_info.os_location)
 #     return possibles
 from common.libs.recommend.v2.RecommendService import RecommendHandler
-from common.models.proxy.GoodProxy import Good
+from common.models.proxy.GoodProxy import GoodProxy
 
 
 @celery.task(name='recommend.auto_recommend_goods', property=1)
 def autoRecommendGoods(edit_info=None, goods_info=None):
-    goods = Good()
+    goods = GoodProxy()
     goods.__dict__ = goods_info
     RecommendHandler.filter(edit_info=edit_info, goods_info=goods_info)

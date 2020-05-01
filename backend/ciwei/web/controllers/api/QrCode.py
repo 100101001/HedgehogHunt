@@ -10,7 +10,6 @@
 import datetime
 import json
 
-import requests
 from flask import request, jsonify, g
 
 from application import app, db, APP_CONSTANTS
@@ -19,7 +18,6 @@ from common.libs.CryptService import Cipher
 from common.libs.UrlManager import UrlManager
 from common.libs.sms import SMSService
 from common.models.ciwei.Goods import Good
-from common.models.ciwei.Member import Member
 from common.models.ciwei.logs.change.MemberPhoneChangeLog import MemberPhoneChangeLog
 from common.models.ciwei.logs.thirdservice.AcsSmsSendLog import AcsSmsSendLog
 from web.controllers.api import route_api

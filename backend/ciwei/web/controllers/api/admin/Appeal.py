@@ -15,7 +15,7 @@ from common.libs.CryptService import Cipher
 from common.libs.Helper import queryToDict
 from common.libs.UrlManager import UrlManager
 from common.loggin.time import time_log
-from common.models.ciwei.Appeal import Appeal
+from common.models.ciwei.admin.Appeal import Appeal
 from common.models.ciwei.logs.change.MemberStatusChangeLog import MemberStatusChangeLog
 from web.controllers.api import route_api
 

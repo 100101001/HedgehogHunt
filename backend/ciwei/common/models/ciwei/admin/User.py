@@ -24,3 +24,19 @@ class User(db.Model):
     updated_time = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now,
                              comment="最后一次更新时间")
     created_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment="插入时间")
+
+
+    def __init__(self, reg_info=None, member_info=None, op_user=None):
+        self.name = reg_info.get('name', '')
+        self.mobile = reg_info.get('mobile', '')
+        self.email = reg_info.get('email', '')
+        self.level = reg_info.get('level', 1)
+        self.sex = member_info.sex
+        self.avatar = member_info.avatar
+        self.member_id = member_info.id
+        self.op_uid = op_user.uid  # 操作新增管理员的管理员ID
+        db.session.add(self)
+
+
+
+

@@ -32,7 +32,10 @@ class Mark(db.Model):
         return {
             "0": "未取认领",
             "1": "已取认领",
-            "7": "已删认领"
+            "2": "已答谢",
+            "-1": "取消认领",
+            "-2": "删除取回的认领记录",
+            "-3": "删除已答谢认领记录"
         }[str(self.status)]
 
     def __init__(self, member_id=None, goods_id=None, business_type=0):
@@ -53,7 +56,7 @@ class Mark(db.Model):
             return False
         repeat_mark = Mark.query.filter_by(member_id=member_id, goods_id=goods_id).first()
         if repeat_mark:
-            if repeat_mark.status == 7:
+            if repeat_mark.status < 0:
                 # 将被删除的记录状态初始化
                 repeat_mark.status = 0
                 db.session.add(repeat_mark)
@@ -76,7 +79,7 @@ class Mark(db.Model):
     def mistaken(goods_ids=None, member_id=0):
         Mark.query.filter(Mark.member_id == member_id,
                           Mark.goods_id.in_(goods_ids),
-                          Mark.status == 0).update({'status': 7}, synchronize_session=False)
+                          Mark.status == 0).update({'status': -Mark.status-1}, synchronize_session=False)
 
 
     @staticmethod
@@ -88,5 +91,5 @@ class Mark(db.Model):
 
     @staticmethod
     def isNoMarkOn(goods_id=0):
-        cnt = db.session.query(func.count(Mark.id)).filter(Mark.goods_id == goods_id, Mark.status != 7).scalar()
+        cnt = db.session.query(func.count(Mark.id)).filter(Mark.goods_id == goods_id, Mark.status >= 0).scalar()
         return cnt == 0

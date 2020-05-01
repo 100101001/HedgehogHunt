@@ -11,7 +11,7 @@ from datetime import datetime
 from decimal import Decimal
 
 
-class Good:
+class GoodProxy:
     now = datetime.now()
     id = 0
     user_id = 0
@@ -44,3 +44,47 @@ class Good:
     appeal_time = now
     updated_time = now
     created_time = now
+
+    @property
+    def status_desc(self):
+        if self.report_status != 0:
+            # 作者可以看到 1的帖子
+            return self.report_status_desc
+        if self.business_type == 1:
+            status_mapping = {
+                '1': '待认领',
+                '2': '预认领',
+                '3': '已认领',
+                '4': '已答谢',
+                '5': '申诉中',
+                '7': '已删除',
+            }
+        elif self.business_type == 0:
+            status_mapping = {
+                '1': '待寻回',
+                '2': '预寻回',
+                '3': '已寻回',
+                '4': '已答谢',
+                '7': '已删除',
+            }
+        else:  # 归还贴子
+            status_mapping = {
+                '0': '已拒绝',
+                '1': '待确认',
+                '2': '待取回',
+                '3': '已取回',
+                '4': '已答谢',
+                '7': '已删除',
+            }
+        return status_mapping[str(self.status)]
+
+    @property
+    def report_status_desc(self):
+        report_status_mapping = {
+            '1': '待处理',
+            '0': '无违规',
+            '3': '已屏蔽',  # 同时作者账号被拉黑，即使恢复账号后也不在恢复的帖子
+            '5': '已屏蔽',
+            '6': '封号贴',
+        }
+        return report_status_mapping[str(self.report_status)]

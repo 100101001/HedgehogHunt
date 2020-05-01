@@ -9,6 +9,7 @@
 from application import celery
 from common.libs.Helper import isInstance
 from common.models.ciwei.Goods import Good
+from common.models.proxy.GoodProxy import GoodProxy
 from common.sync.core.base import RedisService
 
 
@@ -28,7 +29,7 @@ def addGoodsToRedis(goods_ids=None, goods_info=None):
             goods = Good.query.filter_by(id=goods_ids).first()
             RedisService.syncNewGoodsToRedis(goods)
     if goods_info:
-        goods = Good()
+        goods = GoodProxy()
         goods.__dict__ = goods_info
         RedisService.syncNewGoodsToRedis(goods)
 

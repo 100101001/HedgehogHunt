@@ -426,7 +426,9 @@ def memberNewHint():
     recommends = Recommend.query.filter_by(status=0, target_member_id=member_info.id).all()
     recommend_rule = and_(Good.id.in_([r.found_goods_id for r in recommends]), Good.status.in_([1, 2, 3]))
     # 归还规则
-    return_rule = and_(Good.business_type == 2, Good.status == 1)
+    return_rule = and_(Good.business_type == 2, Good.status == 1,
+                       or_(Good.return_goods_openid == member_info.openid,
+                           Good.qr_code_openid == member_info.openid))
     # 一次性获取推荐失物和归还物品
     goods_list = Good.query.filter(or_(recommend_rule, return_rule)).with_entities(Good.business_type,
                                                                                    Good.status,

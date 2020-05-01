@@ -14,7 +14,7 @@ from common.libs.RecordService import RecordHandlers
 from common.loggin.time import time_log
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Member import Member
-from common.models.ciwei.Report import Report
+from common.models.ciwei.admin.Report import Report
 from common.models.ciwei.Thanks import Thank
 from web.controllers.api import route_api
 

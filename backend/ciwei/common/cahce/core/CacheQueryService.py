@@ -11,8 +11,8 @@ import json
 from application import APP_CONSTANTS
 from common.cahce import redis_conn_db_1
 from common.cahce.core import CacheKeyGetter
-from common.models.ciwei.Member import Member
-from common.models.ciwei.User import User
+from common.models.proxy.MemberProxy import MemberProxy
+from common.models.proxy.UserProxy import UserProxy
 
 
 def getMarkCache(goods_id=0):
@@ -38,7 +38,7 @@ def getMemberCache(member_id=0):
     member_str = redis_conn_db_1.get(mem_key)
     if member_str:
         # 缓存命中
-        member_info = Member()
+        member_info = MemberProxy()
         member_info.__dict__ = json.loads(member_str)
         redis_conn_db_1.expire(mem_key, 3600)
     return member_info
@@ -55,7 +55,7 @@ def getUserCache(member_id=0):
     user_key = CacheKeyGetter.allUserKey()
     user_str = redis_conn_db_1.hget(user_key, member_id)
     if user_str:
-        user = User()
+        user = UserProxy()
         user.__dict__ = json.loads(user_str)
         redis_conn_db_1.expire(user_key, 3600)
     return user
@@ -77,7 +77,7 @@ def getAllUserCache():
     for item in users:
         if item == APP_CONSTANTS['is_all_user_val']:
             continue
-        user = User()
+        user = UserProxy()
         user.__dict__ = json.loads(item)
         real_users.append(user)
     redis_conn_db_1.expire(user_key, 3600)

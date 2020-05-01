@@ -12,7 +12,7 @@ from application import db, APP_CONSTANTS
 from common.admin.FeedbackService import FeedbackHandler
 from common.libs.Helper import param_getter
 from common.libs.UrlManager import UrlManager
-from common.models.ciwei.Feedback import Feedback
+from common.models.ciwei.admin.Feedback import Feedback
 from web.controllers.api import route_api
 
 

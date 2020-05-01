@@ -12,7 +12,7 @@ from common.libs import LogService
 from common.libs.UrlManager import UrlManager
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Member import Member
-from common.models.ciwei.Report import Report
+from common.models.ciwei.admin.Report import Report
 from common.models.ciwei.Thanks import Thank
 
 

@@ -17,6 +17,7 @@ from common.libs.RecordService import RecordHandlers
 from common.loggin.time import time_log
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Recommend import Recommend
+from common.models.proxy.GoodProxy import GoodProxy
 from web.controllers.api import route_api
 
 
@@ -73,7 +74,7 @@ def recordSearch():
         for item in goods_list:
             if op_status == 0:
                 item = item.get('_source')
-                goods = Good()
+                goods = GoodProxy()
                 goods.__dict__ = item
                 item = goods
             # 只返回状态没有被并发改变的物品

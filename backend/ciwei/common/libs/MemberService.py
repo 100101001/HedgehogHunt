@@ -6,7 +6,6 @@
 @file: MemberService.py
 @desc:
 """
-import datetime
 import json
 
 import requests
@@ -17,7 +16,7 @@ from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Member import Member
 from common.models.ciwei.MemberSmsPkg import MemberSmsPkg
 from common.models.ciwei.Recommend import Recommend
-from common.models.ciwei.User import User
+from common.models.ciwei.admin.User import User
 
 
 class MemberService:

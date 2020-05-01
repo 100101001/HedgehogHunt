@@ -14,11 +14,11 @@ from application import db, APP_CONSTANTS
 from common.admin import UserService
 from common.cahce.GoodsCasUtil import GoodsCasUtil
 from common.libs.UrlManager import UrlManager
-from common.models.ciwei.Appeal import Appeal
+from common.models.ciwei.admin.Appeal import Appeal
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Recommend import Recommend
-from common.models.ciwei.Report import Report
+from common.models.ciwei.admin.Report import Report
 from common.models.ciwei.Thanks import Thank
 from common.search.decorators import db_search, es_search
 
@@ -109,10 +109,10 @@ class GoodsOpRecordDeleteHandler:
         6: '_deleteMyAppeal'
     }
 
-    @staticmethod
-    def deal(op_status, **kwargs):
-        strategy = GoodsOpRecordDeleteHandler.__strategy_map.get(op_status)
-        handler = getattr(GoodsOpRecordDeleteHandler, strategy, None)
+    @classmethod
+    def deal(cls, op_status, **kwargs):
+        strategy = cls.__strategy_map.get(op_status)
+        handler = getattr(cls, strategy, None)
         if handler:
             return handler(**kwargs)
 
@@ -147,7 +147,7 @@ class GoodsOpRecordDeleteHandler:
             return False
         Mark.query.filter(Mark.member_id == member_id,
                           Mark.status == status,
-                          Mark.goods_id.in_(goods_ids)).update({'status': 7}, synchronize_session=False)
+                          Mark.goods_id.in_(goods_ids)).update({'status': -Mark.status-1}, synchronize_session=False)
         db.session.commit()
         return True
 

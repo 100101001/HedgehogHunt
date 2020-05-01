@@ -10,11 +10,11 @@ from sqlalchemy import func
 
 from application import es, db
 from common.sync.core.base.EsService import ES_CONSTANTS
-from common.models.ciwei.Feedback import Feedback
+from common.models.ciwei.admin.Feedback import Feedback
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Member import Member
 from common.models.ciwei.Recommend import Recommend
-from common.models.ciwei.Report import Report
+from common.models.ciwei.admin.Report import Report
 from common.models.ciwei.Thanks import Thank
 from common.models.ciwei.mall.Order import Order
 
