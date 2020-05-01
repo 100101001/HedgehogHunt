@@ -36,17 +36,19 @@ const doCancelReturnGoods = function (goods_id = 0, status= 2) {
  * 因为对方的删帖
  * 只是删除归还（同时解除通知的链条(openid)）
  * 只是删除寻物
- * @param goods_id
+ * @param goods_ids
+ * @param status
  * @param business_type
  */
-const doCleanReturnGoods = function (goods_id = 0, status=3, business_type = 2) {
+const doDeleteMyRelease = function (goods_ids = [], status=3, business_type = 2) {
   wx.request({
-    url: app.buildUrl('/goods/return/clean'),
+    url: app.buildUrl('/record/delete'),
     header: app.getRequestHeader(),
     data: {
-      ids: [goods_id],
+      ids: [goods_ids],
       biz_type: business_type,
-      status: status
+      status: status,
+      op_status: 0
     },
     success: res => {
       let resp = res.data
@@ -922,7 +924,7 @@ Page({
       content: '是否也删除本帖？',
       showCancel: true,
       cb_confirm: () => {
-        doCleanReturnGoods(this.data.goods_id, this.data.infos.info.status, this.data.infos.info.business_type)
+        doDeleteMyRelease(this.data.goods_id, this.data.infos.info.status, this.data.infos.info.business_type)
       }
     })
   },
@@ -1097,7 +1099,7 @@ Page({
       content: '是否也删除本帖？',
       showCancel: true,
       cb_confirm: () => {
-        doCleanReturnGoods(this.data.goods_id, this.data.infos.info.business_type)
+        doDeleteMyRelease(this.data.goods_id, this.data.infos.info.status, this.data.infos.info.business_type)
       }
     })
   },

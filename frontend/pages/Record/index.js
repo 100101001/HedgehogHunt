@@ -7,7 +7,7 @@ const util = require("../../utils/util");
  * @param id_list
  * @param status
  */
-const deleteLinkLostGoods = function (id_list = [], status=0) {
+const deleteLinkLostGoods = function (id_list = [], status=3) {
   wx.request({
     url: app.buildUrl('/goods/link/lost/del'),
     header: app.getRequestHeader(),
@@ -72,42 +72,6 @@ const doCancelReturnGoods = function (goods_ids = [], status, that) {
       app.alert({
         title: '操作提示',
         content: '删除成功'
-      })
-    },
-    fail: res => {
-      app.serverBusy()
-    }
-  })
-};
-
-
-/**
- * 只是删除自己发布的归还贴
- * @param goods_ids
- * @param status
- * @param that
- */
-const doCleanReleasedReturnGoods = function (goods_ids = [], status=3, that) {
-  wx.request({
-    url: app.buildUrl('/goods/return/clean'),
-    header: app.getRequestHeader(),
-    data: {
-      ids: goods_ids,  //选中删除的id
-      biz_type: that.data.business_type,
-      status: status  //当前选中状态页
-    },
-    success: res => {
-      let resp = res.data
-      if (resp['code'] !== 200) {
-        app.alert({content: resp['msg']})
-        return
-      }
-      //关闭编辑栏和刷新
-      that.editTap();
-      that.onPullDownRefresh();
-      app.alert({
-        title: '操作提示',
-        content: '删除成功',
       })
     },
     fail: res => {
@@ -862,7 +826,7 @@ Page({
    * toDeleteGotbackReturnGoods 删除已取回的归还通知
    */
   toDeleteGotbackReturnGoods: function (id_list = []) {
-    let status = this.data.check_status_id
+    let status = this.data.check_status_id;
     app.alert({
       title: '删除提示',
       content: (status == 4 ? '' : '还未答谢呢，') + '确认删除？',
@@ -913,7 +877,7 @@ Page({
         content: (status == 3 ? '失主还未答谢，' : '') + '确认删除？',
         showCancel: true,
         cb_confirm: () => {
-          doCleanReleasedReturnGoods(id_list, status, this)
+          this.doDeleteSelected(id_list);
         },
         cb_cancel: () => {
           //收起编辑板

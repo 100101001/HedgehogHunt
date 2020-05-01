@@ -137,8 +137,9 @@
         <view wx:if="{{!info.is_origin_deleted}}">
           <view class="join-shop-cart" catchtap="goCheckReturnGoods" data-id="{{info.return_goods_id}}">物品已取回</view>
         </view>
-        <view wx:if="{{info.is_origin_deleted}}">
-          <view class="join-shop-cart grey" catchtap="goDeleteGotbackLost" wx:if="{{info.is_origin_deleted}}">原寻物贴已被删</view>
+        <view wx:else>
+          <view wx:if="{{info.is_auth}}" class="join-shop-cart grey" catchtap="goDeleteGotbackLost" >原寻物贴已被删</view>
+          <view wx:else class="join-shop-cart grey">原寻物贴已被删</view>
         </view>
         <!--状态“操作”区 认领者未答谢可去答谢，否则显示已答谢，作者只能看是否被答谢过了--->
         <view wx:if="{{!info.is_origin_deleted}}">
@@ -147,7 +148,7 @@
           <view class="now-buy" catchtap="goTips" wx:if="{{info.is_returner}}">{{info.is_thanked? '已答谢': '待答谢'}}</view>
         </view>
         <!--原贴已被删除，只能看到答谢状态，不能再操作--->
-        <view wx:if="{{info.is_origin_deleted}}">
+        <view wx:else>
           <view class="now-buy light-grey" catchtap="goTips">{{info.is_thanked? '已答谢': '未答谢'}}</view>
         </view>
       </view>
