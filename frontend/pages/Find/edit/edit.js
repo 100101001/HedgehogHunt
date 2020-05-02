@@ -378,7 +378,9 @@ Page({
       this.setData({submitDisable: false});
       return;
     }
+    // 用于冲突检测
     data['status'] = this.data.origin_info.status;
+
     data['business_type'] = this.data.business_type;
     data['img_list'] = img_list;
     data['location'] = this.data.location;
@@ -387,17 +389,29 @@ Page({
     // 原来非置顶/置顶过期，编辑后置顶，才算置顶操作
     data['is_top'] = this.data.isTop && !this.data.top ? 1 : 0;
     data['days'] = this.data.isTop && !this.data.top ? this.data.top_days : 0;
-
+    this.detectRecommendInfoModified(data);
+    this.toUploadData(data)
+  },
+  /**
+   * 标识推荐信息的改变
+   * @param data
+   */
+  detectRecommendInfoModified: function (data) {
+    if (data['business_type'] === 2) {
+      // 如果不是公开信息，则标识推荐信息没有被改变
+      this.data.keyword_modified = 0;
+      this.data.modified = 0;
+      return
+    }
     // 编辑操作是否更改了匹配信息
     let origin_info = this.data.origin_info;
     let kw_modified = (data['owner_name'] !== origin_info.owner_name ||
       data['goods_name'] !== origin_info.goods_name || !data['os_location'].equals(origin_info.os_location));
     this.data.keyword_modified = kw_modified ? 1 : 0;  // python后端bool和js的boolean不兼容
     //编辑操作是否更改了信息
-    let modified = this.data.keyword_modified || !origin_info.pics.equals(img_list)
+    let modified = this.data.keyword_modified || !origin_info['pics'].equals(data['img_list'])
       || !origin_info.location.equals(data['location']) || origin_info.summary !== data['summary'];
     this.data.modified = modified ? 1 : 0;  // python后端bool和js的boolean不兼容
-    this.toUploadData(data)
   },
   /**
    * toUploadData 根据是否置顶进行收费后编辑帖子

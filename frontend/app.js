@@ -10,7 +10,7 @@ const BloomFilter = require('./utils/bloomfilter').BloomFilter;
  */
 const judgeScanFrequency = function (qrcode_openid="", that=undefined, cb_success=()=>{}) {
   wx.request({
-    url: that.buildUrl('/qrcode/before/nav'),
+    url: that.buildUrl('/qrcode/scan/freq'),
     header: that.getRequestHeader(),
     data: {
       openid: qrcode_openid

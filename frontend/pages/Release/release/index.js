@@ -591,7 +591,7 @@ Page({
           return
         }
         //获取商品的id,之后用于提交图片
-        this.uploadImage(resp['id'], data['img_list'], resp['img_list_status']);
+        this.uploadImage(resp['data']['id'], data['img_list'], resp['data']['img_list_status']);
       },
       fail: (res) => {
         app.serverBusy();
