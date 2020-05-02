@@ -269,7 +269,7 @@ CREATE TABLE `goods`  (
   `qr_code_openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '扫码归还的码主的openid',
   `return_goods_id` int(11) UNSIGNED NULL DEFAULT 0 COMMENT '归还的寻物启示ID',
   `return_goods_openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '归还的寻物启示OPENID',
-  `status` tinyint(1) UNSIGNED NOT NULL DEFAULT 7 COMMENT '1:待, 2:预, 3:已, 5:管理员删, 7:发布者创建中, 8:发布者被管理员拉黑',
+  `status` tinyint(1) NOT NULL DEFAULT 7 COMMENT '1:待, 2:预, 3:已, 5:管理员删, 7:发布者创建中, 8:发布者被管理员拉黑',
   `view_count` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '总浏览次数',
   `top_expire_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '置顶过期时间',
   `recommended_times` int(11) NOT NULL DEFAULT 1 COMMENT '总匹配过失/拾物次数',
