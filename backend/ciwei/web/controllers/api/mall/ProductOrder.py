@@ -277,7 +277,7 @@ def orderCallback():
 
     target_pay = PayService()
     target_pay.orderSuccess(order_id=order_info.id, params={"pay_sn": callback_data['transaction_id']})
-    target_pay.addPayCallbackData(pay_order_id=order_info.id, data=request.data)
+    target_pay.addOrderPayCallbackData(pay_order_id=order_info.id, data=request.data)
     return target_wechat.dict_to_xml(result_data), header
 
 

@@ -336,7 +336,7 @@ def memberInfo():
         "balance": str(member_info.balance),
         "has_qrcode": has_qrcode,
         "name": member_info.name,
-        "mobile": Cipher.decrypt(text=member_info.mobile),
+        "mobile": member_info.decrypt_mobile,
         "m_times": m_times,  # 无限期
         "total_times": p_times + m_times,  # 套餐包加单条
         "pkgs": pkg_data_list

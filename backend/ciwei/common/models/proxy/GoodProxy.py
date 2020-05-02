@@ -57,7 +57,10 @@ class GoodProxy:
                 '3': '已认领',
                 '4': '已答谢',
                 '5': '申诉中',
-                '7': '已删除',
+                '-1': '已删除',
+                '-2': '已删除',
+                '-3': '已删除',
+                '-4': '已删除',
             }
         elif self.business_type == 0:
             status_mapping = {
@@ -65,7 +68,10 @@ class GoodProxy:
                 '2': '预寻回',
                 '3': '已寻回',
                 '4': '已答谢',
-                '7': '已删除',
+                '-1': '已删除',
+                '-2': '已删除',
+                '-3': '已删除',
+                '-4': '已删除',
             }
         else:  # 归还贴子
             status_mapping = {
@@ -74,7 +80,10 @@ class GoodProxy:
                 '2': '待取回',
                 '3': '已取回',
                 '4': '已答谢',
-                '7': '已删除',
+                '-1': '已删除',
+                '-2': '已删除',
+                '-3': '已删除',
+                '-4': '已删除',
             }
         return status_mapping[str(self.status)]
 
@@ -82,9 +91,9 @@ class GoodProxy:
     def report_status_desc(self):
         report_status_mapping = {
             '1': '待处理',
-            '0': '无违规',
+            '2': '无违规',
             '3': '已屏蔽',  # 同时作者账号被拉黑，即使恢复账号后也不在恢复的帖子
-            '5': '已屏蔽',
-            '6': '封号贴',
+            '4': '封举报者',
+            '5': '封发布者',
         }
         return report_status_mapping[str(self.report_status)]

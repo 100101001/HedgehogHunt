@@ -26,3 +26,8 @@ def memberBalanceChangeLog(target, new_val, old_val, *args):
 @event.listens_for(MemberSmsPkgChangeLog.notify_times, 'set')
 def memberSmPkgChangeLog(target, new_val, old_val, *args):
     LogService.setMemberSmsPkgChange(sms_pkg=target, unit=new_val - old_val, old_times=old_val)
+
+
+@event.listens_for(Member.mobile, 'set')
+def memberMobileChangeLog(target, new_val, old_val, *args):
+    LogService.setMemberMobileChange(member_info=target, new_mobile=new_val, old_mobile=old_val)

@@ -134,3 +134,16 @@ def setWxToken(token_data=None):
     wx_token_key = CacheKeyGetter.wxTokenKey()
     redis_conn_db_1.set(wx_token_key, token_data.get('access_token'))
     redis_conn_db_1.expire(wx_token_key, int(token_data.get('expires_in', 7200)) - 200)
+
+
+def setSmsVerifyCode(member_id=None, mobile='', code=''):
+    """
+    验证码
+    :param member_id:
+    :param mobile:
+    :param code:
+    :return:
+    """
+    sms_key = CacheKeyGetter.smsVerifyKey(member_id)
+    redis_conn_db_1.hset(sms_key, mobile, code)
+    redis_conn_db_1.expire(sms_key, 300)

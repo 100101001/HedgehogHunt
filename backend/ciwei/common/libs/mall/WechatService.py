@@ -99,7 +99,7 @@ class WeChatService:
         return str(uuid.uuid4()).replace('-', '')
 
     @staticmethod
-    def get_wx_token():
+    def getAccesstoken():
         """
         从缓存获取token并返回，过期获取新的返回，并设置缓存
         :return:
@@ -119,6 +119,26 @@ class WeChatService:
                 return wxResp.get('access_token')
         else:
             return token
+
+    @classmethod
+    def getMimiProgramQrcode(cls, openid=''):
+        token = cls.getAccesstoken()
+        if not token:
+            return None
+
+        # 无限API上线可用(体验版)
+        # [2019-12-10 16:06:50,066] ERROR in QrCode: failed to get qr code. Errcode: 41030, Errmsg:invalid page hint: [6qqTta0210c393]
+        wx_resp = requests.post(
+            "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}".format(token),
+            json={"scene": str(openid), "width": 280, "page": "pages/index/index"})
+
+        if len(wx_resp.content) < 80:
+            data = wx_resp.json()
+            app.logger.error("没拿到二维码. 错误码: %s, 错误信息:%s", data['errcode'], data['errmsg'])
+            return None
+        else:
+            return wx_resp.content
+
 
 
 class WXBizDataCrypt:
@@ -147,3 +167,5 @@ class WXBizDataCrypt:
     def _unpad(self, s):
         # 最后一个字符的ASCII值为c,截掉最后c位字符
         return s[:-ord(s[len(s) - 1:])]
+
+

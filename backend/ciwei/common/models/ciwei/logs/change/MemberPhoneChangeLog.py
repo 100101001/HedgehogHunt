@@ -7,6 +7,7 @@
 @desc: 
 """
 
+import datetime as dt
 from datetime import datetime
 
 from sqlalchemy.dialects.mysql import INTEGER
@@ -25,3 +26,9 @@ class MemberPhoneChangeLog(db.Model):
     new_mobile = db.Column(db.String(32), nullable=False, default='', comment="会员新的手机号码")
     note = db.Column(db.String(100), nullable=False, default='', comment="备注字段")
     created_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment="插入时间")
+
+    @classmethod
+    def tooFreqChange(cls, openid=''):
+        return cls.query.filter(cls.openid == openid,
+                                cls.create_time >=
+                                datetime.now() - dt.timedelta(weeks=4)).first()

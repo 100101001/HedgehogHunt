@@ -32,7 +32,13 @@ class B(A):
     def p(cls):
         super()._pri("h")
 
+def func(a):
+    if a:
+        return 1
+    print(a)
 
 if __name__ == '__main__':
+    a = func(True)
+    b = func(False)
     warp([1,2,3,4], "hhh", b="hh")
     # B.p()

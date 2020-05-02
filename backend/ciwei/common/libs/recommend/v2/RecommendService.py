@@ -36,7 +36,7 @@ class RecommendHandler:
         :param edit:
         :param goods_info: 已经序列化过，反序列化的goods，不用担心commit影响
         """
-        app.logger.warn("推荐中")
+        app.logger.info("推荐中： 物品ID {0}, 编辑推荐 {1}".format(goods_info.id, edit))
 
         release_type = goods_info.business_type
         goods_list = cls.__doFilterPossibleGoods(goods_info)
@@ -57,16 +57,16 @@ class RecommendHandler:
             if new_recommend and release_type == 1:
                 # 如果发布了失物招领，需要给新匹配上的寻物启示发匹配成功通知
                 need_notification.append(good)
-
-        app.logger.warn("推荐结束")
+        db.session.commit()
+        app.logger.info("推荐结束：物品ID {0}, 编辑推荐 {1}".format(goods_info.id, edit))
         if need_notification:
             # 有需要发送消息的，异步批量的发送订阅消息
             app.logger.info("发送订阅消息")
             SubscribeTasks.send_recommend_subscribe_in_batch.delay(lost_list=need_notification,
                                                                    found_goods=queryToDict(goods_info))
 
-    @staticmethod
-    def __addRecommendGoods(target_member_id=0, found_goods_id=0, lost_goods_id=0, rel_score=1, edit=False):
+    @classmethod
+    def __addRecommendGoods(cls, target_member_id=0, found_goods_id=0, lost_goods_id=0, rel_score=1, edit=False):
         """
         增加新的记录，进行防重
         归还和通知会加进推荐
@@ -75,10 +75,11 @@ class RecommendHandler:
         :param target_member_id:
         :param found_goods_id:
         :param lost_goods_id: 只是用于记录一下（在查看推荐记录时好看一下，匹配的动因）
-        :return:
+        :return:是否是新的推荐
         """
         if not target_member_id or not found_goods_id:
             return False
+        app.logger.info("本轮推荐结果： 拾物{0} 匹配上 失物{1}".format(found_goods_id, lost_goods_id))
         repeat_recommend = Recommend.query.filter_by(found_goods_id=found_goods_id,
                                                      target_member_id=target_member_id,
                                                      lost_goods_id=lost_goods_id).first()
@@ -87,7 +88,6 @@ class RecommendHandler:
             repeat_recommend.status = 0
             repeat_recommend.rel_score = rel_score
             db.session.add(repeat_recommend)
-            db.session.commit()
         # 没有
         elif not repeat_recommend:
             model_recommend = Recommend()
@@ -96,7 +96,6 @@ class RecommendHandler:
             model_recommend.lost_goods_id = lost_goods_id
             repeat_recommend.rel_score = rel_score
             db.session.add(model_recommend)
-            db.session.commit()
         # 是新的推荐
         return repeat_recommend is None
 
@@ -136,7 +135,7 @@ class RecommendHandler:
         if goods_info.os_location != APP_CONSTANTS['default_lost_loc']:  # 发布了寻物启事，且不记得东西丢哪了，就不筛了
             possibles = cls.distance.filterNearbyGoods(goods_list=possibles, found_location=goods_info.os_location)
 
-        # 权重
+        # 如果有权重，则计算加权分数
         adj_keys = cls_dict['adj']
         if adj_keys:
             part = len(adj_keys)
@@ -147,7 +146,7 @@ class RecommendHandler:
                 rel_score = part / total_score
                 for i in range(len(relative)):
                     data = json.loads(relative[i])
-                    goods_id = data['id']  # https://blog.csdn.net/jinnajinna/article/details/100373407
+                    goods_id = data['id']
                     if goods_id not in relatives:
                         relatives[goods_id] = rel_score
                     else:
@@ -210,7 +209,7 @@ class NoModifiedHandler:
     def filter(cls, edit_info=None, goods_info=None, **kwargs):
         if edit_info and edit_info.get('modified'):
             Recommend.query.filter(Recommend.found_goods_id == goods_info.id,
-                                   Recommend.status != 7).update({'status': 0}, synchronize_session=False)
+                                   Recommend.status > 0).update({'status': 0}, synchronize_session=False)
             db.session.commit()
         next_handler = cls.next
         if next_handler:
@@ -224,7 +223,7 @@ class ModifiedHandler(RecommendHandler):
     def filter(cls, edit_info=None, goods_info=None, **kwargs):
         if edit_info and edit_info.get('need_recommend'):
             Recommend.query.filter(Recommend.found_goods_id == goods_info.id,
-                                   Recommend.status != 7).update({'status': 7}, synchronize_session=False)
+                                   Recommend.status >= 0).update({'status': -Recommend.status-1}, synchronize_session=False)
             super()._doAutoRecommendGoods(goods_info=goods_info, edit=True)
             return
         next_handler = cls.next

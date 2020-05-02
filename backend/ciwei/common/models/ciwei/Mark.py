@@ -43,8 +43,8 @@ class Mark(db.Model):
         self.goods_id = goods_id
         self.business_type = business_type
 
-    @staticmethod
-    def pre(member_id=None, goods_id=None, business_type=0):
+    @classmethod
+    def pre(cls, member_id=None, goods_id=None, business_type=0):
         """
         预认领 update if exist
         :param member_id:
@@ -54,42 +54,42 @@ class Mark(db.Model):
         """
         if not member_id or not goods_id:
             return False
-        repeat_mark = Mark.query.filter_by(member_id=member_id, goods_id=goods_id).first()
+        repeat_mark = cls.query.filter_by(member_id=member_id, goods_id=goods_id).first()
         if repeat_mark:
             if repeat_mark.status < 0:
                 # 将被删除的记录状态初始化
                 repeat_mark.status = 0
                 db.session.add(repeat_mark)
             return repeat_mark.status == 0
-        pre_mark = Mark(member_id=member_id, goods_id=goods_id, business_type=business_type)
+        pre_mark = cls(member_id=member_id, goods_id=goods_id, business_type=business_type)
         db.session.add(pre_mark)
         return True
 
-    @staticmethod
-    def getAllOn(goods_id=0):
+    @classmethod
+    def getAllOn(cls, goods_id=0):
         """
         获取一个物品的所有认领人的id
         :param goods_id:
         :return:
         """
-        return Mark.query.filter(Mark.goods_id == goods_id,
-                                 Mark.status != 7).all()
+        return cls.query.filter(cls.goods_id == goods_id, cls.status >= 0).all()
 
-    @staticmethod
-    def mistaken(goods_ids=None, member_id=0):
-        Mark.query.filter(Mark.member_id == member_id,
-                          Mark.goods_id.in_(goods_ids),
-                          Mark.status == 0).update({'status': -Mark.status-1}, synchronize_session=False)
+    @classmethod
+    def mistaken(cls, goods_ids=None, member_id=0):
+        cls.query.filter(cls.member_id == member_id, cls.goods_id.in_(goods_ids),
+                         cls.status == 0).update({'status': -cls.status - 1}, synchronize_session=False)
 
+    @classmethod
+    def done(cls, goods_ids=None, member_id=0):
+        cls.query.filter(cls.member_id == member_id, cls.goods_id.in_(goods_ids),
+                         cls.status == 0).update({'status': 1}, synchronize_session=False)
 
-    @staticmethod
-    def done(goods_ids=None, member_id=0):
-        Mark.query.filter(Mark.member_id == member_id,
-                          Mark.goods_id.in_(goods_ids),
-                          Mark.status == 0).update({'status': 1}, synchronize_session=False)
-
-
-    @staticmethod
-    def isNoMarkOn(goods_id=0):
-        cnt = db.session.query(func.count(Mark.id)).filter(Mark.goods_id == goods_id, Mark.status >= 0).scalar()
+    @classmethod
+    def isNoMarkOn(cls, goods_id=0):
+        cnt = db.session.query(func.count(cls.id)).filter(cls.goods_id == goods_id, cls.status >= 0).scalar()
         return cnt == 0
+
+    @classmethod
+    def thanked(cls, member_id=0, goods_id=0):
+        cls.query.filter(cls.member_id == member_id, cls.goods_id == goods_id,
+                         cls.status == 1).update({'status': 2}, synchronize_session=False)

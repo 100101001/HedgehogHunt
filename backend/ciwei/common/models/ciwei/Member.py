@@ -13,6 +13,7 @@ from sqlalchemy.dialects.mssql import TINYINT
 from sqlalchemy.dialects.mysql import INTEGER
 
 from application import db
+from common.libs.CryptService import Cipher
 
 
 class Member(db.Model):
@@ -42,6 +43,12 @@ class Member(db.Model):
     def has_qr_code(self):
         return self.qr_code != ""
 
+
+    @property
+    def decrypt_mobile(self):
+        return Cipher.decrypt(text=self.mobile)
+
+
     def __init__(self, openid='', mobile='', nickname='', avatar='', sex=1):
         self.openid = openid
         self.mobile = mobile  # 加密过了的手机
@@ -60,3 +67,14 @@ class Member(db.Model):
     @staticmethod
     def getByOpenId(openid=''):
         return Member.query.filter_by(openid=openid).first()
+
+
+    def bindMobile(self, mobile=''):
+        self.mobile = Cipher.encrypt(text=mobile)
+        db.session.add(self)
+        db.session.commit()
+
+    def bindQrcode(self, qr_code=''):
+        self.qr_code = qr_code
+        db.session.add(self)
+        db.session.commit()

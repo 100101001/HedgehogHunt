@@ -8,15 +8,19 @@
 """
 import datetime
 
-from application import db, APP_CONSTANTS
+from application import db, APP_CONSTANTS, app
 from common.cahce.GoodsCasUtil import GoodsCasUtil
 from common.cahce.core import CacheQueryService, CacheOpService
 from common.libs.Helper import queryToDict
 from common.libs.MemberService import MemberService
 from common.libs.UploadService import UploadService
 from common.libs.UrlManager import UrlManager
+from common.libs.mall.PayService import PayService
+from common.libs.mall.WechatService import WeChatService
 from common.models.ciwei.Goods import Good
+from common.models.ciwei.GoodsTopOrder import GoodsTopOrder
 from common.models.ciwei.Mark import Mark
+from common.models.ciwei.logs.thirdservice.GoodsTopOrderCallbackData import GoodsTopOrderCallbackData
 from common.tasks.recommend.v2 import RecommendTasks
 from common.tasks.sms import SmsTasks
 from common.tasks.subscribe import SubscribeTasks
@@ -32,6 +36,7 @@ def syncUpdatedReadCountInRedisToDb():
 
 class CommonGoodsHandler:
     __strategy_map = {'init_edit': '_initEditGoods',
+                      'finish_edit': '_finishEditGoods',
                       'created': '_releaseOpenGoodsOk'}
 
     @classmethod
@@ -50,37 +55,49 @@ class CommonGoodsHandler:
         :return:
         """
 
-        if not GoodsCasUtil.exec(goods_id, status, 7):
+        if not GoodsCasUtil.exec(goods_id, status, -status):
             return False, "操作冲突，请稍后重试"
 
-        goods_info = Good.query.filter_by(id=goods_id).first()
+        goods_info = Good.getById(goods_id)
         if not goods_info:
-            return None
+            return False, '编辑失败'
 
         img_list = edit_info['img_list']
         img_list_status = UploadService.filterUpImages(img_list)
 
         goods_info.edit(edit_info=edit_info)
         db.session.commit()
-        GoodsCasUtil.exec(goods_id, 7, status)
         return True, img_list_status
 
     @classmethod
-    def _releaseOpenGoodsOk(cls, goods_info=None, edit_info=None, **kwargs):
+    def _finishEditGoods(cls, goods_info=None, edit_info=None, **kwargs):
         """
-        普通帖子结束发帖（可能是编辑）
+        结束编辑
         :param goods_info:
         :param edit_info:
+        :param kwargs:
+        :return:
+        """
+        old_status = goods_info.status
+        goods_info.status = -old_status
+        GoodsCasUtil.exec(goods_info.id, old_status, -old_status)  # 恢复init_edit时更改的状态标识
+        db.session.add(goods_info)
+        # edit_info 传入推荐标识是否被改动
+        RecommendTasks.autoRecommendGoods.delay(edit_info=edit_info, goods_info=queryToDict(goods_info))
+        db.session.commit()
+
+    @classmethod
+    def _releaseOpenGoodsOk(cls, goods_info=None, **kwargs):
+        """
+        公开的帖子结束发帖
+        :param goods_info:
         :return:
         """
         # goods 状态的变更
-        is_edit = edit_info is not None
-        if not is_edit:
-            goods_info.status = 1
+        goods_info.status = 1
         db.session.add(goods_info)
-        if not is_edit:
-            MemberService.updateCredits(member_id=goods_info.member_id)
-        RecommendTasks.autoRecommendGoods.delay(edit_info=edit_info, goods_info=queryToDict(goods_info))
+        MemberService.updateCredits(member_id=goods_info.member_id)
+        RecommendTasks.autoRecommendGoods.delay(goods_info=queryToDict(goods_info))
         db.session.commit()
 
     @classmethod
@@ -138,9 +155,13 @@ class CommonGoodsHandler:
 
 
 class LostGoodsHandler(CommonGoodsHandler):
-    __strategy_map = {'init': '_initLostRelease',
+    __strategy_map = {'init_top_pay': '_initTopPay',
+                      'finish_top_pay': '_finishTopPay',
+                      'init': '_initLostRelease',
                       'created': '_finishLostRelease',
                       'info': '_getLostInfo'}
+
+    wechat = WeChatService(merchant_key=app.config['OPENCS_APP']['mch_key'])
 
     @classmethod
     def deal(cls, op, **kwargs):
@@ -148,6 +169,90 @@ class LostGoodsHandler(CommonGoodsHandler):
         handler = getattr(cls, strategy, None)
         if handler:
             return handler(**kwargs)
+
+    @classmethod
+    def _initTopPay(cls, consumer=None, price='', top_charge=''):
+        model_order = GoodsTopOrder(consumer=consumer, price=price, top_charge=top_charge)
+        # 微信下单
+        pay_data = {
+            'appid': app.config['OPENCS_APP']['appid'],
+            'mch_id': app.config['OPENCS_APP']['mch_id'],
+            'nonce_str': cls.wechat.get_nonce_str(),
+            'body': '鲟回-置顶',
+            'out_trade_no': model_order.order_sn,
+            'total_fee': int(model_order.price * 100),
+            'notify_url': app.config['APP']['domain'] + "/api/goods/top/order/notify",
+            'time_expire': (datetime.datetime.now() + datetime.timedelta(minutes=5)).strftime("%Y%m%d%H%M%S"),
+            'trade_type': 'JSAPI',
+            'openid': model_order.openid
+        }
+        pay_sign_data = cls.wechat.get_pay_info(pay_data=pay_data)
+        if not pay_sign_data:
+            return None
+        model_order.status = 0
+        db.session.commit()
+        return pay_sign_data
+
+    @classmethod
+    def _finishTopPay(cls, callback_body=None):
+        result_data = {
+            'return_code': 'SUCCESS',
+            'return_msg': 'OK'
+        }
+        header = {'Content-Type': 'application/xml'}
+        callback_data = cls.wechat.xml_to_dict(callback_body)
+        app.logger.info(callback_data)
+
+        # 检查签名
+        sign = callback_data.pop('sign')
+        gene_sign = cls.wechat.create_sign(callback_data)
+        if sign != gene_sign:
+            result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+            return cls.wechat.dict_to_xml(result_data), header
+        if callback_data['result_code'] != 'SUCCESS':
+            result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+            return cls.wechat.dict_to_xml(result_data), header
+        # 检查订单金额
+        pay_order_info = GoodsTopOrder.getByOrderSn(callback_data['out_trade_no'])
+        if not pay_order_info:
+            result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+            return cls.wechat.dict_to_xml(result_data), header
+        if int(pay_order_info.price * 100) != int(callback_data['total_fee']):
+            result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+            return cls.wechat.dict_to_xml(result_data), header
+
+        # 更新订单的支付/物流状态, 记录日志
+        # 订单状态已回调更新过直接返回
+        if pay_order_info.status == 1:
+            return cls.wechat.dict_to_xml(result_data), header
+        # 订单状态未回调更新过
+        cls.__topOrderSuccess(order_info=pay_order_info,
+                              params={"pay_sn": callback_data['transaction_id'],
+                                      "paid_time": callback_data['time_end']})
+        cls.__addTopPayCallbackData(order_id=pay_order_info.id, data=callback_body)
+        db.session.commit()
+        return cls.wechat.dict_to_xml(result_data), header
+
+    @classmethod
+    def __addTopPayCallbackData(cls, order_id=0, data=''):
+        """
+        微信支付回调记录
+        :param order_id:
+        :param data:
+        :return:
+        """
+        # 新增
+        PayService.addCallbackData(GoodsTopOrderCallbackData, 'top_order_id', order_id, data=data)
+
+    @classmethod
+    def __topOrderSuccess(cls, order_info=None, params=None):
+        """
+        支付成功后,更新订单状态
+        :param order_info:
+        :param params:
+        :return: 数据库操作成功
+        """
+        PayService.orderPaid(order_info=order_info, params=params)
 
     @classmethod
     def _initLostRelease(cls, author_info=None, release_info=None, **kwargs):
@@ -204,7 +309,7 @@ class LostGoodsHandler(CommonGoodsHandler):
                 return_status = Good.query.filter_by(id=return_goods_id).with_entities(Good.status).first()
                 more_data = {'return_goods_id': return_goods_id,  # 用来链接两贴
                              'is_confirmed': return_status[0] == 2,  # 根据是否已经确认过归还贴对寻物启示发布者和归还者进行提示
-                             'is_origin_deleted': return_status[0] == 7,  # 根据此提示可以删除本贴
+                             'is_origin_deleted': return_status[0] < 0,  # 根据此提示可以删除本贴
                              'op_time': op_time.strftime("%Y-%m-%d %H:%M")  # 根据此提示操作时间
                              }
                 data.update(more_data)
@@ -258,7 +363,7 @@ class ReturnGoodsHandler(CommonGoodsHandler):
                 cls.__returnToLostOk(return_goods=goods_info, lost_goods=lost_goods)
             else:
                 goods_info.business_type = 1
-                super()._releaseOpenGoodsOk(goods_info)
+                super()._releaseOpenGoodsOk(goods_info=goods_info)
         elif notify_id:
             # 扫码归还
             cls.__scanReturnOk(scan_goods=goods_info, notify_id=notify_id)
@@ -333,7 +438,7 @@ class ReturnGoodsHandler(CommonGoodsHandler):
             data.update(more_data)
         elif goods_status > 2:
             lost_goods_status = Good.query.filter_by(id=lost_goods_id).with_entities(Good.status).first()
-            is_origin_del = lost_goods_status[0] == 7
+            is_origin_del = lost_goods_status[0] < 0
             op_time = goods_info.finish_time if goods_status == 3 else goods_info.thank_time
             more_data = {'return_goods_id': lost_goods_id,
                          'is_origin_deleted': is_origin_del,  # 寻物已删
@@ -346,14 +451,14 @@ class ReturnGoodsHandler(CommonGoodsHandler):
     @classmethod
     def _delReturns(cls, return_ids=None, status=0, **kwargs):
         lost_ids = Good.getLinkId(return_ids)
-        if not GoodsCasUtil.judgePair(return_ids, status, 7, lost_ids, 2, 1):
+        if not GoodsCasUtil.judgePair(return_ids, status, -status, lost_ids, 2, 1):
             return False, '操作冲突，请稍后重试'
         # 寻物启示
         Good.batch_update(Good.id.in_(lost_ids), Good.status == 2,
                           val={'status': 1, 'return_goods_id': 0, 'return_goods_openid': ''}, rds=1)
         # 归还贴
         Good.batch_update(Good.id.in_(return_ids), Good.status == status,
-                          val={'status': 7, 'return_goods_id': 0, 'return_goods_openid': ''})
+                          val={'status': -Good.status, 'return_goods_id': 0, 'return_goods_openid': ''})
         db.session.commit()
         return True, ''
 
@@ -441,8 +546,8 @@ class ReturnGoodsHandler(CommonGoodsHandler):
         if return_ids:
             # 删除归还对应的丢失
             lost_ids = Good.getLinkId(return_ids)
-            GoodsCasUtil.set(lost_ids, exp_val=status, new_val=7)
-            Good.batch_update(Good.id.in_(lost_ids), Good.status == status, val={'status': 7})
+            GoodsCasUtil.set(lost_ids, exp_val=status, new_val=-status)
+            Good.batch_update(Good.id.in_(lost_ids), Good.status == status, val={'status': -status})
         elif lost_ids:
             # 删除丢失对应的归还
             return_ids = Good.getLinkId(lost_ids)
@@ -528,7 +633,7 @@ class FoundGoodsHandler(CommonGoodsHandler):
     @classmethod
     def _sendFoundToSys(cls, goods_ids=None, status=1, **kwargs):
         # CAS并发保护
-        ok_goods_id = GoodsCasUtil.filter(goods_ids, exp_val=status, new_val=7)
+        ok_goods_id = GoodsCasUtil.filter(goods_ids, exp_val=status, new_val=-status)
         updated = {'member_id': APP_CONSTANTS['sys_author']['member_id'],
                    'openid': APP_CONSTANTS['sys_author']['openid'],
                    'nickname': APP_CONSTANTS['sys_author']['nickname'],
@@ -536,12 +641,12 @@ class FoundGoodsHandler(CommonGoodsHandler):
         Good.batch_update(Good.status == status, Good.id.in_(ok_goods_id), val=updated)
         db.session.commit()
         # CAS并发保护
-        GoodsCasUtil.set(ok_goods_id, exp_val=7, new_val=status)
+        GoodsCasUtil.set(ok_goods_id, exp_val=-status, new_val=status)
 
     @classmethod
     def _preMarkFound(cls, goods_id=0, status=0, member_id=0, now=datetime.datetime.now(), **kwargs):
-        if not GoodsCasUtil.exec(goods_id, status, 7):
-            # 取消认领会 2——> 1，所以设置 7
+        if not GoodsCasUtil.exec(goods_id, status, -status):
+            # 取消认领会 2——> 1，所以设置 -status
             return False, '操作冲突，请稍后重试'
         # 预认领事务
         MemberService.preMarkGoods(member_id=member_id, goods_id=goods_id)
@@ -552,7 +657,7 @@ class FoundGoodsHandler(CommonGoodsHandler):
         # 认领缓存
         CacheOpService.addPreMarkCache(goods_id=goods_id, member_id=member_id)
         # CAS 解锁
-        GoodsCasUtil.exec(goods_id, 7, 2)
+        GoodsCasUtil.exec(goods_id, -status, 2)
         return True, ''
 
     @classmethod
@@ -599,7 +704,7 @@ class FoundGoodsHandler(CommonGoodsHandler):
                 # 缓存不命中
                 no_mark = Mark.isNoMarkOn(goods_id=found_id)
             if no_mark and GoodsCasUtil.exec(found_id, 2, 1):
-                # 这里不会出问题，因为认领那里，进入后设置成了 7，缓存和数据库都提交后，才会被设置成2。
+                # 这里不会出问题，因为认领那里，进入后设置成了负的，缓存和数据库都提交后，才会被设置成2。
                 no_marks.append(found_id)
         return no_marks
 
@@ -668,6 +773,7 @@ class GoodsHandlers:
     """
     __handlers = {'return': ReturnGoodsHandler,
                   'found': FoundGoodsHandler,
+                  'lost': LostGoodsHandler,
                   'release': GoodsReleaseHandler,
                   'info': GoodsInfoHandler}
 

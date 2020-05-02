@@ -77,15 +77,7 @@ class GoodsSyncUtil:
         :param del_kwargs:
         :return:
         """
-        if not del_kwargs:
-            return
-        if isinstance(del_kwargs, list):
-            # 多个更新
-            for item in del_kwargs:
-                EsService.syncSoftDelGoodsToES(**item)
-        elif isinstance(del_kwargs, dict):
-            # 单个
-            EsService.syncSoftDelGoodsToES(**del_kwargs)
+        pass
 
     @staticmethod
     def __addOrDelGoodsToRedis(redis_kwargs=None):

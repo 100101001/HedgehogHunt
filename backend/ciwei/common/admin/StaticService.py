@@ -35,8 +35,7 @@ def getGoodsStatics():
     scan_return_query = {
         "query": {
             "bool": {
-                "must": [{"match": {"business_type": 2}}],
-                "must_not": [{"match": {"return_goods_id": 0}}]
+                "must": [{"match": {"business_type": 2}}, {"match": {"return_goods_id": 0}}]
             }
         },
         "size": 0
@@ -52,7 +51,7 @@ def getGotBackStatics():
         "query": {
             "bool": {
                 "should": [{"match": {"business_type": 1}}, {"match": {"business_type": 2}},
-                           {"match": {"status": 1}}, {"match": {"status": 2}}],
+                           {"match": {"status": 3}}, {"match": {"status": 4}}, {"match": {"status": -3}}, {"match": {"status": -4}}],
                 "minimum_should_match": 2
             }
         },
@@ -71,7 +70,7 @@ def getViewStatics():
 
 
 def getRecommendStatics():
-    total_recommend = db.session.query(func.count(Recommend.id)).filter(Recommend.status != 7).scalar()
+    total_recommend = db.session.query(func.count(Recommend.id)).scalar()
     hit_recommend = db.session.query(func.count(Recommend.id)).filter(Recommend.found_goods_id == Good.id,
                                                                       Recommend.target_member_id == Good.owner_id).scalar()
     return total_recommend, hit_recommend
@@ -84,7 +83,7 @@ def getReportAndFeedbackStatics():
 
 
 def getMemberStatics():
-    block_member_number = db.session.query(func.count(Member.id)).filter(Member.status == 0).scalar()
+    block_member_number = db.session.query(func.count(Member.id)).filter(Member.status <=0).scalar()
     member_number = db.session.query(func.count(Member.id)).scalar()
     return member_number, block_member_number
 

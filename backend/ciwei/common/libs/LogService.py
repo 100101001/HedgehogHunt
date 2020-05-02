@@ -14,6 +14,7 @@ from application import db
 from common.libs.sms.SMSService import PRODUCT_NAME
 from common.models.ciwei.logs.change.MemberBalanceChangeLog import MemberBalanceChangeLog
 from common.models.ciwei.logs.change.MemberNotifyTimeChangeLog import MemberNotifyTimeChangeLog
+from common.models.ciwei.logs.change.MemberPhoneChangeLog import MemberPhoneChangeLog
 from common.models.ciwei.logs.change.MemberSmsPkgChangeLog import MemberSmsPkgChangeLog
 from common.models.ciwei.logs.change.MemberStatusChangeLog import MemberStatusChangeLog
 from common.models.ciwei.logs.thirdservice.AcsSmsSendLog import AcsSmsSendLog
@@ -147,3 +148,21 @@ def setMemberStatusChange(member_info=None, user_id=0, old_status=0, new_status=
     change_log_model.new_status = new_status
     change_log_model.note = note
     db.session.add(change_log_model)
+
+
+def setMemberMobileChange(member_info=None, new_mobile='', old_mobile=''):
+    """
+    用户手机变更记录
+    :param member_info:
+    :param new_mobile:
+    :param old_mobile:
+    :return:
+    """
+    change_log_model = MemberPhoneChangeLog()
+    change_log_model.member_id = member_info.id
+    change_log_model.openid = member_info.openid
+    change_log_model.new_mobile = new_mobile
+    change_log_model.old_mobile = old_mobile
+    db.session.add(change_log_model)
+
+

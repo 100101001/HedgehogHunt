@@ -33,7 +33,7 @@ class Good(db.Model):
     qr_code_openid = db.Column(db.String(80), nullable=True, index=True, default='', comment="扫描上传信息的二维码id")
     return_goods_id = db.Column(INTEGER(11, unsigned=True), nullable=True, default=0, comment="归还的寻物启示ID")
     return_goods_openid = db.Column(db.String(80), nullable=True, index=True, default='', comment="扫描上传信息的二维码id")
-    status = db.Column(TINYINT(), index=True, nullable=False, default=7, comment="1:待, 2:预, "
+    status = db.Column(TINYINT(), index=True, nullable=False, default=-1, comment="1:待, 2:预, "
                                                                                  "3:已, "
                                                                                  "4:已答谢")
     view_count = db.Column(INTEGER(11, unsigned=True), nullable=False, index=True, default=0, comment="总浏览次数")
@@ -60,7 +60,10 @@ class Good(db.Model):
                 '3': '已认领',
                 '4': '已答谢',
                 '5': '申诉中',
-                '7': '已删除',
+                '-1': '已删除',
+                '-2': '已删除',
+                '-3': '已删除',
+                '-4': '已删除',
             }
         elif self.business_type == 0:
             status_mapping = {
@@ -68,7 +71,10 @@ class Good(db.Model):
                 '2': '预寻回',
                 '3': '已寻回',
                 '4': '已答谢',
-                '7': '已删除',
+                '-1': '已删除',
+                '-2': '已删除',
+                '-3': '已删除',
+                '-4': '已删除',
             }
         else:  # 归还贴子
             status_mapping = {
@@ -77,7 +83,10 @@ class Good(db.Model):
                 '2': '待取回',
                 '3': '已取回',
                 '4': '已答谢',
-                '7': '已删除',
+                '-1': '已删除',
+                '-2': '已删除',
+                '-3': '已删除',
+                '-4': '已删除',
             }
         return status_mapping[str(self.status)]
 
@@ -85,10 +94,10 @@ class Good(db.Model):
     def report_status_desc(self):
         report_status_mapping = {
             '1': '待处理',
-            '0': '无违规',
+            '2': '无违规',
             '3': '已屏蔽',  # 同时作者账号被拉黑，即使恢复账号后也不在恢复的帖子
-            '5': '已屏蔽',
-            '6': '封号贴',
+            '4': '封举报者',
+            '5': '封发布者',
         }
         return report_status_mapping[str(self.report_status)]
 
@@ -128,6 +137,7 @@ class Good(db.Model):
         # 修改成置顶贴子
         if int(edit_info.get('is_top', 0)):
             self.top_expire_time = now + dt.timedelta(days=int(edit_info['days']))
+        self.status = -self.status
         self.updated_time = now
         db.session.add(self)
 
@@ -151,13 +161,13 @@ class Good(db.Model):
         db.session.add(return_goods)
         db.session.add(lost_goods)
 
-    @staticmethod
-    def batch_update(*filters, val=None, rds=None):
-        Good.query.filter(*filters).update(val, redis_arg=rds)
+    @classmethod
+    def batch_update(cls, *filters, val=None, rds=None):
+        cls.query.filter(*filters).update(val, redis_arg=rds)
 
-    @staticmethod
-    def getLinkId(*goods_ids, batch=True):
-        query = Good.query.filter(Good.id.in_(goods_ids)).with_entities(Good.return_goods_id)
+    @classmethod
+    def getLinkId(cls, *goods_ids, batch=True):
+        query = cls.query.filter(cls.id.in_(goods_ids)).with_entities(cls.return_goods_id)
         if batch:
             return query.distinct().all()
         else:
@@ -167,7 +177,6 @@ class Good(db.Model):
         """
         反馈加图
         :param pic:
-        :param total:
         :return:
         """
         if not self.pics:
@@ -179,6 +188,10 @@ class Good(db.Model):
         self.pics = ",".join(pics_list)
         db.session.add(self)
 
-    @staticmethod
-    def getById(goods_id=0):
-        return Good.query.filter_by(id=goods_id).first()
+    @classmethod
+    def getById(cls, goods_id=0):
+        return cls.query.filter_by(id=goods_id).first()
+
+    @classmethod
+    def getNewlyScanReturn(cls, openid=''):
+        return cls.query.filter_by(qr_code_openid=openid, status=1).first()

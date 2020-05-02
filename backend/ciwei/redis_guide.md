@@ -21,7 +21,12 @@
     \"children\": [], \"date_done\": \"2020-04-14T17:22:42.207089\", \"parent_id\": \"40f857d1-8c45-4f3d-8980-bc5c475561db\",
     \"task_id\": \"1821eba0-f205-4e1f-8e7e-8713058f613f\"}"
 
-    数据库1 存放数据缓存（mark+${good_id}=>{mark_member_id}）认领信息 （recommend_+${good_id}=>{recommend_member_id}）推荐数据 （member_${member_id}=>member_info）身份信息
+    数据库1 存放数据缓存
+    （mark+${good_id}=>{mark_member_id}）认领信息 
+    （member_${member_id}=>member_info）身份信息
+    （wechat_token=>{token}）微信access token
+    （all_users=>{member_id=>user_info}）管理员数据
+    （sms_verify_${member_id}=>member_info）验证码
     127.0.0.1:6379[1]> keys *
     1) "member_100001"
     2) "mark_31"

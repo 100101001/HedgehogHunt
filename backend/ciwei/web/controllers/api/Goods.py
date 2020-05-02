@@ -10,18 +10,15 @@ import datetime
 
 from flask import request, jsonify, g
 
-from application import db, app, APP_CONSTANTS
+from application import db, APP_CONSTANTS
 from common.cahce.GoodsCasUtil import GoodsCasUtil
 from common.libs.GoodsService import GoodsHandlers
 from common.libs.Helper import param_getter
 from common.libs.RecordService import RecordHandlers
 from common.libs.UploadService import UploadService
 from common.libs.UrlManager import UrlManager
-from common.libs.mall.PayService import PayService
-from common.libs.mall.WechatService import WeChatService
 from common.loggin.time import time_log
 from common.models.ciwei.Goods import Good
-from common.models.ciwei.GoodsTopOrder import GoodsTopOrder
 from web.controllers.api import route_api
 
 TOP_PRICE = APP_CONSTANTS['sp_product']['top']['price']
@@ -30,87 +27,26 @@ TOP_PRICE = APP_CONSTANTS['sp_product']['top']['price']
 @route_api.route("/goods/top/order", methods=['POST', 'GET'])
 @time_log
 def topOrder():
-    resp = {'code': -1, 'msg': 'success', 'data': {}}
+    resp = {'code': -1, 'msg': '服务繁忙，请稍后重试', 'data': {}}
     req = request.values
     member_info = g.member_info
     if not member_info:
         resp['msg'] = "请先登录"
-        return jsonify(resp)
-
-    # 数据库下单
-    wechat_service = WeChatService(merchant_key=app.config['OPENCS_APP']['mch_key'])
-    pay_service = PayService()
-    model_order = GoodsTopOrder(order_sn=pay_service.geneGoodsTopOrderSn(), consumer=member_info,
-                                price=req.get('price', TOP_PRICE), top_charge=TOP_PRICE)
-    # 微信下单
-    pay_data = {
-        'appid': app.config['OPENCS_APP']['appid'],
-        'mch_id': app.config['OPENCS_APP']['mch_id'],
-        'nonce_str': wechat_service.get_nonce_str(),
-        'body': '鲟回-置顶',
-        'out_trade_no': model_order.order_sn,
-        'total_fee': int(model_order.price * 100),
-        'notify_url': app.config['APP']['domain'] + "/api/goods/top/order/notify",
-        'time_expire': (datetime.datetime.now() + datetime.timedelta(minutes=5)).strftime("%Y%m%d%H%M%S"),
-        'trade_type': 'JSAPI',
-        'openid': member_info.openid
-    }
-    pay_sign_data = wechat_service.get_pay_info(pay_data=pay_data)
+        return resp
+    pay_sign_data = GoodsHandlers.get('lost').deal('init_top_pay', consumer=member_info,
+                                                   price=req.get('price', TOP_PRICE), top_charge=TOP_PRICE)
     if not pay_sign_data:
-        resp['msg'] = "微信服务器繁忙，请稍后重试"
-        return jsonify(resp)
-    model_order.status = 0
-    db.session.add(model_order)
-    db.session.commit()
+        return resp
     resp['data'] = pay_sign_data
     resp['code'] = 200
-    return jsonify(resp)
+    return resp
 
 
 @route_api.route('/goods/top/order/notify', methods=['GET', 'POST'])
 @time_log
 def topOrderCallback():
-    result_data = {
-        'return_code': 'SUCCESS',
-        'return_msg': 'OK'
-    }
-    header = {'Content-Type': 'application/xml'}
-    app_config = app.config['OPENCS_APP']
-    target_wechat = WeChatService(merchant_key=app_config['mch_key'])
-    callback_data = target_wechat.xml_to_dict(request.data)
-    app.logger.info(callback_data)
-
-    # 检查签名
-    sign = callback_data['sign']
-    callback_data.pop('sign')
-    gene_sign = target_wechat.create_sign(callback_data)
-    app.logger.info(gene_sign)
-    if sign != gene_sign:
-        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
-        return target_wechat.dict_to_xml(result_data), header
-    if callback_data['result_code'] != 'SUCCESS':
-        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
-        return target_wechat.dict_to_xml(result_data), header
-    # 检查订单金额
-    order_sn = callback_data['out_trade_no']
-    pay_order_info = GoodsTopOrder.query.filter_by(order_sn=order_sn).first()
-    if not pay_order_info:
-        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
-        return target_wechat.dict_to_xml(result_data), header
-    if int(pay_order_info.price * 100) != int(callback_data['total_fee']):
-        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
-        return target_wechat.dict_to_xml(result_data), header
-
-    # 更新订单的支付/物流状态, 记录日志
-    # 订单状态已回调更新过直接返回
-    if pay_order_info.status == 1:
-        return target_wechat.dict_to_xml(result_data), header
-    # 订单状态未回调更新过
-    target_pay = PayService()
-    target_pay.goodsTopOrderSuccess(pay_order_id=pay_order_info.id, params={"pay_sn": callback_data['transaction_id'],
-                                                                            "paid_time": callback_data['time_end']})
-    target_pay.addGoodsTopPayCallbackData(pay_order_id=pay_order_info.id, data=request.data)
-    return target_wechat.dict_to_xml(result_data), header
+    xml_data, header = GoodsHandlers.get('lost').deal('finish_top_pay', callback_body=request.data)
+    return xml_data, header
 
 
 @route_api.route("/goods/create", methods=['GET', 'POST'])
@@ -120,30 +56,27 @@ def goodsCreate():
     预发帖
     :return: 图片->是否在服务器上 , 前端再次上传真正需要上传的图片
     """
-    resp = {'code': -1, 'msg': 'create goods data successfully(goods/add)', 'data': {}}
-
+    resp = {'code': -1, 'msg': '', 'data': {}}
     # 检查登陆
     # 检查参数: goods_name, business_type
     req = request.values
     member_info = g.member_info
     if not member_info:
-        resp['msg'] = "没有用户信息，无法发布，请授权登陆！"
-        return jsonify(resp)
+        resp['msg'] = "请先登录"
+        return resp
     business_type = int(req.get('business_type', -1))
     if business_type not in (0, 1, 2):
         resp['msg'] = "发布失败"
-        resp['data'] = req
-        return jsonify(resp)
-
-    model_goods = GoodsHandlers.get('release').deal('init', biz_typo=business_type, author_info=member_info, release_info=req,
-                                           is_scan_return='owner_name' not in req)
+        return resp
+    model_goods = GoodsHandlers.get('release').deal('init', biz_typo=business_type, author_info=member_info,
+                                                    release_info=req, is_scan_return='owner_name' not in req)
 
     resp['code'] = 200
-    resp['id'] = model_goods.id
+    resp['data']['id'] = model_goods.id
     db.session.commit()
     img_list_status = UploadService.filterUpImages(req['img_list'])  # 图片列表发布时已判空
-    resp['img_list_status'] = img_list_status
-    return jsonify(resp)
+    resp['data']['img_list_status'] = img_list_status
+    return resp
 
 
 @route_api.route("/goods/edit", methods=['GET', 'POST'])
@@ -164,7 +97,8 @@ def goodsEdit():
     goods_id, status = int(req.get('id', -1)), int(req.get('status', -1))
     if goods_id == -1 or status == -1:
         return resp
-    op_res, op_out = GoodsHandlers.get('release').deal('init_edit', biz_typo=-1, status=status, goods_id=goods_id, edit_info=req)
+    op_res, op_out = GoodsHandlers.get('release').deal('init_edit', biz_typo=-1, status=status, goods_id=goods_id,
+                                                       edit_info=req)
     if not op_res:
         resp['msg'] = op_out
         return resp
@@ -186,27 +120,24 @@ def goodsAddPics():
     :return: 成功
     """
     resp = {'code': -1, 'msg': '图片上传失败', 'state': 'add pics success'}
-
     # 检查参数 检查已登陆
     req = request.values
     member_info = g.member_info
     if not member_info:
         resp['msg'] = '请先登录'
-        return jsonify(resp)
-    goods_id, image = req.get('id', -1), request.files.get('file', None)
+        return resp
+    goods_id, image = int(req.get('id', -1)), request.files.get('file', None)
     if goods_id == -1 or not image:
         return resp
     goods_info = Good.query.filter_by(id=goods_id).with_for_update().first()
     if not goods_info:
         return resp
-
     # 保存文件到 /web/static/upload/日期 目录下 db 新增images
-    ret = UploadService.uploadByFile(image)
-    if ret['code'] != 200:
+    upload_res = UploadService.uploadByFile(image)
+    if upload_res['code'] != 200:
         return resp
-
     # 在id号物品的 pics 字段加入图片本地路径
-    goods_info.addImage(pic=ret['data']['file_key'])
+    goods_info.addImage(pic=upload_res['data']['file_key'])
     db.session.commit()
     resp['code'] = 200
     return resp
@@ -219,7 +150,7 @@ def goodsUpdatePics():
     更新物品图片
     :return: 成功
     """
-    resp = {'code': -1, 'msg': '上传数据失败', 'data': {}}
+    resp = {'code': -1, 'msg': '上传数据失败'}
     req = request.values
 
     # 检查登陆
@@ -250,7 +181,7 @@ def goodsEndCreate():
     结束创建
     :return:
     """
-    resp = {'code': -1, 'msg': '操作成功', 'state': 'add pics success'}
+    resp = {'code': -1, 'msg': '创建失败，稍后重试'}
 
     # 检查登陆
     # 检查参数：物品id
@@ -261,20 +192,20 @@ def goodsEndCreate():
         return resp
     goods_id = int(req.get('id', -1))
     if goods_id == -1:
-        resp['msg'] = "创建失败，稍后重试"
         return resp
-    goods_info = Good.query.filter_by(id=goods_id).first()
-    if not goods_info:
-        resp['msg'] = '创建失败，稍后重试'
+    init_goods = Good.query.filter_by(id=goods_id).first()
+    if not init_goods:
         return resp
+    # 区分编辑和非编辑
     is_edit = int(req.get('edit', 0))
-    edit_info = {
-        'need_recommend': int(req.get('keyword_modified', 0)),
-        'modified': int(req.get('modified', 0))
+    biz_typo = -1 if is_edit else init_goods.business_type  # 编辑是公共handler处理
+    op = 'finish_edit' if is_edit else 'created'  # 编辑的策略不同
+    edit_info = {  # 编辑需要额外的推荐信息是否被修改的数据
+        'need_recommend': int(req.get('keyword_modified', 0)),  # 原来推荐作废需要再次推荐
+        'modified': int(req.get('modified', 0))  # 原来的推荐需要更新为未读推荐
     } if is_edit else None
-    biz_typo = -1 if is_edit else goods_info.business_type
-    GoodsHandlers.get('release').deal('created', biz_typo=biz_typo, goods_info=goods_info, edit_info=edit_info,
-                             lost_id=int(req.get('target_goods_id', -1)), notify_id=req.get('notify_id', ''))
+    GoodsHandlers.get('release').deal(op, biz_typo=biz_typo, goods_info=init_goods, edit_info=edit_info,
+                                      lost_id=int(req.get('target_goods_id', -1)), notify_id=req.get('notify_id', ''))
     resp['code'] = 200
     return resp
 
@@ -312,9 +243,9 @@ def goodsSearch():
         resp['msg'] = "获取失败"
         return jsonify(resp)
     status = int(req.get('status', -1))
-    if status == -1:
+    if status not in (1, 2, 3, 4):
         resp['msg'] = '获取失败'
-        return jsonify(resp)
+        return resp
 
     p = int(req.get('p', 1))
     goods_list = RecordHandlers.get('goods').search().deal(op_status=-1,
@@ -326,6 +257,8 @@ def goodsSearch():
                                                            p=p)
 
     def status_desc(goods_status):
+        if goods_status < 0:
+            return '已删除'
         if business_type == 1:
             status_mapping = {
                 '1': '待认领',
@@ -333,15 +266,13 @@ def goodsSearch():
                 '3': '已认领',
                 '4': '已答谢',
                 '5': '申诉中',
-                '7': '已删除',
             }
         elif business_type == 0:
             status_mapping = {
                 '1': '待寻回',
                 '2': '预寻回',
                 '3': '已寻回',
-                '4': '已答谢',
-                '7': '已删除',
+                '4': '已答谢'
             }
         else:  # 归还贴子
             status_mapping = {
@@ -349,8 +280,7 @@ def goodsSearch():
                 '1': '待确认',
                 '2': '待取回',
                 '3': '已取回',
-                '4': '已答谢',
-                '7': '已删除',
+                '4': '已答谢'
             }
         return status_mapping[str(goods_status)]
 
@@ -387,8 +317,7 @@ def goodsSearch():
     resp['data']['list'] = data_goods_list
     resp['data']['has_more'] = len(data_goods_list) >= APP_CONSTANTS['page_size'] and p < APP_CONSTANTS[
         'max_pages_allowed']  # 由于深度分页的性能问题，限制页数(鼓励使用更好的搜索条件获取较少的数据量)
-    resp['business_type'] = business_type
-    return jsonify(resp)
+    return resp
 
 
 @route_api.route('/goods/info')
@@ -408,16 +337,17 @@ def goodsInfo():
     goods_id = int(req.get('id', -1))
     if goods_id == -1:
         resp['msg'] = '帖子不存在'
-        return jsonify(resp)
+        return resp
     goods_info = Good.query.filter_by(id=goods_id).first()
-    if not goods_info or goods_info.status == 7:
+    if not goods_info or goods_info.status < 0:
         resp['msg'] = '作者已删除'
-        return jsonify(resp)
+        return resp
     if goods_info.report_status != 0:
         resp['msg'] = '帖子遭举报，已冻结待管理员处理。若无违规将解冻，否则将被系统自动屏蔽。'
         return resp
     # 浏览量
-    handler = GoodsHandlers.get('info')(goods_info=goods_info, member_info=g.member_info, has_read=int(req.get('read', 1)))
+    handler = GoodsHandlers.get('info')(goods_info=goods_info, member_info=g.member_info,
+                                        has_read=int(req.get('read', 1)))
     handler.deal('read')
     handler.deal('checked', is_recommend_src=int(req.get('op_status', 0)) == 2)
     # 获取数据
@@ -506,7 +436,6 @@ def goodsCancelApplyInBatch():
     """
     resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
-
     # 检查登陆 检查参数
     member_info = g.member_info
     if not member_info:
@@ -542,7 +471,8 @@ def goodsGotbackInBatch():
     if goods_ids is None or status != 2:
         resp['msg'] = '确认失败'
         return resp
-    op_res, op_msg = GoodsHandlers.get('found').deal('gotback', goods_ids=goods_ids, status=status, member_id=member_info.id)
+    op_res, op_msg = GoodsHandlers.get('found').deal('gotback', goods_ids=goods_ids, status=status,
+                                                     member_id=member_info.id)
     resp['code'] = 200 if op_res else -1
     resp['msg'] = op_msg
     return resp
@@ -659,7 +589,8 @@ def returnGoodsConfirm():
         # 检查登陆
         resp['msg'] = "请先登录"
         return resp
-    op_res, op_msg = GoodsHandlers.get('return').deal('confirm', return_id=goods_id, status=status, confirmer_id=member_info.id)
+    op_res, op_msg = GoodsHandlers.get('return').deal('confirm', return_id=goods_id, status=status,
+                                                      confirmer_id=member_info.id)
     resp['code'] = 200 if op_res else -1
     resp['msg'] = op_msg
     return jsonify(resp)
@@ -689,13 +620,13 @@ def returnGoodsGotbackInBatch():
     status = int(req.get('status', -1))
     if goods_ids is None or business_type not in (0, 2) or status != 2:  # 2代表从归还贴/通知批量确认，0代表从寻物贴/详情批量确认
         resp['msg'] = '操作失败'
-        return jsonify(resp)
+        return resp
 
     op_res, op_msg = GoodsHandlers.get('return').deal('gotback', goods_ids=goods_ids, member_id=member_info.id,
-                                             status=status, biz_type=business_type)
+                                                      status=status, biz_type=business_type)
     resp['code'] = 200 if op_res else -1
     resp['msg'] = op_msg
-    return jsonify(resp)
+    return resp
 
 
 @route_api.route('/goods/link/lost/del', methods=['GET'])
@@ -710,10 +641,10 @@ def returnLinkLostDelInBatch():
     return_ids, status = param_getter['ids'](req.get('ids', None)), int(req.get('status', 0))
     if return_ids is None or status not in (3, 4):
         resp['msg'] = "智能清除失败，请手动删除"
-        return jsonify(resp)
+        return resp
     GoodsHandlers.get('return').deal('del_link', return_ids=return_ids, status=status)
     resp['code'] = 200
-    return jsonify(resp)
+    return resp
 
 
 @route_api.route('/goods/link/return/del', methods=['GET'])
@@ -728,15 +659,14 @@ def returnLinkReturnDelInBatch():
     lost_ids = param_getter['ids'](req.get('ids', None))
     if lost_ids is None:
         resp['msg'] = "智能清除失败，请手动删除"
-        return jsonify(resp)
+        return resp
     GoodsHandlers.get('return').deal('del_link', lost_ids=lost_ids)
     resp['code'] = 200
-    return jsonify(resp)
+    return resp
 
 
-@route_api.route('/goods/test/9')
-@time_log
-def test9():
-    import sys
-    from common.exceptions import ConflictException
-    raise ConflictException('冲突', func_name=sys._getframe().f_back.f_code.co_name)
+@route_api.route('/test')
+def test():
+    from common.models.proxy.MemberProxy import MemberProxy
+    a = MemberProxy()
+    b = MemberProxy()

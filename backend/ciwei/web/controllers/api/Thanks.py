@@ -6,22 +6,48 @@
 @file: Thanks.py
 @desc: 答谢接口
 """
-import datetime
-from _pydecimal import Decimal
 
 from flask import request, jsonify, g
 
-from application import app, db, APP_CONSTANTS
-from common.libs import ThanksService
-from common.libs.Helper import param_getter, queryToDict
+from application import APP_CONSTANTS
+from common.libs.Helper import param_getter
 from common.libs.RecordService import RecordHandlers
-from common.libs.mall.PayService import PayService
-from common.libs.mall.WechatService import WeChatService
+from common.libs.ThanksService import ThankHandler
 from common.loggin.time import time_log
-from common.models.ciwei.ThankOrder import ThankOrder
 from common.models.ciwei.Thanks import Thank
-from common.tasks.subscribe import SubscribeTasks
 from web.controllers.api import route_api
+
+
+@route_api.route("/thank/order", methods=['POST', 'GET'])
+@time_log
+def thankOrderInit():
+    resp = {'code': -1, 'msg': '服务繁忙，稍后重试', 'data': {}}
+    req = request.values
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = "请先登录"
+        return resp
+    price = req.get('price')
+    if not price:
+        resp['msg'] = "支付失败"
+        return resp
+
+    pay_sign_data = ThankHandler.deal('init_pay', consumer=member_info, price=price, discount=req.get('discount', '0'))
+    if not pay_sign_data:
+        return resp
+    # 数据库下单
+    resp['data'] = pay_sign_data
+    return resp
+
+
+@route_api.route('/thank/order/notify', methods=['GET', 'POST'])
+def thankOrderCallback():
+    """
+    支付回调
+    :return:
+    """
+    xml_data, header = ThankHandler.deal('finish_pay', callback_body=request.data)
+    return xml_data, header
 
 
 @route_api.route("/thanks/create", methods=['GET', 'POST'])
@@ -32,35 +58,14 @@ def thanksCreate():
     :return:
     """
     # 创建答谢，金额交易。状态更新
-    try:
-        resp = {'code': -1, 'msg': '', 'data': {}}
-        member_info = g.member_info
-        if not member_info:
-            resp['msg'] = "请先登录"
-            return jsonify(resp)
-        req = request.values
-        thank_model = ThanksService.sendThanksToGoods(send_member=member_info, thanked_goods=req, thank_info=req)
-        # 标记goods方便详情帖子获取是否已经答谢过（答谢接口频率低于详情），和记录接口查看已答谢记录
-        business_type = int(req.get('business_type', 0))
-        if business_type == 1:
-            # 帖子和认领记录一起更新
-            ThanksService.updateThankedFoundStatus(found_id=thank_model.goods_id, send_member_id=member_info.id)
-        elif business_type == 2:
-            # 归还和寻物帖子一起更新
-            ThanksService.updateThankedReturnStatus(return_id=thank_model.goods_id)
-        thanks_info = queryToDict(thank_model)
-        db.session.commit()
-        resp['code'] = 200
-    except Exception as e:
-        app.logger.error('{0}: {1}'.format(request.path, str(e)))
-        db.session.rollback()
-        resp = {'code': -1, 'msg': '服务异常, 涉及交易请立刻联系技术支持', 'data': {}}
+    resp = {'code': -1, 'msg': '', 'data': {}}
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = "请先登录"
         return resp
-    try:
-        # 即使发生了异常也不会影响已经支付答谢过的
-        SubscribeTasks.send_thank_subscribe.delay(thank_info=thanks_info)
-    except Exception as e:
-        app.logger.error('{0}: {1}'.format(request.path, str(e)))
+    req = request.values
+    ThankHandler.deal('create', sender=member_info, gotback_goods=req, thank_info=req)
+    resp['code'] = 200
     return resp
 
 
@@ -85,10 +90,10 @@ def thanksSearch():
     status = 1 我发出的
     """
     report_rule = Thank.report_status.in_([0, 1]) if status else Thank.report_status == 0
+
     thanks = RecordHandlers.get('thanks').search().deal(status,
                                                         member_id=member_info.id,
-                                                        only_new=req.get(
-                                                            'only_new') == 'true',
+                                                        only_new=req.get('only_new') == 'true',
                                                         # 搜索，分页，排序
                                                         owner_name=req.get('owner_name'),
                                                         goods_name=req.get('mix_kw'),
@@ -123,22 +128,8 @@ def thanksSearch():
     return resp
 
 
-@route_api.route("/thanks/read", methods=['GET', 'POST'])
-@time_log
-def thankStatusUpdate():
-    """
-    退出页面时，自动更新答谢为已读
-    :return:
-    """
-    member_info = g.member_info
-    if not member_info:
-        return ""
-    Thank.query.filter_by(target_member_id=member_info.id, status=0).update({'status': 1}, synchronize_session=False)
-    db.session.commit()
-    return ""
-
-
 @route_api.route("/thanks/delete", methods=['GET', 'POST'])
+@time_log
 def thanksDelete():
     """
     删除自己收到和发出的答谢记录
@@ -167,102 +158,13 @@ def thanksDelete():
     return resp
 
 
-@route_api.route("/thank/order", methods=['POST', 'GET'])
-def createThankOrder():
-    resp = {'code': -1, 'msg': 'success', 'data': {}}
-    req = request.values
-    member_info = g.member_info
-    if not member_info:
-        resp['msg'] = "请先登录"
-        return jsonify(resp)
-    price = Decimal(req.get('price', '0')).quantize(Decimal('0.00'))
-    if not price:
-        resp['msg'] = "支付失败"
-        return jsonify(resp)
-
-    # 数据库下单
-    wechat_service = WeChatService(merchant_key=app.config['OPENCS_APP']['mch_key'])
-    pay_service = PayService()
-    model_order = ThankOrder()
-    model_order.order_sn = pay_service.geneThankOrderSn()
-    model_order.openid = member_info.openid
-    model_order.member_id = member_info.id
-    model_order.price = price
-    model_order.balance_discount = Decimal(req.get('discount', '0')).quantize(Decimal('0.00'))
-    order_sn = model_order.order_sn
-    # 微信下单
-    pay_data = {
-        'appid': app.config['OPENCS_APP']['appid'],
-        'mch_id': app.config['OPENCS_APP']['mch_id'],
-        'nonce_str': wechat_service.get_nonce_str(),
-        'body': '闪寻-答谢',
-        'out_trade_no': order_sn,
-        'total_fee': int(model_order.price * 100),
-        'notify_url': app.config['APP']['domain'] + "/api/thank/order/notify",
-        'time_expire': (datetime.datetime.now() + datetime.timedelta(minutes=5)).strftime("%Y%m%d%H%M%S"),
-        'trade_type': 'JSAPI',
-        'openid': member_info.openid
-    }
-    pay_sign_data = wechat_service.get_pay_info(pay_data=pay_data)
-    if not pay_sign_data:
-        resp['msg'] = "微信服务器繁忙，请稍后重试"
-        return jsonify(resp)
-    model_order.status = 0
-    db.session.add(model_order)
-    db.session.commit()
-    resp['code'] = 200
-    resp['data'] = pay_sign_data
-    resp['data']['thank_order_sn'] = order_sn
-    return jsonify(resp)
-
-
-@route_api.route('/thank/order/notify', methods=['GET', 'POST'])
-def thankOrderCallback():
+@route_api.route("/thanks/read", methods=['GET', 'POST'])
+@time_log
+def thankRead():
     """
-    支付回调
+    退出页面时，自动更新答谢为已读
     :return:
     """
+    ThankHandler.deal('read', member_info=g.member_info)
+    return ""
 
-    result_data = {
-        'return_code': 'SUCCESS',
-        'return_msg': 'OK'
-    }
-    header = {'Content-Type': 'application/xml'}
-    app_config = app.config['OPENCS_APP']
-    target_wechat = WeChatService(merchant_key=app_config['mch_key'])
-    callback_data = target_wechat.xml_to_dict(request.data)
-    app.logger.info(callback_data)
-
-    # 检查签名和订单金额
-    sign = callback_data['sign']
-    callback_data.pop('sign')
-    gene_sign = target_wechat.create_sign(callback_data)
-    app.logger.info(gene_sign)
-    if sign != gene_sign:
-        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
-        return target_wechat.dict_to_xml(result_data), header
-    if callback_data['result_code'] != 'SUCCESS':
-        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
-        return target_wechat.dict_to_xml(result_data), header
-
-    order_sn = callback_data['out_trade_no']
-    thank_order_info = ThankOrder.query.filter_by(order_sn=order_sn).first()
-    if not thank_order_info:
-        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
-        return target_wechat.dict_to_xml(result_data), header
-
-    if int(thank_order_info.price * 100) != int(callback_data['total_fee']):
-        result_data['return_code'] = result_data['return_msg'] = 'FAIL'
-        return target_wechat.dict_to_xml(result_data), header
-
-    # 更新订单的支付状态, 记录日志
-
-    # 订单状态已回调更新过直接返回
-    if thank_order_info.status == 1:
-        return target_wechat.dict_to_xml(result_data), header
-    # 订单状态未回调更新过
-    target_pay = PayService()
-    target_pay.thankOrderSuccess(thank_order_id=thank_order_info.id, params={"pay_sn": callback_data['transaction_id'],
-                                                                             "paid_time": callback_data['time_end']})
-    target_pay.addThankPayCallbackData(thank_order_id=thank_order_info.id, data=request.data)
-    return target_wechat.dict_to_xml(result_data), header

@@ -13,9 +13,6 @@ app.register_blueprint(route_api,url_prefix='/api')
 from web.controllers.exception import exception
 app.register_blueprint(exception, url_prefix='/error')
 
-from web.controllers.upload.Upload import route_upload
-app.register_blueprint( route_upload,url_prefix = "/upload" )
-
 #用于加载静态文件，没有这个路由则图片都无法加载
 from web.controllers.static import route_static
 app.register_blueprint(route_static,url_prefix='/static')

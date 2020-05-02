@@ -6,82 +6,195 @@
 @file: ThanksService.py
 @desc: 
 """
-import datetime
-from decimal import Decimal
-
+from datetime import datetime
+import datetime as dt
 from sqlalchemy import or_
 
-from application import db
+from application import db, app
 from common.cahce.GoodsCasUtil import GoodsCasUtil
+from common.libs.Helper import queryToDict
 from common.libs.MemberService import MemberService
+from common.libs.mall.PayService import PayService
+from common.libs.mall.WechatService import WeChatService
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
+from common.models.ciwei.ThankOrder import ThankOrder
 from common.models.ciwei.Thanks import Thank
+from common.models.ciwei.logs.thirdservice.ThankOrderCallbackData import ThankOrderCallbackData
+from common.tasks.subscribe import SubscribeTasks
 
 
-def sendThanksToGoods(send_member=None, thanked_goods=None, thank_info=None):
-    """
+class ThankHandler:
 
-    :param send_member: 答谢者信息
-    :param thanked_goods: 答谢物品信息
-    :param thank_info: 答谢信息
-    :return:
-    """
-    thanks_model = Thank()
-    # 发出答谢的用户信息
-    thanks_model.member_id = send_member.id  # 发出答谢的人
-    thanks_model.nickname = send_member.nickname  # 发出答谢的人
-    thanks_model.avatar = send_member.avatar  # 发出答谢的人
-    # 被答谢物品信息
-    thanks_model.target_member_id = int(thanked_goods.get('auther_id', 0))
-    thanks_model.goods_id = int(thanked_goods.get('goods_id', 0))  # 答谢的物品id
-    thanks_model.goods_name = thanked_goods.get('goods_name', '拾物')  # 答谢的物品名
-    thanks_model.owner_name = thanked_goods.get('owner_name', '无')  # 答谢的物品的失主名
-    business_type = int(thanked_goods.get('business_type', 1))  # 答谢的物品类型
-    thanks_model.business_desc = "拾到" if business_type == 1 else "归还"
-    # 答谢信息
-    thanks_model.thank_price = Decimal(thank_info.get('target_price', '0')).quantize(Decimal('0.00'))  # 答谢金额
-    thanks_model.order_sn = thank_info.get('order_sn', '')  # 答谢支付订单
-    thanks_model.summary = thank_info.get('thanks_text', '谢谢你的举手之劳！')  # 答谢文字，前端已判空
+    __strategy_map = {
+        'init_pay': '_initThankPay',
+        'finish_pay': '_finishThankPay',
+        'create': '_createThanks',
+        'insert_trig': '_insertThanksTrigger',
+        'read': '_readReceivedThanks',
+    }
 
-    # 金额转入目标用户余额
-    MemberService.updateBalance(member_id=thanks_model.target_member_id, unit=thanks_model.thank_price)
-    db.session.add(thanks_model)
-    return thanks_model
+    wechat = WeChatService(merchant_key=app.config['OPENCS_APP']['mch_key'])
 
 
-def updateThankedFoundStatus(found_id=0, send_member_id=0):
-    """
-    更新认领记录和拾物状态
-    :param found_id:
-    :param send_member_id:
-    :return:
-    """
-    if not found_id or not send_member_id:
-        return
-    if GoodsCasUtil.exec_wrap(found_id, ['nil', 3], 4):
-        # 如果没有被删除就更新为已答谢，否则不更新
-        Good.batch_update(Good.id == found_id, Good.status == 3,
-                          val={'status': 4, 'thank_time': datetime.datetime.now()})
+    @classmethod
+    def deal(cls, op, **kwargs):
+        strategy = cls.__strategy_map.get(op)
+        handler = getattr(cls, strategy, None)
+        if handler:
+            return handler(**kwargs)
 
 
-def updateThankedReturnStatus(return_id=0):
-    """
-    更新归还物和对应的寻物状态
-    :param return_id:
-    :return:
-    """
-    if not return_id:
-        return
-    lost_id = Good.getLinkId(return_id, batch=False)
-    # 对方可能正好删除了归还帖子，但寻物贴只有答谢者自己才能删除的帖子，不可能并发操作
-    updated = {'status': 4, 'thank_time': datetime.datetime.now()}
-    GoodsCasUtil.exec_wrap(lost_id, ['nil', 3], 4)  # 寻物贴只有自己能操作状态，所以不会冲突
-    if GoodsCasUtil.exec_wrap(return_id, ['nil', 3], 4):  # 归还帖对方可以删除让状态变为 7
-        # 不存在并发操作
-        Good.batch_update(or_(Good.id == return_id, Good.id == lost_id[0]),
-                          Good.status == 3, val=updated)
-    else:
-        # 对方正好删除了归还帖子
-        Good.batch_update(Good.id == lost_id[0],
-                          Good.status == 3, val=updated)
+    @classmethod
+    def _initThankPay(cls, consumer=None, price='', discount='', **kwargs):
+        # 数据库下单
+        model_order = ThankOrder(consumer=consumer, price=price, discount=discount)
+        order_sn = model_order.order_sn
+        # 微信下单
+        pay_data = {
+            'appid': app.config['OPENCS_APP']['appid'],
+            'mch_id': app.config['OPENCS_APP']['mch_id'],
+            'nonce_str': cls.wechat.get_nonce_str(),
+            'body': '鲟回-答谢',
+            'out_trade_no': order_sn,
+            'total_fee': int(model_order.price * 100),
+            'notify_url': app.config['APP']['domain'] + "/api/thank/order/notify",
+            'time_expire': (datetime.now() + dt.timedelta(minutes=5)).strftime("%Y%m%d%H%M%S"),
+            'trade_type': 'JSAPI',
+            'openid': model_order.openid
+        }
+        pay_sign_data = cls.wechat.get_pay_info(pay_data=pay_data)
+        if not pay_sign_data:
+            return None
+        model_order.status = 0
+        db.session.commit()
+        pay_sign_data['thank_order_sn'] = order_sn
+        return pay_sign_data
+
+
+    @classmethod
+    def _finishThankPay(cls, callback_body=None, **kwargs):
+        result_data = {
+            'return_code': 'SUCCESS',
+            'return_msg': 'OK'
+        }
+        header = {'Content-Type': 'application/xml'}
+        # app_config =
+
+        callback_data = cls.wechat.xml_to_dict(callback_body)
+        app.logger.info(callback_data)
+
+        # 检查签名和订单金额
+        sign = callback_data['sign']
+        callback_data.pop('sign')
+        gene_sign = cls.wechat.create_sign(callback_data)
+        app.logger.info(gene_sign)
+        if sign != gene_sign:
+            result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+            return cls.wechat.dict_to_xml(result_data), header
+        if callback_data['result_code'] != 'SUCCESS':
+            result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+            return cls.wechat.dict_to_xml(result_data), header
+
+        order_sn = callback_data['out_trade_no']
+        thank_order_info = ThankOrder.getByOrderSn(order_sn)
+        if not thank_order_info:
+            result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+            return cls.wechat.dict_to_xml(result_data), header
+
+        if int(thank_order_info.price * 100) != int(callback_data['total_fee']):
+            result_data['return_code'] = result_data['return_msg'] = 'FAIL'
+            return cls.wechat.dict_to_xml(result_data), header
+
+        # 更新订单的支付状态, 记录日志
+        # 订单状态已回调更新过直接返回
+        if thank_order_info.status == 1:
+            return cls.wechat.dict_to_xml(result_data), header
+        # 订单状态未回调更新过
+        cls.__thankOrderSuccess(order_info=thank_order_info,
+                                params={"pay_sn": callback_data['transaction_id'],
+                                        "paid_time": callback_data['time_end']})
+        cls.__addCallbackData(thank_order_id=thank_order_info.id, data=callback_body)
+        db.session.commit()
+        return cls.wechat.dict_to_xml(result_data), header
+
+
+    @staticmethod
+    def __thankOrderSuccess(order_info=0, params=None, **kwargs):
+        """
+        支付成功后,更新订单状态
+        :param order_info:
+        :param params:
+        :return: 数据库操作成功
+        """
+        PayService.orderPaid(order_info=order_info, params=params)
+
+    @staticmethod
+    def __addCallbackData(thank_order_id=0, data='', **kwargs):
+        """
+        微信支付回调记录
+        :param thank_order_id:
+        :param data:
+        :return:
+        """
+        # 新增
+        PayService.addCallbackData(ThankOrderCallbackData, 'thank_order_id', thank_order_id, data=data)
+
+    @classmethod
+    def _createThanks(cls, sender=None, gotback_goods=None, thank_info=None, **kwargs):
+        """
+
+        :param sender: 答谢者信息
+        :param gotback_goods: 答谢物品信息
+        :param thank_info: 答谢信息
+        :return:
+        """
+        thanks_model = Thank(sender=sender, gotback_goods=gotback_goods, thank_info=thank_info)
+        # 发出答谢的用户信息
+        # 金额转入目标用户余额
+        MemberService.updateBalance(member_id=thanks_model.target_member_id, unit=thanks_model.thank_price)
+        SubscribeTasks.send_thank_subscribe.delay(thank_info=queryToDict(thanks_model))
+        db.session.commit()
+
+    @classmethod
+    def _readReceivedThanks(cls, member_info=None, **kwargs):
+        if member_info:
+            Thank.readReceivedThanks(member_id=member_info.id)
+            db.session.commit()
+
+
+    @classmethod
+    def _insertThanksTrigger(cls, biz_typo=0, goods_id=0, sender_id=0, **kwargs):
+        if biz_typo == "拾到":
+            # 帖子和认领记录一起更新
+            cls.__updateThankedFoundStatus(found_id=goods_id, send_member_id=sender_id)
+        else:
+            # 归还和寻物帖子一起更新
+            cls.__updateThankedReturnStatus(return_id=goods_id)
+        Mark.thanked(member_id=sender_id, goods_id=goods_id)
+
+    @classmethod
+    def __updateThankedFoundStatus(cls, found_id=0, send_member_id=0):
+        if not found_id or not send_member_id:
+            return
+        if GoodsCasUtil.exec_wrap(found_id, ['nil', 3], 4):
+            # 如果没有被删除就更新为已答谢，否则不更新
+            Good.batch_update(Good.id == found_id, Good.status == 3,
+                              val={'status': 4, 'thank_time': datetime.now()})
+
+    @classmethod
+    def __updateThankedReturnStatus(cls, return_id=0):
+        if not return_id:
+            return
+        lost_id = Good.getLinkId(return_id, batch=False)
+        # 对方可能正好删除了归还帖子，但寻物贴只有答谢者自己才能删除的帖子，不可能并发操作
+        updated = {'status': 4, 'thank_time': datetime.now()}
+        GoodsCasUtil.exec_wrap(lost_id, ['nil', 3], 4)  # 寻物贴只有自己能操作状态，所以不会冲突
+        if GoodsCasUtil.exec_wrap(return_id, ['nil', 3], 4):  # 归还帖对方可以删除
+            # 不存在并发操作
+            Good.batch_update(or_(Good.id == return_id, Good.id == lost_id[0]),
+                              Good.status == 3, val=updated)
+        else:
+            # 对方正好删除了归还帖子
+            Good.batch_update(Good.id == lost_id[0], Good.status == 3, val=updated)
+

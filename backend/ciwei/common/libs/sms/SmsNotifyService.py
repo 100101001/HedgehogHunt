@@ -47,9 +47,8 @@ class SmsNotifyHandler:
         """
         if not goods_name or not location or not trig_rcv:
             return False
-        mobile = Cipher.decrypt(text=self.receiver.mobile)
         trig_rcv['rcv_member_id'] = self.receiver.id
-        return SMSService.send_lost_notify(phone=mobile, goods_name=goods_name,
+        return SMSService.send_lost_notify(phone=self.receiver.decrypt_mobile, goods_name=goods_name,
                                            location=location, trig_rcv_info=trig_rcv)
 
     def hasCharger(self):

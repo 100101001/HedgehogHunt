@@ -19,6 +19,10 @@ from common.models.ciwei.Recommend import Recommend
 from common.models.ciwei.admin.User import User
 
 
+class MemberHandler:
+    pass
+
+
 class MemberService:
 
     @staticmethod
@@ -83,7 +87,6 @@ class MemberService:
         new_member = Member(nickname=nickname, sex=sex, avatar=avatar, openid=openid, mobile=mobile)
         db.session.add(new_member)
         return new_member
-
 
     @staticmethod
     def updateCredits(member_id=0, quantity=5):

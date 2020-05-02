@@ -82,13 +82,13 @@ def goodsAppealsSearch():
                 'member_id': item[-2].id,
                 'nickname': item[-2].nickname,
                 'avatar': item[-2].avatar,
-                'mobile': Cipher.decrypt(item[-2].mobile)
+                'mobile': item[-2].decrypt_mobile
             },
             'appealed': {
                 'member_id': item[-1].id,
                 'nickname': item[-1].nickname,
                 'avatar': item[-3].avatar,
-                'mobile': Cipher.decrypt(item[-1].mobile)
+                'mobile': item[-1].decrypt_mobile
             }
         }
         appeals.append(tmp_data)

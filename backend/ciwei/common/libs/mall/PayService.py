@@ -10,12 +10,8 @@ from application import db
 from common.libs.Helper import getCurrentDate
 from common.libs.mall.ProductService import ProductService
 from common.models.ciwei.BalanceOder import BalanceOrder
-from common.models.ciwei.logs.thirdservice.BalanceOrderCallbackData import BalanceOrderCallbackData
-from common.models.ciwei.GoodsTopOrder import GoodsTopOrder
-from common.models.ciwei.logs.thirdservice.GoodsTopOrderCallbackData import GoodsTopOrderCallbackData
 from common.models.ciwei.Member import Member
-from common.models.ciwei.ThankOrder import ThankOrder
-from common.models.ciwei.logs.thirdservice.ThankOrderCallbackData import ThankOrderCallbackData
+from common.models.ciwei.logs.thirdservice.BalanceOrderCallbackData import BalanceOrderCallbackData
 from common.models.ciwei.mall.Order import Order
 from common.models.ciwei.mall.OrderCallBackData import OrderCallbackData
 from common.models.ciwei.mall.OrderProduct import OrderProduct
@@ -24,6 +20,31 @@ from common.models.ciwei.mall.ProductSaleChangeLog import ProductSaleChangeLog
 
 
 class PayService:
+
+
+
+    @staticmethod
+    def addCallbackData(model=Order, attr='', order_id=0, data=None, callback_type='pay'):
+        callback = model()
+        setattr(callback, attr, order_id)
+        if callback_type == "pay":
+            callback.pay_data = data
+            callback.refund_data = ''
+        else:
+            callback.refund_data = data
+            callback.pay_data = ''
+        db.session.add(callback)
+
+
+    @staticmethod
+    def orderPaid(order_info=0, params=None):
+        if not order_info or order_info.status not in [0]:
+            return True
+        order_info.transaction_id = params.get('pay_sn', '')
+        order_info.status = 1
+        order_info.paid_time = params.get('paid_time', datetime.datetime.now())
+        db.session.add(order_info)
+
 
     def __init__(self):
         pass
@@ -226,43 +247,9 @@ class PayService:
 
         return True
 
-    def goodsTopOrderSuccess(self, pay_order_id=0, params=None):
-        """
-        支付成功后,更新订单状态
-        :param pay_order_id:
-        :param params:
-        :return: 数据库操作成功
-        """
 
-        # 更新TopOrder支付状态
-        order_info = GoodsTopOrder.query.filter_by(id=pay_order_id).first()
-        if not order_info or order_info.status not in [0]:
-            return True
-        order_info.transaction_id = params.get('pay_sn', '')
-        order_info.status = 1
-        order_info.paid_time = params.get('paid_time', getCurrentDate())
-        db.session.add(order_info)
-        db.session.commit()
-        return True
 
-    def thankOrderSuccess(self, thank_order_id=0, params=None):
-        """
-        支付成功后,更新订单状态
-        :param thank_order_id:
-        :param params:
-        :return: 数据库操作成功
-        """
 
-        # 更新ThankOrder支付状态
-        order_info = ThankOrder.query.filter_by(id=thank_order_id).first()
-        if not order_info or order_info.status not in [0]:
-            return True
-        order_info.transaction_id = params.get('pay_sn', '')
-        order_info.status = 1
-        order_info.paid_time = params.get('paid_time', getCurrentDate())
-        db.session.add(order_info)
-        db.session.commit()
-        return True
 
     def balanceOrderSuccess(self, pay_order_id=0, params=None):
         """
@@ -282,7 +269,7 @@ class PayService:
         db.session.commit()
         return True
 
-    def addPayCallbackData(self, pay_order_id=0, callback_type='pay', data=''):
+    def addOrderPayCallbackData(self, pay_order_id=0, callback_type='pay', data=''):
         """
         微信支付回调记录
         :param pay_order_id:
@@ -304,49 +291,9 @@ class PayService:
         db.session.commit()
         return True
 
-    def addGoodsTopPayCallbackData(self, pay_order_id=0, callback_type='pay', data=''):
-        """
-        微信支付回调记录
-        :param pay_order_id:
-        :param callback_type:
-        :param data:
-        :return:
-        """
-        # 新增
-        model_callback = GoodsTopOrderCallbackData()
-        model_callback.top_order_id = pay_order_id
-        if callback_type == "pay":
-            model_callback.pay_data = data
-            model_callback.refund_data = ''
-        else:
-            model_callback.refund_data = data
-            model_callback.pay_data = ''
 
-        db.session.add(model_callback)
-        db.session.commit()
-        return True
 
-    def addThankPayCallbackData(self, thank_order_id=0, callback_type='pay', data=''):
-        """
-        微信支付回调记录
-        :param thank_order_id:
-        :param callback_type:
-        :param data:
-        :return:
-        """
-        # 新增
-        model_callback = ThankOrderCallbackData()
-        model_callback.thank_order_id = thank_order_id
-        if callback_type == "pay":
-            model_callback.pay_data = data
-            model_callback.refund_data = ''
-        else:
-            model_callback.refund_data = data
-            model_callback.pay_data = ''
 
-        db.session.add(model_callback)
-        db.session.commit()
-        return True
 
     def addBalancePayCallbackData(self, pay_order_id=0, type='pay', data=''):
         """
@@ -376,7 +323,6 @@ class PayService:
         :return:不重复的流水号
         """
         m = hashlib.md5()
-        sn = None
         while True:
             # 毫秒级时间戳-千万随机数
             sn_str = "%s-%s" % (int(round(time.time() * 1000)), random.randint(0, 9999999))
@@ -386,42 +332,12 @@ class PayService:
                 break
         return sn
 
-    def geneGoodsTopOrderSn(self):
-        """
-        :return:不重复的流水号
-        """
-        m = hashlib.md5()
-        sn = None
-        while True:
-            # 毫秒级时间戳-千万随机数
-            sn_str = "%s-%s" % (int(round(time.time() * 1000)), random.randint(0, 9999999))
-            m.update(sn_str.encode("utf-8"))
-            sn = m.hexdigest()
-            if not GoodsTopOrder.query.filter_by(order_sn=sn).first():
-                break
-        return sn
-
-    def geneThankOrderSn(self):
-        """
-        :return:不重复的流水号
-        """
-        m = hashlib.md5()
-        sn = None
-        while True:
-            # 毫秒级时间戳-千万随机数
-            sn_str = "%s-%s" % (int(round(time.time() * 1000)), random.randint(0, 9999999))
-            m.update(sn_str.encode("utf-8"))
-            sn = m.hexdigest()
-            if not ThankOrder.query.filter_by(order_sn=sn).first():
-                break
-        return sn
 
     def geneBalanceOrderSn(self):
         """
         :return:不重复的流水号
         """
         m = hashlib.md5()
-        sn = None
         while True:
             # 毫秒级时间戳-千万随机数
             sn_str = "%s-%s" % (int(round(time.time() * 1000)), random.randint(0, 9999999))

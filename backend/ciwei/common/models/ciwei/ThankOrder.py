@@ -1,5 +1,7 @@
 # coding: utf-8
-
+import hashlib
+import random
+import time
 from datetime import datetime
 from decimal import Decimal
 
@@ -41,3 +43,30 @@ class ThankOrder(db.Model):
     @property
     def wx_payment_result_notified(self):
         return self.transaction_id != ''
+
+    def __init__(self, consumer=None, price='', discount=''):
+        self.order_sn = self.genOrderSn()
+        self.openid = consumer.openid
+        self.member_id = consumer.id
+        self.price = Decimal(price).quantize(Decimal('0.00'))
+        self.balance_discount = Decimal(discount).quantize(Decimal('.00'))
+        db.session.add(self)
+
+    @classmethod
+    def getByOrderSn(cls, order_sn=''):
+        return cls.query.filter_by(order_sn=order_sn).first()
+
+    @classmethod
+    def genOrderSn(cls):
+        """
+        :return:不重复的流水号
+        """
+        m = hashlib.md5()
+        while True:
+            # 毫秒级时间戳-千万随机数
+            sn_str = "{0}-{1}".format(round(time.time() * 1000), random.randint(0, 9999999))
+            m.update(sn_str.encode("utf-8"))
+            sn = m.hexdigest()
+            if not cls.query.filter_by(order_sn=sn).first():
+                break
+        return sn

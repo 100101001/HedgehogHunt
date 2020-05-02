@@ -127,10 +127,9 @@ class GoodsOpRecordDeleteHandler:
         """
         if not goods_ids or biz_type not in (0, 1, 2) or status not in (0, 1, 2, 3, 4):
             return False
-        ok_ids = GoodsCasUtil.filter(goods_ids, exp_val=status, new_val=7)
+        ok_ids = GoodsCasUtil.filter(goods_ids, exp_val=status, new_val=-status)
         if ok_ids:
-            Good.query.filter(Good.id.in_(ok_ids), Good.status == status).update({'status': 7},
-                                                                                 redis_arg=-int(biz_type))
+            Good.batch_update(Good.id.in_(ok_ids), Good.status == status, val={'status': -Good.status}, rds=-int(biz_type))
         db.session.commit()
         return True
 
@@ -161,9 +160,8 @@ class GoodsOpRecordDeleteHandler:
         """
         if not goods_ids or status not in (1, 3, 4):
             return False
-        Good.query.filter(Good.id.in_(goods_ids), Good.status == status). \
-            update({'return_goods_openid': '',
-                    'qr_code_openid': ''}, synchronize_session=False)
+        Good.batch_update(Good.id.in_(goods_ids), Good.status == status,
+                          val={'return_goods_openid': '', 'qr_code_openid': ''})
         db.session.commit()
         return True
 
@@ -178,7 +176,7 @@ class GoodsOpRecordDeleteHandler:
         if not goods_ids or not member_id:
             return
         Recommend.query.filter(Recommend.target_member_id == member_id,
-                               Recommend.found_goods_id.in_(goods_ids)).update({'status': 7}, synchronize_session=False)
+                               Recommend.found_goods_id.in_(goods_ids)).update({'status': -Recommend.status-1}, synchronize_session=False)
         db.session.commit()
         return True
 
@@ -365,7 +363,7 @@ class GoodsRecordSearchHandler:
         :return:
         """
         rule = and_(Recommend.target_member_id == member_id,
-                    Recommend.status == 0 if only_new else Recommend.status != 7,
+                    Recommend.status == 0 if only_new else Recommend.status >= 0,
                     Good.status == status)
         return Good.query.join(Recommend,
                                Recommend.found_goods_id == Good.id).add_entity(Recommend).filter(rule)
@@ -390,7 +388,7 @@ class ThanksRecordDeleteHandler:
             return handler(**kwargs)
 
     @staticmethod
-    def _deleteMyReceivedThanks(thank_ids=None):
+    def _deleteMyReceivedThanks(thank_ids=None, **kwargs):
         """
         删除收到答谢记录
         :param thank_ids:
@@ -403,7 +401,7 @@ class ThanksRecordDeleteHandler:
         return True
 
     @staticmethod
-    def _deleteMyThanks(thank_ids=None):
+    def _deleteMyThanks(thank_ids=None, **kwargs):
         """
         删除发出答谢记录
         :param thank_ids:
@@ -416,7 +414,7 @@ class ThanksRecordDeleteHandler:
         return True
 
     @staticmethod
-    def _deleteReportedThanks(thank_ids=None, member_id=0):
+    def _deleteReportedThanks(thank_ids=None, member_id=0, **kwargs):
         """
         删除已处理过的答谢举报记录
         管理员必须是admin

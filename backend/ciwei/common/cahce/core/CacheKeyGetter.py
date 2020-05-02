@@ -66,3 +66,7 @@ def isAllUserKey():
 
 def wxTokenKey():
     return "wechat_token"
+
+
+def smsVerifyKey(member_id):
+    return "sms_verify_{0}".format(member_id)

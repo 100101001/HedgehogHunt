@@ -44,7 +44,6 @@ def getMemberCache(member_id=0):
     return member_info
 
 
-
 def getUserCache(member_id=0):
     """
     根据member_id获取单个管理员用户缓存
@@ -98,3 +97,13 @@ def getGoodsIncrReadCache(goods_id=0):
 def getWxToken():
     wx_token_key = CacheKeyGetter.wxTokenKey()
     return redis_conn_db_1.get(wx_token_key)
+
+
+def getSmsVerifyCode(member_id=0, mobile=''):
+    sms_key = CacheKeyGetter.smsVerifyKey(member_id)
+    return redis_conn_db_1.hget(sms_key, mobile)
+
+
+def hasRcvSmsVerify(member_id=0):
+    sms_key = CacheKeyGetter.smsVerifyKey(member_id)
+    return redis_conn_db_1.exists(sms_key)

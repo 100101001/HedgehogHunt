@@ -6,6 +6,9 @@
 @file: MemberProxy.py
 @desc: 
 """
+from application import db
+from common.libs.CryptService import Cipher
+from common.models.ciwei.Member import Member
 
 
 class MemberProxy:
@@ -30,3 +33,19 @@ class MemberProxy:
     @property
     def has_qr_code(self):
         return self.qr_code != ""
+
+    @property
+    def decrypt_mobile(self):
+        return Cipher.decrypt(text=self.mobile)
+
+    def bindMobile(self, mobile=''):
+        member = Member.query.filter_by(id=self.id).first()
+        member.mobile = Cipher.decrypt(text=mobile)
+        db.session.add(member)
+        db.session.commit()
+
+    def bindQrcode(self, qr_code=''):
+        member = Member.query.filter_by(id=self.id).first()
+        member.qr_code = qr_code
+        db.session.add(member)
+        db.session.commit()

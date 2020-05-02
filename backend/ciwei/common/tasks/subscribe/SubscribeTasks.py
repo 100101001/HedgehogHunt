@@ -169,7 +169,7 @@ def send_subscribe(openid='', template='', data=None):
     :param data: 模板数据
     :return:
     """
-    token = WeChatService.get_wx_token()
+    token = WeChatService.getAccesstoken()
     url = "https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token={}".format(
         token)
     data = {

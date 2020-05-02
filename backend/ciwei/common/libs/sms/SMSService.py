@@ -61,17 +61,17 @@ def send_sms(business_id=None, phone_numbers='', sign_name='', template_code='',
     return json.loads(smsResponse)
 
 
-def send_verify_code(phone="", code="", trig_rcv_info=None):
+def send_verify_code(phone="", trig_rcv_info=None):
     """
     发送短信，返回响应数据
     :param trig_rcv_info:
     :param phone:
-    :param code:
     :return:
     """
-    if not phone or not code:
+    if not phone or not trig_rcv_info:
         return False
     _business_id = genBizUUid()
+    code = geneVerifyCode()
     params = {"code": code}
     temp_id = ACS_CONSTANTS['TEMP_IDS']['VERIFY']
     sign_name = ACS_CONSTANTS['SIGN_NAMES']['VERIFY']
@@ -80,7 +80,7 @@ def send_verify_code(phone="", code="", trig_rcv_info=None):
     resp['business_sn'] = _business_id
     # TODO 如果能够保证消息队列处理的可靠可以异步
     LogService.addAcsSmsSendLog(sms_resp=resp, phone=phone, temp_id=temp_id, temp_params=params, sign_name=sign_name, trig_rcv_info=trig_rcv_info)
-    return resp and 'Code' in resp and resp['Code'] == 'OK'
+    return resp and 'Code' in resp and resp['Code'] == 'OK', code
 
 
 def send_lost_notify(phone='', goods_name='', location=None, trig_rcv_info=None):
@@ -110,7 +110,7 @@ def send_lost_notify(phone='', goods_name='', location=None, trig_rcv_info=None)
     return resp and 'Code' in resp and resp['Code'] == 'OK'
 
 
-def generate_sms_code():
+def geneVerifyCode():
     """
     生成6位验证码
     :return: 码

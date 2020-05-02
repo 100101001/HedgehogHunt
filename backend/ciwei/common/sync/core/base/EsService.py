@@ -78,24 +78,6 @@ def syncGoodsToES(goods_info=None, edit=False):
     return res
 
 
-def __syncHardDeletedGoodsToESBulk(goods_ids=None):
-    """
-    批量删除不再使用的数据
-    :param goods_ids:
-    :return:
-    """
-    must = {'must': [{'ids': {'values': goods_ids}}]}
-    return es.delete_by_query(index=ES_CONSTANTS['INDEX'], body={'query': {'bool': must}})
-
-
-def syncSoftDelGoodsToES(goods_ids=None):
-    """
-    批量软删除不再使用的数据
-    :param goods_ids:
-    :return:
-    """
-    syncUpdatedGoodsToES(goods_ids=goods_ids, updated={'status': 7})
-
 
 def syncUpdatedGoodsToES(goods_ids=None, updated=None, goods_info=None):
     """
