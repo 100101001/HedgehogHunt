@@ -37,6 +37,8 @@ class User(db.Model):
         self.op_uid = op_user.uid  # 操作新增管理员的管理员ID
         db.session.add(self)
 
-
+    @classmethod
+    def getByMemberId(cls, member_id=0):
+        return cls.query.filter_by(member_id=member_id).first()
 
 

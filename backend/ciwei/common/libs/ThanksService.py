@@ -18,6 +18,7 @@ from common.libs.mall.PayService import PayService
 from common.libs.mall.WechatService import WeChatService
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
+from common.models.ciwei.Member import Member
 from common.models.ciwei.ThankOrder import ThankOrder
 from common.models.ciwei.Thanks import Thank
 from common.models.ciwei.logs.thirdservice.ThankOrderCallbackData import ThankOrderCallbackData
@@ -74,13 +75,6 @@ class ThankHandler:
 
     @classmethod
     def _finishThankPay(cls, callback_body=None, **kwargs):
-        result_data = {
-            'return_code': 'SUCCESS',
-            'return_msg': 'OK'
-        }
-        header = {'Content-Type': 'application/xml'}
-        # app_config =
-
         callback_data = cls.wechat.xml_to_dict(callback_body)
         app.logger.info(callback_data)
 
@@ -89,56 +83,32 @@ class ThankHandler:
         callback_data.pop('sign')
         gene_sign = cls.wechat.create_sign(callback_data)
         app.logger.info(gene_sign)
-        if sign != gene_sign:
-            result_data['return_code'] = result_data['return_msg'] = 'FAIL'
-            return cls.wechat.dict_to_xml(result_data), header
-        if callback_data['result_code'] != 'SUCCESS':
-            result_data['return_code'] = result_data['return_msg'] = 'FAIL'
-            return cls.wechat.dict_to_xml(result_data), header
+        if sign != gene_sign or callback_data['result_code'] != 'SUCCESS':
+            return PayService.callBackReturn(wechat=cls.wechat)
 
-        order_sn = callback_data['out_trade_no']
-        thank_order_info = ThankOrder.getByOrderSn(order_sn)
-        if not thank_order_info:
-            result_data['return_code'] = result_data['return_msg'] = 'FAIL'
-            return cls.wechat.dict_to_xml(result_data), header
-
-        if int(thank_order_info.price * 100) != int(callback_data['total_fee']):
-            result_data['return_code'] = result_data['return_msg'] = 'FAIL'
-            return cls.wechat.dict_to_xml(result_data), header
+        thank_order_info = ThankOrder.getByOrderSn(callback_data['out_trade_no'])
+        if not thank_order_info or int(thank_order_info.price * 100) != int(callback_data['total_fee']):
+            return PayService.callBackReturn(wechat=cls.wechat)
 
         # 更新订单的支付状态, 记录日志
         # 订单状态已回调更新过直接返回
         if thank_order_info.status == 1:
-            return cls.wechat.dict_to_xml(result_data), header
+            return PayService.callBackReturn(success=True,wechat=cls.wechat)
+
+        def __thankOrderSuccess():
+            PayService.orderPaid(order_info=thank_order_info, params={"pay_sn": callback_data['transaction_id'],
+                                                                      "paid_time": callback_data['time_end']})
+
+        def __addCallbackData():
+            PayService.addCallbackData(ThankOrderCallbackData, 'thank_order_id', thank_order_info.id,
+                                       data=callback_body)
+
         # 订单状态未回调更新过
-        cls.__thankOrderSuccess(order_info=thank_order_info,
-                                params={"pay_sn": callback_data['transaction_id'],
-                                        "paid_time": callback_data['time_end']})
-        cls.__addCallbackData(thank_order_id=thank_order_info.id, data=callback_body)
+        __thankOrderSuccess()
+        __addCallbackData()
         db.session.commit()
-        return cls.wechat.dict_to_xml(result_data), header
+        return PayService.callBackReturn(success=True,wechat=cls.wechat)
 
-
-    @staticmethod
-    def __thankOrderSuccess(order_info=0, params=None, **kwargs):
-        """
-        支付成功后,更新订单状态
-        :param order_info:
-        :param params:
-        :return: 数据库操作成功
-        """
-        PayService.orderPaid(order_info=order_info, params=params)
-
-    @staticmethod
-    def __addCallbackData(thank_order_id=0, data='', **kwargs):
-        """
-        微信支付回调记录
-        :param thank_order_id:
-        :param data:
-        :return:
-        """
-        # 新增
-        PayService.addCallbackData(ThankOrderCallbackData, 'thank_order_id', thank_order_id, data=data)
 
     @classmethod
     def _createThanks(cls, sender=None, gotback_goods=None, thank_info=None, **kwargs):
@@ -149,10 +119,24 @@ class ThankHandler:
         :param thank_info: 答谢信息
         :return:
         """
+
+        def __updateBalance(member_id=0, quantity=0):
+            """
+            别删，id更新有用
+            :param member_id:
+            :param quantity:
+            :return:
+            """
+
+            member = Member.getById(member_id)
+            member.balance += quantity
+            db.session.add(member)
+
+
         thanks_model = Thank(sender=sender, gotback_goods=gotback_goods, thank_info=thank_info)
         # 发出答谢的用户信息
         # 金额转入目标用户余额
-        MemberService.updateBalance(member_id=thanks_model.target_member_id, unit=thanks_model.thank_price)
+        __updateBalance(member_id=thanks_model.target_member_id, quantity=thanks_model.thank_price)
         SubscribeTasks.send_thank_subscribe.delay(thank_info=queryToDict(thanks_model))
         db.session.commit()
 

@@ -44,7 +44,7 @@ class Thank(db.Model):
         business_type = int(gotback_goods.get('business_type', 1))  # 答谢的物品类型
         self.business_desc = "拾到" if business_type == 1 else "归还"
         # 答谢信息
-        self.thank_price = Decimal(thank_info.get('target_price', '0')).quantize(Decimal('0.00'))  # 答谢金额
+        self.thank_price = Decimal(thank_info.get('target_price', '0')).quantize(Decimal('.00'))  # 答谢金额
         self.order_sn = thank_info.get('order_sn', '')  # 答谢支付订单
         self.summary = thank_info.get('thanks_text', '谢谢你的举手之劳！')  # 答谢文字，前端已判空
         db.session.add(self)

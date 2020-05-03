@@ -8,6 +8,10 @@
 """
 
 import decimal
+import hashlib
+import random
+import time
+from decimal import Decimal
 
 from sqlalchemy.dialects.mssql import TINYINT
 from sqlalchemy.dialects.mysql import INTEGER
@@ -35,14 +39,38 @@ class BalanceOrder(db.Model):
     @property
     def status_desc(self):
         status_mapping = {
-            '-1': 'fresh',
-            '0': 'notpay',
-            '1': 'success',
-            '2': 'payerror',
-            '3': 'closed',
+            '-1': '刚创建',
+            '0': '微信预下单未支付',
+            '1': '已支付',
         }
         return status_mapping[str(self.status)]
 
     @property
     def wx_payment_result_notified(self):
         return self.transaction_id != ''
+
+    def __init__(self, consumer=None, price=''):
+        self.order_sn = self.geneOrderSn()
+        self.openid = consumer.openid
+        self.member_id = consumer.id
+        self.price = Decimal(price).quantize(Decimal('.00'))
+        db.session.add(self)
+
+    @classmethod
+    def geneOrderSn(cls):
+        """
+        :return:不重复的流水号
+        """
+        m = hashlib.md5()
+        while True:
+            # 毫秒级时间戳-千万随机数
+            sn_str = "%s-%s".format(round(time.time() * 1000), random.randint(0, 9999999))
+            m.update(sn_str.encode("utf-8"))
+            sn = m.hexdigest()
+            if not cls.query.filter_by(order_sn=sn).first():
+                break
+        return sn
+
+    @classmethod
+    def getByOrderSn(cls, order_sn):
+        return cls.query.filter_by(order_sn=order_sn).first()

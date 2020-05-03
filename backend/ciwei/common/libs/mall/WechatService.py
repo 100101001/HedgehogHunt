@@ -99,7 +99,7 @@ class WeChatService:
         return str(uuid.uuid4()).replace('-', '')
 
     @staticmethod
-    def getAccesstoken():
+    def getAccessToken():
         """
         从缓存获取token并返回，过期获取新的返回，并设置缓存
         :return:
@@ -122,7 +122,7 @@ class WeChatService:
 
     @classmethod
     def getMimiProgramQrcode(cls, openid=''):
-        token = cls.getAccesstoken()
+        token = cls.getAccessToken()
         if not token:
             return None
 
@@ -139,6 +139,33 @@ class WeChatService:
         else:
             return wx_resp.content
 
+    @classmethod
+    def getWeChatOpenId(cls, code, get_session_key=False):
+        """
+        通过code在微信登录获取openid, session_key
+        :param code:
+        :param get_session_key:
+        :return:
+        """
+        openid = None
+        session_key = None
+        if code:
+            app_id = app.config['OPENCS_APP']['appid']
+            app_key = app.config['OPENCS_APP']['appkey']
+            url = 'https://api.weixin.qq.com/sns/jscode2session?appid={0}&secret={1}&' \
+                  'js_code={2}&grant_type=authorization_code'.format(app_id, app_key, code)
+
+            r = requests.get(url, headers={'Connection': 'close'})
+            res = json.loads(r.text)
+            if 'openid' in res:
+                openid = res['openid']
+            if 'session_key' in res:
+                session_key = res['session_key']
+
+        if get_session_key:
+            return openid, session_key
+        else:
+            return openid
 
 
 class WXBizDataCrypt:

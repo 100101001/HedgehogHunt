@@ -21,8 +21,6 @@ from common.models.ciwei.mall.ProductSaleChangeLog import ProductSaleChangeLog
 
 class PayService:
 
-
-
     @staticmethod
     def addCallbackData(model=Order, attr='', order_id=0, data=None, callback_type='pay'):
         callback = model()
@@ -35,7 +33,6 @@ class PayService:
             callback.pay_data = ''
         db.session.add(callback)
 
-
     @staticmethod
     def orderPaid(order_info=0, params=None):
         if not order_info or order_info.status not in [0]:
@@ -45,6 +42,12 @@ class PayService:
         order_info.paid_time = params.get('paid_time', datetime.datetime.now())
         db.session.add(order_info)
 
+    @staticmethod
+    def callBackReturn(success=False, wechat=None):
+        if success:
+            return wechat.dict_to_xml({'return_code': 'SUCCESS', 'return_msg': 'OK'}), {'Content-Type': 'application/xml'}
+        else:
+            return wechat.dict_to_xml({'return_code': 'FAIL', 'return_msg': 'FAIL'}), {'Content-Type': 'application/xml'}
 
     def __init__(self):
         pass
@@ -205,18 +208,17 @@ class PayService:
 
         return True
 
-    def orderSuccess(self, order_id=0, params=None):
+    def orderSuccess(self, order_info=None, params=None):
         """
         支付成功后,更新订单状态,记录销售日志,根据折扣类型扣除用户余额
         消息提醒队列
-        :param order_id:
+        :param order_info:
         :param params:
         :return: 数据库操作成功
         """
         try:
             # 更新Order支付状态与物流状态
             # 该订单的商品销售日志
-            order_info = Order.query.filter_by(id=order_id).first()
             if not order_info or order_info.status not in [-8, -7]:
                 return True
 
@@ -225,98 +227,28 @@ class PayService:
             order_info.express_status = -7
             db.session.add(order_info)
 
-            order_items = OrderProduct.query.filter_by(order_id=order_id).all()
+            order_items = OrderProduct.query.filter_by(order_id=order_info.id).all()
             for order_item in order_items:
                 # 产品的销售数
                 tmp_product = Product.query.filter_by(id=order_item.product_id).first()
-                tmp_product.sale_cnt += order_item.product_num
+                tmp_product.sale_cnt += order_item.product_num  # 销售日志set事件
                 db.session.add(tmp_product)
-                # 销售日志
-                tmp_model_sale_log = ProductSaleChangeLog()
-                tmp_model_sale_log.product_id = order_item.product_id
-                tmp_model_sale_log.quantity = order_item.product_num
-                tmp_model_sale_log.price = order_item.price
-                tmp_model_sale_log.member_id = order_item.member_id
-                db.session.add(tmp_model_sale_log)
-
             db.session.commit()
         except Exception as e:
             db.session.rollback()
             print(e)
             return False
-
         return True
 
-
-
-
-
-    def balanceOrderSuccess(self, pay_order_id=0, params=None):
-        """
-        支付成功后,更新订单状态
-        :param pay_order_id:
-        :param params:
-        :return: 数据库操作成功
-        """
-        # 更新BalanceOrder支付状态
-        order_info = BalanceOrder.query.filter_by(id=pay_order_id).first()
-        if not order_info or order_info.status not in [0]:
-            return True
-        order_info.transaction_id = params.get('pay_sn', '')
-        order_info.status = 1
-        order_info.paid_time = params.get('paid_time', getCurrentDate())
-        db.session.add(order_info)
-        db.session.commit()
-        return True
-
-    def addOrderPayCallbackData(self, pay_order_id=0, callback_type='pay', data=''):
+    def addOrderPayCallbackData(self, order_id=0, callback_type='pay', data=''):
         """
         微信支付回调记录
-        :param pay_order_id:
+        :param order_id:
         :param callback_type:
         :param data:
         :return:
         """
-        # 新增
-        model_callback = OrderCallbackData()
-        model_callback.order_id = pay_order_id
-        if callback_type == "pay":
-            model_callback.pay_data = data
-            model_callback.refund_data = ''
-        else:
-            model_callback.refund_data = data
-            model_callback.pay_data = ''
-
-        db.session.add(model_callback)
-        db.session.commit()
-        return True
-
-
-
-
-
-    def addBalancePayCallbackData(self, pay_order_id=0, type='pay', data=''):
-        """
-        微信支付回调记录
-        :param pay_order_id:
-        :param type:
-        :param data:
-        :return:
-        """
-        # 新增
-        model_callback = BalanceOrderCallbackData()
-        model_callback.balance_order_id = pay_order_id
-        if type == "pay":
-            model_callback.pay_data = data
-            model_callback.refund_data = ''
-        else:
-            model_callback.refund_data = data
-            model_callback.pay_data = ''
-
-        model_callback.created_time = model_callback.updated_time = getCurrentDate()
-        db.session.add(model_callback)
-        db.session.commit()
-        return True
+        PayService.addCallbackData(OrderCallbackData, 'order_id', order_id, data=data, callback_type=callback_type)
 
     def geneOrderSn(self):
         """
@@ -332,21 +264,6 @@ class PayService:
                 break
         return sn
 
-
-    def geneBalanceOrderSn(self):
-        """
-        :return:不重复的流水号
-        """
-        m = hashlib.md5()
-        while True:
-            # 毫秒级时间戳-千万随机数
-            sn_str = "%s-%s" % (int(round(time.time() * 1000)), random.randint(0, 9999999))
-            m.update(sn_str.encode("utf-8"))
-            sn = m.hexdigest()
-            if not BalanceOrder.query.filter_by(order_sn=sn).first():
-                break
-        return sn
-
     def autoCloseOrder(self, member_id=0):
         """
         自动关单
@@ -358,5 +275,6 @@ class PayService:
                                             seconds=1800)).all()
         for order in order_list:
             self.closeOrder(order_id=order.id)
+
 
 Pay = PayService()

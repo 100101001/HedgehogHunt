@@ -82,7 +82,7 @@ class BalanceChargeHandler:
         return None
 
     def charge(self):
-        self.member.balance -= Decimal("0.10")
+        self.member.changeBalance(quantity=-Decimal("0.10"))
         db.session.add(self.member)
 
 
@@ -101,7 +101,7 @@ class SmsTimesChargeHandler:
         return None
 
     def charge(self):
-        self.member.left_notify_times -= 1
+        self.member.changeSms(quantity=-1)
         db.session.add(self.member)
 
 

@@ -60,10 +60,8 @@ class Mark(db.Model):
                 # 将被删除的记录状态初始化
                 repeat_mark.status = 0
                 db.session.add(repeat_mark)
-            return repeat_mark.status == 0
         pre_mark = cls(member_id=member_id, goods_id=goods_id, business_type=business_type)
         db.session.add(pre_mark)
-        return True
 
     @classmethod
     def getAllOn(cls, goods_id=0):

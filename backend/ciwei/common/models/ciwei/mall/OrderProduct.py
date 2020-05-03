@@ -2,10 +2,9 @@
 import decimal
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Column, DateTime, Integer, Numeric, Text
 from sqlalchemy.dialects.mssql import TINYINT
 from sqlalchemy.dialects.mysql import INTEGER
-from flask_sqlalchemy import SQLAlchemy
+
 from application import db
 
 

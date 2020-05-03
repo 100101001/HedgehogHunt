@@ -274,10 +274,10 @@ def orderCallback():
     # 更新订单的支付和物流状态, 记录销售日志
     if order_info.status == 1:
         return target_wechat.dict_to_xml(result_data), header
-
+    order_id = order_info.id
     target_pay = PayService()
-    target_pay.orderSuccess(order_id=order_info.id, params={"pay_sn": callback_data['transaction_id']})
-    target_pay.addOrderPayCallbackData(pay_order_id=order_info.id, data=request.data)
+    target_pay.orderSuccess(order_info=order_info, params={"pay_sn": callback_data['transaction_id']})
+    target_pay.addOrderPayCallbackData(order_id=order_id, data=request.data)
     return target_wechat.dict_to_xml(result_data), header
 
 

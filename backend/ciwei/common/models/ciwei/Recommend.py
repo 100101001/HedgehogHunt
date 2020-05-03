@@ -25,3 +25,8 @@ class Recommend(db.Model):
             "-1": "无效推荐",
             "-2": "无效推荐",
         }[str(self.status)]
+
+    @classmethod
+    def checked(cls, member_id=0, goods_id=0):
+        cls.query.filter_by(found_goods_id=goods_id, target_member_id=member_id,
+                            status=0).update({'status': 1}, synchronize_session=False)

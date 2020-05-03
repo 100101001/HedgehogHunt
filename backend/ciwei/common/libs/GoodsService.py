@@ -20,6 +20,7 @@ from common.libs.mall.WechatService import WeChatService
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.GoodsTopOrder import GoodsTopOrder
 from common.models.ciwei.Mark import Mark
+from common.models.ciwei.Recommend import Recommend
 from common.models.ciwei.logs.thirdservice.GoodsTopOrderCallbackData import GoodsTopOrderCallbackData
 from common.tasks.recommend.v2 import RecommendTasks
 from common.tasks.sms import SmsTasks
@@ -109,6 +110,16 @@ class CommonGoodsHandler:
         :param is_auth:
         :return:
         """
+
+        def __getReadCount():
+            """
+            返回阅读量（一天新增和本身）
+            :param goods_info:
+            :return:
+            """
+            read_cnt = CacheQueryService.getGoodsIncrReadCache(goods_id=goods_info.id)
+            return goods_info.view_count + read_cnt
+
         # 例：上海市徐汇区肇嘉浜路1111号###美罗城###31.192948153###121.439673735
         location_list = goods_info.location.split("###")
         location_list[2] = eval(location_list[2])
@@ -137,21 +148,41 @@ class CommonGoodsHandler:
             # 为用户浏览和操作设计的信息
             "status_desc": str(goods_info.status_desc),
             "status": goods_status,
-            "view_count": cls.__getReadCount(goods_info),  # 浏览量
+            "view_count": __getReadCount(),  # 浏览量
             "updated_time": str(goods_info.updated_time),  # 被编辑的时间 or 首次发布的时间
             'show_location': show_location
         }
         return data
 
     @classmethod
-    def __getReadCount(cls, goods_info=None):
+    def _preMarkGoods(cls, member_id=0, goods_id=0, business_type=1):
         """
-        返回阅读量（一天新增和本身）
-        :param goods_info:
+        预认领
+        :param business_type:
+        :param member_id:
+        :param goods_id:
         :return:
         """
-        read_cnt = CacheQueryService.getGoodsIncrReadCache(goods_id=goods_info.id)
-        return goods_info.view_count + read_cnt
+        if not member_id or not goods_id:
+            return False
+        Mark.pre(member_id=member_id, goods_id=goods_id, business_type=business_type)
+
+    @classmethod
+    def _cancelPremark(cls, goods_ids=None, member_id=0):
+        """
+        :return: 外面修改Goods状态还要用的mark_key
+        """
+        Mark.mistaken(goods_ids=goods_ids, member_id=member_id)
+
+    @classmethod
+    def _markedGoods(cls, member_id=0, goods_ids=None):
+        """
+        确认取回物品
+        :param member_id:
+        :param goods_ids:
+        :return:
+        """
+        Mark.done(goods_ids=goods_ids, member_id=member_id)
 
 
 class LostGoodsHandler(CommonGoodsHandler):
@@ -356,66 +387,63 @@ class ReturnGoodsHandler(CommonGoodsHandler):
 
     @classmethod
     def _finishReturnRelease(cls, lost_id=-1, notify_id='', goods_info=None, **kwargs):
+        def __returnToLostOk(return_goods=None):
+            """
+            寻物归还结束发帖
+            :param return_goods:
+            :return:
+            """
+            if not return_goods or not lost_goods:
+                return
+            Good.link(return_goods=return_goods, lost_goods=lost_goods)
+            MemberService.updateCredits(member_id=return_goods.member_id)
+            info = {'goods_name': return_goods.name,
+                    'returner': return_goods.nickname,
+                    'return_date': return_goods.created_time.strftime(
+                        "%Y-%m-%d %H:%M:%S"),
+                    'rcv_openid': lost_goods.openid}
+            # 异步发送订阅消息
+            SubscribeTasks.send_return_subscribe.delay(return_info=info)
+            db.session.commit()
+
+        def __scanReturnOk(scan_goods=None):
+            """
+            扫码归还结束发帖
+            ES同步和发送短信
+            :param scan_goods:
+            :param notify_id:
+            :return:
+            """
+            # 链接归还的对象，直接就是对方的物品(如若不是可举报)
+            if not scan_goods or not notify_id:
+                return
+            scan_goods.qr_code_openid = notify_id
+            db.session.add(scan_goods)
+            MemberService.updateCredits(member_id=scan_goods.member_id)
+            # 通知
+            params = {
+                'location': scan_goods.location,
+                'goods_name': scan_goods.name,
+                'trig_rcv': {
+                    'rcv_openid': notify_id,
+                    'trig_openid': scan_goods.openid,
+                    'trig_member_id': scan_goods.member_id
+                }
+            }
+            SmsTasks.notifyQrcodeOwner.delay(params=params)
+            db.session.commit()
+
         if lost_id != -1:
             # 寻物归还
             lost_goods = Good.getById(lost_id)
             if lost_goods and lost_goods.status == 1 and GoodsCasUtil.exec_wrap(lost_id, ['nil', 1], 2):
-                cls.__returnToLostOk(return_goods=goods_info, lost_goods=lost_goods)
+                __returnToLostOk(return_goods=goods_info)
             else:
                 goods_info.business_type = 1
                 super()._releaseOpenGoodsOk(goods_info=goods_info)
         elif notify_id:
             # 扫码归还
-            cls.__scanReturnOk(scan_goods=goods_info, notify_id=notify_id)
-
-    @staticmethod
-    def __returnToLostOk(return_goods=None, lost_goods=None):
-        """
-        寻物归还结束发帖
-        :param return_goods:
-        :param lost_goods:
-        :return:
-        """
-        if not return_goods or not lost_goods:
-            return
-        Good.link(return_goods=return_goods, lost_goods=lost_goods)
-        MemberService.updateCredits(member_id=return_goods.member_id)
-        info = {'goods_name': return_goods.name,
-                'returner': return_goods.nickname,
-                'return_date': return_goods.created_time.strftime(
-                    "%Y-%m-%d %H:%M:%S"),
-                'rcv_openid': lost_goods.openid}
-        # 异步发送订阅消息
-        SubscribeTasks.send_return_subscribe.delay(return_info=info)
-        db.session.commit()
-
-    @staticmethod
-    def __scanReturnOk(scan_goods=None, notify_id=''):
-        """
-        扫码归还结束发帖
-        ES同步和发送短信
-        :param scan_goods:
-        :param notify_id:
-        :return:
-        """
-        # 链接归还的对象，直接就是对方的物品(如若不是可举报)
-        if not scan_goods or not notify_id:
-            return
-        scan_goods.qr_code_openid = notify_id
-        db.session.add(scan_goods)
-        MemberService.updateCredits(member_id=scan_goods.member_id)
-        # 通知
-        params = {
-            'location': scan_goods.location,
-            'goods_name': scan_goods.name,
-            'trig_rcv': {
-                'rcv_openid': notify_id,
-                'trig_openid': scan_goods.openid,
-                'trig_member_id': scan_goods.member_id
-            }
-        }
-        SmsTasks.notifyQrcodeOwner.delay(params=params)
-        db.session.commit()
+            __scanReturnOk(scan_goods=goods_info)
 
     @classmethod
     def _getReturnInfo(cls, goods_info=None, member_info=None, **kwargs):
@@ -510,7 +538,7 @@ class ReturnGoodsHandler(CommonGoodsHandler):
         # 归还
         Good.batch_update(Good.id == return_id, Good.status == status,
                           val={'status': 2, 'confirm_time': datetime.datetime.now()})
-        MemberService.preMarkGoods(member_id=confirmer_id, goods_id=return_id, business_type=2)
+        super()._preMarkGoods(member_id=confirmer_id, goods_id=return_id, business_type=2)
         db.session.commit()
         return True, ''
 
@@ -535,7 +563,7 @@ class ReturnGoodsHandler(CommonGoodsHandler):
         # 归还
         Good.batch_update(Good.id.in_(return_ids), Good.status == 2, val=return_updated)
         # 标记认领记录
-        MemberService.markedGoods(member_id=member_id, goods_ids=return_ids)
+        super()._markedGoods(member_id=member_id, goods_ids=return_ids)
         # 异步发送订阅消息
         SubscribeTasks.send_return_finish_msg_in_batch.delay(gotback_returns=[item[0] for item in return_ids])
         db.session.commit()
@@ -607,11 +635,29 @@ class FoundGoodsHandler(CommonGoodsHandler):
         :param member_info:
         :return:
         """
+
+        def __hasMarkGoods(member_id=0, goods_id=0):
+            """
+            是否预认领/认领了该物品(详情可否见放置地址)
+            :param member_id:
+            :param goods_id:
+            :return:
+            """
+            if not member_id or not goods_id:
+                return False
+            # 缓存中获取goods_id 对应的 member_id 集合
+            mark_member_ids = CacheQueryService.getMarkCache(goods_id=goods_id)
+            if not mark_member_ids:
+                # 缓存不命中, 从数据库获取一个物品的所有认领人的id
+                marks = Mark.getAllOn(goods_id=goods_id)
+                mark_member_ids = CacheOpService.setMarkCache(goods_id=goods_id, marks=marks)
+            return bool(str(member_id) in mark_member_ids)
+
         is_auth = False
         show_location = False
         if member_info:
             is_auth = member_info.id == goods_info.member_id
-            show_location = MemberService.hasMarkGoods(member_id=member_info.id, goods_id=goods_info.id) or is_auth
+            show_location = __hasMarkGoods(member_id=member_info.id, goods_id=goods_info.id) or is_auth
         data = super()._getCommonInfo(goods_info=goods_info, show_location=show_location, is_auth=is_auth)
         goods_status = goods_info.status
         if not is_auth and goods_status in (3, 4):
@@ -649,7 +695,7 @@ class FoundGoodsHandler(CommonGoodsHandler):
             # 取消认领会 2——> 1，所以设置 -status
             return False, '操作冲突，请稍后重试'
         # 预认领事务
-        MemberService.preMarkGoods(member_id=member_id, goods_id=goods_id)
+        super()._preMarkGoods(member_id=member_id, goods_id=goods_id, business_type=1)
         if status == 1:
             Good.batch_update(Good.id == goods_id, Good.status == status, val={'status': 2, 'confirm_time': now},
                               rds=-1)
@@ -662,10 +708,30 @@ class FoundGoodsHandler(CommonGoodsHandler):
 
     @classmethod
     def _mistakenPreMarkFound(cls, goods_ids=None, status=0, member_id=0, **kwargs):
-        MemberService.cancelPremark(found_ids=goods_ids, member_id=member_id)
+
+        def __getNoMarksAfterDelPremark():
+            """
+            取消认领后,可能没有人人领
+            :return:
+            """
+            no_marks = []
+            for found_id in goods_ids:
+                marks = CacheQueryService.getMarkCache(goods_id=found_id)  # found_id 对应认领的member_id的集合
+                if marks:
+                    # 缓存命中
+                    no_mark = len(marks) == 2 and str(member_id) in marks
+                else:
+                    # 缓存不命中
+                    no_mark = Mark.isNoMarkOn(goods_id=found_id)
+                if no_mark and GoodsCasUtil.exec(found_id, 2, 1):
+                    # 这里不会出问题，因为认领那里，进入后设置成了负的，缓存和数据库都提交后，才会被设置成2。
+                    no_marks.append(found_id)
+            return no_marks
+
+        super()._cancelPremark(goods_ids=goods_ids, member_id=member_id)
         if status == 2:
             # 对于于认领的物品，状态可能发生变更
-            no_marks = cls.__getNoMarksAfterDelPremark(found_ids=goods_ids, member_id=member_id)
+            no_marks = __getNoMarksAfterDelPremark()
             if len(no_marks) > 0:
                 Good.batch_update(Good.id.in_(no_marks), Good.status == status, val={'status': 1}, rds=1)
         db.session.commit()
@@ -681,32 +747,11 @@ class FoundGoodsHandler(CommonGoodsHandler):
         Good.batch_update(Good.id.in_(goods_ids), Good.status == status,
                           val={'status': 3, 'owner_id': member_id, 'finish_time': datetime.datetime.now()})
         # 不加锁是因为，不影响goods的认领计数，且是一个人的操作
-        MemberService.markedGoods(member_id=member_id, goods_ids=goods_ids)
+        super()._markedGoods(member_id=member_id, goods_ids=goods_ids)
         db.session.commit()
         # 异步发送消息
         SubscribeTasks.send_found_finish_msg_in_batch.delay(gotback_founds=goods_ids)
         return True, ''
-
-    @staticmethod
-    def __getNoMarksAfterDelPremark(found_ids=None, member_id=0, **kwargs):
-        """
-        取消认领后,可能没有人人领
-        :param: found_ids
-        :return:
-        """
-        no_marks = []
-        for found_id in found_ids:
-            marks = CacheQueryService.getMarkCache(goods_id=found_id)  # found_id 对应认领的member_id的集合
-            if marks:
-                # 缓存命中
-                no_mark = len(marks) == 2 and str(member_id) in marks
-            else:
-                # 缓存不命中
-                no_mark = Mark.isNoMarkOn(goods_id=found_id)
-            if no_mark and GoodsCasUtil.exec(found_id, 2, 1):
-                # 这里不会出问题，因为认领那里，进入后设置成了负的，缓存和数据库都提交后，才会被设置成2。
-                no_marks.append(found_id)
-        return no_marks
 
 
 class GoodsReleaseHandler:
@@ -763,8 +808,7 @@ class GoodsInfoHandler:
         """
         if is_recommend_src and not self.has_read and self.member_info:
             # 从推荐记录进入详情,代表用户一定已经登陆了,只是以防万一
-            MemberService.setRecommendStatus(member_id=self.member_info.id, goods_id=self.goods_info.id, new_status=1,
-                                             old_status=0)
+            Recommend.checked(member_id=self.member_info.id, goods_id=self.goods_info.id)
 
 
 class GoodsHandlers:

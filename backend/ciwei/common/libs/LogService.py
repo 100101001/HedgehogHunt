@@ -8,7 +8,7 @@
 """
 import json
 
-from flask import request
+from flask import request, g
 
 from application import db
 from common.libs.sms.SMSService import PRODUCT_NAME
@@ -19,6 +19,7 @@ from common.models.ciwei.logs.change.MemberSmsPkgChangeLog import MemberSmsPkgCh
 from common.models.ciwei.logs.change.MemberStatusChangeLog import MemberStatusChangeLog
 from common.models.ciwei.logs.thirdservice.AcsSmsSendLog import AcsSmsSendLog
 from common.models.ciwei.logs.thirdservice.WechatServerApiLog import WechatServerApiLog
+from common.models.ciwei.mall.ProductSaleChangeLog import ProductSaleChangeLog
 
 
 def setMemberSmsPkgChange(sms_pkg=None, unit=0, old_times=0):
@@ -164,5 +165,21 @@ def setMemberMobileChange(member_info=None, new_mobile='', old_mobile=''):
     change_log_model.new_mobile = new_mobile
     change_log_model.old_mobile = old_mobile
     db.session.add(change_log_model)
+
+
+
+def setProductSaleChange(product_id=0, product_num=0):
+    """
+    产品销售变更日志
+    :param product_id:
+    :param product_num:
+    :return:
+    """
+    sale_log = ProductSaleChangeLog()
+    sale_log.product_id = product_id
+    sale_log.quantity = product_num
+    sale_log.price = product_id * product_num
+    sale_log.member_id = getattr(g.member_info, 'id', 0)
+    db.session.add(sale_log)
 
 

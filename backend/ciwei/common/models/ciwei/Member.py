@@ -8,12 +8,14 @@
 """
 import decimal
 from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy.dialects.mssql import TINYINT
 from sqlalchemy.dialects.mysql import INTEGER
 
 from application import db
 from common.libs.CryptService import Cipher
+from common.libs.UrlManager import UrlManager
 
 
 class Member(db.Model):
@@ -43,11 +45,13 @@ class Member(db.Model):
     def has_qr_code(self):
         return self.qr_code != ""
 
+    @property
+    def qr_code_url(self):
+        return '' if not self.has_qr_code else UrlManager.buildImageUrl(self.qr_code, image_type='QR_CODE')
 
     @property
     def decrypt_mobile(self):
         return Cipher.decrypt(text=self.mobile)
-
 
     def __init__(self, openid='', mobile='', nickname='', avatar='', sex=1):
         self.openid = openid
@@ -55,26 +59,49 @@ class Member(db.Model):
         self.nickname = nickname
         self.avatar = avatar
         self.sex = sex
+        db.session.add(self)
 
-    @staticmethod
-    def getUnblockedByOpenid(openid=''):
-        return Member.query.filter_by(openid=openid, status=1).first()
+    @classmethod
+    def getUnblockedByOpenid(cls, openid=''):
+        return cls.query.filter_by(openid=openid, status=1).first()
 
-    @staticmethod
-    def getById(member_id=0):
-        return Member.query.filter_by(id=member_id).first()
+    @classmethod
+    def getById(cls, member_id=0):
+        return cls.query.filter_by(id=member_id).first()
 
-    @staticmethod
-    def getByOpenId(openid=''):
-        return Member.query.filter_by(openid=openid).first()
+    @classmethod
+    def getByOpenId(cls, openid=''):
+        return cls.query.filter_by(openid=openid).first()
 
 
     def bindMobile(self, mobile=''):
-        self.mobile = Cipher.encrypt(text=mobile)
-        db.session.add(self)
-        db.session.commit()
+        if mobile:
+            self.mobile = Cipher.encrypt(text=mobile)
+            db.session.add(self)
+            db.session.commit()
 
     def bindQrcode(self, qr_code=''):
-        self.qr_code = qr_code
-        db.session.add(self)
-        db.session.commit()
+        if qr_code:
+            self.qr_code = qr_code
+            db.session.add(self)
+            db.session.commit()
+
+    def changeSms(self, quantity=0):
+        if quantity != 0:
+            self.left_notify_times += quantity
+            db.session.add(self)
+
+    def changeBalance(self, quantity=0):
+        if quantity != 0:
+            self.balance += quantity
+            db.session.add(self)
+
+    def changeName(self, name):
+        if name:
+            self.name = name
+            db.session.add(self)
+
+    def changeCredits(self, quantity=0):
+        if quantity != 0:
+            self.credits += quantity
+            db.session.add(self)

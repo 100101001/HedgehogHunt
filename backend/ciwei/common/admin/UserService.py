@@ -38,7 +38,7 @@ def getUserByMid(member_id=0):
     """
     user = CacheQueryService.getUserCache(member_id=member_id)
     if not user:
-        user = User.query.filter_by(member_id=member_id).first()
+        user = User.getByMemberId(member_id)
         CacheOpService.setUsersCache(users=[user])
     return user
 

@@ -24,6 +24,7 @@ class MemberSmsPkg(db.Model):
         self.member_id = member_id
         self.left_notify_times = 50
         self.expired_time = now + dt.timedelta(weeks=156)
+        db.session.add(self)
 
     @staticmethod
     def getOldestValidPkg(openid='', now=datetime.now()):
