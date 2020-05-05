@@ -43,7 +43,7 @@ const getNewSessionKey = function (cb_success=(session_key)=>{}) {
 };
 
 
-const checkReg = function (openid, cb_comp = (isReg) => {}) {
+const checkReg = function (cb_comp = (isReg) => {}) {
   if (app.regFlag && app.getCache("token")) {
     //已注册且已登录
     app.alert({title: '登录提示', content: '已登录过，勿重复登录！', cb_confirm: wx.navigateBack});
@@ -53,7 +53,7 @@ const checkReg = function (openid, cb_comp = (isReg) => {}) {
     url: app.buildUrl("/member/is-reg"),
     header: app.getRequestHeader(),
     data: {
-      openid: openid
+      openid: globalData.openid
     },
     success: (res) => {
       let resp = res.data;
@@ -95,7 +95,7 @@ Page({
     if (phone == undefined) {
       //刚进入获取手机页面，检查是否已注册过，已注册过就回退
       //已注册未登录的还会自动登录
-      checkReg(app.getUserOpenId(), (isReg) => {
+      checkReg((isReg) => {
         if (!isReg) {
           // 显示页面
           this.setData({dataReady: true})

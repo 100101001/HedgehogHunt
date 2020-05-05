@@ -13,7 +13,7 @@
         <text>举报</text>
       </view>
       <!--只有取回前的状态才能编辑-->
-      <view class="report" catchtap="toEdit" data-id="{{id}}" wx:if="{{is_auth && status < 3}}">
+      <view class="report" catchtap="toEdit" data-id="{{id}}" wx:if="{{is_auth && (business_type===0 && status < 2 || business_type!==0 && status < 3)}}">
         <image src="/images/icons/edit-red.png"></image>
         <text>编辑</text>
       </view>

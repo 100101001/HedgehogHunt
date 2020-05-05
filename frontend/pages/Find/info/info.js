@@ -150,6 +150,7 @@ const hasReadGood = function (goods_id = 0) {
 
 Page({
   data: {
+    hiddenThanks: true,
     loadingHidden: true,
     show_location: false,
     appLoadingHidden: true
@@ -1155,6 +1156,22 @@ Page({
           },
         })
       }
+    })
+  },
+  /**
+   *
+   * @param e
+   */
+  openThank: function (e) {
+    this.setData({
+      hiddenThanks: false,
+      thanks: this.data.infos.info['thank_info']
+    })
+  },
+  closeThanks: function (e) {
+    this.setData({
+      hiddenThanks: true,
+      thanks: {}
     })
   }
 });

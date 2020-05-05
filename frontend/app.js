@@ -413,6 +413,7 @@ App({
             let resp = res.data;
             if (resp['code'] === -2) {
               //未注册
+
               this.onLoginUnRegSetData(resp['data']);
               return
             }
@@ -446,7 +447,9 @@ App({
     })
   },
   onLoginUnRegSetData: function(data) {
-    this.setCache("loginInfo", data);
+    this.globalData.openid = data.openid;
+    this.globalData.session_key = data.session_key;
+    // this.setCache("loginInfo", data);
     this.loginComplete();
     if (this.globalData.isScanQrcode) {
       //未注册用户扫码
@@ -478,7 +481,7 @@ App({
     this.globalData.has_qrcode = data.has_qrcode;
     this.globalData.member_status = data.member_status;
     this.globalData.id = data.id;
-    this.globalData.openid = data.token.split("#")[0];
+    this.globalData.openid = data.openid;
     this.globalData.regFlag = true;
     this.loginComplete();
   },

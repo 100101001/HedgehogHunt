@@ -73,6 +73,7 @@ const balanceCharge = function (pay_price=0.01, cb_success=()=>{}) {
  * 充值支付成功后{@link doBalanceRecharge}，扣除(改变)用户余额
  * @param unit 改变量
  * @param cb_success 回调函数
+ * @param cb_fail
  */
 const changeUserBalance = function (unit = 0, cb_success = () => {}, cb_fail=()=>{}) {
   wx.showLoading({
@@ -498,8 +499,8 @@ Page({
    * @param e
    */
   confirmSmsTimes: function(e){
-    let num = parseInt(this.data.sms_num)
-    if (num) {
+    let num = parseInt(this.data.sms_num);
+    if (num > 0) {
       //购买数量大于0，才继续
       let data = {
         type: 'toBuy',

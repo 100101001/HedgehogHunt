@@ -1,1 +1,22 @@
 @import "../../template/record-info/record-info-template.wxss";
+
+.thank_sender_container{
+ display: flex;
+ flex-direction: row;
+ margin-bottom: 10rpx;
+}
+.thank_sender_container image {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 30rpx;
+}
+.thank_sender_container text{
+padding-top: 8rpx;
+}
+.thank-nickname {
+margin-left: 10rpx;
+}
+.bold-text {
+color: #999;
+font-weight: bold;
+}

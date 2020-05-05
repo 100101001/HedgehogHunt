@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "物品详情"
+  "navigationBarTitleText": "物品详情",
+  "usingComponents": {
+    "lyx-modal": "../../../components/lyx-modal/lyx-modal"
+  }
 }

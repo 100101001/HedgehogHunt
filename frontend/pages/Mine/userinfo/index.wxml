@@ -101,7 +101,7 @@
 </lyx-modal>
 
 <!--短信套餐详情-->
-<lyx-modal class="sms-detail-modal" wx:if="{{total_notify_times}}" hidden="{{hiddenSmsDetailModal}}" title="短信余额详情" no-cancel="true" confirm-text="哈哈" bindconfirm="closeSmsDetail">
+<lyx-modal class="sms-detail-modal" wx:if="{{total_notify_times}}" hidden="{{hiddenSmsDetailModal}}" title="短信余额详情" no-cancel="true" confirm-text="关闭" bindconfirm="closeSmsDetail">
   <view class="sms-detail">
     <view wx:if="{{!sms_pkgs.length}}">短信包：无</view>
     <view class="hrz" wx:if="{{!sms_pkgs.length}}"></view>
