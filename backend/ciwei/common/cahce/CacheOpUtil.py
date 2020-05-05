@@ -6,6 +6,9 @@
 @file: CacheOpUtil.py
 @desc: 
 """
+import uuid
+
+from common.cahce.core import CacheQueryService
 
 
 def updateModelDict(model=None, updated=None):

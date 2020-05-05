@@ -11,7 +11,6 @@ from flask import request, g
 
 from application import db, APP_CONSTANTS
 from common.admin.AppealService import AppealHandlers
-from common.libs.CryptService import Cipher
 from common.libs.Helper import queryToDict
 from common.libs.UrlManager import UrlManager
 from common.loggin.time import time_log
@@ -39,7 +38,7 @@ def goodsAppealCreate():
 
     goods_id = int(req.get('id', -1))
     status = int(req.get('status', 0))
-    if goods_id == -1 or status not in (3, 4):
+    if goods_id == -1 or status not in (2, 3, 4):
         resp['msg'] = '申诉失败，请刷新后重试'
         return resp
 

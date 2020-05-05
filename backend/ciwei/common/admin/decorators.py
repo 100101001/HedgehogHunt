@@ -13,12 +13,15 @@ from common.admin import UserService
 
 
 def user_op(func):
-    @wraps
-    def validateUser(member_id=0, level=None, **kwargs):
+    @wraps(func)
+    def validateUser(*args, **kwargs):
+        member_id = kwargs.get('member_id')
         user = UserService.getUserByMid(member_id)
         if not user:
             return False, "您不是管理员，无权进行此操作"
-        if level is not None and level < user.level:
+        level = kwargs.get('level')
+        if level is not None and int(level) < user.level:
             return False, "您权限过低，无权进行此操作"
-        return func(member_id=member_id, user=user, **kwargs)
+        res = func(*args, user=user, **kwargs)
+        return res if res else (True, '操作成功')
     return validateUser

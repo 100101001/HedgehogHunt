@@ -43,6 +43,10 @@ class MemberProxy:
     def decrypt_mobile(self):
         return Cipher.decrypt(text=self.mobile)
 
+    @property
+    def encrypt_openid(self):
+        return Cipher.encrypt(self.openid)
+
     def bindMobile(self, mobile=''):
         if mobile:
             member = Member.getById(self.id)

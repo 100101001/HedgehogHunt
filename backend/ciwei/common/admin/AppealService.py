@@ -146,14 +146,12 @@ class GoodsAppealHandler:
         """
         if not member_id or not goods_id:
             return False, '操作失败'
-        if not GoodsCasUtil.exec(goods_id, status, 5):
+        if not GoodsCasUtil.exec(goods_id, status, status + 10):
             return False, '操作冲突'
 
         # 公开信息的状态操作加锁
-        goods_info = Good.query.filter_by(id=goods_id, status=status).first()
-        if goods_info is None:
-            return False, '申诉失败，请刷新后重试'
         Appeal.create(goods_id=goods_id, member_id=member_id)
+        Good.batch_update(Good.id == goods_id, Good.status == status, val={'status': Good.status + 10})
         return True, ''
 
     @staticmethod
@@ -169,8 +167,14 @@ class GoodsAppealHandler:
     @staticmethod
     @user_op
     def _setGoodsAppealDealt(appeal_id=0, user=None, result='', **kwargs):
-        Appeal.query.filter_by(id=appeal_id, status=0).update(
-            {'result': result, 'status': 1, 'user_id': user.uid}, synchronize_session=False)
+        def __getUnsolvedById():
+            return Appeal.query.join(Good, Good.id == Appeal.goods_id).filter_by(id=appeal_id, status=0).add_entity(
+                Good).first()
+
+        appeal, goods = __getUnsolvedById()
+        GoodsCasUtil.exec_wrap(goods.id, ['nil', goods.status], goods.status-10)
+        appeal.solved(result=result, uid=user.uid)
+        goods.appealSolved()
         return True, '操作成功'
 
     @staticmethod

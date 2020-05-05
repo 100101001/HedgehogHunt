@@ -112,12 +112,12 @@ class AESCrypt:
 # 单例暴露
 Cipher = AESCrypt()
 
-# if __name__ == '__main__':
-#     # pr = AESCrypt('secretkey123', 'ECB', '', 'gbk')
-#     # en_text = pr.encrypt('李依璇')
-#     # print('密文:', en_text)
-#     # print('明文:', pr.decrypt(en_text))
-#     pr = AESCrypt('xunhui', 'ECB', '', 'utf8')
-#     en_text = pr.encrypt('18964779230')
-#     print('密文:', en_text)
-#     print('明文:', pr.decrypt(en_text))
+if __name__ == '__main__':
+    # pr = AESCrypt('secretkey123', 'ECB', '', 'gbk')
+    # en_text = pr.encrypt('李依璇')
+    # print('密文:', en_text)
+    # print('明文:', pr.decrypt(en_text))
+    pr = AESCrypt('xunhui', 'ECB', '', 'utf8')
+    en_text = pr.encrypt('opLxO5fmwgdzntX4gfdKEk5NqLQA')
+    print('密文:', en_text)
+    print('明文:', pr.decrypt(en_text))

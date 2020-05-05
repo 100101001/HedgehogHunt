@@ -9,7 +9,7 @@
 import json
 
 from application import db, app, APP_CONSTANTS, es
-from common.cahce import redis_conn_db_3, redis_conn_db_4
+from common.cahce.core import redis_conn_db_3, redis_conn_db_4
 from common.libs.Helper import queryToDict
 
 from common.libs.recommend.v2.DistanceService import DistanceService

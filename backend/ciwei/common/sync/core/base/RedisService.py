@@ -9,7 +9,7 @@
 import json
 
 from application import app
-from common.cahce import redis_conn_db_3, redis_conn_db_4
+from common.cahce.core import redis_conn_db_3, redis_conn_db_4
 from common.sync.core.base import synonyms
 
 

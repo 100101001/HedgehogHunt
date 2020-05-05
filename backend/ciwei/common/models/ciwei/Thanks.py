@@ -52,3 +52,8 @@ class Thank(db.Model):
     @classmethod
     def readReceivedThanks(cls, member_id=0):
         cls.query.filter_by(target_member_id=member_id, status=0).update({'status': 1}, synchronize_session=False)
+
+
+    @classmethod
+    def getByGoodsId(cls, goods_id=0):
+        return cls.query.filter_by(goods_id=goods_id).first()

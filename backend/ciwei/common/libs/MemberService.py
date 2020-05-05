@@ -60,7 +60,7 @@ class MemberHandler:
     def _isRegistered(cls, openid=''):
         member_info = None
         if openid:
-            member_info = Member.getByOpenId(openid)
+            member_info = Member.getByOpenId(Cipher.decrypt(openid))
         return member_info is not None
 
     @classmethod
@@ -97,26 +97,25 @@ class MemberHandler:
         openid, session_key = cls.wechat.getWeChatOpenId(code=code, get_session_key=True)
         if not openid or not session_key:
             return -1, '服务繁忙，稍后重试'
-        member_info = None
-        user_info = None
-        if openid:
-            member_info = Member.getByOpenId(openid=openid)
-            if member_info:
-                CacheOpService.setMemberCache(member_info=member_info)
-                user_info = User.getByMemberId(member_info.id)
-                CacheOpService.setUsersCache(users=[user_info])
-        if not member_info:
-            return -2, {'openid': openid, 'session_key': session_key}
 
+
+        member_info = Member.getByOpenId(openid=openid)
+        if not member_info:
+            return -2, {'openid': Cipher.encrypt(openid), 'session_key': session_key}
+
+        CacheOpService.setMemberCache(member_info=member_info)
+        user_info = User.getByMemberId(member_info.id)
+        CacheOpService.setUsersCache(users=[user_info])
         hard_code_adm = member_info.openid in ['opLxO5fmwgdzntX4gfdKEk5NqLQA']
         is_user = (user_info is not None and user_info.status == 1) or hard_code_adm
         is_adm = hard_code_adm or (is_user and user_info.level == 1)
-        return 200, {'token': "{0}#{1}".format(openid, member_info.id),
+        return 200, {'token': Cipher.encrypt("{0}#{1}".format(member_info.id, member_info.openid)),
                      'is_adm': is_adm,
                      'is_user': is_user,
                      'has_qrcode': member_info.has_qr_code,
                      'member_status': member_info.status,
-                     'id': member_info.id
+                     'id': member_info.id,
+                     'openid': member_info.encrypt_openid
                      }
 
     @classmethod

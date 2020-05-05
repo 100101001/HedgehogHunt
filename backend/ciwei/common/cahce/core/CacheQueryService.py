@@ -9,10 +9,23 @@
 import json
 
 from application import APP_CONSTANTS
-from common.cahce import redis_conn_db_1
-from common.cahce.core import CacheKeyGetter
+from common.cahce.core import CacheKeyGetter, redis_conn_db_1
 from common.models.proxy.MemberProxy import MemberProxy
+from common.models.proxy.ThanksProxy import ThanksProxy
 from common.models.proxy.UserProxy import UserProxy
+
+
+
+
+def getThankCache(goods_id=0):
+    thank_key = CacheKeyGetter.thankKey(goods_id)
+    thanks = redis_conn_db_1.get(thank_key)
+    if thanks:
+        data = json.loads(thanks)
+        thanks = ThanksProxy()
+        thanks.__dict__ = data
+        redis_conn_db_1.expire(thank_key, 3600)
+    return thanks
 
 
 def getMarkCache(goods_id=0):
@@ -107,3 +120,10 @@ def getSmsVerifyCode(member_id=0, mobile=''):
 def hasRcvSmsVerify(member_id=0):
     sms_key = CacheKeyGetter.smsVerifyKey(member_id)
     return redis_conn_db_1.exists(sms_key)
+
+
+def getLoginSession(token=''):
+    session_key = CacheKeyGetter.sessionKey(token)
+    redis_conn_db_1.expire(session_key, 1800)
+    return redis_conn_db_1.get(session_key)
+

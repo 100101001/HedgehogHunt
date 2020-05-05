@@ -21,7 +21,7 @@ from web.controllers.api import route_api
 @route_api.route("/thank/order", methods=['POST', 'GET'])
 @time_log
 def thankOrderInit():
-    resp = {'code': -1, 'msg': '服务繁忙，稍后重试', 'data': {}}
+    resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
     member_info = g.member_info
     if not member_info:
@@ -34,8 +34,10 @@ def thankOrderInit():
 
     pay_sign_data = ThankHandler.deal('init_pay', consumer=member_info, price=price, discount=req.get('discount', '0'))
     if not pay_sign_data:
+        resp['msg'] = '服务繁忙，稍后重试'
         return resp
     # 数据库下单
+    resp['code'] = 200
     resp['data'] = pay_sign_data
     return resp
 

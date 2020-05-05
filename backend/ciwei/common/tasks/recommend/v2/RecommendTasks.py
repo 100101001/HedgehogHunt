@@ -16,4 +16,4 @@ from common.models.proxy.GoodProxy import GoodProxy
 def autoRecommendGoods(edit_info=None, goods_info=None):
     goods = GoodProxy()
     goods.__dict__ = goods_info
-    RecommendHandler.filter(edit_info=edit_info, goods_info=goods_info)
+    RecommendHandler.filter(edit_info=edit_info, goods_info=goods)

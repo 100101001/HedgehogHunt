@@ -129,7 +129,7 @@ def send_thank_subscribe(thank_info=None):
     """
     thank_data = {
         "thing1": {"value": thank_info.get('nickname')},
-        "amount2": {"value": thank_info.get('thank_price', 0)},
+        "amount2": {"value": str(thank_info.get('thank_price', 0))},
         "thing3": {"value": thank_info.get('summary')},
         "date4": {"value": thank_info.get('created_time', getCurrentDate())}
     }

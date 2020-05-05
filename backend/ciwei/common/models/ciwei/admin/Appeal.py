@@ -53,3 +53,9 @@ class Appeal(db.Model):
         else:
             appeal.status = 0
         db.session.add(appeal)
+
+    def solved(self, result='', uid=0):
+        self.result = result
+        self.user_id = uid
+        self.status = 1
+        db.session.add(self)

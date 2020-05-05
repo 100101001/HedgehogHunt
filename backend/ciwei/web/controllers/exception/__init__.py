@@ -8,7 +8,6 @@
 """
 
 from flask import Blueprint
-
 from application import db, app
 
 exception = Blueprint('exception', __name__)
@@ -18,4 +17,5 @@ exception = Blueprint('exception', __name__)
 def rollbackOnException(e):
     db.session.rollback()
     app.logger.error(str(e))
+    app.logger.exception(e)
     return {'code': -1, 'msg': '服务异常，请稍后使用'}

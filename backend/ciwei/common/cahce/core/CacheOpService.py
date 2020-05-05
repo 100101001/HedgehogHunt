@@ -7,10 +7,11 @@
 @desc: 
 """
 import json
+import uuid
 
 from application import APP_CONSTANTS
-from common.cahce import redis_conn_db_1, CacheKeyReverse
-from common.cahce.core import CacheKeyGetter
+from common.cahce import CacheKeyReverse
+from common.cahce.core import CacheKeyGetter, redis_conn_db_1
 from common.libs.Helper import queryToDict
 from common.loggin.time import time_log
 from common.models.ciwei.Goods import Good
@@ -31,6 +32,13 @@ def setMemberCache(member_info=None):
     else:
         redis_conn_db_1.set(mem_key, json.dumps(queryToDict(member_info)))
     redis_conn_db_1.expire(mem_key, 3600)
+
+
+def setThankInfoCache(thank_info=None):
+    thank_key = CacheKeyGetter.thankKey(thank_info.goods_id)
+    redis_conn_db_1.set(thank_key, json.dumps({'summary': thank_info.summary, 'thank_price': str(thank_info.thank_price),
+                                    'nickname': thank_info.nickname, 'avatar': thank_info.avatar}))
+    redis_conn_db_1.expire(thank_key, 3600)
 
 
 @time_log
@@ -147,3 +155,24 @@ def setSmsVerifyCode(member_id=None, mobile='', code=''):
     sms_key = CacheKeyGetter.smsVerifyKey(member_id)
     redis_conn_db_1.hset(sms_key, mobile, code)
     redis_conn_db_1.expire(sms_key, 300)
+
+
+def setLoginSession(member=None):
+    """
+    登录身份令牌
+    :param member:
+    :return:
+    """
+
+    def __getUniqueLoginToken():
+        while True:
+            tmp_token = str(uuid.uuid4()).replace('-', '')
+            tmp_key = CacheKeyGetter.sessionKey(tmp_token)
+            if not redis_conn_db_1.exists(tmp_key):
+                break
+        return tmp_token, tmp_key
+    token, session_key = __getUniqueLoginToken()
+    session_body = '{0}#{1}#{2}'.format(member.id, member.openid)
+    redis_conn_db_1.set(session_key, session_body)
+    redis_conn_db_1.expire(session_key, 1800)
+    return token

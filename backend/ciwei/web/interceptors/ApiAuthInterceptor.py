@@ -12,6 +12,7 @@ from flask import request, g
 
 from application import app
 from common.cahce.core import CacheQueryService, CacheOpService
+from common.libs.CryptService import Cipher
 from common.models.ciwei.Member import Member
 
 
@@ -51,14 +52,14 @@ def check_member_login():
 
     if auth_cookie is None:
         return False
-
+    auth_cookie = Cipher.decrypt(text=auth_cookie)
     auth_info = auth_cookie.split("#")
 
     if len(auth_info) != 2:
         return False
 
     try:
-        member_id = auth_info[1]
+        member_id = auth_info[0]
         member_info = CacheQueryService.getMemberCache(member_id=member_id)
         if not member_info:
             # 缓存不命中

@@ -71,4 +71,3 @@ class FeedbackHandler:
         if user.level == 1 and del_ids:
             Feedback.query.filter(Feedback.id.in_(del_ids), Feedback.status == 0).update({'status': 7},
                                                                                          synchronize_session=False)
-        return True, ''

@@ -21,6 +21,7 @@ from common.models.ciwei.Goods import Good
 from common.models.ciwei.GoodsTopOrder import GoodsTopOrder
 from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Recommend import Recommend
+from common.models.ciwei.Thanks import Thank
 from common.models.ciwei.logs.thirdservice.GoodsTopOrderCallbackData import GoodsTopOrderCallbackData
 from common.tasks.recommend.v2 import RecommendTasks
 from common.tasks.sms import SmsTasks
@@ -153,6 +154,21 @@ class CommonGoodsHandler:
             'show_location': show_location
         }
         return data
+
+
+    @classmethod
+    def _getThanksInfo(cls, goods_id=0, lost_member=None):
+        if goods_id:
+            thank_info = CacheQueryService.getThankCache(goods_id)
+            if not thank_info:
+                thank_info = Thank.getByGoodsId(goods_id)
+                CacheOpService.setThankInfoCache(thank_info)
+            return {'summary': thank_info.summary, 'price': str(thank_info.thank_price),
+                    'nickname': thank_info.nickname, 'avatar': thank_info.avatar}
+        else:
+            return {'summary': '谢谢你', 'price': '0',
+                    'nickname': lost_member.nickname if lost_member else '鲟回', 'avatar': lost_member.avatar if lost_member else '/images/more/un_reg_user.png'}
+
 
     @classmethod
     def _preMarkGoods(cls, member_id=0, goods_id=0, business_type=1):
@@ -344,6 +360,9 @@ class LostGoodsHandler(CommonGoodsHandler):
                              'op_time': op_time.strftime("%Y-%m-%d %H:%M")  # 根据此提示操作时间
                              }
                 data.update(more_data)
+                if goods_status == 4:
+                    thanks = super()._getThanksInfo(goods_info.return_goods_id, lost_member=member_info)
+                    data.update({'thank_info': thanks})
         return data
 
 
@@ -464,7 +483,7 @@ class ReturnGoodsHandler(CommonGoodsHandler):
             more_data = {'return_goods_id': lost_goods_id,
                          'op_time': goods_info.confirm_time.strftime("%Y-%m-%d %H:%M")}
             data.update(more_data)
-        elif goods_status > 2:
+        elif goods_status in (3, 4):
             lost_goods_status = Good.query.filter_by(id=lost_goods_id).with_entities(Good.status).first()
             is_origin_del = lost_goods_status[0] < 0
             op_time = goods_info.finish_time if goods_status == 3 else goods_info.thank_time
@@ -474,6 +493,9 @@ class ReturnGoodsHandler(CommonGoodsHandler):
                          'is_no_thanks': not goods_info.return_goods_openid and is_origin_del,
                          'op_time': op_time.strftime("%Y-%m-%d %H:%M")}
             data.update(more_data)
+            if goods_status == 4:
+                thanks = super()._getThanksInfo(goods_info.id)
+                data.update({'thank_info': thanks})
         return data
 
     @classmethod
@@ -659,10 +681,10 @@ class FoundGoodsHandler(CommonGoodsHandler):
             is_auth = member_info.id == goods_info.member_id
             show_location = __hasMarkGoods(member_id=member_info.id, goods_id=goods_info.id) or is_auth
         data = super()._getCommonInfo(goods_info=goods_info, show_location=show_location, is_auth=is_auth)
+        data.update({'is_owner': member_info and goods_info.owner_id == member_info.id})
         goods_status = goods_info.status
-        if not is_auth and goods_status in (3, 4):
-            data.update({'is_owner': member_info and goods_info.owner_id == member_info.id})
-        elif is_auth and goods_status in (2, 3, 4):
+
+        if is_auth and goods_status in (2, 3, 4):
             # 作者查看对方操作的时间
             if goods_status == 2:
                 op_time = goods_info.confirm_time
@@ -671,6 +693,9 @@ class FoundGoodsHandler(CommonGoodsHandler):
             else:
                 op_time = goods_info.thank_time
             data.update({'op_time': op_time.strftime("%Y-%m-%d %H:%M")})
+        if goods_status == 4:
+            thanks = super()._getThanksInfo(goods_info.id)
+            data.update({'thank_info': thanks})
         if goods_status == 5:
             # 申诉的时间
             data.update({'op_time': goods_info.appeal_time.strftime("%Y-%m-%d %H:%M")})

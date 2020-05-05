@@ -59,7 +59,9 @@ class Good(db.Model):
                 '2': '预认领',
                 '3': '已认领',
                 '4': '已答谢',
-                '5': '申诉中',
+                '12': '申诉中',
+                '13': '申诉中',
+                '14': '申诉中',
                 '-1': '已删除',
                 '-2': '已删除',
                 '-3': '已删除',
@@ -195,3 +197,7 @@ class Good(db.Model):
     @classmethod
     def getNewlyScanReturn(cls, openid=''):
         return cls.query.filter_by(qr_code_openid=openid, status=1).first()
+
+    def appealSolved(self):
+        self.status -= 10
+        db.session.add(self)

@@ -35,6 +35,9 @@ def markKey(goods_id=0):
     return "mark_{0}".format(goods_id)
 
 
+def thankKey(goods_id=0):
+    return "thank_{0}".format(goods_id)
+
 def goodsReadKey(goods_id=0):
     """
     db1 中缓存的文章阅读量
@@ -70,3 +73,7 @@ def wxTokenKey():
 
 def smsVerifyKey(member_id):
     return "sms_verify_{0}".format(member_id)
+
+
+def sessionKey(token=''):
+    return 'login_session_{0}'.format(token)

@@ -6,7 +6,7 @@
 @file: GoodsCasUtil.py
 @desc: 
 """
-from common.cahce import cas
+from common.cahce.core import cas
 
 
 class GoodsCasUtil:

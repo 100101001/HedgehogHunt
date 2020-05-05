@@ -127,10 +127,10 @@ class ThankHandler:
             :param quantity:
             :return:
             """
-
-            member = Member.getById(member_id)
-            member.balance += quantity
-            db.session.add(member)
+            if quantity != 0:
+                member = Member.getById(member_id)
+                member.balance += quantity
+                db.session.add(member)
 
 
         thanks_model = Thank(sender=sender, gotback_goods=gotback_goods, thank_info=thank_info)

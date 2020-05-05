@@ -37,7 +37,7 @@ class QrCodeHandler:
     @classmethod
     def _gainQrcodeFromWechat(cls, member_info=None):
         if not member_info.has_qr_code:
-            img = WeChatService.getMimiProgramQrcode(openid=member_info.openid)
+            img = WeChatService.getMimiProgramQrcode(openid=member_info.encrypt_openid)
             if not img:
                 return False
             qr_code = cls.__persistentImg(img=img)

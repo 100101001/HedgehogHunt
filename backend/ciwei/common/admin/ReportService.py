@@ -96,10 +96,10 @@ class GoodsReportHandler(ReportHandler):
                       4: '_blockGoodsReporter',
                       5: '_blockGoodsReleaser'}
 
-    @staticmethod
-    def deal(op_status, **kwargs):
-        strategy = GoodsReportHandler.__strategy_map.get(op_status)
-        handler = getattr(GoodsReportHandler, strategy, None)
+    @classmethod
+    def deal(cls, op_status, **kwargs):
+        strategy = cls.__strategy_map.get(op_status)
+        handler = getattr(cls, strategy, None)
         if handler:
             return handler(**kwargs)
 
