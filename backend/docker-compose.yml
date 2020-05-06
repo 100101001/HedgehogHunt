@@ -71,6 +71,8 @@ services:
   # https://www.cnblogs.com/bolingcavalry/p/11495509.html 根据MYSQL镜像的entry文件，配置映射文件
   # https://github.com/docker-library/mysql/blob/7397711170daed7ebba3bf373af143e5179906fc/5.7/Dockerfile 
   # https://github.com/docker-library/mysql/blob/7397711170daed7ebba3bf373af143e5179906fc/5.7/docker-entrypoint.sh 
+  # ALTER TABLE `goods` drop column `target_price` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '发布者实际的手机号';
+  # ALTER TABLE `goods` drop column `target_price`;
   db:
     image: mysql:5.7
     expose:
