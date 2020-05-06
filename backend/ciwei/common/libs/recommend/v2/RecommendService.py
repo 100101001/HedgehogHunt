@@ -191,7 +191,7 @@ class RecommendHandler:
         possibles = []
         for noun in must_syms:  # must_syms中只有名词自己
             must[0]['match']['name'] = noun
-            res = es.search(index='goods_info', doc_type='recommend', body=body)
+            res = es.search(index=app.config['ES']['INDEX'], body=body)
             for item in res['hits']['hits']:
                 data = item['_source']
                 data['score'] = item['_score']
