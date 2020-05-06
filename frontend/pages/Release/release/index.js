@@ -845,10 +845,11 @@ Page({
     },
       {
         name: "mobile",
-        placeholder: "高危非必填",
-        hints: '您的联络方式，涉及个人隐私，不建议公开',
-        value: "高危非必填",
-        label: "手机",
+        placeholder: "可留客服号17717852647",
+        kb_type: 'number',
+        hints: '寄放处的办公电话。否则可填客服号，代理致电您注册手机。',
+        value: "",
+        label: "电话",
         icons: "/images/icons/mobile.png",
       }
     ];

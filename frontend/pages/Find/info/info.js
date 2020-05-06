@@ -235,6 +235,16 @@ Page({
       address: location[0],
     })
   },
+  copyMobile: function(e) {
+    wx.setClipboardData({
+      data: e.currentTarget.dataset.mobile,
+      success: res => {
+        wx.showToast({
+          title: '电话已复制',
+        })
+      }
+    })
+  },
   /**
    * 除了物品信息还需要举报信息
    * @param id

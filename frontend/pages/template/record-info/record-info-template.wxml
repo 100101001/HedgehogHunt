@@ -47,7 +47,7 @@
           <view class="loc_text">{{info.location[1]}}<text style="font-size:24rpx;opacity:0.7;">(点击地址可导航)</text></view>
       </view>
       <view class="hrz"></view>
-      <view>
+      <view bindtap="copyMobile" data-mobile="{{info.mobile}}">
         <image class="loc_icon" src="/images/icons/mobile.png"></image>
         <text class="loc_text">电话：{{info.mobile}}</text>
       </view>
