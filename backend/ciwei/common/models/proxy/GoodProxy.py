@@ -19,13 +19,13 @@ class GoodProxy:
     openid = ""
     nickname = ""
     avatar = ""
+    author_mobile = ""
     mobile = ""
     owner_id = 100002
     name = ""
     owner_name = ""
     os_location = ""
     location = ""
-    target_price = Decimal("0.00")
     main_image = ""
     pics = ""
     summary = ""

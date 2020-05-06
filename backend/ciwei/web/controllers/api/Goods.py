@@ -719,6 +719,10 @@ def esInit():
             "openid": {
                 "type": "keyword"
             },
+            "author_mobile": {
+              "type": "keyword",
+              "index": "false"
+            },
             "mobile": {
                 "type": "keyword",
                 "index": "false"

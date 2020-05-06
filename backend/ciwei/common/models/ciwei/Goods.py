@@ -25,7 +25,7 @@ class Good(db.Model):
     owner_name = db.Column(db.String(100), nullable=False, default='', comment="物主姓名")
     os_location = db.Column(db.String(100), nullable=False, default='', comment="物品发现和丢失地址")
     location = db.Column(db.String(100), nullable=False, default='', comment="物品放置地址和失主住址")
-    target_price = db.Column(db.Numeric(10, 2), nullable=False, default=decimal.Decimal(0.00), comment="悬赏金额")
+    author_mobile = db.Column(db.String(32), nullable=False, default='', comment="发布者实际的手机号")
     main_image = db.Column(db.String(100), nullable=False, default='', comment="主图")
     pics = db.Column(db.String(1000), nullable=False, default='', comment="组图")
     summary = db.Column(db.String(1000), nullable=False, default='', comment="描述")
@@ -113,6 +113,7 @@ class Good(db.Model):
         self.openid = author_info.openid  # 作者的身份标识，冗余设计，方便订阅消息等
         self.nickname = author_info.nickname
         self.avatar = author_info.avatar
+        self.author_mobile = author_info.mobile
         self.business_type = business_type
         self.mobile = mobile
         self.name = name

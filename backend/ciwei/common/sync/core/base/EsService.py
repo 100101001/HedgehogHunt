@@ -52,6 +52,7 @@ def syncGoodsToES(goods_info=None, edit=False):
         'pics': goods_info.pics,
         'nickname': goods_info.nickname,
         'avatar': goods_info.avatar,
+        "author_mobile": goods_info.author_mobile,
         'mobile': goods_info.mobile,
         'top_expire_time': goods_info.top_expire_time,
         'return_goods_id': goods_info.return_goods_id,

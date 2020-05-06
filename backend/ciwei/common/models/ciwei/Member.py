@@ -8,7 +8,6 @@
 """
 import decimal
 from datetime import datetime
-from decimal import Decimal
 
 from sqlalchemy.dialects.mssql import TINYINT
 from sqlalchemy.dialects.mysql import INTEGER
