@@ -9,7 +9,7 @@
     <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
     
     <import src="../template/floating-ball/floating-ball-template.wxml"></import>
-    <template is="floating-ball" data="{{business_type}}"></template>
+    <template is="floating-ball" data="{{business_type, x, y}}"></template>
 
     <form bindsubmit="formSubmit">
       <view class="search_container">
@@ -41,7 +41,7 @@
       <scroll-view class="type-navbar" scroll-x="true">
         <view class="type-box {{business_type? 'type-box-five': ''}}" wx:for="{{categories}}" wx:for-item="cat" wx:key="index">
           <view id="{{cat.id}}" class="type-navbar-item {{activeCategoryId == cat.id ? 'type-item-on' : ''}}"
-                bindtap="catClick">
+                catchtap="catClick">
             {{cat.name}}
           </view>
         </view>

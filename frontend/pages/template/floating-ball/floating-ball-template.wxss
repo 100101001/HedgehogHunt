@@ -1,9 +1,19 @@
+
+.movable-floating-area{
+ position: absolute;
+ z-index: 10;
+ width: 100%;
+ height: 100%;
+ pointer-events: none;
+}
+.movable-ball {
+ pointer-events: auto;
+ position: fixed;
+}
 .ball{
 border-radius: 50rpx;
 background-color: rgba(102,153,255, 0.3);
 animation: bubble 5s infinite ease-in-out;
-top: 500rpx;
-right: 50rpx;
 position: fixed;
 width: 100rpx;
 height: 100rpx;

@@ -7,7 +7,7 @@
 
   <!--只有发布记录不是归还的时候可以看见的悬浮球-->
   <import src="../template/floating-ball/floating-ball-template.wxml"></import>
-  <template is="floating-ball" data="{{business_type, op_status}}" wx:if="{{op_status==0}}"></template>
+  <template is="floating-ball" data="{{business_type, op_status, x, y}}" wx:if="{{op_status==0}}"></template>
 
   <view class="message_container">
     <block wx:for="{{infos.list}}" wx:key="index">

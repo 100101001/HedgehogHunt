@@ -1,5 +1,3 @@
-const navigate = require("../template/navigate-bar/navigate-bar-template.js")
-const util = require("../../utils/util.js");
 const app = getApp();
 Page({
   data: {
@@ -8,6 +6,16 @@ Page({
     categories: []
   },
   onLoad: function (options) {
+    wx.getSystemInfo({
+      success:  (res) => {
+        let X = res.windowWidth * 0.8;
+        let Y= res.windowHeight * 0.4;
+        this.setData({
+          x: X,
+          y: Y
+        });
+      }
+    });
     //如果没有页面参数，则默认跳转失物招领页面
     this.onLoadSetData(options.business_type ? parseInt(options.business_type) : 1)
   },
@@ -39,6 +47,7 @@ Page({
       member_id: app.globalData.id, //用户的ID，没有注册就是0
       business_type: business_type,
       categories: categories,  // 类别
+      activeCategoryId: 1-business_type, // 失物招领是0全部，拾物是1
       goods_name: '',  // 物品名
       owner_name: '',  // 物主名
       filter_address: '',  // 搜索栏的地址关键词
@@ -58,6 +67,18 @@ Page({
     //加载第一页的物品数据
     this.setInitData();
     this.onPullDownRefresh();
+  },
+  startMoveBall: function(e) {
+    console.log('start')
+    console.log(e)
+  },
+  moveBall: function(e) {
+    console.log('move')
+    console.log(e)
+  },
+  endMoveBall: function(e) {
+    console.log('end')
+    console.log(e)
   },
   /**
    * catClick 如果切换了状态栏，就加载新的数据

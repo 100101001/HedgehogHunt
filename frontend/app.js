@@ -43,9 +43,11 @@ App({
     id: null, //用户的id(首页goToIndex会用到)
     regFlag: false, //用于判断用户已注册(和缓存中的token一起代表用户已经登录)
     shopName: "鲟回-失物招领",
+    //domain: "http://47.114.85.211:8999/api",
     domain: "http://192.168.0.116:8999/api",
     //domain: "https://ciwei.opencs.cn/api",
     //static_file_domain: "https://ciwei.opencs.cn",
+    //static_file_domain: "http://47.114.85.211:8999",
     static_file_domain: "http://192.168.0.116:8999",
     member_status: 1, //用户状态
     op_status: 2,
@@ -94,6 +96,8 @@ App({
         result: "pages/result/result?com=&querysource=third_xcx&nu="
       }
     },
+    openid: '',  // 默认为空字符串，后端拿到空字串，就会重新执行一次登录获取openid和session_key
+    session_key: '',
     campus_id: -1, //学校id
     campus_name: "", //学校名
     read_goods: new BloomFilter(32*256, 16), //用户查阅过的物品ID，用于阅读量计数
@@ -413,7 +417,6 @@ App({
             let resp = res.data;
             if (resp['code'] === -2) {
               //未注册
-
               this.onLoginUnRegSetData(resp['data']);
               return
             }
@@ -428,7 +431,7 @@ App({
               //扫码，另行判断
               this.qrCodeNavigate()
             } else {
-              //不扫码就提示一下登录了
+              //不扫码且是首次登录就提示一下登录了
               this.onLoginSuccessShowToast('登录成功')
             }
           },
@@ -460,9 +463,11 @@ App({
    * 首次登录检查完用户状态，首页才显示逛一逛
    */
   loginComplete: function() {
-    this.globalData.indexPage.setData({
-      isLogging: false
-    });
+    if (this.globalData.indexPage) {
+      this.globalData.indexPage.setData({
+        isLogging: false
+      });
+    }
     if (!this.globalData.isScanQrcode) {
       this.globalData.indexPage = null;
     }

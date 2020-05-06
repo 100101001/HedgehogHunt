@@ -1,14 +1,21 @@
 <template name="floating-ball">
   <!--悬浮球-->
-  <view class="ball {{business_type? '': 'ball-extra'}}" catch:touchstart="businessTypeClick" wx:if="{{op_status == undefined}}">
-    <view class="business_type" >
-      {{business_type? '寻': '拾'}}
-    </view>
-  </view>
 
-  <view class="ball {{business_type==0? '': (business_type==1? 'ball-extra': 'ball-extra2')}}" catch:touchstart="businessTypeClick" wx:if="{{op_status == 0}}">
-    <view class="business_type" >
-      {{business_type==0 ? '拾': (business_type ==1? '还': '寻' )}}
-    </view>
-  </view>
+  <movable-area wx:if="{{x && y}}"  class="movable-floating-area">
+
+    <movable-view direction="all" class="movable-ball" x="{{x}}" y="{{y}}">
+      <view class="ball {{business_type? '': 'ball-extra'}}" catchtap="businessTypeClick" wx:if="{{op_status === undefined}}">
+        <view class="business_type" >
+          {{business_type? '寻': '拾'}}
+        </view>
+      </view>
+
+      <view class="ball {{business_type==0? '': (business_type==1? 'ball-extra': 'ball-extra2')}}" catchtap="businessTypeClick" wx:if="{{op_status == 0}}">
+        <view class="business_type" >
+          {{business_type==0 ? '拾': (business_type ==1? '还': '寻' )}}
+        </view>
+      </view>
+    </movable-view>
+  </movable-area>
+
 </template>

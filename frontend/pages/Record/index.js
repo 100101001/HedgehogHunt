@@ -187,6 +187,16 @@ Page({
     let check_cat;
     let title;
     if (op_status === 0) {
+      wx.getSystemInfo({
+        success:  (res) => {
+          let X = res.windowWidth * 0.8;
+          let Y= res.windowHeight * 0.2;
+          this.setData({
+            x: X,
+            y: Y
+          });
+        }
+      });
       //发布记录
       title = '发布记录';
       check_cat = [
