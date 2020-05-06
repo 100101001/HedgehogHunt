@@ -58,9 +58,10 @@ class MemberHandler:
 
     @classmethod
     def _isRegistered(cls, openid=''):
-        member_info = None
         if openid:
             member_info = Member.getByOpenId(Cipher.decrypt(openid))
+        else:
+            member_info = 1
         return member_info is not None
 
     @classmethod
