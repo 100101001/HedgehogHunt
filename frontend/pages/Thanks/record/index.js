@@ -367,7 +367,7 @@ Page({
     }
     app.alert({
       title: "违规举报",
-      content: "为维护平台环境，欢迎举报色情及诈骗、恶意广告等违规信息！同时，恶意举报将会被封号，请谨慎操作，确认举报？",
+      content: "为维护平台环境，欢迎举报恶搞、诈骗、私人广告、色情等违规信息！同时，恶意举报将会被封号，请谨慎操作，确认举报？",
       showCancel: true,
       cb_confirm: () => {
         this.doReport(e.currentTarget.dataset.index)

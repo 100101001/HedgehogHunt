@@ -429,7 +429,7 @@ Page({
     }
     app.alert({
       title: "违规举报",
-      content: "为维护平台环境，欢迎举报色情及诈骗、恶意广告等违规信息！同时，恶意举报将会被封号，请谨慎操作，确认举报？",
+      content: "为维护平台环境，欢迎举报恶搞、诈骗、私人广告、色情等违规信息！同时，恶意举报将会被封号，请谨慎操作，确认举报？",
       showCancel: true,
       cb_confirm: ()=>{
         this.doReportGoods(e.currentTarget.dataset.id);
@@ -460,14 +460,25 @@ Page({
           });
           return;
         }
-        wx.showToast({
-          title: '举报成功，感谢反馈！',
-          icon: 'success',
-          duration: 1000,
-          success: (res) => {
-            setTimeout(wx.navigateBack, 600);
-          }
-        });
+        if (this.data.infos.info.business_type === 2 && this.data.infos.info.status < 3) {
+          // 举报了未取回的归还物品
+          app.alert({
+            title: '举报成功',
+            content: '您的物品将会重新被系统纳入匹配范围并等待他人主动归还，是否需要续订归还通知？',
+            showCancel: true,
+            cb_confirm: this.subscribeReturnMsg,
+            cb_cancel: wx.navigateBack
+          });
+        } else {
+          wx.showToast({
+            title: '举报成功，感谢反馈！',
+            icon: 'success',
+            duration: 1000,
+            success: (res) => {
+              setTimeout(wx.navigateBack, 600);
+            }
+          });
+        }
       },
       fail: (res) => {
         app.serverBusy();
@@ -775,7 +786,7 @@ Page({
         ids: [id],
         status: status  //状态CAS
       },
-      success: res => {
+      success: (res) => {
         let resp = res.data;
         if (resp['code'] !== 200) {
           app.alert({content: resp['msg']});
@@ -783,14 +794,34 @@ Page({
         }
         app.alert({
           title: '操作提示',
-          content: '已拒绝归还。望您早日寻回失物！',
-          cb_confirm: wx.navigateBack
-        })
+          content: '已拒绝归还。是否需要续订归还通知？',
+          showCancel: true,
+          cb_confirm: this.subscribeReturnMsg,
+          cb_cancel: wx.navigateBack
+        });
       },
       fail: res => {
         app.serverBusy()
       }
-    })
+    });
+  },
+  /**
+   * 续订消息
+   */
+  subscribeReturnMsg: function () {
+    let tmpId =app.globalData.subscribe.return;
+    wx.requestSubscribeMessage({
+      tmplIds: [tmpId],
+      complete: (sub_res) => {
+        //订阅完归还消息后
+        wx.showToast({
+          title: sub_res[tmpId] === 'accept'? '续订成功': '定期来看看吧',
+          success: (res) => {
+            setTimeout(wx.navigateBack, 300)
+          }
+        });
+      }
+    });
   },
   /**
    * goConfirmReturnGoods 归还贴 ，确认归还的物品是自己的{@see doConfirmReturnGoods}
