@@ -39,7 +39,7 @@
     <!--分类展示-->
     <view class="type-container {{tabFixed ? 'fixed-tab' : ''}}">
       <scroll-view class="type-navbar" scroll-x="true">
-        <view class="type-box" wx:for="{{categories}}" wx:for-item="cat" wx:key="index">
+        <view class="type-box {{business_type? 'type-box-five': ''}}" wx:for="{{categories}}" wx:for-item="cat" wx:key="index">
           <view id="{{cat.id}}" class="type-navbar-item {{activeCategoryId == cat.id ? 'type-item-on' : ''}}"
                 bindtap="catClick">
             {{cat.name}}

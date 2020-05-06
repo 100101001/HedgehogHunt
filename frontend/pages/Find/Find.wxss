@@ -152,6 +152,9 @@ swiper-item image {
   overflow: hidden;
 }
 
+.type-box-five {
+  width: 150rpx;
+}
 /*.status-three{*/
 /*  width: 250rpx;*/
 /*}*/

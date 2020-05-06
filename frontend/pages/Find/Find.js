@@ -12,8 +12,9 @@ Page({
     this.onLoadSetData(options.business_type ? parseInt(options.business_type) : 1)
   },
   onLoadSetData: function (business_type = 0) {
+    let categories = business_type ? [{id: 0, name: '全部'}] : [];
     let verb = business_type ? '认领' : '寻回';
-    let categories = [
+    categories = categories.concat([
       {
         id: 1,
         name: '待' + verb
@@ -30,12 +31,10 @@ Page({
         id: 4,
         name: '已答谢'
       }
-    ];
-    if (!business_type) {
-      wx.setNavigationBarTitle({
-        title: '寻物启事',
-      })
-    }
+    ]);
+    wx.setNavigationBarTitle({
+      title: business_type? '失物招领' : '寻物启事',
+    });
     this.setData({
       member_id: app.globalData.id, //用户的ID，没有注册就是0
       business_type: business_type,
@@ -75,7 +74,6 @@ Page({
       //状态如若发生变化就像后端请求新数据,依赖 activeCategoryId，必须先设置再请求
       this.onPullDownRefresh()
     }
-
   },
   /**
    * onDetailTap 点击信息卡查看详情

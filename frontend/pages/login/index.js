@@ -15,7 +15,7 @@ const getNewSessionKey = function (cb_success=(session_key)=>{}) {
       //成功拿到code
       wx.request({
         method: 'POST',
-        url: app.buildUrl('/member/login/wx'),
+        url: app.buildUrl('/member/renew/session'),
         header: {
           'content-type': 'application/json',
         },
@@ -29,7 +29,7 @@ const getNewSessionKey = function (cb_success=(session_key)=>{}) {
           //成功拿到新的session_key
           let info = resp['data'];
           cb_success(info['session_key']);
-          app.setCache("loginInfo", info);
+          globalData.session_key = info.session_key;
         },
         fail: (res) =>{
           app.serverBusy()
@@ -51,7 +51,6 @@ const checkReg = function (cb_comp = (isReg) => {}) {
   }
   wx.request({
     url: app.buildUrl("/member/is-reg"),
-    header: app.getRequestHeader(),
     data: {
       openid: globalData.openid
     },
@@ -157,14 +156,13 @@ Page({
   //微信用户授权后,获取加密的手机号
   getPhoneNumber(e) {
     //获取加密手机的结果
-    let msg = e.detail.errMsg
+    let msg = e.detail.errMsg;
     //加密的信息和解密信息
-    let encryptedData = e.detail.encryptedData
-    let iv = e.detail.iv
+    let encryptedData = e.detail.encryptedData;
+    let iv = e.detail.iv;
     //session_key和openid
-    let cached_login_info = app.getCache('loginInfo')
-    let session_key = cached_login_info.session_key
-    if (msg == 'getPhoneNumber:ok') {
+    let session_key = globalData.session_key;
+    if (msg === 'getPhoneNumber:ok') {
       //成功获取
       wx.showToast({
         title: '请稍等',
