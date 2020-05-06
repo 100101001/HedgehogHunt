@@ -243,7 +243,7 @@ def goodsSearch():
         resp['msg'] = "获取失败"
         return jsonify(resp)
     status = int(req.get('status', -1))
-    if status not in (1, 2, 3, 4):
+    if status not in (0, 1, 2, 3, 4):
         resp['msg'] = '获取失败'
         return resp
 

@@ -105,6 +105,8 @@ class GoodsReportHandler(ReportHandler):
 
     @classmethod
     def _reportGoods(cls, reporting_goods=None, reporting_member=None):
+        if reporting_goods.business_type == 2 and reporting_goods.status < 3 and reporting_goods.return_goods_id:
+            Good.batch_update(Good.id == reporting_goods.return_goods_id, Good.status < 3, val={'status': 1}, rds=1)
         super()._newStuffReport(reporting_stuff=reporting_goods, reporting_member=reporting_member,
                                 record_type='goods')
 

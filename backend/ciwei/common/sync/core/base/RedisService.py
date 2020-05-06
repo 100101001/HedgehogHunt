@@ -11,11 +11,13 @@ import json
 from application import app
 from common.cahce.core import redis_conn_db_3, redis_conn_db_4
 from common.sync.core.base import synonyms
+from common.tasks.recommend.v2 import RecommendTasks
 
 
 def syncNewGoodsToRedis(*args):
     for arg in args:
         __syncNewGoodsToRedis(goods_info=arg)
+        RecommendTasks.autoRecommendGoods(goods_info=arg)
 
 
 def __syncNewGoodsToRedis(goods_info=None):

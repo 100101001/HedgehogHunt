@@ -139,7 +139,6 @@ class Good(db.Model):
         # 修改成置顶贴子
         if int(edit_info.get('is_top', 0)):
             self.top_expire_time = now + dt.timedelta(days=int(edit_info['days']))
-        self.status = -self.status
         self.updated_time = now
         db.session.add(self)
 

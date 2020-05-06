@@ -228,10 +228,10 @@ class GoodsRecordSearchHandler:
         6: '_getMyAppeal'
     }
 
-    @staticmethod
-    def deal(op_status, **kwargs):
-        strategy = GoodsRecordSearchHandler.__strategy_map.get(op_status)
-        handler = getattr(GoodsRecordSearchHandler, strategy, None)
+    @classmethod
+    def deal(cls, op_status, **kwargs):
+        strategy = cls.__strategy_map.get(op_status)
+        handler = getattr(cls, strategy, None)
         if handler:
             return handler(record_type=APP_CONSTANTS['stuff_type']['goods'], **kwargs)
 
@@ -260,12 +260,16 @@ class GoodsRecordSearchHandler:
         """
         report_status_must = {"match": {"report_status": 0}}  # 举报帖子将暂时隐藏
         biz_type_must = {"match": {"business_type": biz_type}}
-        status_must = {"match": {"status": status}}
-        must = [biz_type_must, report_status_must, status_must]
+        # status_must = {"match": {"status": status}} if status != 0 else {}
+        # must = [biz_type_must, report_status_must, status_must]
+        must = [biz_type_must, report_status_must]
+        status_should = [{"match": {"status": status}}] if status != 0 else [{"match": {"status": 1}}, {"match": {"status": 2}}, {"match": {"status": 3}}, {"match": {"status": 4}}]
         query = {
             'query': {
                 "bool": {
-                    'must': must
+                    'must': must,
+                    'should': status_should,
+                    "minimum_should_match": 1
                 }
             },
             "from": 0,

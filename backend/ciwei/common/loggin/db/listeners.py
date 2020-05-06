@@ -16,12 +16,14 @@ from common.models.ciwei.mall.Product import Product
 
 @event.listens_for(Member.left_notify_times, 'set')
 def memberSmsChangeLog(target, new_val, old_val, *args):
-    LogService.setMemberNotifyTimesChange(member_info=target, unit=new_val - old_val, old_times=old_val)
+    if target.id:
+        LogService.setMemberNotifyTimesChange(member_info=target, unit=new_val - old_val, old_times=old_val)
 
 
 @event.listens_for(Member.balance, 'set')
 def memberBalanceChangeLog(target, new_val, old_val, *args):
-    LogService.setMemberBalanceChange(member_info=target, unit=new_val - old_val, old_balance=old_val)
+    if target.id:
+        LogService.setMemberBalanceChange(member_info=target, unit=new_val - old_val, old_balance=old_val)
 
 
 @event.listens_for(MemberSmsPkgChangeLog.notify_times, 'set')
@@ -31,7 +33,8 @@ def memberSmPkgChangeLog(target, new_val, old_val, *args):
 
 @event.listens_for(Member.mobile, 'set')
 def memberMobileChangeLog(target, new_val, old_val, *args):
-    LogService.setMemberMobileChange(member_info=target, new_mobile=new_val, old_mobile=old_val)
+    if target.id:
+        LogService.setMemberMobileChange(member_info=target, new_mobile=new_val, old_mobile=old_val)
 
 
 @event.listens_for(Product.sale_cnt, 'set')

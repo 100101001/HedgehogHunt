@@ -80,13 +80,10 @@ class CommonGoodsHandler:
         :param kwargs:
         :return:
         """
-        old_status = goods_info.status
-        goods_info.status = -old_status
-        GoodsCasUtil.exec(goods_info.id, old_status, -old_status)  # 恢复init_edit时更改的状态标识
-        db.session.add(goods_info)
+        cur_status = goods_info.status
+        GoodsCasUtil.exec(goods_info.id, -cur_status, cur_status)  # 恢复init_edit时更改的状态标识
         # edit_info 传入推荐标识是否被改动
         RecommendTasks.autoRecommendGoods.delay(edit_info=edit_info, goods_info=queryToDict(goods_info))
-        db.session.commit()
 
     @classmethod
     def _releaseOpenGoodsOk(cls, goods_info=None, **kwargs):
@@ -99,7 +96,6 @@ class CommonGoodsHandler:
         goods_info.status = 1
         db.session.add(goods_info)
         MemberService.updateCredits(member_id=goods_info.member_id)
-        RecommendTasks.autoRecommendGoods.delay(goods_info=queryToDict(goods_info))
         db.session.commit()
 
     @classmethod
