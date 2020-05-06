@@ -52,7 +52,12 @@ def check_member_login():
 
     if auth_cookie is None:
         return False
-    auth_cookie = Cipher.decrypt(text=auth_cookie)
+
+
+    try:
+        auth_cookie = Cipher.decrypt(text=auth_cookie)
+    except Exception:
+        return False
     auth_info = auth_cookie.split("#")
 
     if len(auth_info) != 2:
