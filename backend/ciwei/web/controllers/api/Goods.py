@@ -665,8 +665,120 @@ def returnLinkReturnDelInBatch():
     return resp
 
 
-@route_api.route('/test')
-def test():
-    from common.models.proxy.MemberProxy import MemberProxy
-    a = MemberProxy()
-    b = MemberProxy()
+@route_api.route('/es/init', methods=['GET', 'POST'])
+def esInit():
+    mappings = {
+        "properties": {
+            "appeal_time": {
+                "type": "date"
+            },
+            "avatar": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "business_type": {
+                "type": "byte"
+            },
+            "confirm_time": {
+                "type": "date"
+            },
+            "created_time": {
+                "type": "date"
+            },
+            "finish_time": {
+                "type": "date"
+            },
+            "id": {
+                "type": "long"
+            },
+            "lat": {
+                "type": "float",
+                "index": "false"
+            },
+            "lng": {
+                "type": "float",
+                "index": "false"
+            },
+            "loc": {
+                "type": "text"
+            },
+            "os_location": {
+                "type": "text"
+            },
+            "location": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "main_image": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "member_id": {
+                "type": "long"
+            },
+            "openid": {
+                "type": "keyword"
+            },
+            "mobile": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "name": {
+                "type": "text"
+            },
+            "nickname": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "owner_name": {
+                "type": "text"
+            },
+            "pics": {
+                "type": "keyword",
+                "index": "false"
+            },
+            "qr_code_openid": {
+                "type": "keyword"
+            },
+            "report_status": {
+                "type": "byte"
+            },
+            "return_goods_id": {
+                "type": "long"
+            },
+            "return_goods_openid": {
+                "type": "keyword"
+            },
+            "status": {
+                "type": "byte"
+            },
+            "summary": {
+                "type": "text"
+            },
+            "thank_time": {
+                "type": "date"
+            },
+            "top_expire_time": {
+                "type": "date"
+            },
+            "updated_time": {
+                "type": "date"
+            },
+            "view_count": {
+                "type": "integer"
+            },
+            "user_id": {
+                "type": "integer"
+            }
+        }
+    }
+    body = {
+        "settings": {
+            "number_of_shards": 3,
+            "number_of_replicas": 1
+        },
+        "mappings": mappings
+    }
+    from application import es
+    res = es.indices.create(index="goods", body=body)
+    return res

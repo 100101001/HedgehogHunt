@@ -12,5 +12,5 @@ WORKDIR /code
 RUN pip install -r requirements-versioned.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 #CMD ["python","/code/manager.py","runserver"]
-
+ENTRYPOINT ["/code/run_server.sh"] 
 
