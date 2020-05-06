@@ -27,14 +27,14 @@
 
 			<view catchtap='onNavigateTap' class="icon_container" data-id="1" hover-class="navigator-clicked" hover-stay-time="1000">
 				<image class="our_icon" style='width:60rpx; height:70rpx' src="{{isSelected1? '/images/icons/find_select.png':'/images/icons/find.png'}}"></image>
-				<view class="icon_text" wx:if="{{isSelected1}}" style="color:#f7931e">待领</view>
-				<view class="icon_text" wx:if="{{!isSelected1}}" style="color:#b3b3b3">待领</view>
+				<view class="icon_text" wx:if="{{isSelected1}}" style="color:#f7931e">拾物</view>
+				<view class="icon_text" wx:if="{{!isSelected1}}" style="color:#b3b3b3">拾物</view>
 			</view>
 
 			<view catchtap='onNavigateTap' class="find_icon_container" data-id="3" hover-class="navigator-clicked" hover-stay-time="1000">
 				<image class="our_icon" style='width:60rpx; height:70rpx' src="{{isSelected3? '/images/icons/lost_select.png':'/images/icons/lost.png'}}"></image>
-				<view class="icon_text" wx:if="{{isSelected3}}" style="color:#f7931e">待寻</view>
-				<view class="icon_text" wx:if="{{!isSelected3}}" style="color:#b3b3b3">待寻</view>
+				<view class="icon_text" wx:if="{{isSelected3}}" style="color:#f7931e">失物</view>
+				<view class="icon_text" wx:if="{{!isSelected3}}" style="color:#b3b3b3">失物</view>
 			</view>
 
 			<view catchtap='onNavigateTap' class="icon_container" data-id="4" hover-class="navigator-clicked" hover-stay-time="1000">

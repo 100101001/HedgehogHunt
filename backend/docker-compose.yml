@@ -1,8 +1,7 @@
 
 # https://www.jianshu.com/p/bf802ea2d7cf 
-# https://blog.csdn.net/bocai_xiaodaidai/article/details/92641534 多服务启动脚本
 # https://docs.docker.com/compose/gettingstarted/ compose的安装与使用
-# https://ecs.console.aliyun.com/#/server/region/cn-hangzhou 服务器
+# https://ecs.console.aliyun.com/#/server/region/cn-hangzhou 阿里云ECS服务器
 # https://github.com/jpetazzo/nsenter docker-enter命令
 # https://www.shellhacks.com/docker-enter-container/ linux shell技巧
 
@@ -49,7 +48,7 @@ services:
       RABBITMQ_ERLANG_COOKIE: LZJADKXKLULIXFKAALGX 
       TZ: Asia/Shanghai
     volumes:
-      - ./rabbitmq:/var/lib/rabbitmq
+      - ./rabbitmq/data:/var/lib/rabbitmq
     restart: always
 
 
@@ -67,20 +66,26 @@ services:
     ports:
       - "9200:9200"
     restart: always
-  
+ 
+  # https://www.cnblogs.com/han-1034683568/p/6941337.html 配置 构建文件，自动执行SQL建库脚本
+  # https://www.cnblogs.com/bolingcavalry/p/11495509.html 根据MYSQL镜像的entry文件，配置映射文件
+  # https://github.com/docker-library/mysql/blob/7397711170daed7ebba3bf373af143e5179906fc/5.7/Dockerfile 
+  # https://github.com/docker-library/mysql/blob/7397711170daed7ebba3bf373af143e5179906fc/5.7/docker-entrypoint.sh 
   db:
     image: mysql:5.7
     expose:
       - "3306"
     volumes:
-      - ./mysql:/var/lib/mysql
+      - ./mysql/data:/var/lib/mysql
+      - ./init:/docker-entrypoint-initdb.d/
     ports:
       - "3306:3306"
     environment:
       - MYSQL_DATABASE=ciwei_db_test
       - MYSQL_ROOT_PASSWORD=wcx9517530 
     restart: always
-    
+  
+  # https://blog.csdn.net/bocai_xiaodaidai/article/details/92641534 多服务启动脚本
   web:
     build:
       context: .

@@ -5,18 +5,18 @@
  Source Server Type    : MySQL
  Source Server Version : 50727
  Source Host           : 47.102.201.193:3306
- Source Schema         : ciwei_db
+ Source Schema         : ciwei_db_test
 
  Target Server Type    : MySQL
  Target Server Version : 50727
  File Encoding         : 65001
 
- Date: 07/04/2020 13:01:15
+ Date: 19/04/2020 19:55:30
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
-
+USE CIWEI_DB_TEST;
 -- ----------------------------
 -- Table structure for acs_sms_send_log
 -- ----------------------------
@@ -43,7 +43,7 @@ CREATE TABLE `acs_sms_send_log`  (
   UNIQUE INDEX `ix_acs_sms_send_log_uuid`(`biz_uuid`) USING BTREE,
   INDEX `ix_acs_sms_send_log_tmp_id`(`template_id`) USING BTREE COMMENT '模板ID，区分是否是验证码短信',
   INDEX `ix_acs_sms_send_log_phone_number`(`phone_number`) USING BTREE COMMENT '手机号',
-  INDEX `ix_acs_sms_send_log_rcv_member_id`(`rcv_member_id`) USING BTREE COMMENT '收短信的会员id',
+  INDEX `ix_acs_sms_send_log_rcv_member_id`(`rcv_member_id`) USING BTREE,
   INDEX `ix_acs_sms_send_log_rcv_openid`(`rcv_openid`) USING BTREE COMMENT '收短信的会员第三方id'
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '阿里云服务短信发送调用日志' ROW_FORMAT = Dynamic;
 
@@ -70,7 +70,6 @@ CREATE TABLE `address`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_member_id_status`(`member_id`, `status`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员收货地址' ROW_FORMAT = Dynamic;
-
 
 -- ----------------------------
 -- Table structure for advs
@@ -119,15 +118,17 @@ CREATE TABLE `appeal`  (
   `goods_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '申诉的物品id',
   `member_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '用户id',
   `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 0:待处理 1:已处理完毕',
-  `adm_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '系统指派处理的管理员id',
+  `user_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '系统指派处理的管理员id',
+  `result` varchar(300) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '处理结果备注',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
+  `deleted_by` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '删除申诉的管理员id',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_appeal_member_id`(`member_id`) USING BTREE,
   INDEX `ix_appeal_goods_id`(`goods_id`) USING BTREE,
-  INDEX `ix_appeal_status`(`status`) USING BTREE
+  INDEX `ix_appeal_status`(`status`) USING BTREE,
+  INDEX `ix_appeal_deleted_by`(`deleted_by`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '申诉表' ROW_FORMAT = Dynamic;
-
 
 -- ----------------------------
 -- Table structure for balance_order
@@ -162,7 +163,6 @@ CREATE TABLE `balance_order_callback_data`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `ix_obalance_order_callback_data_order_id`(`balance_order_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '余额充值微信支付回调数据表' ROW_FORMAT = Dynamic;
-
 
 -- ----------------------------
 -- Table structure for campus
@@ -229,16 +229,19 @@ CREATE TABLE `cart`  (
 DROP TABLE IF EXISTS `feedback`;
 CREATE TABLE `feedback`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `uu_id` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '唯一标识',
   `user_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '处理反馈消息的管理员id',
   `member_id` int(11) UNSIGNED NOT NULL COMMENT '反馈消息的会员id',
+  `nickname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '反馈消息的会员名',
+  `avatar` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '反馈消息的会员头像',
   `summary` varchar(10000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   `main_image` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '主图',
   `pics` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '组图',
+  `views` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '阅读管理员id',
   `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 1：已读 0：未读',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `ix_feedback_status`(`status`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '反馈表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -266,11 +269,11 @@ CREATE TABLE `goods`  (
   `qr_code_openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '扫码归还的码主的openid',
   `return_goods_id` int(11) UNSIGNED NULL DEFAULT 0 COMMENT '归还的寻物启示ID',
   `return_goods_openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '归还的寻物启示OPENID',
-  `status` tinyint(1) UNSIGNED NOT NULL DEFAULT 7 COMMENT '1:待, 2:预, 3:已, 5:管理员删, 7:发布者创建中, 8:发布者被管理员拉黑',
-  `view_count` int(11) NOT NULL DEFAULT 0 COMMENT '总浏览次数',
+  `status` tinyint(1) NOT NULL DEFAULT 7 COMMENT '1:待, 2:预, 3:已, 5:管理员删, 7:发布者创建中, 8:发布者被管理员拉黑',
+  `view_count` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '总浏览次数',
   `top_expire_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '置顶过期时间',
   `recommended_times` int(11) NOT NULL DEFAULT 1 COMMENT '总匹配过失/拾物次数',
-  `report_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '被举报后的状态，用于存储举报的状态值',
+  `report_status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '被举报后的状态，用于存储举报的状态值',
   `confirm_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP COMMENT '线上确认时间',
   `finish_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP COMMENT '线下取回时间',
   `thank_time` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP COMMENT '答谢时间',
@@ -299,6 +302,7 @@ CREATE TABLE `goods_top_order`  (
   `openid` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '第三方id',
   `transaction_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '微信支付交易号',
   `price` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '支付金额',
+  `balance_discount` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '余额垫付金额',
   `status` tinyint(1) NOT NULL DEFAULT -1 COMMENT '状态 -1=刚创建, 0=微信预下单-未支付,  1=微信支付成功, 2=微信已关单, 3=微信支付错误',
   `paid_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '支付完成时间',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
@@ -339,6 +343,7 @@ CREATE TABLE `images`  (
 DROP TABLE IF EXISTS `mark`;
 CREATE TABLE `mark`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `business_type` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 1：失物招领 0：寻物启事',
   `goods_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '认领的物品id',
   `member_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '用户id',
   `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 0:未取 1:已取',
@@ -347,7 +352,8 @@ CREATE TABLE `mark`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_mark_member_id`(`member_id`) USING BTREE,
   INDEX `ix_mark_goods_id`(`goods_id`) USING BTREE,
-  INDEX `ix_mark_status`(`status`) USING BTREE
+  INDEX `ix_mark_status`(`status`) USING BTREE,
+  INDEX `ix_mark_business_type`(`business_type`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '认领表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -375,7 +381,16 @@ CREATE TABLE `member`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `ix_member_openid`(`openid`) USING BTREE,
   INDEX `ix_member_status`(`status`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 100000 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 100008 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of member
+-- ----------------------------
+INSERT INTO `member` VALUES (100001, 0, '管理员', '', 4.73, 300, 'bPk3u33u+sqUiuxJ/+ubfQ==', '李佩璇', '', 2, 'https://wx.qlogo.cn/mmopen/vi_32/7jCR4QflwchksTBcyakicSepWVQdfbHIQL2glRrkY7ic52iaXqfuBb2tlQ8ELlaGWZDXFgKM4zAMeQZSiaaJtibI3gQ/132', '20200316/687bee77-e5bf-44b8-b341-d63f1abdc853.jpg', 0, 'opLxO5fubMUl7GdPFgZOUaDHUik8', 1, '2020-04-19 00:10:04', '2020-03-08 09:31:56');
+INSERT INTO `member` VALUES (100002, 0, 'L  yx', '', 14.48, 520, 'FEuNz7OnlvGGiV3s9PN14A==', 'LYX', '', 2, 'https://wx.qlogo.cn/mmopen/vi_32/SV42VibIREXs9x9LsPerNKSmtID351W69g7SAzfoWXYqbvBiaJtcPyUp4yAnedJlyWuiamGTnDAibdo4I4ibeiaeQaug/132', '20200329/ce40c3ef-2959-4a35-85a4-7f2c6b688cbe.jpg', 26, 'opLxO5Q3CloBEmwcarKrF_kSA574', 1, '2020-04-19 00:32:32', '2020-03-17 20:09:58');
+INSERT INTO `member` VALUES (100004, 0, 'lee', '', 0.00, 45, 'uAf+f73qyqB4LqA2KIPcEA==', '李佩璇', '', 2, 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKeoQUBJZ40FDibYOQKAYJJGXxMWZ8FehDrNZ4gYw98qwMaCyPBwDd1kbLqa1Z3mUTOdAZjchIYcLw/132', '20200326/6bbaf16e-7d19-4b41-af30-5394c7491dd0.jpg', 0, 'opLxO5cE7MXKPxj2ndOxnvxkoek0', 1, '2020-04-15 07:35:30', '2020-03-26 13:09:20');
+INSERT INTO `member` VALUES (100005, 0, '测试号小猪', '', 0.00, 0, '17717852647', '测试号', '', 0, '', '', 0, 'opLxO5QaspLK7XKWg546kYZStiYk', 1, '2020-04-08 22:12:59', '2020-04-08 22:12:59');
+INSERT INTO `member` VALUES (100007, 0, '', '', 0.00, 0, '', 'ceshi', '', 0, '', '', 0, '..', 1, '2020-04-18 18:55:35', '2020-04-18 18:55:35');
 
 -- ----------------------------
 -- Table structure for member_balance_change_log
@@ -394,6 +409,22 @@ CREATE TABLE `member_balance_change_log`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员账户余额变更表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
+-- Table structure for member_notify_time_change_log
+-- ----------------------------
+DROP TABLE IF EXISTS `member_notify_time_change_log`;
+CREATE TABLE `member_notify_time_change_log`  (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `member_id` int(11) UNSIGNED NOT NULL COMMENT '会员id',
+  `openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '第三方id',
+  `unit` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '通知次数变更多少',
+  `notify_times` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '通知次数变更之前的总量',
+  `note` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '备注字段',
+  `created_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `ix_member_notify_time_change_log_member_id`(`member_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员通知次数变更表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
 -- Table structure for member_phone_change_log
 -- ----------------------------
 DROP TABLE IF EXISTS `member_phone_change_log`;
@@ -410,20 +441,21 @@ CREATE TABLE `member_phone_change_log`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员手机变更表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Table structure for member_notify_time_change_log
+-- Table structure for member_sms_pkg
 -- ----------------------------
-DROP TABLE IF EXISTS `member_notify_time_change_log`;
-CREATE TABLE `member_notify_time_change_log`  (
+DROP TABLE IF EXISTS `member_sms_pkg`;
+CREATE TABLE `member_sms_pkg`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `member_id` int(11) UNSIGNED NOT NULL COMMENT '会员id',
-  `openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '第三方id',
-  `unit` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '通知次数变更多少',
-  `notify_times` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '通知次数变更之前的总量',
-  `note` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '备注字段',
-  `created_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  `member_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '会员id',
+  `open_id` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员的openID，二维码标识',
+  `left_notify_times` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '套餐剩余通知次数',
+  `expired_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '消息包过期时间',
+  `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
+  `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `ix_member_notify_time_change_log_member_id`(`member_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员通知次数变更表' ROW_FORMAT = Dynamic;
+  INDEX `ix_member_sms_pkg_open_id`(`open_id`) USING BTREE,
+  INDEX `ix_member_sms_pkg_expired_time`(`expired_time`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '短信套餐包表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for member_sms_pkg_change_log
@@ -444,21 +476,27 @@ CREATE TABLE `member_sms_pkg_change_log`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员短信包通知次数变更表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Table structure for member_sms_pkg
+-- Table structure for member_status_change_log
 -- ----------------------------
-DROP TABLE IF EXISTS `member_sms_pkg`;
-CREATE TABLE `member_sms_pkg`  (
+DROP TABLE IF EXISTS `member_status_change_log`;
+CREATE TABLE `member_status_change_log`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `member_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '会员id',
-  `open_id` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '会员的openID，二维码标识',
-  `left_notify_times` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '套餐剩余通知次数',
-  `expired_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '消息包过期时间',
-  `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
-  `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
+  `member_id` int(11) UNSIGNED NOT NULL COMMENT '会员id',
+  `openid` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '第三方id',
+  `old_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '会员旧状态 状态 1：有效 0：无效 -1:无效',
+  `new_status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '会员新状态 状态 1：有效 0：无效 -1:无效',
+  `user_id` int(11) UNSIGNED NOT NULL COMMENT '操作的管理员id',
+  `stuff_id` int(11) UNSIGNED NOT NULL COMMENT '相关的物品或答谢id',
+  `stuff_type` tinyint(1) NOT NULL DEFAULT 0 COMMENT '1：物品 2：答谢',
+  `note` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '备注字段',
+  `member_reason` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '申诉理由',
+  `status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '记录状态 0:无申诉 1:申诉 2:申诉成功 3:申诉驳回',
+  `created_time` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `ix_member_sms_pkg_open_id`(`open_id`) USING BTREE,
-  INDEX `ix_member_sms_pkg_expired_time`(`expired_time`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '短信套餐包表' ROW_FORMAT = Dynamic;
+  INDEX `ix_member_status_change_log_member_id`(`member_id`) USING BTREE,
+  INDEX `ix_member_status_change_log_stuff_id`(`stuff_id`) USING BTREE,
+  INDEX `ix_member_status_change_log_stuff_type`(`stuff_type`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员状态变更记录' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for order
@@ -487,6 +525,7 @@ CREATE TABLE `order`  (
   `express_sn` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '快递单号',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `idx_order_sn`(`order_sn`) USING BTREE,
+  INDEX `idx_order_status`(`status`) USING BTREE,
   INDEX `idx_member_id_status`(`member_id`, `status`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '周边购买订单表' ROW_FORMAT = Dynamic;
 
@@ -526,7 +565,6 @@ CREATE TABLE `order_product`  (
   INDEX `ix_order_product_status`(`status`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '订单包含的周边表' ROW_FORMAT = Dynamic;
 
-
 -- ----------------------------
 -- Table structure for product
 -- ----------------------------
@@ -546,12 +584,14 @@ CREATE TABLE `product`  (
   `status` tinyint(1) UNSIGNED NOT NULL DEFAULT 1 COMMENT '状态 1：有效 0：无效',
   `view_cnt` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '浏览量',
   `stock_cnt` int(11) UNSIGNED NOT NULL DEFAULT 99999 COMMENT '库存量',
-  `sale_cnt` int(11) NOT NULL DEFAULT 0 COMMENT '销售量',
+  `sale_cnt` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '销售量',
   `comment_cnt` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '评论量',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `ix_product_cat_id`(`cat_id`) USING BTREE
+  INDEX `ix_product_cat_id`(`cat_id`) USING BTREE,
+  INDEX `ix_product_common_id`(`common_id`) USING BTREE,
+  INDEX `ix_product_status`(`status`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '周边表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -613,7 +653,6 @@ CREATE TABLE `product_comments`  (
   INDEX `ix_product_comments_order_id`(`order_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '会员评论表' ROW_FORMAT = Dynamic;
 
-
 -- ----------------------------
 -- Table structure for product_sale_change_log
 -- ----------------------------
@@ -629,7 +668,6 @@ CREATE TABLE `product_sale_change_log`  (
   INDEX `ix_product_sale_change_log_product_id`(`product_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商品销售情况' ROW_FORMAT = Dynamic;
 
-
 -- ----------------------------
 -- Table structure for product_stock_change_log
 -- ----------------------------
@@ -644,20 +682,6 @@ CREATE TABLE `product_stock_change_log`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_product_stock_change_log_product_id`(`product_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据库存变更表' ROW_FORMAT = Dynamic;
-
--- ----------------------------
--- Table structure for queue_list
--- ----------------------------
-DROP TABLE IF EXISTS `queue_list`;
-CREATE TABLE `queue_list`  (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `queue_name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '队列名字',
-  `data` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '队列数据',
-  `status` tinyint(1) NOT NULL DEFAULT -1 COMMENT '状态 -1 待处理 1 已处理',
-  `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
-  `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '事件队列表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for recommend
@@ -686,21 +710,23 @@ CREATE TABLE `recommend`  (
 DROP TABLE IF EXISTS `report`;
 CREATE TABLE `report`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '拉黑会员的管理员id',
+  `user_id` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '处理举报的管理员id',
   `member_id` int(11) UNSIGNED NOT NULL COMMENT '发布消息的会员id',
   `report_member_id` int(11) UNSIGNED NOT NULL COMMENT '举报消息的会员id',
   `report_member_nickname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '举报消息的会员名',
   `report_member_avatar` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '举报消息的会员头像',
-  `record_id` int(11) NOT NULL COMMENT '信息id，有可能是物品信息违规，也可能是用户的答谢违规',
+  `record_id` int(11) UNSIGNED NOT NULL COMMENT '信息id，有可能是物品信息违规，也可能是用户的答谢违规',
   `summary` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 1：已读 0：未读',
   `record_type` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 1：物品信息违规 0：答谢信息违规',
+  `deleted_by` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '删除举报的管理员id',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_report_record_id`(`record_id`) USING BTREE,
   INDEX `ix_report_status`(`status`) USING BTREE,
-  INDEX `ix_report_record_type`(`record_type`) USING BTREE
+  INDEX `ix_report_record_type`(`record_type`) USING BTREE,
+  INDEX `ix_report_deleted_by`(`deleted_by`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '举报消息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -714,6 +740,7 @@ CREATE TABLE `thank_order`  (
   `openid` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '第三方id',
   `transaction_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '微信支付交易号',
   `price` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '支付金额',
+  `balance_discount` decimal(10, 2) NOT NULL DEFAULT 0.00 COMMENT '余额垫付金额',
   `status` tinyint(1) NOT NULL DEFAULT -1 COMMENT '状态 -1=刚创建, 0=微信预下单-未支付,  1=微信支付成功, 2=微信已关单, 3=微信支付错误',
   `paid_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '支付完成时间',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
@@ -750,13 +777,13 @@ CREATE TABLE `thanks`  (
   `order_sn` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '微信支付的订单流水号',
   `thank_price` decimal(10, 2) UNSIGNED NOT NULL DEFAULT 0.00 COMMENT '答谢总金额',
   `target_member_id` int(11) UNSIGNED NOT NULL COMMENT '接受消息的会员id',
-  `goods_id` int(11) NOT NULL COMMENT '物品id',
+  `goods_id` int(11) UNSIGNED NOT NULL COMMENT '物品id',
   `summary` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '描述',
   `goods_name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '物品名称',
   `business_desc` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '拾到或者丢失',
   `owner_name` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户的名称，可能只是微信昵称',
   `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态 1：已读 0：未读',
-  `report_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '被举报后的状态，用于存储举报的状态值',
+  `report_status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '被举报后的状态，用于存储举报的状态值',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`id`) USING BTREE,
@@ -769,7 +796,7 @@ CREATE TABLE `thanks`  (
 -- ----------------------------
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user`  (
-  `uid` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '管理员id',
+  `uid` int(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '管理员id',
   `member_id` int(11) UNSIGNED NOT NULL COMMENT '注册会员id',
   `level` int(11) UNSIGNED NOT NULL COMMENT '管理员等级',
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户名',
@@ -778,6 +805,7 @@ CREATE TABLE `user`  (
   `sex` tinyint(1) NOT NULL DEFAULT 0 COMMENT '1：男 2：女 0：没填写',
   `avatar` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '头像',
   `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '1：有效 0：无效',
+  `op_uid` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '操作管理员id',
   `updated_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后一次更新时间',
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`uid`) USING BTREE
