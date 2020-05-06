@@ -161,7 +161,7 @@ def memberNewHint():
     return resp
 
 
-@route_api.route('/member/login/wx', methods=['GET', 'POST'])
+@route_api.route('/member/renew/session', methods=['GET', 'POST'])
 @time_log
 def memberSessionUpdate():
     """

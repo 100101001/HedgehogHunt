@@ -229,7 +229,7 @@ class MemberHandler:
         openid, session_key = cls.wechat.getWeChatOpenId(code, get_session_key=True)
         if openid is None or session_key is None:
             return -1, "手机号获取失败"
-        return 200, {'openid': openid, 'session_key': session_key}
+        return 200, {'session_key': session_key}
 
     @classmethod
     def _changeName(cls, member=None, name=''):
