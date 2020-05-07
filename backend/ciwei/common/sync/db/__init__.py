@@ -19,4 +19,4 @@ class SyncQuery(BaseQuery):
 
         self.session.redis_arg = __setRedisArg(redis_arg)
         synchronize_session = 'fetch' if synchronize_session is None else synchronize_session
-        super().update(values, synchronize_session=synchronize_session, update_args=update_args)
+        return super().update(values, synchronize_session=synchronize_session, update_args=update_args)

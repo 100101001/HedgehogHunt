@@ -52,9 +52,6 @@ class Member(db.Model):
     def decrypt_mobile(self):
         return Cipher.decrypt(text=self.mobile)
 
-    @property
-    def encrypt_openid(self):
-        return Cipher.encrypt(self.openid)
 
     def __init__(self, openid='', mobile='', nickname='', avatar='', sex=1):
         self.openid = openid

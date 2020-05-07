@@ -57,19 +57,12 @@ def memberReg():
     """
     resp = {'code': -1, 'msg': '', 'data': {}}
     req = request.values
-    openid, member_id = MemberHandler.deal('register', reg_info=req)
-    if not openid:
-        resp['msg'] = '注册失败'
+    res_code, res_data = MemberHandler.deal('register', reg_info=req)
+    if res_code == -1:
+        resp['msg'] = res_data
         return resp
-    resp['data'] = {
-        'token': "{0}#{1}" .format(openid, member_id),
-        'is_adm': False,
-        'is_user': False,
-        'has_qrcode': False,
-        'member_status': 1,
-        'id': member_id
-    }
-    resp['code'] = 200
+    resp['data'] = res_data
+    resp['code'] = res_code
     return resp
 
 

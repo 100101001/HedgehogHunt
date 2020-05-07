@@ -17,6 +17,7 @@ from common.cahce.core import CacheQueryService, CacheOpService
 import base64
 import json
 from Crypto.Cipher import AES
+import urllib.parse as parser
 
 
 class WeChatService:
@@ -130,7 +131,7 @@ class WeChatService:
         # [2019-12-10 16:06:50,066] ERROR in QrCode: failed to get qr code. Errcode: 41030, Errmsg:invalid page hint: [6qqTta0210c393]
         wx_resp = requests.post(
             "https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token={}".format(token),
-            json={"scene": str(openid), "width": 280, "page": "pages/index/index"})
+            json={"scene": parser.quote(str(openid)), "width": 280, "page": "pages/index/index"})
 
         if len(wx_resp.content) < 80:
             data = wx_resp.json()
@@ -172,6 +173,7 @@ class WXBizDataCrypt:
     """
     微信手机AES解密
     """
+
     def __init__(self, appId, sessionKey):
         self.appId = appId
         self.sessionKey = sessionKey
@@ -194,5 +196,3 @@ class WXBizDataCrypt:
     def _unpad(self, s):
         # 最后一个字符的ASCII值为c,截掉最后c位字符
         return s[:-ord(s[len(s) - 1:])]
-
-

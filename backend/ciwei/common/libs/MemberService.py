@@ -59,7 +59,7 @@ class MemberHandler:
     @classmethod
     def _isRegistered(cls, openid=''):
         if openid:
-            member_info = Member.getByOpenId(Cipher.decrypt(openid))
+            member_info = Member.getByOpenId(openid)
         else:
             member_info = 1
         return member_info is not None
@@ -79,13 +79,20 @@ class MemberHandler:
     def _createNewMember(cls, reg_info=None):
         openid = cls.wechat.getWeChatOpenId(reg_info.get('code'))
         if not openid:
-            return None, None
+            return -1, '注册失败'
         new_member = Member(nickname=reg_info.get('nickName', ''), sex=reg_info.get('gender', ''),
                             avatar=reg_info.get('avatarUrl', ''), openid=openid, mobile=reg_info.get('mobile', ''))
         db.session.flush()
         member_id = new_member.id
         db.session.commit()
-        return openid, member_id
+        return 200, {
+            'token': Cipher.encrypt("{0}#{1}".format(member_id, openid)),
+            'is_adm': False,
+            'is_user': False,
+            'has_qrcode': False,
+            'member_status': 1,
+            'id': member_id
+        }
 
     @classmethod
     def _doLogin(cls, code=''):
@@ -102,7 +109,7 @@ class MemberHandler:
 
         member_info = Member.getByOpenId(openid=openid)
         if not member_info:
-            return -2, {'openid': Cipher.encrypt(openid), 'session_key': session_key}
+            return -2, {'openid': openid, 'session_key': session_key}
 
         CacheOpService.setMemberCache(member_info=member_info)
         user_info = User.getByMemberId(member_info.id)
@@ -116,7 +123,7 @@ class MemberHandler:
                      'has_qrcode': member_info.has_qr_code,
                      'member_status': member_info.status,
                      'id': member_info.id,
-                     'openid': member_info.encrypt_openid
+                     'openid': member_info.openid
                      }
 
     @classmethod

@@ -7,13 +7,13 @@
 @desc:
 """
 
-from application import db, app, APP_CONSTANTS
-from common.libs.mall.WechatService import WeChatService
-from common.libs import Helper
-import stat
 import os
+import stat
 import uuid
 
+from application import app, APP_CONSTANTS
+from common.libs import Helper
+from common.libs.mall.WechatService import WeChatService
 from common.libs.sms.SmsVerifyService import SmsVerifyHandler, VerifyBindHandler
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.logs.change.MemberPhoneChangeLog import MemberPhoneChangeLog
@@ -37,7 +37,7 @@ class QrCodeHandler:
     @classmethod
     def _gainQrcodeFromWechat(cls, member_info=None):
         if not member_info.has_qr_code:
-            img = WeChatService.getMimiProgramQrcode(openid=member_info.encrypt_openid)
+            img = WeChatService.getMimiProgramQrcode(openid=member_info.openid)
             if not img:
                 return False
             qr_code = cls.__persistentImg(img=img)

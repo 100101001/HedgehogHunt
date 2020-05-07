@@ -15,7 +15,7 @@ import base64
 class DesCrypt:
 
     @staticmethod
-    def encrypt(data="", key="quick find") -> str:
+    def encrypt(data="", key="quick find aes23") -> str:
         """
         需要加密的明文字符串
         :param data:
@@ -33,7 +33,7 @@ class DesCrypt:
         return base64_des3_data.decode('utf-8')
 
     @staticmethod
-    def decrypt(data="", key='quick find') -> str:
+    def decrypt(data="", key='quick find aes23') -> str:
         """
         需要解密的字符串
         :param data:
@@ -117,7 +117,15 @@ if __name__ == '__main__':
     # en_text = pr.encrypt('李依璇')
     # print('密文:', en_text)
     # print('明文:', pr.decrypt(en_text))
-    pr = AESCrypt('xunhui', 'ECB', '', 'utf8')
-    en_text = pr.encrypt('opLxO5fmwgdzntX4gfdKEk5NqLQA')
+
+    # pr = AESCrypt('xunhui', 'ECB', '', 'utf8')
+    pr = DesCrypt()
+    import urllib.parse as parser
+    print(parser.quote(str('opLxO5Q3CloBEmwcarKrF_kSA574')))
+    en_text = pr.encrypt('opLxO5Q3CloBEmwcarKrF_kSA574')
+    #en_text = 'FEuNz7OnlvGGiV3s9PN14A=='
+    #import urllib.parse as parser
+    #print(parser.quote(en_text))
     print('密文:', en_text)
+    print('密文:', len(en_text))
     print('明文:', pr.decrypt(en_text))

@@ -85,18 +85,19 @@ def productIndex():
             .group_by(Product.common_id).filter(Product.status == 1) \
             .order_by(desc('total_sale'), Product.common_id.desc()).limit(3).all()
 
-    product_list = []
-    for product_id in product_id_list:
-        product_list.append(Product.query.filter_by(common_id=product_id[0]).order_by(Product.price).first())
+    # product_list = []
+    product_list = Product.query.filter(Product.common_id.in_([item[0] for item in product_id_list]), Product.option_id == 0).order_by(
+        Product.price.asc()).all()
+    # for product_id in product_id_list:
+    #     product_list.append(Product.query.filter_by(common_id=product_id[0]).order_by(Product.price).first())
 
     data_product_list = []
-    if product_list:
-        for item in product_list:
-            tmp_data = {
-                'id': item.common_id,
-                'pic_url': UrlManager.buildImageUrl(item.main_image, image_type='PRODUCT')
-            }
-            data_product_list.append(tmp_data)
+    for item in product_list:
+        tmp_data = {
+            'id': item.common_id,
+            'pic_url': UrlManager.buildImageUrl(item.main_image, image_type='PRODUCT')
+        }
+        data_product_list.append(tmp_data)
 
     resp['data']['banner_list'] = data_product_list
     return jsonify(resp)
@@ -107,52 +108,37 @@ def productIndex():
 def productSearch():
     resp = {'code': 200, 'msg': '操作成功~', 'data': {}}
     req = request.values
-    cat_id = int(req['cat_id']) if 'cat_id' in req else 0
-    mix_kw = str(req['mix_kw']) if 'mix_kw' in req else ''
-    campus = int(req['campus']) if 'campus' in req else -1
-    p = int(req['p']) if 'p' in req else 1
-
-    if p < 1:
-        p = 1
-
+    cat_id = int(req.get('cat_id', 0))
+    mix_kw = req.get('mix_kw')
+    campus = int(req.get('campus', -1))
+    p = max(int(req.get('p', 1)), 1)
     page_size = 10
     offset = (p - 1) * page_size
 
     if campus != -1:
-        product_ids = db.session.query(CampusProduct.product_id).filter_by(campus_id=campus).all()
+        campus_products = db.session.query(CampusProduct.product_id).filter_by(campus_id=campus).all()
         # 计算某个大学的产品中所有相同id的销量
-        product_list = db.session.query(Product.common_id, (func.sum(Product.sale_cnt)).label('total_sale')) \
-            .group_by(Product.common_id).filter(Product.status == 1, Product.common_id.in_(product_ids)) \
-            .order_by(desc('total_sale'), Product.common_id.desc()).all()
-        common_id_list = [item[0] for item in product_list]
+        query = db.session.query(Product.common_id, (func.sum(Product.sale_cnt)).label('total_sale')) \
+            .group_by(Product.common_id).filter(Product.status == 1, Product.common_id.in_(campus_products)) \
+            .order_by(desc('total_sale'), Product.common_id.desc())
     else:
-        # 计算所有相同id的销量
-        product_list = db.session.query(Product.common_id, (func.sum(Product.sale_cnt)).label('total_sale')) \
+        # 按商品的销量排序量
+        query = db.session.query(Product.common_id, (func.sum(Product.sale_cnt)).label('total_sale')) \
             .group_by(Product.common_id).filter(Product.status == 1) \
-            .order_by(desc('total_sale'), Product.common_id.desc()).all()
-        common_id_list = [item[0] for item in product_list]
+            .order_by(desc('total_sale'), Product.common_id.desc())
 
-    query = db.session.query(distinct(Product.common_id)).filter(Product.common_id.in_(common_id_list))
     if cat_id > 0:
+        # 类别
         query = query.filter_by(cat_id=cat_id)
 
     if mix_kw:
+        # 商品名称和标签
         rule = or_(Product.name.ilike("%{0}%".format(mix_kw)), Product.tags.ilike("%{0}%".format(mix_kw)))
         query = query.filter(rule)
 
-    common_id_list = query.offset(offset).limit(page_size).all()
-
-    # if campus != -1:
-    #     product_ids = db.session.query(CampusProduct.product_id).filter_by(campus_id=campus).all()
-    #     query = query.filter(Product.id.in_(product_ids))
-    #
-    # product_list = query.order_by(Product.sale_cnt.desc(), Product.id.desc()) \
-    #     .offset(offset).limit(page_size).all()
-    # 全部
-
-    product_list = []
-    for common_id in common_id_list:
-        product_list.append(Product.query.filter_by(common_id=common_id[0]).order_by(Product.price).first())
+    common_sale_list = query.offset(offset).limit(page_size).all()
+    # 仅获取该商品首个规格的详细信息
+    product_list = Product.query.filter(Product.common_id.in_([item[0] for item in common_sale_list]), Product.option_id == 0).all()
 
     data_product_list = []
     if product_list:
@@ -175,15 +161,18 @@ def productSearch():
 def productInfo():
     resp = {'code': 200, 'msg': '操作成功~', 'data': {}}
     req = request.values
-    product_id = int(req['id']) if 'id' in req else 0
-    # 按option_id排序,返回前端的数组索引==option_id
-    product_infos = Product.query.filter_by(common_id=product_id).order_by(Product.option_id).all()
-    comment_cnt = db.session.query(func.sum(Product.comment_cnt)).filter_by(common_id=product_id).scalar()
-    sale_cnt = db.session.query(func.sum(Product.sale_cnt)).filter_by(common_id=product_id).scalar()
-    if not product_infos[0] or not product_infos[0].status:
+    common_id = int(req.get('id', -1))
+    if common_id == -1:
         resp['code'] = -1
         resp['msg'] = "周边已下架"
-        return jsonify(resp)
+        return resp
+    # 按option_id排序,返回前端的数组索引==option_id
+    product_infos = Product.query.filter_by(common_id=common_id).order_by(Product.option_id).all()
+    comment_sale_cnt = db.session.query(func.sum(Product.comment_cnt), func.sum(Product.sale_cnt)).filter_by(common_id=common_id).all()
+    if len(product_infos) < 1 or not product_infos[0].status:
+        resp['code'] = -1
+        resp['msg'] = "周边已下架"
+        return resp
 
     member_info = g.member_info
     cart_number = 0
@@ -201,8 +190,8 @@ def productInfo():
             "id": product_info.id,  # 加入购物车用
             "name": product_info.name,
             "summary": product_info.description,
-            "total_count": str(sale_cnt),
-            "comment_count": str(comment_cnt),
+            "total_count": str(comment_sale_cnt[0][1]),
+            "comment_count": str(comment_sale_cnt[0][0]),
             'main_image': UrlManager.buildImageUrl(product_info.main_image, image_type='PRODUCT'),
             "price": str(product_info.price),
             "stock": product_info.stock_cnt,
@@ -211,7 +200,7 @@ def productInfo():
         })
     resp['data']['cart_number'] = cart_number
     resp['data']['not_in_cart'] = not_in_cart  # 前端可知列表中哪一项不在购物车里
-    return jsonify(resp)
+    return resp
 
 
 @route_api.route("/product/comments")

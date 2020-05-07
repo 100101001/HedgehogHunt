@@ -59,7 +59,7 @@ def es_search(func):
         owner_name = kwargs.get('owner_name')
         if owner_name:
             search_bar_must.append({"match": {"owner_name": owner_name}})
-        goods_name = kwargs.get('mix_kw')
+        goods_name = kwargs.get('goods_name')
         if goods_name:
             search_bar_must.append({"match": {"name": goods_name}})
         os_location = kwargs.get('filter_address')
