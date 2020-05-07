@@ -134,8 +134,8 @@ class CommonGoodsHandler:
             "summary": goods_info.summary,  # 简述
             "main_image": UrlManager.buildImageUrl(goods_info.main_image),
             "pics": [UrlManager.buildImageUrl(i) for i in goods_info.pics.split(",")],
-            "location": location_list if show_location else APP_CONSTANTS['default_loc'],
-            "os_location": os_location_list if show_location else APP_CONSTANTS['default_loc'],
+            "location": location_list,
+            "os_location": os_location_list,
             "mobile": goods_info.mobile,
             # 物品帖子作者信息
             "is_auth": is_auth,  # 是否查看自己发布的帖子(不能进行状态操作，可以编辑)
@@ -654,14 +654,14 @@ class FoundGoodsHandler(CommonGoodsHandler):
         :return:
         """
 
-        def __hasMarkGoods(member_id=0, goods_id=0):
+        def __getMarks(goods_id=0):
             """
             是否预认领/认领了该物品(详情可否见放置地址)
             :param member_id:
             :param goods_id:
             :return:
             """
-            if not member_id or not goods_id:
+            if not goods_id:
                 return False
             # 缓存中获取goods_id 对应的 member_id 集合
             mark_member_ids = CacheQueryService.getMarkCache(goods_id=goods_id)
@@ -669,17 +669,22 @@ class FoundGoodsHandler(CommonGoodsHandler):
                 # 缓存不命中, 从数据库获取一个物品的所有认领人的id
                 marks = Mark.getAllOn(goods_id=goods_id)
                 mark_member_ids = CacheOpService.setMarkCache(goods_id=goods_id, marks=marks)
-            return bool(str(member_id) in mark_member_ids)
+            return mark_member_ids
+
+        def __hasMarks(member_id=0, marks=None):
+            return bool(str(member_id) in marks)
 
         is_auth = False
         show_location = False
+        all_marks = __getMarks(goods_id=goods_info.id)
+        over_marks = len(all_marks) > 2
         if member_info:
             is_auth = member_info.id == goods_info.member_id
-            show_location = __hasMarkGoods(member_id=member_info.id, goods_id=goods_info.id) or is_auth
+            show_location = __hasMarks(member_id=member_info.id, marks=all_marks) or is_auth
         data = super()._getCommonInfo(goods_info=goods_info, show_location=show_location, is_auth=is_auth)
-        data.update({'is_owner': member_info and goods_info.owner_id == member_info.id})
+        data.update({'is_owner': member_info and goods_info.owner_id == member_info.id,
+                     'over_marks': over_marks})
         goods_status = goods_info.status
-
         if is_auth and goods_status in (2, 3, 4):
             # 作者查看对方操作的时间
             if goods_status == 2:
