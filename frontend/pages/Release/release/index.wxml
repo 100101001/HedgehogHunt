@@ -1,6 +1,8 @@
 <import src="../../template/use-balance/use-balance.wxml"></import>
+<import src="../../template/warn/warn-template.wxml" />
 <view class="container" wx:if="{{dataReady}}">
   <loading hidden="{{loadingHidden}}" wx:if="{{ !upload_qrcode }}">上传第{{i}}张图片..</loading>
+  <template wx:if="{{business_type === 1}}" is="warn-template" data="{{...textArray}}" />
   <form class="goods-box" bindsubmit="formSubmit">
     <view class="price-and-location" id="to-make-up-owner-name">
 

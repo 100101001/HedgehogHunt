@@ -1,6 +1,53 @@
 /**index.wxss**/
 @import "template/navigate-bar1/navigate-bar1-template.wxss";
 
+
+.search_container {
+  align-items: center;
+  position: fixed;
+  display: flex;
+  flex-direction: row;
+  padding: 5px;
+  background-color: rgba(247,147,30, 0.5);
+  width: 750rpx;
+  top: 0;
+  z-index:500;
+}
+
+.search_box {
+  display: flex;
+  margin-left: 20rpx;
+  align-items: center;
+  border-radius: 25rpx;
+  width: 680rpx;
+  font-size: 22rpx;
+  flex-direction: row;
+  background-color: #fff;
+  height: 50rpx;
+  margin-bottom: 8rpx;
+  margin-top: 8rpx;
+}
+
+.search_focus {
+  box-shadow: 4rpx 4rpx 10rpx #333;
+}
+
+.search_text_box {
+  margin-left: 25rpx;
+  height: 35rpx;
+  width: 660rpx;
+  color: #f7931e;
+}
+
+.search_icon{
+  margin-left:5rpx;
+  color: #f7931e;
+}
+
+.clean_icon {
+  margin-right: 8rpx;
+  color: #cdcdcd;
+}
 .container {
   background-color: #F2f2f2;
   min-height: 100%;

@@ -18,6 +18,9 @@ Page({
       textArray: textArray
     })
   },
+  onBindBlur: function(){
+
+  },
   onShow: function(){
     this.getUniversityList()
   },
@@ -29,25 +32,28 @@ Page({
     wx.request({
       url: app.buildUrl('/campus/search'),
       data: {
-        p: that.data.p,
-        school : that.data.schoolInput
+        p: this.data.p,
+        school : this.data.schoolInput
       },
-      success: function(res){
-        var resp = res.data
-        if(resp.code!=200){
+      success: (res) => {
+        let resp = res.data;
+        if(resp['code']!==200){
           app.alert({
-            'content':resp.msg
+            content:resp['msg']
           })
           return
         }
-        that.setData({
+        this.setData({
           loadingMore: resp.data.has_more,
-          unis: that.data.unis.concat(resp.data.unis),
-          p: that.data.p + 1
+          unis: this.data.unis.concat(resp.data.unis),
+          p: this.data.p + 1
         })
       },
-      complete: function(res){
-        that.setData({
+      fail: (res) => {
+        app.serverBusy()
+      },
+      complete: (res) => {
+        this.setData({
           searching: false
         })
       }

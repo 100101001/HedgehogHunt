@@ -52,8 +52,8 @@ App({
     member_status: 1, //用户状态
     op_status: 2,
     showHintQrcode: true, //导航栏上方的提示浮窗，标记是否显示浮窗，用户可关闭
-    navigateUrls: [
-      "/pages/Homepage/homepage",
+    navigateUrls: [  // 导航栏URL
+      "/mall/pages/index",
       "/pages/Find/Find?business_type=1",
       "/pages/Release/release/index",
       "/pages/Find/Find?business_type=0",
@@ -106,10 +106,14 @@ App({
       "avatar": "/images/more/un_reg_user.png",
       "nickname": "请登录",
       "level": 0
-    }
+    },
+    default_loc: ['不知道', '不知道', 0, 0]
   },
   onLaunch: function () {
     // 获取后端二维码产品价格和产品ID
+    this.getConstantInfo()
+  },
+  getConstantInfo: function(){
     wx.request({
       url: this.buildUrl('/special/info'),
       success: res => {

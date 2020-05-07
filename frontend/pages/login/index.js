@@ -90,8 +90,8 @@ Page({
    * @param options 页面参数
    */
   onLoad: function (options) {
-    let phone = options.phone;
-    if (phone == undefined) {
+    let phone = decodeURIComponent(options.phone);
+    if (phone === 'undefined') {
       //刚进入获取手机页面，检查是否已注册过，已注册过就回退
       //已注册未登录的还会自动登录
       checkReg((isReg) => {
@@ -204,10 +204,10 @@ Page({
           app.alert({content: resp['msg']});
           return
         }
-        let mobile = resp['data'].mobile;
+        let mobile = resp['data'];
         //未获得用户授权信息，进入按钮弹窗授权
         wx.navigateTo({
-          url: '/pages/login/index?phone=' + mobile
+          url: '/pages/login/index?phone=' + encodeURIComponent(mobile)
         })
       },
       fail: (res)=>{

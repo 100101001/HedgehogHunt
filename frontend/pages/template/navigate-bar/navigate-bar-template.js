@@ -9,7 +9,7 @@ const app = getApp()
 const onNavigateTap = function (event, that) {
   let id = event.currentTarget.dataset.id * 1; //乘1强制转换成数字
   //TODO: 希望登录后直接进入页面
-  if ((id == 4 || id == 2) && !app.loginTip()) {
+  if ((id === 4 || id === 2) && !app.loginTip()) {
     return
   }
   //导航，并延时隐藏提示浮窗

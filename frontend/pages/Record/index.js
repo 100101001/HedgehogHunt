@@ -403,6 +403,7 @@ Page({
    */
   listenerNameInput: function (e) {
     this.setData({
+      changed: true,
       owner_name: e.detail.value
     });
   },
@@ -412,8 +413,38 @@ Page({
    */
   listenerGoodsNameInput: function (e) {
     this.setData({
+      changed: true,
       goods_name: e.detail.value
     });
+  },
+  onBindFocus: function(e){
+    let id = e.currentTarget.dataset.id * 1;
+    this.setData({focused1: id===1, focused2: id===2});
+  },
+  onBindBlur: function(e){
+    let id = e.currentTarget.dataset.id * 1;
+    this.setData({focused1: !(id===1 || !this.data.focused1), focused2: !(id===2 || !this.data.focused2)});
+    this.search();
+  },
+  ownerNameClean: function (e) {
+    this.setData({
+      changed: true,
+      owner_name: ''
+    });
+    this.search();
+  },
+  goodsNameClean: function(e){
+    this.setData({
+      changed: true,
+      goods_name: ''
+    });
+    this.search();
+  },
+  search: function() {
+    if(this.data.changed) {
+      this.setData({changed: false});
+      this.onPullDownRefresh();
+    }
   },
   /**
    * onDetailTap 点击信息卡查看详情

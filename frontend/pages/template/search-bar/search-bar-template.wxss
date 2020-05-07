@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: row;
   padding: 5px;
-  background-color: #f7931e;
+  background-color: rgba(247,147,30, 0.5);
   width: 750rpx;
   justify-content: space-between;
   top: 0;
@@ -22,6 +22,7 @@
   flex-direction: row;
   background-color: #fff;
   height: 50rpx;
+  margin: 8rpx auto;
 }
 
 .search_box2 {
@@ -34,8 +35,11 @@
   flex-direction: row;
   background-color: #fff;
   height: 50rpx;
+  margin: 8rpx auto;
 }
-
+.search_box_focus {
+ box-shadow: 4rpx 4rpx 10rpx #333333;
+}
 .box-wider1{
     width: 250rpx;
 }
@@ -51,11 +55,15 @@
   width: 150rpx;
   color: #f7931e;
 }
-
+.text-box-wider2 {
+  width: 172rpx;
+}
 .search_icon{
   margin-left: 12rpx;
 }
-
+.clean_icon {
+margin-right: 8rpx;
+}
 .search_button {
   color: #fff;
   background-color: #f7931e;

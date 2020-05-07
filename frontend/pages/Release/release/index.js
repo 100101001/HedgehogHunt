@@ -150,7 +150,12 @@ Page({
     total_balance: 0.00,  //用户余额
     category_arr: [], // 仅仅用于最后结束创建加入推荐列表，不用来进行通知(通知做防重处理)
     location: [],
-    os_location: []
+    os_location: [],
+    textArray: {
+      text1: "请遵循以下建议来保护失主的隐私！",
+      text2: "重要证件号可只给头尾，*号替代中间部分！",
+      text3: "重要身份证件照片可做部分打码处理！"
+    }
   },
   /**
    * 1、扫码发布(失物招领)
@@ -217,20 +222,49 @@ Page({
     let loc_id = e.currentTarget.dataset.loc * 1; // string转成number
     wx.getSetting({
       success: (res) => {
-        if (!res.authSetting['scope.userLocation']) {
+        console.log(res)
+        let loc_auth = res.authSetting['scope.userLocation'];
+        if (!loc_auth) {
           // 获取定位授权
-          wx.authorize({
-            scope: 'scope.userLocation',
-            success: (res)=> {
-              this.chooseLocation(loc_id);
-            },
-            fail: (errMsg) => {
-              app.alert({content: '授权失败，将无法成功发布信息'})
-            },
-            complete: (res)=> {
-              wx.hideLoading()
-            }
-          })
+          if (loc_auth === false) {
+            wx.hideLoading();
+            app.alert({
+              title: '请求授权',
+              content: '鲟回失物招领请求获取你的位置信息',
+              cb_confirm: ()=>{
+                wx.openSetting({
+                  success: (res) => {
+                    if (res.authSetting['scope.userLocation']) {
+                      wx.showToast({
+                        title: '授权成功',
+                        success: (res) => {
+                          setTimeout(()=>{this.chooseLocation(loc_id);}, 300)
+                        }
+                      });
+                    } else {
+                      app.alert({content: '授权失败，将无法成功发布信息'})
+                    }
+                  },
+                  fail: (res) => {
+                    app.alert({content: '授权失败，将无法成功发布信息'})
+                  }
+                })
+              }
+            });
+          } else {
+            wx.authorize({
+              scope: 'scope.userLocation',
+              success: (res)=> {
+                this.chooseLocation(loc_id);
+              },
+              fail: (errMsg) => {
+                app.alert({content: '授权失败，将无法成功发布信息'})
+              },
+              complete: (res)=> {
+                wx.hideLoading()
+              }
+            })
+          }
         } else {
           //已经获取了授权，直接选择地址
           wx.hideLoading();
@@ -309,23 +343,14 @@ Page({
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
       success:  (res) => {
-        var tempFiles_ori = res.tempFiles;
-        var imglist = this.data.imglist;
-        imglist = app.addImages(tempFiles_ori, imglist);
+        let imglist = this.data.imglist;
+        imglist = app.addImages(res.tempFiles, imglist);
         //显示
         this.setData({
           imglist: imglist,
-          flush: false
+          flush: false,
+          pic_status: imglist.length < 9,
         });
-        if (imglist.length >= 9) {
-          this.setData({
-            pic_status: false,
-          });
-        } else {
-          this.setData({
-            pic_status: true,
-          });
-        }
       }
     })
   },
@@ -437,27 +462,35 @@ Page({
     let business_type = this.data.business_type;
     if (location.length === 0 && (business_type === 1)) {
       //失物招领发帖时，再三询问是否真的一致，确保信息正确
-      app.alert({
-        title: '发布提示',
-        content: '放置地点是很重要的取物线索，确认放置地点与发现地点一致？',
-        showCancel: true,
-        cb_confirm: () => {
-          //准备发布数据
-          this.continueToRelease(data);
-        },
-        cb_cancel: () => {
-          //滚动到事发地点位置
-          setTimeout(() => {
-            this.setData({
-              submitDisable: false
-            });
-            util.goToPoint('#to-make-up-location')
-          }, 200)
-        }
-      })
+      this.confirmEmptiness(data)
+    } else if (business_type === 2 && location.equals(this.data.info.location)){
+      this.confirmReturnPutLocUnchanged(data)
     } else {
       this.continueToRelease(data);
     }
+  },
+  confirmReturnPutLocUnchanged: function (data) {
+    this.confirmEmptiness(data, true);
+  },
+  confirmEmptiness: function(data, is_return=false) {
+    app.alert({
+      title: '发布提示',
+      content: '放置地点是很重要的取物线索，确认放置地点' + (is_return ? '就是失主所在位置？' : '与发现地点一致？'),
+      showCancel: true,
+      cb_confirm: () => {
+        //准备发布数据
+        this.continueToRelease(data);
+      },
+      cb_cancel: () => {
+        //滚动到事发地点位置
+        setTimeout(() => {
+          this.setData({
+            submitDisable: false
+          });
+          util.goToPoint('#to-make-up-location')
+        }, 200)
+      }
+    })
   },
   /**
    * 发布信息通过校验{@link toRelease}后继续发帖
@@ -837,7 +870,7 @@ Page({
       value: business_type === 2  && info ? info.goods_name : "",  //归还帖自动填充归还的物品名
     }, {
       name: "owner_name",
-      hints: business_type===0? '您的姓名，不会公布，仅用于筛选推荐': '物品上附有的物主身份信息，方便失主寻物',
+      hints: business_type === 0? '您的姓名，不会公布，仅用于筛选推荐': '物品上附有的物主身份信息，方便失主寻物',
       placeholder: "例:可可" + (business_type===1?'，若没有请填无。': '') ,
       label: business_type ? "失主姓名": "姓名",
       icons: "/images/icons/discount_price.png",
@@ -847,7 +880,7 @@ Page({
         name: "mobile",
         placeholder: "可留客服号17717852647",
         kb_type: 'number',
-        hints: '寄放处的办公电话。否则可填客服号，代理致电您注册手机。',
+        hints: business_type !== 0? '寄放处的办公电话。否则可填客服号，代理致电您注册手机。': '谨防诈骗和骚扰电话。可留客服号，代理致电您注册手机。',
         value: "",
         label: "电话",
         icons: "/images/icons/mobile.png",
@@ -876,8 +909,8 @@ Page({
       summary_value: "", //描述内容
       tips_obj: tips_obj, //表单项填写提示
       info_owner_name: info ? info.owner_name : "", //归还帖自动填充归还物品的失主名
-      location: info ? info.location : [], //归还帖自动填充归还物品的放置地址(就近放置)
-      os_location: info? info.os_location: [] //归还帖自动填充归还物品的发现地址
+      location: info && !info.location.equals(globalData.default_loc) ? info.location.slice() : [], //归还帖自动填充归还物品的放置地址(就近放置)
+      os_location: info && !info.os_location.equals(globalData.default_loc)? info.os_location.slice(): [] //归还帖自动填充归还物品的发现地址
     })
   },
   /**
@@ -914,9 +947,9 @@ Page({
     })
   },
   listenerInput: function (e) {
-    let idx = e.currentTarget.dataset.id
-    let items = this.data.items
-    items[idx].value = e.detail.value
+    let idx = e.currentTarget.dataset.id;
+    let items = this.data.items;
+    items[idx].value = e.detail.value;
     this.setData({
       items: items
     })

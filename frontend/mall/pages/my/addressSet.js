@@ -15,8 +15,7 @@ Page({
         selDistrictIndex: -1
     },
     onLoad: function (e) {
-        var that = this;
-        that.setData({
+        this.setData({
             id: e.id
         });
         this.initCityData(1);
@@ -94,19 +93,19 @@ Page({
         var address = e.detail.value.address;
         var mobile = e.detail.value.mobile;
 
-        if (nickname == "") {
+        if (nickname === "") {
             app.tip({ content: '请填写联系人姓名~~' });
             return
         }
-        if (mobile == "") {
+        if (mobile === "") {
             app.tip({ content: '请填写手机号码~~' });
             return
         }
-        if (this.data.selProvince == "请选择") {
+        if (this.data.selProvince === "请选择") {
             app.tip({ content: '请选择地区~~' });
             return
         }
-        if (this.data.selCity == "请选择") {
+        if (this.data.selCity === "请选择") {
             app.tip({ content: '请选择地区~~' });
             return
         }
@@ -137,7 +136,7 @@ Page({
             }
         }
 
-        if (address == "") {
+        if (address === "") {
             app.tip({ content: '请填写详细地址~~' });
             return
         }
@@ -147,21 +146,21 @@ Page({
             header: app.getRequestHeader(),
             method: "POST",
             data: {
-                id: that.data.id,
+                id: this.data.id,
                 province_id: province_id,
-                province_str: that.data.selProvince,
+                province_str: this.data.selProvince,
                 city_id: city_id,
-                city_str: that.data.selCity,
+                city_str: this.data.selCity,
                 district_id: district_id,
-                district_str: that.data.selDistrict,
+                district_str: this.data.selDistrict,
                 nickname: nickname,
                 address: address,
                 mobile: mobile,
             },
-            success: function (res) {
-                var resp = res.data;
-                if (resp.code != 200) {
-                    app.alert({ "content": resp.msg });
+            success:  (res) => {
+                let resp = res.data;
+                if (resp['code'] !== 200) {
+                    app.alert({ content: resp['msg'] });
                     return;
                 }
                 // 跳转

@@ -28,9 +28,9 @@
     <!--商品基本介绍-->
     <view class="goods-info">
       <view class="goods-title">
-        <text wx:if="{{info.business_type == 1}}" style="color: #f7931e;">#拾得#</text>
-        <text wx:if="{{info.business_type == 0}}" style="color: #f7931e;">#丢失#</text>
-        <text wx:if="{{info.business_type == 2}}" style="color: #f7931e;">#归还#</text>
+        <text wx:if="{{info.business_type === 1}}" style="color: #f7931e;">#拾得#</text>
+        <text wx:if="{{info.business_type === 0}}" style="color: #f7931e;">#丢失#</text>
+        <text wx:if="{{info.business_type === 2}}" style="color: #f7931e;">#归还#</text>
         <view class="goods_owner">{{info.goods_name}}</view>
         <view class="goods_owner">{{info.owner_name}}</view>
       </view>
@@ -44,19 +44,20 @@
     <view class="location" wx:if="{{show_location}}">
       <view bindtap="toNavigate" class="navigate-container">
           <image class="loc_icon" src="/images/icons/navigate.png"></image>
-          <view class="loc_text">{{info.location[1]}}<text style="font-size:24rpx;opacity:0.7;">(点击地址可导航)</text></view>
+          <view class="loc_text">{{info.location[1]}}<text style="font-size:24rpx;opacity:0.7;"> (点击地址可导航)</text></view>
       </view>
       <view class="hrz"></view>
       <view bindtap="copyMobile" data-mobile="{{info.mobile}}">
         <image class="loc_icon" src="/images/icons/mobile.png"></image>
-        <text class="loc_text">电话：{{info.mobile}}</text>
+        <view class="loc_text">电话：{{info.mobile}} <text style="font-size:24rpx;opacity:0.7;">(点击复制)</text></view>
       </view>
     </view>
 
     <!--描述区-->
     <view class="goods-des-info">
-      <view class="label-title">详情介绍
-        <text style="color:#f7931e;"> 《::::::》</text>{{info.goods_name}}</view>
+      <view wx:if="{{info.business_type === 0}}" class="label-title">失物描述</view>
+      <view wx:if="{{info.business_type === 1}}" class="label-title">拾物描述</view>
+      <view wx:if="{{info.business_type === 2}}" class="label-title">归还描述</view>
       <view class="goods-text">
         <text>{{info.summary}}</text>
       </view>
@@ -77,8 +78,8 @@
         <!--帖子状态很新鲜，没什么好展示的状态，去看看我发布过的其他帖子好了-->
         <view class="join-shop-cart" catchtap="goMyRelease">查看我发布的</view>
         <!--寻物启事贴的状态操作区，显示是否置顶，以及支持一键置顶-->
-        <view class="now-buy" catchtap="toSetTop" wx:if="{{!info.top}}">去置顶</view>
-        <view class="now-buy" wx:if="{{info.top}}">置顶中</view>
+        <view wx:if="{{!info.top}}" class="now-buy" catchtap="toSetTop" >去置顶</view>
+        <view wx:else class="now-buy">置顶中</view>
       </view>
 
 
@@ -107,22 +108,22 @@
           <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>返回</view>
         </view>
         <!--状态描述区， 作者可以去确认--->
-        <view class="join-shop-cart" catchtap="goCheckReturnGoods" data-id="{{info.return_goods_id}}" wx:if="{{info.is_returner}}">查看归还贴</view>
-        <view class="join-shop-cart" catchtap="goCheckReturnGoods" data-id="{{info.return_goods_id}}" wx:if="{{info.is_auth}}">{{ info.is_confirmed? '查看归还贴': '去确认归还' }}</view>
+        <view wx:if="{{info.is_returner}}" class="join-shop-cart" catchtap="goCheckReturnGoods" data-id="{{info.return_goods_id}}" >查看归还贴</view>
+        <view wx:else class="join-shop-cart" catchtap="goCheckReturnGoods" data-id="{{info.return_goods_id}}">{{ info.is_confirmed? '查看归还贴': '去确认归还' }}</view>
         <!--状态操作区-->
         <!--还未确认归还的是否是自己的-->
         <view wx:if="{{!info.is_confirmed}}">
           <!--向寻物者提示归还时间--->
-          <view class="now-buy" catchtap="goTips" wx:if="{{info.is_auth}}">归还待确认</view>
+          <view wx:if="{{info.is_auth}}" class="now-buy" catchtap="goTips" >归还待确认</view>
           <!--归还者可取消-->
-          <view class="now-buy grey" catchtap="cancelReturnGoods" wx:if="{{info.is_returner}}">取消归还</view>
+          <view wx:else class="now-buy grey" catchtap="cancelReturnGoods">取消归还</view>
         </view>
         <!--已经确认归还的是自己的，作者可以点击取回了-->
-        <view wx:if="{{info.is_confirmed}}">
+        <view wx:else>
           <!--寻物者确认取回--->
-          <view class="now-buy" catchtap="gotBackReturnGoods" wx:if="{{info.is_auth}}">我已取回</view>
+          <view wx:if="{{info.is_auth}}" class="now-buy" catchtap="gotBackReturnGoods" >我已取回</view>
           <!--向归还者提示确认时间--->
-          <view class="now-buy" catchtap="goTips" wx:if="{{info.is_returner}}">待取回</view>
+          <view wx:else class="now-buy" catchtap="goTips">待取回</view>
         </view>
       </view>
 
@@ -158,7 +159,7 @@
     <!------------------------------寻物启事脚步结束--------------------------------->
 
     <!------------------------------失物招领的底部开始---------------------------->
-    <view wx:if="{{info.business_type===1 && op_status!==4}}">
+    <view wx:if="{{info.business_type === 1 && op_status!==4}}">
 
       <!---待认领区和预认领区-->
       <!--待认领帖，作者-->
@@ -194,19 +195,23 @@
 
       <!--预认领区-->
       <!--作者，预认领者-->
-      <view class="footer-box" wx:if="{{show_location && info.status===2}}">
-        <!--返回-->
-        <view class="shop-cart-btn" catchtap="goHome">
-          <image src="/images/icons/home_select.png"></image>
-          <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>返回</view>
+      <view wx:if="{{show_location && info.status === 2}}">
+        <view class="footer-box">
+          <!--返回-->
+          <view class="shop-cart-btn" catchtap="goHome">
+            <image src="/images/icons/home_select.png"></image>
+            <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>返回</view>
+          </view>
+          <!--状态描述区和操作区--->
+          <view wx:if="{{info.is_auth}}" class="join-shop-cart" catchtap="goMyRelease">查看我发布的</view>
+          <view wx:if="{{info.is_auth}}" class="now-buy" catchtap="goTips">待取回</view>
+          <view wx:if="{{info.over_marks && !info.is_auth}}" class="join-shop-cart light-grey" catchtap="goAppeal">申诉</view>
+          <view wx:if="{{!info.is_auth}}" class="now-buy grey" catchtap="goCancelApply">取消认领</view>
+          <view wx:if="{{!info.is_auth}}" class="now-buy" catchtap="gotBack" >确认取回</view>
         </view>
-        <!--状态区--->
-        <view wx:if="{{info.is_auth}}" class="join-shop-cart" catchtap="goMyRelease">查看我发布的</view>
-        <view wx:if="{{info.is_auth}}" class="now-buy" catchtap="goTips">待取回</view>
-        <view wx:if="{{!info.is_auth}}" class="now-buy light-grey" catchtap="goAppeal">申诉</view>
-        <view wx:if="{{!info.is_auth}}" class="join-shop-cart grey" catchtap="goCancelApply">取消认领</view>
-        <view wx:if="{{!info.is_auth}}" class="now-buy" catchtap="gotBack" >确认取回</view>
       </view>
+
+
 
 
       <!---已认领区-->
@@ -331,8 +336,8 @@
         <view class="join-shop-cart" catchtap="goCheckSms" wx:if="{{!info.is_auth && !info.return_goods_id}}">查看短信余额</view>
         <view class="join-shop-cart" wx:if="{{info.is_auth && !info.return_goods_id}}">扫码归还的物品</view>
         <!--状态操作区: 寻物者和码主可确认取回-->
-        <view class="now-buy" catchtap="gotBackReturnGoods" wx:if="{{!info.is_auth}}">确认取回</view>
-        <view class="now-buy" catchtap="goTips"  wx:if="{{info.is_auth}}">待取回</view>
+        <view wx:if="{{!info.is_auth}}" class="now-buy" catchtap="gotBackReturnGoods" >确认取回</view>
+        <view wx:else class="now-buy" catchtap="goTips">待取回</view>
       </view>
 
       <!--已取回，作者，寻物贴帖主，-->

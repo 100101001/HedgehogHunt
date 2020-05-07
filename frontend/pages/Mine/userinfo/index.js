@@ -133,6 +133,7 @@ const remindOldOrder = function (product_name = "二维码", that = null) {
  * @param that
  */
 const doGetNewProduct = function (product_name = "二维码", that = null) {
+
   if (product_name === "二维码") {
     let data = {
       type: 'toBuy',
@@ -180,6 +181,7 @@ const onFailContactTech = function (title = "跳转提示", content = '服务出
 
 Page({
   data: {
+    dataReady: false,
     userInfo: {},
     has_qrcode: false,
     show_qrcode: false,
@@ -211,17 +213,17 @@ Page({
       url: app.buildUrl("/member/info"),
       header: app.getRequestHeader(),
       success: (res) => {
-        let resp = res.data
+        let resp = res.data;
         if (resp['code'] !== 200) {
           app.alert({
             content: resp['msg'],
             cb_confirm: () => {
               wx.navigateBack()
             }
-          })
+          });
           return
         }
-        let info = resp['data']['info']
+        let info = resp['data']['info'];
         this.setData({
           avatar: info['avatar'],
           nickname: info['nickname'],
@@ -232,7 +234,8 @@ Page({
           qr_code: info['qr_code'],
           member_notify_times: info['m_times'],
           total_notify_times: info['total_times'],
-          sms_pkgs: info['pkgs']
+          sms_pkgs: info['pkgs'],
+          dataReady: true
         })
       },
       fail: (res) => {
@@ -275,7 +278,7 @@ Page({
       })
       return
     }
-    if (this.data.name == this.data.editName) {
+    if (this.data.name === this.data.editName) {
       this.showToast('请填不同姓名!', 'none')
       return
     }
@@ -312,15 +315,15 @@ Page({
   /***
    * toGetQrCode 判断没有姓名或手机号提示用户补上，否则继续下单获取二维码{@see doGetQrCode}
    */
-  toGetQrCode: function(){
+  toGetQrCode: function () {
     let name = this.data.name
     let mobile = this.data.mobile
     if (!name) {
-      app.alert({ 'content': '姓名不能为空' })
+      app.alert({title: '姓名不能为空', content: '点击确认去设置姓名', showCancel: true, cb_confirm: this.onEditName})
       return
     }
     if (!mobile) {
-      app.alert({ 'content': '手机不能为空' })
+      app.alert({'content': '手机不能为空'})
       return
     }
     this.doGetQrCode()
@@ -396,8 +399,15 @@ Page({
    * toRechargeBalance 用户按下余额充值按钮显示输入充值金额的模态框
    */
   toRechargeBalance: function(){
-    this.setData({
-      hiddenBalanceRecharge: false
+    app.alert({
+      title: '充值提示',
+      content: '余额可用于置顶，答谢，购物，短信付费等。提现额度为10元，确认充值？',
+      showCancel: true,
+      cb_confirm: ()=>{
+        this.setData({
+          hiddenBalanceRecharge: false
+        })
+      }
     })
   },
   /**
@@ -550,12 +560,24 @@ Page({
   toEditPhone: function () {
     wx.navigateTo({
       url: '/pages/Qrcode/Mobile/index'
-    })
+    });
     this.cancelMobileEdit()
   },
   toLookupSms: function () {
     this.setData({
       hiddenSmsDetailModal: false
+    })
+  },
+  smsTips: function() {
+    let content = '';
+    if (this.data.userInfo.has_qrcode){
+      content = '如果你有二维码，但是没有短信条数，且账户余额不足1毛。当发生扫码归还时，你将收不到系统及时的短信通知。'
+    } else {
+      content = '获取二维码，系统赠送你免费的5条短信哦！'
+    }
+    app.alert({
+      title: '短信提示',
+      content: content
     })
   },
   closeSmsDetail: function () {

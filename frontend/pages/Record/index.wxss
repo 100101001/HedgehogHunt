@@ -20,7 +20,7 @@ page {
   display: flex;
   flex-direction: row;
   position: fixed;
-  top:70rpx;
+  top:85rpx;
   left: 0;
   width: 750rpx;
   background-color: #FFE4B5;

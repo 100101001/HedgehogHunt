@@ -234,19 +234,25 @@ Page({
       processing: false,  //加载数据
       items: [{  //搜索输入表单
         name: 'owner_name',
-        placeholder: '姓名',
+        placeholder: '物主姓名',
         icons: 'search_icon',
-        act: "listenerNameInput",
+        show_clean: false,
+        value: '',
+        is_focus: false
       },
         {
           name: "goods_name",
-          placeholder: "物品",
-          act: "listenerGoodsNameInput",
+          placeholder: "物品名称",
+          show_clean: false,
+          value: '',
+          is_focus: false
         },
         {
           name: "filter_address",
-          placeholder: "地址",
-          act: "listenerAddressInput",
+          placeholder: "遗失地址",
+          show_clean: false,
+          value: '',
+          is_focus: false
         }
       ]
     })
@@ -267,21 +273,19 @@ Page({
     wx.request({
       url: app.buildUrl("/adv/search"),
       success: function (res) {
-        var resp = res.data;
-        if (resp.code !== 200) {
+        let resp = res.data;
+        if (resp['code'] !== 200) {
           app.alert({
-            'content': resp.msg
+            content: resp['msg']
           });
           return
         }
-        var banners = resp.data.list;
         that.setData({
-          banners: banners,
+          banners: resp['data'].list,
         });
       },
       fail: function (res) {
         app.serverBusy();
-        return;
       },
       complete: function (res) {
         that.setData({
@@ -298,33 +302,55 @@ Page({
     setTimeout( () => {
       this.setData({
         loadingHidden: true
-      })
+      });
       this.getGoodsList();
     }, 500)
   },
-  listenerNameInput: function (e) {
+  searchBoxInput: function(e) {
+    let idx = e.currentTarget.dataset.id;
+    let items = this.data.items;
+    items[idx].value = e.detail.value;
     this.setData({
-      owner_name: e.detail.value
-    })
-  },
-  listenerGoodsNameInput: function (e) {
-    this.setData({
-      goods_name: e.detail.value
-    })
-  },
-  listenerAddressInput: function (e) {
-    this.setData({
-      filter_address: e.detail.value
+      change: true,
+      items: items
     });
   },
-  formSubmit: function (e) {
-    let data = e.detail.value
+  searchBoxFocus: function(e) {
+    let idx = e.currentTarget.dataset.id;
+    let items = this.data.items;
+    items[idx].is_focus = true;
     this.setData({
-      owner_name: data['owner_name'],
-      goods_name: data['goods_name'],
-      filter_address: data['filter_address']
+      items: items
     })
-    this.onPullDownRefresh();
+  },
+  searchBoxBlur: function(e) {
+    let idx = e.currentTarget.dataset.id;
+    let items = this.data.items;
+    items[idx].show_clean = items[idx].value.length > 0;
+    items[idx].is_focus = false;
+    this.setData({
+      items: items
+    });
+    this.search();
+  },
+  searchBoxClean: function(e){
+    let idx = e.currentTarget.dataset.id;
+    let items = this.data.items;
+    items[idx].show_clean = false;
+    items[idx].value = '';
+    this.setData({
+      change: true,
+      items: items
+    });
+    this.search();
+  },
+  search: function () {
+    if (this.data.change) {
+      this.onPullDownRefresh();
+      this.setData({
+        change: false
+      })
+    }
   },
   //获取信息列表
   getGoodsList: function (e) {
@@ -335,15 +361,16 @@ Page({
       processing: true,
       loadingHidden: false
     });
+    let items = this.data.items;
     wx.request({
       url: app.buildUrl("/goods/search"),
       data: {
         status: this.data.activeCategoryId,
-        mix_kw: this.data.goods_name,
-        owner_name: this.data.owner_name,
+        mix_kw: items[1].value,
+        owner_name: items[0].value,
         p: this.data.p,
         business_type: this.data.business_type,
-        filter_address: this.data.filter_address
+        filter_address: items[2].value
       },
       success:  (res) => {
         let resp = res.data;
@@ -366,7 +393,7 @@ Page({
       complete:  (res) => {
         this.setData({
           processing: false,
-          loadingHidden: true
+          loadingHidden: true,
         })
       },
     })

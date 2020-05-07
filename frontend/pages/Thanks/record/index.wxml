@@ -3,7 +3,7 @@
 <loading hidden="{{loadingHidden}}">加载中，请稍候..</loading>
 <view class="container">
   <!--搜索框、选项卡、编辑栏-->
-	<template is="search-bar-template" data="{{...infos, op_status}}" />
+	<template is="search-bar-template" data="{{...infos, op_status, focused1, focused2, goods_name, owner_name}}" />
 
 	<view class="message_container">
 		<!--记录列表-->

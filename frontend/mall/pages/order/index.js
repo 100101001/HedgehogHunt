@@ -139,13 +139,18 @@ Page({
     this.setData({
       params: JSON.parse(e.data)
     })
+  },
+  /***
+   * onShow 订单详情页显示
+   */
+  onShow: function () {
     hasQrcode((has_qr_code) => {
       if (has_qr_code) {
         this.getOrderInfo();
       } else {
         //判断商品列表中有无二维码
-        let goods = this.data.params['goods']
-        let index = goods.findIndex(item => item.id === app.globalData.qrcodeProductId)
+        let goods = this.data.params['goods'];
+        let index = goods.findIndex(item => item.id === app.globalData.qrcodeProductId);
         if (index === -1) {
           //没有二维码要求加购
           this.requireOrderQrcode();
@@ -155,11 +160,6 @@ Page({
         }
       }
     })
-  },
-  /***
-   * onShow 订单详情页显示
-   */
-  onShow: function () {
   },
   /***
    * toCreateOrder 确认下单的入口
@@ -252,7 +252,7 @@ Page({
       },
       success:  (res) => {
         let resp = res.data
-        if (resp['code'] != 200) {
+        if (resp['code'] !== 200) {
           app.alert({"content": resp['msg']});
           return
         }

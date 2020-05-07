@@ -64,10 +64,10 @@ Page({
   },
   getOpenId: function (options) {
     if (app.globalData.qrCodeDebug) {
-      return options.openid
+      return decodeURIComponent(options.openid)
     } else {
       if (options.scene) {
-        return options.scene
+        return decodeURIComponent(options.scene)
       }
       return null
     }

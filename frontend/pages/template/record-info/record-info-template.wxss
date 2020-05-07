@@ -192,6 +192,7 @@ swiper-item image {
   left: 0;
   display: flex;
 }
+
 .footer-box .contact {
   position: relative;
   width: 120rpx;

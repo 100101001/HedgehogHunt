@@ -20,7 +20,7 @@
 </view>
 
 
-<view class="userinfo">
+<view class="userinfo" wx:if="{{dataReady}}">
   <view class="fundation_message">基本信息</view>
       <view class="userinfo_container" bindtap="onEditName">
       <view class="title">姓名</view>
@@ -48,19 +48,19 @@
   </view>
   <view class="userinfo_container" data-id="5">
     <view class="title">短信余额</view>
-    <view class="content2">{{total_notify_times}} 条</view>
+    <view class="content2" bindtap="{{smsTips}}">{{total_notify_times}} 条</view>
     <view class="next">
       <view class="recharge_btn intro" bindtap="toLookupSms" wx:if="{{total_notify_times}}">详情</view>
       <view class="recharge_btn" bindtap="toRechargeSms">充值</view>
     </view>
   </view>
-  <view class="userinfo_container" data-id="3" bindtap="onCatchTap">
+  <view class="userinfo_container" data-id="3">
     <view class="title">闪寻码</view>
     <view class="next">
-      <view class="recharge_btn intro" bindtap="toIntroduce">简介</view>
-      <view class="recharge_btn" bindtap="toGetQrCode" wx:if="{{!has_qrcode}}">获取</view>
-      <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode && !show_qrcode}}">查看</view>
-      <view class="recharge_btn" bindtap="checkQrCode" wx:if="{{has_qrcode && show_qrcode}}">隐藏</view>
+      <view class="recharge_btn intro" catchtap="toIntroduce">简介</view>
+      <view class="recharge_btn" catchtap="toGetQrCode" wx:if="{{!has_qrcode}}">获取</view>
+      <view class="recharge_btn" catchtap="checkQrCode" wx:if="{{has_qrcode && !show_qrcode}}">查看</view>
+      <view class="recharge_btn" catchtap="checkQrCode" wx:if="{{has_qrcode && show_qrcode}}">隐藏</view>
     </view>
   </view>
   <image class="qr_code" data-src="{{qr_code}}" src="{{qr_code}}" bindtap='previewImage' data-id="0" wx:if="{{show_qrcode}}"></image>

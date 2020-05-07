@@ -3,13 +3,33 @@
   <form bindsubmit="formSubmit">
     <view class="search_container">
       <!--发布，推荐，答谢页需要一个radio按钮-->
-      <view class="search_box1 {{op_status == 2 || op_status==3 ? '' : 'box-wider1'}}">
+      <view class="search_box1 {{op_status == 2 || op_status==3 ? '' : 'box-wider1'}} {{focused1? 'search_box_focus': ''}}">
         <icon type="search" class='search_icon' size='15' color="#f7931e"></icon>
-        <input value='{{name}}' bindblur="onPullDownRefresh" bindfocus='onBindFocus' bindinput="listenerNameInput" class='search_text_box' type="text" placeholder='姓名' placeholder-style='color:#f7931e;'></input>
+        <input value='{{name}}'
+               type="text"
+               data-id="1"
+               bindblur="onBindBlur"
+               bindfocus='onBindFocus'
+               bindinput="listenerNameInput"
+               value="{{owner_name}}"
+               class='search_text_box'
+               placeholder='物主姓名'
+               placeholder-style='color:#f7931e;'></input>
+        <icon wx:if="{{owner_name.length > 0}}" class="clean_icon" type="clear" size="15" catchtap="ownerNameClean"></icon>
       </view>
       <!--发布，推荐，答谢页需要一个radio按钮-->
-      <view class="search_box2 {{op_status == 2 || op_status==3?  '' : 'box-wider2'}}">
-        <input value="{{type}}" bindfocus='onBindFocus' bindblur="onPullDownRefresh" bindinput="listenerGoodsNameInput" class='search_text_box' type="text" placeholder='物品' placeholder-style='color:#f7931e;'></input>
+      <view class="search_box2 {{op_status == 2 || op_status==3?  '' : 'box-wider2'}} {{focused2? 'search_box_focus': ''}}">
+        <input value="{{type}}"
+               data-id="2"
+               bindfocus='onBindFocus'
+               bindblur="onBindBlur"
+               bindinput="listenerGoodsNameInput"
+               value="{{goods_name}}"
+               class="search_text_box {{op_status === 2 || op_status===3?  '' : 'text-box-wider2'}}"
+               type="text"
+               placeholder='物品名称'
+               placeholder-style='color:#f7931e;'></input>
+        <icon wx:if="{{goods_name.length > 0}}" class="clean_icon" type="clear" size="15" catchtap="goodsNameClean"></icon>
       </view>
       <!--推荐、答谢筛选新的推荐记录-->
       <radio wx:if="{{op_status == 2 || op_status==3}}" class="radio" value="buying"  bindtap="radioChange" checked="{{only_new}}">仅新增</radio>

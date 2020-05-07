@@ -1,9 +1,16 @@
 <import src="../template/warn/warn-template.wxml" />
 <view class="all-container">
   <view class="search_container">
-    <view class="search_box">
+    <view class="search_box {{focused? 'search_box_focused': ''}}" >
       <icon type="search" class='search' wx:if="search" size='15' style="margin-left:5rpx;" color="#f7931e"></icon>
-      <input name="university" class='search_text_box' type="text" placeholder="请输入自己所在校名" placeholder-style='color:#f7931e;' bindinput="listenerSchoolInput"></input>
+      <input name="university"
+             class='search_text_box'
+             type="text"
+             placeholder="请输入自己所在校名"
+             placeholder-style='color:#f7931e;'
+             bindinput="listenerSchoolInput"
+             bindblur="onBindBlur"
+             bindfocus="onBindFocus"></input>
     </view>
     <button class="search_button" bindtap="searchSchool" disabled="{{searching}}">搜索</button>
   </view>

@@ -84,11 +84,54 @@ Page({
       this.getThanksList();
     }, 500);
   },
+  /**
+   * listenerNameInput 搜索框监听物主名输入
+   * @param e
+   */
   listenerNameInput: function (e) {
-    this.setData({owner_name: e.detail.value});
+    this.setData({
+      changed: true,
+      owner_name: e.detail.value
+    });
   },
+  /**
+   * listenerNameInput 搜索框监听物品名输入
+   * @param e
+   */
   listenerGoodsNameInput: function (e) {
-    this.setData({goods_name: e.detail.value});
+    this.setData({
+      changed: true,
+      goods_name: e.detail.value
+    });
+  },
+  onBindFocus: function(e){
+    let id = e.currentTarget.dataset.id * 1;
+    this.setData({focused1: id===1, focused2: id===2});
+  },
+  onBindBlur: function(e){
+    let id = e.currentTarget.dataset.id * 1;
+    this.setData({focused1: !(id===1 || !this.data.focused1), focused2: !(id===2 || !this.data.focused2)});
+    this.search();
+  },
+  ownerNameClean: function (e) {
+    this.setData({
+      changed: true,
+      owner_name: ''
+    });
+    this.search();
+  },
+  goodsNameClean: function(e){
+    this.setData({
+      changed: true,
+      goods_name: ''
+    });
+    this.search();
+  },
+  search: function () {
+    if (this.data.changed) {
+      this.setData({changed: false});
+      this.onPullDownRefresh();
+    }
   },
   //获取信息列表
   getThanksList: function (e) {
