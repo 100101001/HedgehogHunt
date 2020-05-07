@@ -519,9 +519,16 @@ Page({
    * @param e
    */
   goReturn: function (e) {
-    wx.navigateTo({
-      url: '../../Release/release/index?info=' + JSON.stringify(this.data.infos.info)   //智能填充归还贴的表单用
-    })
+    app.alert({
+      title: '归还确认',
+      content: '恶意归还将被列入失信名单，并拉黑账户，确认你捡到了他/她的失物？',
+      showCancel: true,
+      cb_confirm: () => {
+        wx.navigateTo({
+          url: '../../Release/release/index?info=' + JSON.stringify(this.data.infos.info)   //智能填充归还贴的表单用
+        })
+      }
+    });
   },
   /**
    * 已取回的三类帖子，都可一键去答谢{@see doGoThanks}
