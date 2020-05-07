@@ -5,6 +5,10 @@
     127.0.0.1:6379[3]> flushdb
     OK
 
+数据库开启身份验证
+    
+    127.0.0.1:6379> config set requirepass lyx147
+    OK
 
 数据库存储约定
 

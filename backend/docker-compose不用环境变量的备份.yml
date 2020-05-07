@@ -24,7 +24,7 @@ services:
       - ./redis/data:/data
     command:
       # 执行的命令
-      redis-server --requirepass ${redis_pwd}
+      redis-server --requirepass lyx147
     restart: always
   
 
@@ -41,12 +41,12 @@ services:
       - "15672:15672"
       - "25672:25672"
     environment:
-      RABBITMQ_DEFAULT_VHOST: ${rmq_vhost}
-      RABBITMQ_DEFAULT_USER: ${rmq_user}
-      RABBITMQ_DEFAULT_PASS: ${rmq_pwd}
+      RABBITMQ_DEFAULT_VHOST: ciwei
+      RABBITMQ_DEFAULT_USER: root
+      RABBITMQ_DEFAULT_PASS: qweasd123
       RABBITMQ_LOGS: /var/lib/rabbitmq/rabbitmq.log
       RABBITMQ_SASL_LOGS: /var/lib/rabbitmq/rabbitmq-sasl.log
-      RABBITMQ_ERLANG_COOKIE: ${rmq_erlang_ck} 
+      RABBITMQ_ERLANG_COOKIE: LZJADKXKLULIXFKAALGX 
       TZ: Asia/Shanghai
     volumes:
       - ./rabbitmq/data:/var/lib/rabbitmq
@@ -84,8 +84,8 @@ services:
     ports:
       - "3306:3306"
     environment:
-      - MYSQL_DATABASE=${mysql_db}
-      - MYSQL_ROOT_PASSWORD=${mysql_root_pwd}
+      - MYSQL_DATABASE=ciwei_db_test
+      - MYSQL_ROOT_PASSWORD=wcx9517530 
     restart: always
   
   # https://blog.csdn.net/bocai_xiaodaidai/article/details/92641534 多服务启动脚本
