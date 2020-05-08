@@ -38,3 +38,4 @@
 * [SQLAlchemy 各种查询语句写法](https://wxnacy.com/2017/08/14/python-2017-08-14-sqlalchemy-filter/)
 * [SQLAlchemy 高级用法](https://www.cnblogs.com/coder2012/p/4746941.html)
 * [flask-migration 操作指南](migrations/操作指南.md)
+* [uwsgi文件参数解释](https://www.cnblogs.com/tortoise512/p/10825075.html)

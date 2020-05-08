@@ -1,0 +1,39 @@
+*** Starting uWSGI 2.0.18 (64bit) on [Fri May  8 17:09:51 2020] ***
+compiled with version: 7.5.0 on 08 May 2020 09:03:56
+os: Linux-5.3.0-51-generic #44~18.04.2-Ubuntu SMP Thu Apr 23 14:27:18 UTC 2020
+nodename: ubuntu
+machine: x86_64
+clock source: unix
+detected number of CPU cores: 1
+current working directory: /home/ellen/repos/HedgehogHunt/backend/ciwei
+writing pidfile to logs/server/order.pid
+detected binary path: /home/ellen/repos/HedgehogHunt/backend/ciwei/venv/bin/uwsgi
+!!! no internal routing support, rebuild with pcre support !!!
+your processes number limit is 44873
+your memory page size is 4096 bytes
+detected max file descriptor number: 4096
+building mime-types dictionary from file /etc/mime.types...554 entry found
+lock engine: pthread robust mutexes
+thunder lock: disabled (you can enable it with --thunder-lock)
+uWSGI http bound on 0.0.0.0:8889 fd 3
+uwsgi socket 0 bound to UNIX address logs/server/order.sock fd 6
+Python version: 3.6.9 (default, Apr 18 2020, 01:56:04)  [GCC 8.4.0]
+*** Python threads support is disabled. You can enable it with --enable-threads ***
+Python main interpreter initialized at 0x55f3c5b37780
+your server socket listen backlog is limited to 100 connections
+your mercy for graceful operations on workers is 60 seconds
+mapped 1209231 bytes (1180 KB) for 8 cores
+*** Operational MODE: preforking ***
+WSGI app 0 (mountpoint='') ready in 6 seconds on interpreter 0x55f3c5b37780 pid: 103405 (default app)
+mountpoint  already configured. skip.
+*** uWSGI is running in multiple interpreter mode ***
+spawned uWSGI master process (pid: 103405)
+spawned uWSGI worker 1 (pid: 103458, cores: 1)
+spawned uWSGI worker 2 (pid: 103459, cores: 1)
+spawned uWSGI worker 3 (pid: 103460, cores: 1)
+spawned uWSGI worker 4 (pid: 103461, cores: 1)
+spawned uWSGI worker 5 (pid: 103462, cores: 1)
+spawned uWSGI worker 6 (pid: 103463, cores: 1)
+spawned uWSGI worker 7 (pid: 103464, cores: 1)
+spawned uWSGI worker 8 (pid: 103465, cores: 1)
+spawned uWSGI http 1 (pid: 103466)

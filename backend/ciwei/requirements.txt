@@ -29,3 +29,4 @@ flask_celery
 flask-redis
 # 搜索服务
 elasticsearch
+uwsgi

@@ -15,7 +15,7 @@ def getLoggingHandler():
     :return:
     """
     # 日志每天新增一个文件
-    handler = logging.handlers.TimedRotatingFileHandler('logs/ciwei', when='D', interval=1)
+    handler = logging.handlers.TimedRotatingFileHandler('logs/application/ciwei', when='D', interval=1)
     handler.suffix = "%Y%m%d.log"
     logging_format = logging.Formatter(
         '%(asctime)s - %(levelname)s - %(message)s')
