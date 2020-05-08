@@ -95,7 +95,6 @@ Page({
     wx.navigateTo({
       url: '/controls/pages/index',
       complete(res){
-        console.log(res)
       }
     })
   },

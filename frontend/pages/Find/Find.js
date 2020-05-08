@@ -68,18 +68,6 @@ Page({
     this.setInitData();
     this.onPullDownRefresh();
   },
-  startMoveBall: function(e) {
-    console.log('start')
-    console.log(e)
-  },
-  moveBall: function(e) {
-    console.log('move')
-    console.log(e)
-  },
-  endMoveBall: function(e) {
-    console.log('end')
-    console.log(e)
-  },
   /**
    * catClick 如果切换了状态栏，就加载新的数据
    * @param e

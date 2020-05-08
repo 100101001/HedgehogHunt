@@ -44,11 +44,11 @@ App({
     regFlag: false, //用于判断用户已注册(和缓存中的token一起代表用户已经登录)
     shopName: "鲟回-失物招领",
     //domain: "http://47.114.85.211:8999/api",
-    domain: "http://192.168.0.116:8889/api",
-    //domain: "https://ciwei.opencs.cn/api",
-    //static_file_domain: "https://ciwei.opencs.cn",
+    //domain: "http://192.168.0.116:8889/api",
+    domain: "https://ciwei.opencs.cn/api",
+    static_file_domain: "https://ciwei.opencs.cn",
     //static_file_domain: "http://47.114.85.211:8999",
-    static_file_domain: "http://192.168.0.116:8889",
+    //static_file_domain: "http://192.168.0.116:8889",
     member_status: 1, //用户状态
     op_status: 2,
     showHintQrcode: true, //导航栏上方的提示浮窗，标记是否显示浮窗，用户可关闭
@@ -515,7 +515,7 @@ App({
         if (pages.length > 1 && pages[pages.length-1].route=='pages/login/index') {
           setTimeout(function () {
             wx.navigateBack({delta: back_delta})
-          }, 500)
+          }, 600)
         }
       }
     })

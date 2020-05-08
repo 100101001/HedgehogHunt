@@ -1,4 +1,5 @@
 {
+  "navigationBarTitleText": "申诉处理",
   "usingComponents": {
     "lyx-modal": "/components/lyx-modal/lyx-modal"
   }

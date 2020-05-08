@@ -14,11 +14,16 @@ page{
   height: 200rpx;
   width: 200rpx;
   margin-top: 50rpx;
+  border-radius: 100rpx;
+  box-shadow: 4rpx 4rpx 10rpx #999;
 }
 
 .nickname {
+  color: #333;
+  opacity: 0.7;
   font-size: 24px;
   font-weight: 600;
+  margin-top: 10rpx;
 }
 
 

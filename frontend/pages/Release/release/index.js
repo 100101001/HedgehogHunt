@@ -222,7 +222,6 @@ Page({
     let loc_id = e.currentTarget.dataset.loc * 1; // string转成number
     wx.getSetting({
       success: (res) => {
-        console.log(res)
         let loc_auth = res.authSetting['scope.userLocation'];
         if (!loc_auth) {
           // 获取定位授权
@@ -828,9 +827,9 @@ Page({
     wx.showToast({
       title: msg,
       icon: 'success',
-      duration: 2000,
+      duration: 1000,
       success: res => {
-        setTimeout(navigate, 1500)
+        setTimeout(navigate, 800)
       }
     });
   },
