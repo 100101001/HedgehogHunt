@@ -1,10 +1,11 @@
-
-# https://www.jianshu.com/p/bf802ea2d7cf 
+# https://www.runoob.com/docker/centos-docker-install.html docker 的安装和使用
 # https://docs.docker.com/compose/gettingstarted/ compose的安装与使用
+# 换源加速上述安装过程 sudo curl -L https://get.daocloud.io/docker/compose/releases/download/1.25.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
 # https://ecs.console.aliyun.com/#/server/region/cn-hangzhou 阿里云ECS服务器
 # https://www.cnblogs.com/sparkdev/p/9826520.html 配置使用环境变量
 # https://github.com/jpetazzo/nsenter docker-enter命令
 # https://www.shellhacks.com/docker-enter-container/ 进入docker容器
+# https://www.jianshu.com/p/bf802ea2d7cf 
 
 # 首先执行 sudo docker-compose build 构建不基于3rd镜像的web服务的镜像
 # 然后执行 sudo docker-compose up  不加服务名会启动所有的服务。首次起服务时，会拉取基于3rd镜像的服务所需的镜像。
