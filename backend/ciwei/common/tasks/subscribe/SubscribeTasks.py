@@ -30,9 +30,6 @@ def send_found_finish_msg_in_batch(gotback_founds=None):
 
     found_infos = Good.query.filter(Good.id.in_(gotback_founds)).with_entities(Good.openid, Good.name,
                                                                                Good.owner_id, Good.finish_time).all()
-    # 物品发布者积分再加
-    Member.query.filter(Member.id.in_([item.openid for item in found_infos])).update({'credits': Member.credits + 5},
-                                                                                     synchronize_session=False)
     # 取出失主昵称
     losers = Member.query.filter(Member.id.in_([item.owner_id for item in found_infos])).with_entities(Member.id,
                                                                                                        Member.nickname).all()
@@ -66,9 +63,6 @@ def send_return_finish_msg_in_batch(gotback_returns=None):
     returns = Good.query.filter(Good.id.in_(gotback_returns)).with_entities(Good.openid, Good.owner_id, Good.name,
                                                                             # 发送对象，物品名，失主，取回时间
                                                                             Good.finish_time).all()
-    # 物品发布者积分再加
-    Member.query.filter(Member.id.in_([item.openid for item in returns])).update({'credits': Member.credits + 5},
-                                                                                 synchronize_session=False)
     # 取出失主昵称
     losers = Member.query.filter(Member.id.in_([item.owner_id for item in returns])).with_entities(Member.id,
                                                                                                    Member.nickname).all()
@@ -131,7 +125,7 @@ def send_thank_subscribe(thank_info=None):
         "thing1": {"value": thank_info.get('nickname')},
         "amount2": {"value": str(thank_info.get('thank_price', 0))},
         "thing3": {"value": thank_info.get('summary')},
-        "date4": {"value": thank_info.get('created_time', getCurrentDate())}
+        "date4": {"value": getCurrentDate()}
     }
     openid = Good.query.filter_by(id=thank_info.get('goods_id')).with_entities(Good.openid).first()
     if openid:

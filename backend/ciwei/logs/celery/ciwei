@@ -1,0 +1,4 @@
+2020-05-08 20:05:07,511 - INFO - Connected to amqp://root:**@127.0.0.1:5672/ciwei
+2020-05-08 20:05:07,538 - INFO - mingle: searching for neighbors
+2020-05-08 20:05:08,577 - INFO - mingle: all alone
+2020-05-08 20:05:08,620 - INFO - celery@ubuntu ready.

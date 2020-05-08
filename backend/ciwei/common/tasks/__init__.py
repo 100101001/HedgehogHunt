@@ -9,6 +9,9 @@
 
 import flask
 from celery import Celery
+from celery.signals import after_setup_logger
+
+from common.loggin import getLoggingHandler
 
 
 class FlaskCelery(Celery):
@@ -50,3 +53,7 @@ class FlaskCelery(Celery):
         self.app = app
         self.config_from_object(app.config)
 
+
+@after_setup_logger.connect
+def setup_celery_loggers(logger, *args, **kwargs):
+    logger.addHandler(getLoggingHandler('logs/celery/ciwei'))

@@ -1,5 +1,12 @@
 闪寻
 =====================
+## 启动
+
+    uwsgi --ini uwsgi-local.ini # 启动
+    uwsgi --reload logs/uwsgi.pid # 重启
+    uwsgi --stop logs/uwsgi.pid # 关闭
+
+
 ##启动
 * export ops_config=local|production && python manage.py runserver
 
@@ -31,7 +38,7 @@
         def tearDown(self):
             super().tearDown()
             # customize operations here
-            
+    
 
 ##可参考资料
 * [python-Flask（jinja2）语法：过滤器](https://www.jianshu.com/p/3127ac233518)
@@ -39,3 +46,4 @@
 * [SQLAlchemy 高级用法](https://www.cnblogs.com/coder2012/p/4746941.html)
 * [flask-migration 操作指南](migrations/操作指南.md)
 * [uwsgi文件参数解释](https://www.cnblogs.com/tortoise512/p/10825075.html)
+* [uwsgi配置](https://www.jianshu.com/p/07458e99198a)

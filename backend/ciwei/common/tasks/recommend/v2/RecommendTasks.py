@@ -14,6 +14,9 @@ from common.models.proxy.GoodProxy import GoodProxy
 
 @celery.task(name='recommend.auto_recommend_goods', property=1)
 def autoRecommendGoods(edit_info=None, goods_info=None):
-    goods = GoodProxy()
-    goods.__dict__ = goods_info
+    if isinstance(goods_info, dict):
+        goods = GoodProxy()
+        goods.__dict__ = goods_info
+    else:
+        goods = goods_info
     RecommendHandler.filter(edit_info=edit_info, goods_info=goods)

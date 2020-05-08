@@ -24,8 +24,8 @@ CELERY_RESULT_BACKEND = 'redis://:lyx147@localhost:6379/0'
 CELERY_TIMEZONE = 'Asia/Shanghai'
 CELERY_ENABLE_UTC = True
 # celery 日志文件
-CELERYD_LOG_FILE = '/home/ellen/repos/HedgehogHunt/backend/logs/celery-beats.log'
-CELERYBEAT_LOG_FILE = '/home/ellen/repos/HedgehogHunt/backend/logs/celery-beats.log'
+CELERYD_LOG_FILE = 'logs/celery/celery-beats.log'
+CELERYBEAT_LOG_FILE = 'logs/celery/celery-beats.log'
 # celery 消息序列器
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'

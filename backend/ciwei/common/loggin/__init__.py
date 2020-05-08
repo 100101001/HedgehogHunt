@@ -9,13 +9,13 @@
 import logging, logging.handlers
 
 
-def getLoggingHandler():
+def getLoggingHandler(dir_root='logs/application/ciwei'):
     """
     设置logging的格式，文件，logging级别
     :return:
     """
     # 日志每天新增一个文件
-    handler = logging.handlers.TimedRotatingFileHandler('logs/application/ciwei', when='D', interval=1)
+    handler = logging.handlers.TimedRotatingFileHandler(dir_root, when='D', interval=1)
     handler.suffix = "%Y%m%d.log"
     logging_format = logging.Formatter(
         '%(asctime)s - %(levelname)s - %(message)s')

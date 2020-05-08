@@ -94,7 +94,7 @@ class RecommendHandler:
             model_recommend.found_goods_id = found_goods_id
             model_recommend.target_member_id = target_member_id
             model_recommend.lost_goods_id = lost_goods_id
-            repeat_recommend.rel_score = rel_score
+            model_recommend.rel_score = rel_score
             db.session.add(model_recommend)
         # 是新的推荐
         return repeat_recommend is None
