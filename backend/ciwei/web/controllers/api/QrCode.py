@@ -56,6 +56,20 @@ def getQrcode():
     return resp
 
 
+@route_api.route('/qrcode/mobile/change')
+def mobileChangeFreq():
+    resp = {'code': -1, 'msg': '', 'data': {}}
+
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = '请先登录'
+        return resp
+    op_code, op_msg = QrCodeHandler.deal('freq_mobile', rcv_member=member_info)
+    resp['code'] = op_code
+    resp['msg'] = op_msg
+    return resp
+
+
 @route_api.route("/qrcode/sms", methods=['GET', 'POST'])
 def sendVerifyCode():
     """

@@ -129,7 +129,7 @@ class GoodsOpRecordDeleteHandler:
             return False
         ok_ids = GoodsCasUtil.filter(goods_ids, exp_val=status, new_val=-status)
         if ok_ids:
-            Good.batch_update(Good.id.in_(ok_ids), Good.status == status, val={'status': -Good.status}, rds=-int(biz_type))
+            Good.batch_update(Good.id.in_(ok_ids), Good.status == status, val={'status': -status}, rds=-int(biz_type))
         db.session.commit()
         return True
 

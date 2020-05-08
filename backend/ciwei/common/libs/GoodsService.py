@@ -176,7 +176,7 @@ class CommonGoodsHandler:
         :return:
         """
         if not member_id or not goods_id:
-            return False
+            return
         Mark.pre(member_id=member_id, goods_id=goods_id, business_type=business_type)
 
     @classmethod

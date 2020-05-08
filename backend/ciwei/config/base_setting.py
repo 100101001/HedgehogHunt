@@ -237,6 +237,7 @@ CONSTANTS = {
     'page_size': 10,
     'max_pages_allowed': 50,
     'sp_product': {
+        'client_mobile': '17717852647',
         'qrcode': {
             'id': 15,
             'price': 2.5

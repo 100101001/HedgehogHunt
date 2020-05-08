@@ -23,8 +23,9 @@ class QrCodeHandler:
     __strategy_map = {
         'gain': '_gainQrcodeFromWechat',
         'freq': '_detectScanFreq',
-        'verify_mobile': '_verifyMobile',
-        'bind_mobile': '_bindMobile'
+        'freq_mobile': '_detectMobileChangeFreq',  # 检查更换频率
+        'verify_mobile': '_verifyMobile',  # 发送验证码
+        'bind_mobile': '_bindMobile'  # 检查验证码
     }
 
     @classmethod
@@ -61,17 +62,26 @@ class QrCodeHandler:
 
 
     @classmethod
+    def _detectMobileChangeFreq(cls, rcv_member=None):
+        phoneChangeLog = MemberPhoneChangeLog.tooFreqChange(rcv_member.openid)
+        if phoneChangeLog is not None:
+            return -1, '一个月内只能更换一次手机'
+        return 200, ''
+
+
+    @classmethod
     def _verifyMobile(cls, mobile=None, rcv_member=None):
         handler = SmsVerifyHandler(mobile=mobile, rcv_member=rcv_member)
         if handler.noModified():
             return False, '请输入与原手机号不同的手机号'
 
         if handler.sendTooFreq():
-            return False, '两次发送间隔不能短于5分钟，请稍后再试'
+            # return False, '两次发送间隔不能短于5分钟，请稍后再试'
+            return True, '发送成功，请注意查收短信'
 
         send_ok = handler.send()
         # 触发和接受验证码短信的用户是同一人
-        return (True, '发送成功') if send_ok else (False, '发送失败请检查手机号是否正确')
+        return (True, '发送成功，请注意查收短信') if send_ok else (False, '发送失败请检查手机号是否正确')
 
     @classmethod
     def _bindMobile(cls, input_code='', mobile=None, member_info=None):
@@ -102,5 +112,6 @@ class QrCodeHandler:
                     'goods_name': good.name,
                     'found_time': good.created_time.strftime(APP_CONSTANTS['time_format_short'])
                 }
+
 
 

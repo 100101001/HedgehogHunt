@@ -30,5 +30,5 @@ class MemberPhoneChangeLog(db.Model):
     @classmethod
     def tooFreqChange(cls, openid=''):
         return cls.query.filter(cls.openid == openid,
-                                cls.create_time >=
+                                cls.created_time >=
                                 datetime.now() - dt.timedelta(weeks=4)).first()

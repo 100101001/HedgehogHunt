@@ -53,15 +53,17 @@ class Mark(db.Model):
         :return:
         """
         if not member_id or not goods_id:
-            return False
+            return
         repeat_mark = cls.query.filter_by(member_id=member_id, goods_id=goods_id).first()
         if repeat_mark:
             if repeat_mark.status < 0:
                 # 将被删除的记录状态初始化
                 repeat_mark.status = 0
+                repeat_mark.business_type = business_type
                 db.session.add(repeat_mark)
-        pre_mark = cls(member_id=member_id, goods_id=goods_id, business_type=business_type)
-        db.session.add(pre_mark)
+        else:
+            pre_mark = cls(member_id=member_id, goods_id=goods_id, business_type=business_type)
+            db.session.add(pre_mark)
 
     @classmethod
     def getAllOn(cls, goods_id=0):

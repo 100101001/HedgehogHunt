@@ -19,7 +19,7 @@ class SmsVerifyHandler:
         self.rcv_member = rcv_member
 
     def noModified(self):
-        return self.mobile == self.rcv_member.mobile
+        return self.mobile == self.rcv_member.decrypt_mobile
 
 
     def sendTooFreq(self):

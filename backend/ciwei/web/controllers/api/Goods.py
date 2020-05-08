@@ -342,6 +342,9 @@ def goodsInfo():
     if not goods_info or goods_info.status < 0:
         resp['msg'] = '作者已删除'
         return resp
+    if not GoodsCasUtil.exec_wrap(goods_id, [goods_info.status, 'nil'], goods_info.status):
+        resp['msg'] = '操作冲突，请稍后重试'
+        return resp
     if goods_info.report_status != 0:
         resp['msg'] = '帖子遭举报，已冻结待管理员处理。若无违规将解冻，否则将被系统自动屏蔽。'
         return resp

@@ -172,7 +172,11 @@ def setLoginSession(member=None):
                 break
         return tmp_token, tmp_key
     token, session_key = __getUniqueLoginToken()
-    session_body = '{0}#{1}#{2}'.format(member.id, member.openid)
+    session_body = '{0}#{1}'.format(member.id, member.openid)
     redis_conn_db_1.set(session_key, session_body)
     redis_conn_db_1.expire(session_key, 1800)
     return token
+
+
+def setFreqMobileCache():
+    freq_key = CacheKeyGetter.freqMobileKey()

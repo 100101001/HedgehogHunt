@@ -38,6 +38,7 @@ def markKey(goods_id=0):
 def thankKey(goods_id=0):
     return "thank_{0}".format(goods_id)
 
+
 def goodsReadKey(goods_id=0):
     """
     db1 中缓存的文章阅读量
@@ -77,3 +78,7 @@ def smsVerifyKey(member_id):
 
 def sessionKey(token=''):
     return 'login_session_{0}'.format(token)
+
+
+def freqMobileKey():
+    return 'freq_mobile'

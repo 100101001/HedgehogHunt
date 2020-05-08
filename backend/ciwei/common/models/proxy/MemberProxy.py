@@ -46,7 +46,7 @@ class MemberProxy:
     def bindMobile(self, mobile=''):
         if mobile:
             member = Member.getById(self.id)
-            member.mobile = Cipher.decrypt(text=mobile)
+            member.mobile = Cipher.encrypt(text=mobile)
             db.session.add(member)
             db.session.commit()
 
