@@ -150,6 +150,7 @@ const hasReadGood = function (goods_id = 0) {
 
 Page({
   data: {
+    dataReady: false,
     hiddenThanks: true,
     loadingHidden: true,
     show_location: false,
@@ -316,6 +317,7 @@ Page({
         }
         let data = resp['data'];
         this.setData({
+          dataReady:true,
           infos: {
             info: data.info,  //详情数据
             show_location: data.show_location  //是否能看地址
@@ -515,7 +517,6 @@ Page({
   },
   /**
    * 归还 == 发布新的归还帖
-   * @see getUserMemberId
    * @param e
    */
   goReturn: function (e) {
@@ -1219,7 +1220,7 @@ Page({
   closeThanks: function (e) {
     this.setData({
       hiddenThanks: true,
-      thanks: {}
+      thanks: null
     })
   }
 });

@@ -90,7 +90,7 @@
             wx:if="{{check_status_id==2}}">确认取回
       </view>
       <view class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected"
-            wx:if="{{check_status_id==3}}">删除
+            wx:if="{{check_status_id>3}}">删除
       </view>
     </view>
 

@@ -107,7 +107,8 @@ App({
       "nickname": "请登录",
       "level": 0
     },
-    default_loc: ['不知道', '不知道', 0, 0]
+    default_loc: ['不知道', '不知道', 0, 0],
+    client_mobile: '17717852647'
   },
   onLaunch: function () {
     // 获取后端二维码产品价格和产品ID
@@ -127,8 +128,9 @@ App({
         this.globalData.goodsTopPrice = data['top'].price;
         this.globalData.goodsTopDays = data['top'].days;
         this.globalData.buyQrCodeFreeSmsTimes = data['free_sms'].times;
+        this.globalData.client_mobile = data['client_mobile']
       },
-      fail: res => {
+      fail: (res) => {
         this.serverBusy()
       }
     });
@@ -513,7 +515,7 @@ App({
         if (pages.length > 1 && pages[pages.length-1].route=='pages/login/index') {
           setTimeout(function () {
             wx.navigateBack({delta: back_delta})
-          }, 1000)
+          }, 500)
         }
       }
     })
@@ -684,6 +686,7 @@ App({
       success: (res) => {
         if (res.tapIndex === 0) {
           //绑定手机号
+          this.navigateLoading('跳转绑定');
           wx.navigateTo({
             url: "/pages/Qrcode/Mobile/index"
           })
@@ -730,9 +733,15 @@ App({
    * @link otherScanQrcode 调用者
    */
   regScanQrcode: function(){
+    this.navigateLoading('前往归还')
     wx.navigateTo({
       url: "/pages/Release/release/index"
     })
+  },
+  navigateLoading: function(msg) {
+    wx.showLoading({
+      title: msg
+    });
   },
   /**
    * unRegScanQrcode 未注册者扫码
@@ -746,6 +755,7 @@ App({
       content: '注册用户可得失主的答谢金',
       cb_confirm: ()=>{
         //前往注册
+        this.navigateLoading('前往注册')
         wx.navigateTo({
           url: '/pages/login/index',
         })
@@ -762,6 +772,7 @@ App({
       content: '您必须注册后才能继续扫码归还，确定继续，取消终止归还。',
       showCancel: true,
       cb_confirm: () => {
+        this.navigateLoading('前往注册')
         wx.navigateTo({
           url: '/pages/login/index',
         })
@@ -788,6 +799,7 @@ App({
           'Authorization': 'opLxO5fubMUl7GdPFgZOUaDHUik8#100001'
         }
         this.globalData.unLoggedRelease = true;
+        this.navigateLoading('前往归还');
         wx.navigateTo({
           url: "/pages/Release/release/index"
         })
@@ -806,41 +818,11 @@ App({
     wx.navigateBack({
       delta: 2,
       success: res => {
+        this.navigateLoading('前往归还');
         wx.navigateTo({
           url: '/pages/Release/release/index'
         })
       }
     })
-  },
-  /**
-   * getUserOpenId 未登录和登录用户的openid获取，实在获取不到就是空字符串
-   * @returns {string|undefined|*}
-   */
-  getUserOpenId: function () {
-    let openid = this.globalData.openid;
-    if (openid) {
-      return openid;
-    } else {
-      let token = this.getCache("token");
-      if (token) {
-        return token.split('#')[0];
-      } else {
-        let loginInfo = this.getCache("loginInfo");
-        return loginInfo ? loginInfo.openid : "";
-      }
-    }
-  },
-  /**
-   * getUserMemberId 获取用户会员ID
-   * @returns {null|*}
-   */
-  getUserMemberId: function () {
-    let id = this.globalData.id;
-    if (id) {
-      return id;
-    } else {
-      let token = this.getCache("token");
-      return token ? token.split('#')[1] : "";
-    }
   }
 });

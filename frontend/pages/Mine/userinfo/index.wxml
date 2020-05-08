@@ -48,7 +48,7 @@
   </view>
   <view class="userinfo_container" data-id="5">
     <view class="title">短信余额</view>
-    <view class="content2" bindtap="{{smsTips}}">{{total_notify_times}} 条</view>
+    <view class="content2" bindtap="smsTips">{{total_notify_times}} 条</view>
     <view class="next">
       <view class="recharge_btn intro" bindtap="toLookupSms" wx:if="{{total_notify_times}}">详情</view>
       <view class="recharge_btn" bindtap="toRechargeSms">充值</view>

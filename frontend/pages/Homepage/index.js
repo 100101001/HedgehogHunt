@@ -217,4 +217,4 @@ Page({
   toLogin: function () {
     navigate.toLogin(this)
   }
-})
+});

@@ -25,7 +25,9 @@
           <text wx:if="{{business_type == 0}}" style='color: #f7931e; font-size:20rpx'>#丢失#</text>
           <text wx:if="{{business_type == 2}}" style='color: #f7931e; font-size:20rpx'>#归还#</text>
           <view class="goods_owner">{{goods_name}}</view>
-          <view class="goods_owner">{{owner_name}}</view>
+          <wxs src="../../../utils/pageUtil.wxs" module="tools"></wxs>
+          <view class="goods_owner" wx:if="{{op_status === undefined || op_status === 2}}">{{tools.protectName(owner_name)}}</view>
+          <view class="goods_owner" wx:else>{{owner_name}}</view>
         </view>
         <view class="goods_content">{{summary}}</view>
         <view class="horizon"></view>

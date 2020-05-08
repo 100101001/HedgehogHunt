@@ -805,7 +805,7 @@ Page({
         }
         this.editTap();
         this.onPullDownRefresh();
-        app.alert({title: '答谢提示', content: '积分+5，记得答谢发布者哦~'})
+        app.alert({title: '答谢提示', content: '记得答谢发布者哦~'})
       },
       fail: res => {
         app.serverBusy()
@@ -1268,7 +1268,7 @@ Page({
       infos.check_status_id = new_id;
       this.setData({
         infos: infos,
-        check_status_id: e.currentTarget.id
+        check_status_id: new_id
       });
       this.onPullDownRefresh();
     }

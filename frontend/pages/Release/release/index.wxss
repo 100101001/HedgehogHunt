@@ -20,6 +20,8 @@
   opacity: 0.7;
   align-content: center;
   margin-top: -10rpx;
+  font-weight: bold;
+  color: #f79312;
 }
 
 .summary-container {
@@ -100,6 +102,7 @@
 .input-hints {
   margin-bottom: 30rpx;
 }
+
 .add-view {
   background-color: #efefef;
   margin: 10px;

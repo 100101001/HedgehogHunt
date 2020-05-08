@@ -2,7 +2,7 @@
 <import src="../../template/warn/warn-template.wxml" />
 <view class="container" wx:if="{{dataReady}}">
   <loading hidden="{{loadingHidden}}" wx:if="{{ !upload_qrcode }}">上传第{{i}}张图片..</loading>
-  <template wx:if="{{business_type === 1}}" is="warn-template" data="{{...textArray}}" />
+  <template is="warn-template" data="{{...textArray}}" />
   <form class="goods-box" bindsubmit="formSubmit">
     <view class="price-and-location" id="to-make-up-owner-name">
 
@@ -15,7 +15,14 @@
           <view class="label">{{item.label}}</view>
           <view class="inputbox">
             <!--当扫码时，失主姓名不可编辑-->
-            <input name="{{item.name}}" placeholder="{{item.placeholder}}" value="{{item.value}}" type="{{item.kb_type}}" bindinput="listenerInput" data-id="{{idx}}"></input>
+            <input name="{{item.name}}"
+                   placeholder="{{item.placeholder}}"
+                   value="{{item.value}}"
+                   type="{{item.kb_type}}"
+                   bindinput="listenerInput"
+                   data-id="{{idx}}"
+                   bindtap="{{item.act}}"
+            ></input>
           </view>
         </view>
       </block>
@@ -23,7 +30,7 @@
       <!--事发位置地址选择器和输入框，除了归还贴，其它帖子都需要填写-->
       <view class="hrz" id="to-make-up-location"></view>
       <import src="../../template/on-site-location/on-site-location-template.wxml"></import>
-      <template is="on-site-location" data="{{business_type, os_location}}"></template>
+      <template is="on-site-location" data="{{business_type, os_location, info}}"></template>
       <!--事发位置地址选择器和输入框，除了归还贴，其它帖子都需要填写-->
 
       <!--放置地址选择器和输入框-->
@@ -39,15 +46,15 @@
       </view>
       <view class="location-name">
         <input name="location" data-loc="1" bindinput="listenLocationInput" disabled="{{location.length==0}}"
-               value="{{location[1]}}" placeholder="{{business_type!=1? '若获取的地址不够精确可手动输入完善': '和我发现的地点一样，就不填了'}}"></input>
+               value="{{location[1]}}" placeholder="{{business_type!=1 && !(business_type==2 && !info) ? '若获取的地址不够精确可手动输入完善': '和我发现的地点一样，就不填了'}}"></input>
       </view>
       <view class="hrz"></view>
       <!--放置地址选择器和输入框-->
     </view>
 
     <!--图片-->
-    <view class="tips-views" wx:if="{{ business_type==1 || business_type == 2}}">物品图，默认第一张图片为主图</view>
-    <view class="tips-views" wx:if="{{ business_type==0 }}">默认图，选你要找的商品类似图后可以删除</view>
+    <view class="tips-views" wx:if="{{ business_type == 1 || business_type == 2}}">物品图，默认第一张图片为主图</view>
+    <view class="tips-views" wx:if="{{ business_type == 0 }}">默认图，选你要找的商品类似图后可以删除</view>
     <!--上传图片的模板-->
     <view class="pics-list">
       <view wx:for="{{imglist}}" class="pics-item" wx:key="index">
@@ -58,8 +65,8 @@
         <image class="add-pic-icon" src="/images/icons/add-pics.png"></image>
       </view>
     </view>
-    <view class="tips-views" wx:if="{{business_type==0}}">发布寻物启事前可以先去待领页看看有没有人发布失物招领~</view>
-    <view class="tips-views" wx:if="{{business_type==1}}">发布失物招领前可以先去待寻页看看有没有人发布寻物启事~</view>
+    <view class="tips-views" wx:if="{{business_type == 0}}">发布寻物启事前可以先去待领页看看有没有人发布失物招领~</view>
+    <view class="tips-views" wx:if="{{business_type == 1}}">发布失物招领前可以先去待寻页看看有没有人发布寻物启事~</view>
     <view class="hrz"></view>
     <view class="summary-container">
       <view class="tips-views">物品描述</view>
@@ -67,7 +74,7 @@
     </view>
     <view class="hrz1"></view>
     <!--寻物启事的置顶组件-->
-    <view id="top" wx:if="{{business_type==0}}">
+    <view id="top" wx:if="{{business_type == 0}}">
       <view class="tips-views">付费置顶，失物在最醒目位置，大大提高寻回的概率~</view>
       <view class="top-switch-container">
         <switch class="top-switch" type="switch" color="#f7931e" disabled="{{submitDisable}}" checked="{{isTop}}" bindchange="changSetTop"></switch>

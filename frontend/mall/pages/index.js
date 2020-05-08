@@ -148,7 +148,7 @@ Page({
     this.setData({
       activeCategoryId: new_id
     });
-    if (new_id === old_id) {
+    if (new_id !== old_id) {
       this.setData({
         loadingMoreHidden: true,
         p: 1,

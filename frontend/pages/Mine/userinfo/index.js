@@ -1,6 +1,6 @@
-const app = getApp()
-const globalData = app.globalData
-const util = require('../../../utils/util')
+const app = getApp();
+const globalData = app.globalData;
+const util = require('../../../utils/util');
 
 /**
  * 在获取新二维码，短信(包)时{@link doGetNewProduct, @link confirmSmsTimes, @link confirmSmsPkg} 前往下单
@@ -103,6 +103,7 @@ const changeUserBalance = function (unit = 0, cb_success = () => {}, cb_fail=()=
  * remindOldOrder 获取二维码时 {@link doGetQrCode} 提醒还有旧的二维码，短信包，短信订单
  * 用户可选择继续获取新的 {@see doGetNewProduct}
  * @param product_name
+ * @param that
  */
 const remindOldOrder = function (product_name = "二维码", that = null) {
   app.alert({
@@ -137,7 +138,7 @@ const doGetNewProduct = function (product_name = "二维码", that = null) {
   if (product_name === "二维码") {
     let data = {
       type: 'toBuy',
-      goods: [{'id': app.globalData.qrcodeProductId, 'price': app.globalData.qrcodePrice, 'number': 1}]
+      goods: [{'id': globalData.qrcodeProductId, 'price': globalData.qrcodePrice, 'number': 1}]
     }
     toOrderSpecialProduct(data)
   } else if (product_name === "短信包") {
@@ -194,15 +195,21 @@ Page({
     hiddenIntroduceModal: true, //二维码使用介绍
     hiddenBalanceRecharge: true, //充值余额
     hiddenSmsDetailModal: true, //短信余额详情
-    contact_img: app.globalData.static_file_domain + "/static/QRcode.jpg",
-    intro_url: app.globalData.static_file_domain+ "/static/introduce.mp4",
+    contact_img: globalData.static_file_domain + "/static/QRcode.jpg",
+    intro_url: globalData.static_file_domain+ "/static/introduce.mp4",
     intro_init_time: 0, //
     balance_recharge_amount: "",
     sms_num: "",
-    sms_pkg_price: app.globalData.smsPkgProductPrice
+    sms_pkg_price: globalData.smsPkgProductPrice
   },
   onLoad: function () {
-
+    wx.showLoading({
+      title: '加载中',
+      mask: true,
+      success: res => {
+        setTimeout(wx.hideLoading, 300)
+      }
+    })
   },
   onShow() {
     // 会员的闪寻码信息
@@ -239,14 +246,31 @@ Page({
         })
       },
       fail: (res) => {
-        app.serverBusy(()=>{wx.navigateBack()})
+        app.serverBusy(wx.navigateBack)
       }
     })
   },
+  /**
+   * 检测更换手机的频率，1个月内只能绑定一次
+   */
   onEditMobile: function () {
-    this.setData({
-      hiddenMobileModal: false
-    })
+    wx.request({
+      url: app.buildUrl('/qrcode/mobile/change'),
+      header: app.getRequestHeader(),
+      success: (res) => {
+        let resp = res.data;
+        if (resp['code'] !== 200) {
+          app.alert({content: resp['msg']});
+          return;
+        }
+        this.setData({
+          hiddenMobileModal: false
+        })
+      },
+      fail: (res) => {
+        app.serverBusy()
+      }
+    });
   },
   cancelMobileEdit: function () {
     this.setData({

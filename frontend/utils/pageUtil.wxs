@@ -31,6 +31,13 @@ var block_status = function (status) {
     return "已驳回"
   }
 };
+
+var protectName = function (name) {
+  if(!name){
+    return name;
+  }
+  return name.substring(0,1) + '某';
+};
 /**
  * 仅显示日期
  * @param val
@@ -43,10 +50,12 @@ var date = function (val) {
 var views = function(arr=[]) {
   return arr.filter(function (value) { return value !==''}).length
 };
+
 module.exports = {
   sub : sub,
   level: level,
   block_status: block_status,
   date: date,
-  views: views
+  views: views,
+  protectName: protectName
 };

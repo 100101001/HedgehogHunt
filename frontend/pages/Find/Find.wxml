@@ -15,7 +15,7 @@
     <view class="search_container">
       <block wx:for="{{items}}" wx:key="index">
         <view class="search_box  {{item.is_focus? 'search_focus': ''}}">
-          <icon type="search" class="{{item.icons}}" wx:if="{{item.icons}}" size='15'></icon>
+          <icon type="search" class="{{item.icons}}" wx:if="{{item.icons}}" size='15' color="#f7931e"></icon>
           <input name="{{item.name}}"
                  class="search_text_box"
                  type="text"

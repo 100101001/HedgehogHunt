@@ -460,10 +460,10 @@ Page({
     }
     let location = this.data.location;
     let business_type = this.data.business_type;
-    if (location.length === 0 && (business_type === 1)) {
+    if (location.length === 0 && (business_type === 1 || business_type ===2 && globalData.isScanQrcode)) {
       //失物招领发帖时，再三询问是否真的一致，确保信息正确
       this.confirmEmptiness(data)
-    } else if (business_type === 2 && location.equals(this.data.info.location)){
+    } else if (business_type === 2 && !globalData.isScanQrcode && location.equals(this.data.info.location)){
       this.confirmReturnPutLocUnchanged(data)
     } else {
       this.continueToRelease(data);
@@ -865,6 +865,7 @@ Page({
     let items = [{
       name: "goods_name",
       placeholder: "例:校园卡",
+      kb_type: 'text',
       label: tips_obj['goods_name'],
       icons: "/images/icons/goods_name.png",
       value: business_type === 2  && info ? info.goods_name : "",  //归还帖自动填充归还的物品名
@@ -872,6 +873,7 @@ Page({
       name: "owner_name",
       hints: business_type === 0? '您的姓名，不会公布，仅用于筛选推荐': '物品上附有的物主身份信息，方便失主寻物',
       placeholder: "例:可可" + (business_type===1?'，若没有请填无。': '') ,
+      kb_type: 'text',
       label: business_type ? "失主姓名": "姓名",
       icons: "/images/icons/discount_price.png",
       value: business_type === 2 && info ? info.owner_name : "" //归还帖自动填充归还物品的失主名
@@ -884,6 +886,7 @@ Page({
         value: "",
         label: "电话",
         icons: "/images/icons/mobile.png",
+        act: 'copyClientMobile'
       }
     ];
     if (globalData.isScanQrcode) {
@@ -912,6 +915,21 @@ Page({
       location: info && !info.location.equals(globalData.default_loc) ? info.location.slice() : [], //归还帖自动填充归还物品的放置地址(就近放置)
       os_location: info && !info.os_location.equals(globalData.default_loc)? info.os_location.slice(): [] //归还帖自动填充归还物品的发现地址
     })
+  },
+  copyClientMobile: function(e){
+    let idx = e.currentTarget.dataset.id;
+    let items = this.data.items;
+    if (!items[idx].value) {
+      wx.setClipboardData({
+        data: globalData.client_mobile,
+        success: (res) => {
+          wx.showToast({
+            title: '客服号已复制',
+            duration: 500
+          })
+        }
+      })
+    }
   },
   /**
    * setTopAndBalanceUseInitData 在 {@link setInitData} 初始化置顶组件
