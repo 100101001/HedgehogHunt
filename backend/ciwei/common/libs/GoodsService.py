@@ -111,7 +111,6 @@ class CommonGoodsHandler:
         def __getReadCount():
             """
             返回阅读量（一天新增和本身）
-            :param goods_info:
             :return:
             """
             read_cnt = CacheQueryService.getGoodsIncrReadCache(goods_id=goods_info.id)

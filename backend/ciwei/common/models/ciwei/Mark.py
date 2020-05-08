@@ -72,7 +72,7 @@ class Mark(db.Model):
         :param goods_id:
         :return:
         """
-        return cls.query.filter(cls.goods_id == goods_id, cls.status >= 0).all()
+        return cls.query.filter(cls.goods_id == goods_id, cls.status != -1).all()
 
     @classmethod
     def mistaken(cls, goods_ids=None, member_id=0):
@@ -86,7 +86,7 @@ class Mark(db.Model):
 
     @classmethod
     def isNoMarkOn(cls, goods_id=0):
-        cnt = db.session.query(func.count(cls.id)).filter(cls.goods_id == goods_id, cls.status >= 0).scalar()
+        cnt = db.session.query(func.count(cls.id)).filter(cls.goods_id == goods_id, cls.status != -1).scalar()
         return cnt == 0
 
     @classmethod
