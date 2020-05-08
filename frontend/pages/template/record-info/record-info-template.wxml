@@ -38,7 +38,7 @@
       </view>
       <view class="goods-status">
         <view class="goods-price" style="color:#999;font-size:24rpx;">浏览{{info.view_count}}次</view>
-        <view class="status-container">{{info.status_desc}}</view>
+        <view class="status-container" bindtap="statusExplain">{{info.status_desc}}</view>
       </view>
     </view>
 
@@ -184,6 +184,7 @@
           <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>返回</view>
         </view>
         <!--帖子状态很新鲜，没什么好展示的状态，用作去发布信息快捷键算了-->
+        <view wx:if="{{info.status === 2}}" class="now-buy light-grey" catchtap="goAppeal">申诉</view>
         <view class="join-shop-cart" catchtap="goRelease">去发布信息</view>
         <!--失物招领贴的状态操作区-->
         <!--推荐进入可看，否认删除推荐的同时，可以获取新的订阅次数-->

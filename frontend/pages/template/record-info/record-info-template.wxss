@@ -120,6 +120,7 @@ swiper-item image {
   align-content: center;
   justify-content: center;
   text-align: center;
+  box-shadow: 4rpx 4rpx 10rpx #cdcdcd;
 }
 
 .goods-price{

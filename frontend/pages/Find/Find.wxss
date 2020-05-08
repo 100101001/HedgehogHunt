@@ -15,7 +15,7 @@ page {
 /***让状态切换栏吸附在顶部**/
 .fixed-tab{
   position: fixed;
-  top: 71rpx;
+  top: 85rpx;
   left: 0;
   right: 0;
   z-index: 10;

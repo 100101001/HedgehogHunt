@@ -1222,5 +1222,80 @@ Page({
       hiddenThanks: true,
       thanks: null
     })
+  },
+  statusExplain: function () {
+    let info = this.data.infos.info;
+    let status = info.status;
+    let business_type = info.business_type;
+    let show_location = info.show_location;
+    let is_auth = info['is_auth'];
+    let content = '';
+    if (business_type === 1){
+      if (!is_auth) {
+        if (status === 1) {
+          content = '还无人认领，如果是你丢的，赶紧认领吧~'
+        } else if (status === 2) {
+          content = show_location? '你已在线认领了，赶紧去取回来吧~': '他人已在线认领，如果是你的东西，你可以继续点击认领查看地址去取回，或者点击申诉。'
+        } else if(status === 3) {
+          content = show_location? '恭喜取回，快去答谢发布者吧~': '他人已取回，如果是你的东西，请赶紧申诉我们会第一时间处理！'
+        } else if (status === 4) {
+          content = show_location? '您的感谢是拾者归还的最大动力~': '他人已取回，如果是你的东西，请赶紧申诉我们会第一时间处理！'
+        }
+      } else {
+        if (status === 1) {
+          content = '请耐心等待失主认领~'
+        } else if (status === 2) {
+          content = '失主已在线认领了，正在前往取回~'
+        } else if(status === 3) {
+          content = '感谢您的举手之劳，失主已经取回了~'
+        } else if (status === 4) {
+          content = '感谢您的举手之劳，失主已经取回了~'
+        }
+      }
+    }
+    else if (business_type === 0){
+      if(!is_auth) {
+        if (status === 1) {
+          content = '还无人归还，如果你捡到了，赶紧归还吧~'
+        }
+        let is_returner = info['is_returner'];
+        if (is_returner) {
+          if (status === 2) {
+            content = '请耐心等待失主确认并取回~'
+          } else if(status === 3) {
+            content = '感谢您的举手之劳，失主已经取回了~'
+          } else if (status === 4) {
+            content = is_auth? '您的感谢是拾者归还的最大动力~': '感谢您的举手之劳，失主已经取回了~'
+          }
+        } else {
+          content = '失物已经收到了归还~'
+        }
+      }
+      else {
+        if (status === 1) {
+          content = '请耐心等待他人归还~'
+        } else if (status === 2) {
+          content ='有人归还了，赶紧确认获取回吧~'
+        } else if(status === 3) {
+          content = '恭喜取回，快去答谢发布者吧~'
+        } else if (status === 4) {
+          content = '您的感谢是拾者归还的最大动力~'
+        }
+      }
+    } else if (business_type === 2) {
+      if (status === 1) {
+        content = is_auth? '请耐心等待失主确认~': '快来确认是否是自己的失物~'
+      } else if (status === 2) {
+        content = is_auth? '失主已在线认领了，正在前往取回~': '快去放置地点取回失物吧~'
+      } else if(status === 3) {
+        content = is_auth? '感谢您的举手之劳，失主已经取回了~': '恭喜取回，快去答谢发布者吧~'
+      } else if (status === 4) {
+        content = is_auth?  '感谢您的举手之劳，失主已经取回了~' : '您的感谢是拾者归还的最大动力~'
+      }
+    }
+    app.alert({
+      title: '状态提示',
+      content: content
+    })
   }
 });
