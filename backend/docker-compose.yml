@@ -1,7 +1,8 @@
 # https://www.runoob.com/docker/centos-docker-install.html docker 的安装和使用
 # https://docs.docker.com/compose/gettingstarted/ compose的安装与使用
-# 换源加速上述安装过程 sudo curl -L https://get.daocloud.io/docker/compose/releases/download/1.25.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+# 换源加速上述安装过程 sudo curl -L https://get.daocloud.io/docker/compose/releases/download/1.25.5/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
 # https://ecs.console.aliyun.com/#/server/region/cn-hangzhou 阿里云ECS服务器
+# 更换阿里云镜像源 vi /etc/docker/daemon.json 加入 {"registry-mirros": ["https://pee6w651.mirror.aliyuncs.com"]}后重启服务service docker restart
 # https://www.cnblogs.com/sparkdev/p/9826520.html 配置使用环境变量
 # https://github.com/jpetazzo/nsenter docker-enter命令
 # https://www.shellhacks.com/docker-enter-container/ 进入docker容器
@@ -78,12 +79,12 @@ services:
   db:
     image: mysql:5.7
     expose:
-      - "3306"
+      - "33060"
     volumes:
       - ./mysql/data:/var/lib/mysql
       - ./init:/docker-entrypoint-initdb.d/
     ports:
-      - "3306:3306"
+      - "33060:3306"
     environment:
       - MYSQL_DATABASE=${mysql_db}
       - MYSQL_ROOT_PASSWORD=${mysql_root_pwd}
@@ -93,11 +94,13 @@ services:
   web:
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: Dockerfile
     volumes:
       - ./ciwei:/code
     ports:
-      - "8999:8999"
+      - "9888:8889"
+    command:
+      uwsgi --ini /code/uwsgi_docker.ini
     depends_on:
       - db
       - es

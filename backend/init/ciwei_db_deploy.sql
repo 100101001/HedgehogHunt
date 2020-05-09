@@ -16,7 +16,7 @@
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
-USE CIWEI_DB_TEST;
+USE ciwei_db_test;
 -- ----------------------------
 -- Table structure for acs_sms_send_log
 -- ----------------------------
