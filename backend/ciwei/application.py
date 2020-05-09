@@ -14,7 +14,7 @@ class Application(Flask):
                                           root_path=root_path)
 
         self.config.from_pyfile('config/base_setting_docker.py')
-        # self.config.from_pyfile('config/production_setting.py')
+        self.config.from_pyfile('config/production_setting.py')
         # if 'ops_config' in os.environ:
         #     self.config.from_pyfile('config\\%s_setting.py' % os.environ['ops_config'])
         # 只用于缓存wx服务端API的 access_token，如果过期再获取更新缓
