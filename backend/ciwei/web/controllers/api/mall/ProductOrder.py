@@ -219,7 +219,7 @@ def orderPay():
         'appid': app_config['appid'],
         'mch_id': app_config['mch_id'],
         'nonce_str': target_wechat.get_nonce_str(),
-        'body': '闪寻周边',  # 商品描述
+        'body': '鲟回周边',  # 商品描述
         'out_trade_no': order_info.order_sn,  # 商户订单号
         'total_fee': int(order_info.total_price * 100),
         'notify_url': notify_url,
@@ -247,6 +247,7 @@ def orderCallback():
     app_config = app.config['OPENCS_APP']
     target_wechat = WeChatService(merchant_key=app_config['mch_key'])
     callback_data = target_wechat.xml_to_dict(request.data)
+    app.logger.info("订单支付回调")
     app.logger.info(callback_data)
 
     # 检查签名
@@ -278,6 +279,7 @@ def orderCallback():
     target_pay = PayService()
     target_pay.orderSuccess(order_info=order_info, params={"pay_sn": callback_data['transaction_id']})
     target_pay.addOrderPayCallbackData(order_id=order_id, data=request.data)
+    db.session.commit()
     return target_wechat.dict_to_xml(result_data), header
 
 

@@ -61,8 +61,9 @@ services:
     expose:
       - "9200"
     environment:
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      discovery.type: single-node
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+      TZ: Asia/Shanghai
     volumes:
       - ./es/data:/usr/share/elasticsearch/data
       - ./es/logs:/usr/share/elasticsearch/logs
@@ -86,8 +87,9 @@ services:
     ports:
       - "33060:3306"
     environment:
-      - MYSQL_DATABASE=${mysql_db}
-      - MYSQL_ROOT_PASSWORD=${mysql_root_pwd}
+      MYSQL_DATABASE: ${mysql_db}
+      MYSQL_ROOT_PASSWORD: ${mysql_root_pwd}
+      TZ: Asia/Shanghai
     restart: always
   
   # https://blog.csdn.net/bocai_xiaodaidai/article/details/92641534 多服务启动脚本
@@ -97,10 +99,14 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./ciwei:/code
+    environment:
+      TZ: Asia/Shanghai
     ports:
       - "9888:8889"
     command:
       uwsgi --ini /code/uwsgi_docker.ini
+      celery -A application.celery worker -Q log_queue,sync_queue,recommend_queue,subscribe_queue,sms_queue,mall_queue -l info
+      celery -A application.celery beat -l info
     depends_on:
       - db
       - es
