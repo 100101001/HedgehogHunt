@@ -740,7 +740,10 @@ App({
   },
   navigateLoading: function(msg) {
     wx.showLoading({
-      title: msg
+      title: msg,
+      success: res => {
+        setTimeout(wx.hideLoading, 800)
+      }
     });
   },
   /**

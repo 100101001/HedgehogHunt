@@ -1,5 +1,5 @@
 <import src="../../template/record-info/record-info-template.wxml" />
-<template wx:if="{{dataReady}}" is="record-info-template" data="{{...infos, op_status, loadingHidden}}"></template>
+<template wx:if="{{dataReady}}" is="record-info-template" data="{{...infos, op_status, loadingHidden, is_user}}"></template>
 <loading hidden="{{appLoadingHidden}}">申领中，请稍候..</loading>
 <lyx-modal hidden="{{hiddenThanks && !thanks}}" title="答谢信息" confirmText="关闭" no-cancel="true" bindconfirm="closeThanks">
   <view class="thank_sender_container">

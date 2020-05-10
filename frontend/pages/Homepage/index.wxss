@@ -9,8 +9,12 @@ page {
 
 
 .invite-tutorial {
-  background-color: rgba(51,51,51, 0.75);
+  /*要显示在wrap的上面 */
+  z-index: 100;
   position: fixed;
+  background:rgba(0,0,0,0.5);
+  position: fixed;
+  overflow: scroll;
   top:0;
   left: 0;
   width: 100%;
@@ -178,10 +182,11 @@ page {
  flex-direction: row;
  border-radius: 20rpx;
  box-shadow: 4rpx 4rpx 10rpx #999;
- background: rgba(255, 255, 255, 0.4)
+ background: rgba(255, 255, 255, 0.4);
 }
 /***活动名和导航字**/
 .activity-text {
+ width: 70%;
  display: flex;
  flex-direction: column;
  justify-content: center;
@@ -192,7 +197,8 @@ page {
  flex-direction: column;
 }
 .activity-slogan{
- color: #333;
+/* color: #802A2A;*/
+ color: #A0522D;
  font-weight: bold;
  font-size: 30rpx;
 }
@@ -204,7 +210,8 @@ page {
 }
 
 .activity-text-img image{
- width: 50%;
- height: 80%;
+ width: 20%;
+ height: 70%;
  border-radius: 50rpx;
+ margin-top: 25rpx;
 }

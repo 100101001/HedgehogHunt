@@ -7,6 +7,7 @@ const util = require('../../../utils/util');
 /**
  * doCancelReturnGoods  待确认时，取消归还{@link cancelReturnGoods}时，选择直接删除归还帖子
  * @param goods_id
+ * @param status
  */
 const doCancelReturnGoods = function (goods_id = 0, status= 2) {
   wx.request({
@@ -212,7 +213,8 @@ Page({
     this.setData({
       appLoadingHidden: true, //申领中的加载loading图标
       op_status: op_status, //我的记录进入查看详情，可以得知是从什么记录过来的
-      goods_id: goods_id
+      goods_id: goods_id,
+      is_user: globalData.is_user
     })
   },
   onShow: function () {

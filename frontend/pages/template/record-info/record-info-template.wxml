@@ -25,6 +25,7 @@
       </view>
     </view>
 
+    <wxs src="../../../utils/pageUtil.wxs" module="tools"></wxs>
     <!--商品基本介绍-->
     <view class="goods-info">
       <view class="goods-title">
@@ -32,7 +33,6 @@
         <text wx:if="{{info.business_type === 0}}" style="color: #f7931e;">#丢失#</text>
         <text wx:if="{{info.business_type === 2}}" style="color: #f7931e;">#归还#</text>
         <view class="goods_owner">{{info.goods_name}}</view>
-        <wxs src="../../../utils/pageUtil.wxs" module="tools"></wxs>
         <view class="goods_owner" wx:if="{{info.business_type !== 2 && !info.is_auth}}">{{tools.protectName(info.owner_name)}}</view>
         <view class="goods_owner" wx:else>{{info.owner_name}}</view>
       </view>
@@ -52,6 +52,7 @@
       <view bindtap="copyMobile" data-mobile="{{info.mobile}}">
         <image class="loc_icon" src="/images/icons/mobile.png"></image>
         <view class="loc_text">电话：{{info.mobile}} <text style="font-size:24rpx;opacity:0.7;">(点击复制)</text></view>
+        <view wx:if="{{is_user}}" class="loc_text">用户电话：{{info.member_mobile}} <text style="font-size:24rpx;opacity:0.7;">(点击复制)</text></view>
       </view>
     </view>
 

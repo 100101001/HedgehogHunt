@@ -65,21 +65,21 @@ Page({
     activities: [
       {
         slogans: ['关注公众号', '获悉校园拾物动态'],
-        img: '/',
+        img: '/images/more/target.png',
         nav: '立刻关注 >',
         act: 'goSubscribeOfficial',
         url: '',
       },
       {
         slogans: ['购买二维码', '享受失物闪寻'],
-        img: '/',
+        img: '/images/more/qrcode.png',
         nav: '立刻购买 >',
         act: "goBuy",
         url: "/pages/Mine/userinfo/index"
       },
       {
         slogans: ['邀请好友获取二维码', '领取现金红包'],
-        img: '/',
+        img: '/images/more/invite.png',
         nav: '立刻邀请 >',
         act: "goInvite",
         url: ''

@@ -41,7 +41,6 @@
 
   <view class="activity-center-container">
     <view class="activity-center-header">活动中心</view>
-
     <view class="activity-cards-container">
       <view class="activity-card" wx:for="{{activities}}" wx:key="index">
         <view class="activity-text-img">
@@ -51,7 +50,8 @@
             </block>
             <text class="activity-nav" catchtap="clickNav" data-id="{{index}}">{{item.nav}}</text>
           </view>
-          <image src="{{item.image}}" />
+
+          <image src="{{item.img}}" />
         </view>
       </view>
     </view>
