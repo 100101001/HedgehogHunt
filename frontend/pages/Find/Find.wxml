@@ -63,8 +63,8 @@
       </block>
     </view>
 
-    <view wx:if="{{!loadingMore}}" class="no-more-goods">没有更多物品了~可以去发布</view>
-    <view wx:if="{{loadingMore}}" class="no-more-goods">上滑加载更多～</view>
+    <view wx:if="{{!loadingMore && loadingHidden}}" class="no-more-goods">没有更多物品了~</view>
+    <view wx:if="{{loadingMore && loadingHidden}}" class="no-more-goods">上滑加载更多～</view>
 
   </view>
 </view>

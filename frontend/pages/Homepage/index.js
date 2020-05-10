@@ -117,6 +117,7 @@ Page({
     this.setData({
       invite_tutorial_hidden: false
     })
+    setTimeout(this.closeInvite, 3500)
   },
   closeInvite: function(){
     this.setData({
@@ -250,12 +251,12 @@ Page({
   onShareAppMessage: function () {
     return {
       title: '快来鲟回失物招领获取你的专属二维码吧',
-      path: '/pages/Mine/userinfo/index' + this.data.info.id,
+      path: '/pages/Mine/userinfo/index',
       success: function (res) {
         wx.showToast({
           title: '分享成功！',
           icon: 'success',
-          duration: 3000
+          duration: 700
         })
       }
     }

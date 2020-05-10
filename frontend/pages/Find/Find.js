@@ -3,7 +3,7 @@ Page({
   data: {
     banners: ["/images/logo.jpg"],
     activeCategoryId: 1,
-    categories: []
+    categories: null
   },
   onLoad: function (options) {
     wx.getSystemInfo({
