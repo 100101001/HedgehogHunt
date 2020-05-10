@@ -12,6 +12,22 @@
 # 然后执行 sudo docker-compose up  不加服务名会启动所有的服务。首次起服务时，会拉取基于3rd镜像的服务所需的镜像。
 version: '3.1'  #"登录容器请执行:rabbitmq-plugins enable rabbitmq_management 才可>使用WEB管理页面"
 services:
+
+  # https://www.jenkins.io/zh/doc/book/installing/#%E5%9C%A8docker%E4%B8%AD%E4%B8%8B%E8%BD%BD%E5%B9%B6%E8%BF%90%E8%A1%8Cjenkins
+  jenkins:
+    image: jenkinsci/blueocean
+    ports:
+     - 8080:8080
+     - 5050:5050
+    volumes:
+     - ${jenkins_home}:/var/jenkins_home
+     - ${jenkins_socket}:/var/run/docker.sock
+    user: root
+    environment:
+      JAVA_OPTS: -Djava.util.logging.config.file=${jenkins_logs}
+      TZ: Asia/Shanghai
+    restart: always
+
   # docker-enter ${container_id}
   # redis-cli 
   redis:
@@ -22,8 +38,10 @@ services:
       - 6379:6379
     volumes:
       # 目录映射
-      - ./redis/conf:/usr/local/etc/redis
-      - ./redis/data:/data
+      - ${redis_cnf_dir}:/usr/local/etc/redis
+      - ${redis_data_dir}:/data
+    environment:
+      TZ: Asia/Shanghai
     command:
       # 执行的命令
       redis-server --requirepass ${redis_pwd}
@@ -37,21 +55,21 @@ services:
     expose:
       - "15672"
     ports:
-      - "4369:4369"
-      - "5671:5671"
-      - "5672:5672"
-      - "15672:15672"
-      - "25672:25672"
+      - 4369:4369
+      - 5671:5671
+      - 5672:5672
+      - 15672:15672
+      - 25672:25672
     environment:
       RABBITMQ_DEFAULT_VHOST: ${rmq_vhost}
       RABBITMQ_DEFAULT_USER: ${rmq_user}
       RABBITMQ_DEFAULT_PASS: ${rmq_pwd}
-      RABBITMQ_LOGS: /var/lib/rabbitmq/rabbitmq.log
-      RABBITMQ_SASL_LOGS: /var/lib/rabbitmq/rabbitmq-sasl.log
+      RABBITMQ_LOGS: ${rmq_log}
+      RABBITMQ_SASL_LOGS: ${rmq_sasl}
       RABBITMQ_ERLANG_COOKIE: ${rmq_erlang_ck} 
       TZ: Asia/Shanghai
     volumes:
-      - ./rabbitmq/data:/var/lib/rabbitmq
+      - ${rmq_data_dir}:/var/lib/rabbitmq
     restart: always
 
 
@@ -60,15 +78,15 @@ services:
     image: elasticsearch:7.6.2
     expose:
       - "9200"
+    ports:
+      - 9200:9200
     environment:
-      discovery.type: single-node
-      ES_JAVA_OPTS: -Xms512m -Xmx512m
+      discovery.type: ${es_mode}
+      ES_JAVA_OPTS: ${es_java_opt}
       TZ: Asia/Shanghai
     volumes:
-      - ./es/data:/usr/share/elasticsearch/data
-      - ./es/logs:/usr/share/elasticsearch/logs
-    ports:
-      - "9200:9200"
+      - ${es_data_dir}:/usr/share/elasticsearch/data
+      - ${es_log_dir}:/usr/share/elasticsearch/logs
     restart: always
  
   # https://www.cnblogs.com/han-1034683568/p/6941337.html 配置 构建文件，自动执行SQL建库脚本
@@ -81,15 +99,15 @@ services:
     image: mysql:5.7
     expose:
       - "33060"
-    volumes:
-      - ./mysql/data:/var/lib/mysql
-      - ./init:/docker-entrypoint-initdb.d/
     ports:
-      - "33060:3306"
+      - 33060:3306
     environment:
       MYSQL_DATABASE: ${mysql_db}
       MYSQL_ROOT_PASSWORD: ${mysql_root_pwd}
       TZ: Asia/Shanghai
+    volumes:
+      - ${mysql_data_dir}:/var/lib/mysql
+      - ${mysql_init_dir}:/docker-entrypoint-initdb.d/
     restart: always
   
   # https://blog.csdn.net/bocai_xiaodaidai/article/details/92641534 多服务启动脚本
@@ -97,12 +115,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    volumes:
-      - ./ciwei:/code
+    expose:
+      - "9888"
+    ports:
+      - 9888:8889
     environment:
       TZ: Asia/Shanghai
-    ports:
-      - "9888:8889"
+    volumes:
+      - ./ciwei:/code
     command:
       uwsgi --ini /code/uwsgi_docker.ini
       celery -A application.celery worker -Q log_queue,sync_queue,recommend_queue,subscribe_queue,sms_queue,mall_queue -l info
