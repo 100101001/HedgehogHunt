@@ -6,7 +6,7 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_ENCODING = "utf8mb4"
 
 APP = {
-    'domain':'https://ciwei.opencs.cn'
+    'domain':'https://xunhui.opencs.cn'
     #'domain':'https://all.opencs.cn.w.kunlungr.com'
 }
 
