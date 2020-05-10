@@ -36,7 +36,7 @@ page{
 .video{
   position: absolute;
   left: 86rpx;
-  top: 5rpx;
+  top: 350rpx;
   width: 600rpx;
   height: 450rpx;
 }
@@ -47,8 +47,9 @@ page{
   position: absolute;
   z-index: 2;
   left: 655rpx;
-  top: -25rpx;
+  top: 320rpx;
   align-content: center;
+  opacity: 0.85;
 }
 
 .close-video-btn{
@@ -93,7 +94,7 @@ page{
   align-items: center;
   color: #fff;
   font-size: 28rpx;
-  font-weight: 700;
+  font-weight: bold;
   border-radius: 30rpx;
   background-color: #f7931e;
   letter-spacing: 6rpx;
@@ -112,8 +113,9 @@ page{
 
 .title {
   margin-left: 30rpx;
-  font-size: 24rpx;
-  font-weight: 600;
+  font-size: 25rpx;
+  font-weight: bold;
+  letter-spacing: 2rpx;
   margin-top: -20rpx;
   width: 170rpx;
   text-align:left;
@@ -162,14 +164,18 @@ page{
 /*账户信息*/
 .recharge_btn {
   color: #f7931e;
-  padding: 2rpx 20rpx;
+  padding: 2rpx 15rpx;
   margin-bottom: 15rpx;
-  font-size: 20rpx;
+  font-size: 24rpx;
+  letter-spacing: 3rpx;
   font-weight: 600;
   border: 5rpx #f7931e solid;
   border-radius: 30rpx;
+  box-shadow: 4rpx 4rpx 10rpx #999;
 }
-
+.recharge_btn_clicked{
+  color: #999;
+}
 .intro{
   margin-right: 15rpx;
 }

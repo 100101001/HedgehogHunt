@@ -15,8 +15,7 @@
     "pages/Mine/userinfo/index",
     "pages/Mine/feedback/index",
     "pages/Find/edit/edit",
-    "pages/Qrcode/Mobile/index",
-    "pages/Homepage/official-account/index"
+    "pages/Qrcode/Mobile/index"
   ],
   "subpackages": [
     {

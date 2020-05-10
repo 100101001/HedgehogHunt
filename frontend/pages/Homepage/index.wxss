@@ -8,6 +8,26 @@ page {
 }
 
 
+.invite-tutorial {
+  background-color: rgba();
+}
+.invite_finger {
+  animation: hint 3s infinite ease-in-out;
+}
+@keyframes hint {
+  from {top: 50%; left: 50%;}
+  to {top: 10%; left: 90%;}
+}
+.official-account {
+ align-items: center;
+ margin-left: -25rpx;
+}
+.homepage_container {
+ position: absolute;
+}
+.blank-placeholder {
+  height: 200rpx;
+}
 /****头像，昵称，积分框****/
 .user-info-container {
  height: 200rpx;
@@ -83,7 +103,7 @@ page {
   width: 160rpx;
   height: 70rpx;
   border-radius: 40rpx;
-  background-color: #fff;
+  background-color: rgba(255, 255, 255, 0.7);
   box-shadow:12rpx 12rpx 12rpx gainsboro;
 }
 /**橙字**/
@@ -111,9 +131,9 @@ page {
 .activity-center-container {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  align-items: center;
 }
-
+/***活动中心提示语***/
 .activity-center-header{
   color: #C0C0C0;
   font-size: 35rpx;
@@ -122,4 +142,43 @@ page {
   text-align: center;
   letter-spacing: 5rpx;
   text-shadow: 12rpx 12rpx 12rpx gainsboro;
+}
+/***活动pin card**/
+.activity-text-img {
+ margin: 30rpx auto;
+ width: 650rpx;
+ height: 170rpx;
+ display: flex;
+ flex-direction: row;
+ border-radius: 20rpx;
+ box-shadow: 4rpx 4rpx 10rpx #999;
+ background: rgba(255, 255, 255, 0.4)
+}
+/***活动名和导航字**/
+.activity-text {
+ display: flex;
+ flex-direction: column;
+ justify-content: center;
+ margin: 20rpx 20rpx;
+}
+.activity-slogans {
+ display: flex;
+ flex-direction: column;
+}
+.activity-slogan{
+ color: #333;
+ font-weight: bold;
+ font-size: 30rpx;
+}
+.activity-nav {
+  color: #999;
+  font-size: 24rpx;
+  letter-spacing: 2rpx;
+  margin-top: 20rpx;
+}
+
+.activity-text-img image{
+ width: 50%;
+ height: 80%;
+ border-radius: 50rpx;
 }

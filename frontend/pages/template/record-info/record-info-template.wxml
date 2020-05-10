@@ -184,15 +184,14 @@
           <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>返回</view>
         </view>
         <!--帖子状态很新鲜，没什么好展示的状态，用作去发布信息快捷键算了-->
-        <view wx:if="{{info.status === 2}}" class="now-buy light-grey" catchtap="goAppeal">申诉</view>
-        <view class="join-shop-cart" catchtap="goRelease">去发布信息</view>
+        <view class="join-shop-cart" catchtap="goRelease" >去发布信息</view>
         <!--失物招领贴的状态操作区-->
         <!--推荐进入可看，否认删除推荐的同时，可以获取新的订阅次数-->
-        <view class="now-buy grey" catchtap="goRejectRecommend" wx:if="{{op_status==2}}">
+        <view wx:if="{{op_status === 2}}" class="now-buy grey" catchtap="goRejectRecommend">
           <text>不是我的</text>
         </view>
         <view class="now-buy" catchtap="toApplicate">
-          <text>认领</text>
+          <text>这是我的</text>
         </view>
       </view>
 
@@ -210,7 +209,7 @@
           <view wx:if="{{info.is_auth}}" class="now-buy" catchtap="goTips">待取回</view>
           <view wx:if="{{info.over_marks && !info.is_auth}}" class="join-shop-cart light-grey" catchtap="goAppeal">申诉</view>
           <view wx:if="{{!info.is_auth}}" class="now-buy grey" catchtap="goCancelApply">取消认领</view>
-          <view wx:if="{{!info.is_auth}}" class="now-buy" catchtap="gotBack" >确认取回</view>
+          <view wx:if="{{!info.is_auth}}" class="now-buy" catchtap="gotBack" >我已取回</view>
         </view>
       </view>
 
@@ -228,7 +227,7 @@
 
           <!--状态描述区 TODO 是否提供作者可查看取回者的权限--->
           <view wx:if="{{info.is_owner}}">
-            <view class="join-shop-cart">物品已取回</view>
+            <view class="join-shop-cart" catchtap="goTips">物品已取回</view>
           </view>
           <view wx:else>
             <view class="join-shop-cart" catchtap="goMyRelease">查看我发布的</view>

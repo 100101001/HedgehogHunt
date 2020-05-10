@@ -52,7 +52,7 @@ Page({
     this.setData({
       registBtnTxt: "绑定中",
       registBtnDisabled: true,
-      registBtnBgColor: "#999",
+      registBtnBgColor: "#333",
       registBtnLoading: true,
       getSmsCodeBtnDisabled: true
     })
@@ -90,7 +90,7 @@ Page({
         count--
         this.setData({
           getSmsCodeBtnTxt: count + ' s',
-          getSmsCodeBtnColor: "#999",
+          getSmsCodeBtnColor: "#333",
           getSmsCodeBtnDisabled: true
         })
       } else {

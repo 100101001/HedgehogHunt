@@ -1068,15 +1068,15 @@ Page({
     let info = this.data.infos.info;
     let status = info.status;
     let business_type = info.business_type;
-    if (business_type == 2) {
+    if (business_type === 2) {
       //归还贴
-      if (status == 0) {
+      if (status === 0) {
         //被拒绝了的归还贴
         app.alert({
           content: '别灰心，您可继续将归还贴公开，让真正的失主找到它~'
         })
-      } else if (status == 3 || status == 4) {
-        if (info.is_origin_deleted && status == 3) {
+      } else if (status === 3 || status === 4) {
+        if (info.is_origin_deleted && status === 3) {
           //还未答谢就被删了帖的寻物启事
           app.alert({
             content: '别灰心，你的举手之劳帮失主找回了失物！系统已发放您奖励积分，可以兑换平台福利哟~'
@@ -1088,41 +1088,41 @@ Page({
             content: '失主于' + info.op_time + '线下取回了！'
           })
         }
-      } else if (status == 2) {
+      } else if (status === 2) {
         //被确认了的归还贴
         app.alert({
           title: '认领详情',
           content: '失主于' + info.op_time + '确认归还了！'
         })
-      } else if (status == 1) {
+      } else if (status === 1) {
         app.alert({
           title: '等待提示',
           content: '别着急，失主还没上线呢！'
         })
       }
-    } else if (business_type == 1) {
+    } else if (business_type === 1) {
       //失物招领贴
-      if (status == 1) {
+      if (status === 1) {
         app.alert({
           title: '等待提示',
           content: '别着急，失主还没发现自己丢了东西呢！'
         })
-      } else if ((status == 2 || status == 3 || status == 4) && info.is_auth) {
+      } else if ((status === 2 || status === 3 || status === 4) && info.is_auth) {
         // 预认领了失物招领查看认领时间
         app.alert({
           title: '认领详情',
-          content: '失主于' + info.op_time + (status == 2 ? '在线认领了！' : '线下取回了！')
+          content: '失主于' + info.op_time + (status === 2 ? '在线认领了！' : '线下取回了！')
         })
-      } else if (status == 5) {
+      } else if (status === 5) {
         //所有人能可见申诉帖的人可见
         app.alert({
           title: '申诉详情',
           content: '我们于' + info.op_time + '收到申诉，正在处理中。帖子正被冻结，您暂时无法进行任何操作。'
         })
       }
-    } else if (business_type == 0) {
+    } else if (business_type === 0) {
       //寻物贴
-      if (status == 2) {
+      if (status === 2) {
         //预归还
         if (!info.is_confirmed) {
           //寻物贴主人可见
@@ -1131,7 +1131,7 @@ Page({
             content: '寻物于' + info.op_time + '被人拾到归还。'
           })
         }
-      } else if (status == 3 || status == 4) {
+      } else if (status === 3 || status === 4) {
         //归还者可见
         app.alert({
           title: '认领详情',

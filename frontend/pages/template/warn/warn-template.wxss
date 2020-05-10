@@ -22,8 +22,9 @@ swiper {
 }
 
 swiper text{
-  font-size: 28rpx;
-  font-weight: 600;
+  font-size: 29rpx;
+  letter-spacing: 1rpx;
+  font-weight: bold;
   color: #f7931e;
 }
 

@@ -1,37 +1,62 @@
 <!--pages/Homepage/index.wxml-->
 <import src="../template/navigate-bar/navigate-bar-template.wxml" />
+
+
+
+<view wx:if="{{!invite_tutorial_hidden}}" class="invite-tutorial">
+  <image id="invite_finger" src="/images/icons/finger.png"></image>
+</view>
+
+<lyx-modal hidden="{{subscribe_hidden}}" noCancel="true" confirmText="关闭" bindconfirm="closeSubscribe" title="点击关注">
+  <view class="official-account">
+    <official-account></official-account>
+  </view>
+</lyx-modal>
+
 <!---积分和成长值-->
-<view class="user-info-container">
-  <view class="user-avatar-container" >
-    <image src="{{userInfo.avatar}}" class="user-info-avatar"></image>
-    <view class="user-info-nickname">{{userInfo.nickname}}</view>
+<view class="homepage_container">
+  <view class="user-info-container">
+    <view class="user-avatar-container" >
+      <image src="{{userInfo.avatar}}" class="user-info-avatar"></image>
+      <view class="user-info-nickname">{{userInfo.nickname}}</view>
+    </view>
+    <view class="user-level-progress">
+      <progress percent="{{userInfo.level * 100}}" active color="white" backgroundColor="#999" border-radius="50" stroke-width="3" />
+      <wxs src="../../utils/pageUtil.wxs" module="tools"></wxs>
+      <view class="user-level-text">当前成长值 {{tools.level(userInfo.level)}} , 再发布 5 个帖子即可升级</view>
+    </view>
   </view>
-  <view class="user-level-progress">
-    <progress percent="{{userInfo.level * 100}}" active color="white" backgroundColor="#999" border-radius="50" stroke-width="3" />
-    <wxs src="../../utils/pageUtil.wxs" module="tools"></wxs>
-    <view class="user-level-text">当前成长值 {{tools.level(userInfo.level)}} , 再发布 5 个帖子即可升级</view>
+  <view class="user-info-hint">
+    <view class="user-info-hint-content">发布帖子，攒积分，享受更多权益</view>
   </view>
-</view>
-<view class="user-info-hint">
-  <view class="user-info-hint-content">发布帖子，攒积分，享受更多权益</view>
-</view>
 
-<!--快速导航-->
-<view class="pin-cards-container">
-  <view class="pin-card-box" wx:for="{{navigators}}" wx:key="index">
-    <view class="pin-card-content" hover-class="pin-card-content-grey" hover-stay-time="2000"  catchtap="quickLink" data-url="{{item.url}}">
+  <!--快速导航-->
+  <view class="pin-cards-container">
+    <view class="pin-card-box" wx:for="{{navigators}}" wx:key="index">
+      <view class="pin-card-content" hover-class="pin-card-content-grey" hover-stay-time="2000"  catchtap="quickLink" data-url="{{item.url}}">
         {{item.label}}
+      </view>
     </view>
   </view>
-</view>
 
-<view class="activity-center-container">
-  <view class="activity-center-header">活动中心</view>
-  <view class="activity-cards-container">
-    <view class="activity-card" wx:for="{{activties}}" wx:key="index">
+  <view class="activity-center-container">
+    <view class="activity-center-header">活动中心</view>
 
+    <view class="activity-cards-container">
+      <view class="activity-card" wx:for="{{activities}}" wx:key="index">
+        <view class="activity-text-img">
+          <view class="activity-text">
+            <block class="activity-slogans" wx:for="{{item.slogans}}">
+              <text class="activity-slogan">{{item}}</text>
+            </block>
+            <text class="activity-nav" catchtap="clickNav" data-id="{{index}}">{{item.nav}}</text>
+          </view>
+          <image src="{{item.image}}" />
+        </view>
+      </view>
     </view>
   </view>
+  <view class="blank-placeholder"></view>
 </view>
 
 

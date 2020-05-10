@@ -61,33 +61,83 @@ Page({
         url: '/mall/pages/my/index'
       }
     ],
+    getLaunchOptionsSyncArr: [1047, 1124, 1089, 1038, 1011, 1017], //公众号关注组件显示的场景值
     activities: [
       {
-        name: '关注公众号，获悉校园拾物动态',
+        slogans: ['关注公众号', '获悉校园拾物动态'],
         img: '/',
-        nav: '立刻关注',
-        act: "goSubscribeOfficial"
+        nav: '立刻关注 >',
+        act: 'goSubscribeOfficial',
+        url: '',
       },
       {
-        name: "邀请好友获取二维码，领取现金红包",
+        slogans: ['购买二维码', '享受失物闪寻'],
         img: '/',
-        nav: '立刻邀请',
-        act: "goInvite"
+        nav: '立刻购买 >',
+        act: "goBuy",
+        url: "/pages/Mine/userinfo/index"
       },
       {
-        name: "购买二维码，享受失物闪寻",
+        slogans: ['邀请好友获取二维码', '领取现金红包'],
         img: '/',
-        nav: '立刻购买',
-        act: "goBuy"
-      }
-    ]
+        nav: '立刻邀请 >',
+        act: "goInvite",
+        url: ''
+      },
+    ],
+    invite_tutorial_hidden: true,
+    subscribe_hidden: true
   },
-
+  execute: function(method_name='') {
+    let methods_map = {'goInvite': this.goInvite,
+                       'goSubscribeOfficial': this.openSubscribe
+                      };
+    methods_map[method_name]()
+  },
+  clickNav: function(e){
+    let target = this.data.activities[e.currentTarget.dataset.id];
+    if (target.url) {
+      wx.showLoading({title: '跳转中', success: res => {setTimeout(wx.hideLoading, 500)}});
+      wx.navigateTo({url: target.url});
+    } else {
+      this.execute(target.act)
+    }
+  },
+  openSubscribe: function() {
+    this.setData({
+      subscribe_hidden: false,
+    })
+  },
+  closeSubscribe: function(){
+    this.setData({
+      subscribe_hidden: true
+    })
+  },
+  goInvite: function() {
+    this.setData({
+      invite_tutorial_hidden: false
+    })
+  },
+  closeInvite: function(){
+    this.setData({
+      invite_tutorial_hidden: true
+    })
+  },
+  setInitActivityData: function(){
+    this.closeSubscribe();
+    this.closeInvite();
+  },
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
-
+    let obj = wx.getLaunchOptionsSync();//获取当前小程序的场景值
+    if(!this.data.getLaunchOptionsSyncArr.includes(obj.scene)) {
+      this.data.activities.splice(0, 1);
+      this.setData({
+        activities: this.data.activities
+      })
+    }
   },
 
   /**
@@ -103,6 +153,7 @@ Page({
   onShow: function () {
     // 导航栏
     this.setNavigationBar();
+    this.setInitActivityData();
     //
   },
   /**
@@ -117,6 +168,7 @@ Page({
     });
     this.setUserInfo(isSelecteds['regFlag']);
   },
+
   /**
    * 设置用户身份信息（已注册和未主册都要）
    */
@@ -196,7 +248,17 @@ Page({
    * 用户点击右上角分享
    */
   onShareAppMessage: function () {
-
+    return {
+      title: '快来鲟回失物招领获取你的专属二维码吧',
+      path: '/pages/Mine/userinfo/index' + this.data.info.id,
+      success: function (res) {
+        wx.showToast({
+          title: '分享成功！',
+          icon: 'success',
+          duration: 3000
+        })
+      }
+    }
   },
   //点击导航
   onNavigateTap: function (event) {

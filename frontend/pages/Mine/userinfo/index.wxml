@@ -1,8 +1,5 @@
 
-<view class="user">
-  <image class="avatar" src="{{avatar}}"></image>
-  <view class="nickname">{{nickname}}</view>
-</view>
+
 
 
 <view class="video-container" wx:if="{{!hiddenIntroduceModal}}">
@@ -21,6 +18,11 @@
 
 
 <view class="userinfo" wx:if="{{dataReady}}">
+  <view class="user">
+    <image class="avatar" src="{{avatar}}"></image>
+    <view class="nickname">{{nickname}}</view>
+  </view>
+
   <view class="fundation_message">基本信息</view>
       <view class="userinfo_container" bindtap="onEditName">
       <view class="title">姓名</view>
@@ -42,7 +44,7 @@
     <view class="title">账户余额</view>
     <view class="content2">¥ {{balance}}</view>
     <view class="next">
-      <view class="recharge_btn intro" bindtap="toRechargeBalance">充值</view>
+      <view hover-class="recharge_btn_clicked" hover-stay-time="500" class="recharge_btn intro" bindtap="toRechargeBalance">充值</view>
       <view class="recharge_btn" bindtap="onWithDrawTap">提现</view>
     </view>
   </view>

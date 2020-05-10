@@ -484,9 +484,6 @@ Page({
       }
     }, 500)
   },
-  formSubmit: function (e) {
-    this.onPullDownRefresh();
-  },
   //获取信息列表
   getGoodsList: function (e) {
     if (!this.data.loadingMore || this.data.processing) {

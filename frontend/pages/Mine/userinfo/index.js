@@ -206,14 +206,16 @@ Page({
     wx.showLoading({
       title: '加载中',
       mask: true,
-      success: res => {
+      success: (res) => {
         setTimeout(wx.hideLoading, 300)
       }
     })
   },
   onShow() {
-    // 会员的闪寻码信息
-    this.getMemberInfo()
+    if (app.loginTip()) {
+      // 会员的闪寻码信息
+      this.getMemberInfo()
+    }
   },
   getMemberInfo: function(){
     wx.request({

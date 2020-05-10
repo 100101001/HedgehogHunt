@@ -12,7 +12,7 @@
     <template is="floating-ball" data="{{business_type, x, y}}"></template>
 
 
-    <view class="search_container">
+    <view class="search_container" wx:if="{{items}}">
       <block wx:for="{{items}}" wx:key="index">
         <view class="search_box  {{item.is_focus? 'search_focus': ''}}">
           <icon type="search" class="{{item.icons}}" wx:if="{{item.icons}}" size='15' color="#f7931e"></icon>
@@ -33,7 +33,7 @@
     </view>
 
     <!--轮播图-->
-    <view class="swiper-container">
+    <view class="swiper-container" wx:if="{{banners}}">
       <swiper class="swiper_box" autoplay="true" interval="3000" duration="1000" indicator-dots="{{false}}"
               circular="{{false}}">
         <block wx:for="{{banners}}" wx:key="index">
@@ -45,7 +45,7 @@
       </swiper>
     </view>
     <!--分类展示-->
-    <view class="type-container {{tabFixed ? 'fixed-tab' : ''}}">
+    <view class="type-container {{tabFixed ? 'fixed-tab' : ''}}" wx:if="{{categories}}">
       <scroll-view class="type-navbar" scroll-x="true">
         <view class="type-box {{business_type? 'type-box-five': ''}}" wx:for="{{categories}}" wx:for-item="cat" wx:key="index">
           <view id="{{cat.id}}" class="type-navbar-item {{activeCategoryId == cat.id ? 'type-item-on' : ''}}"

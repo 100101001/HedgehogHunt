@@ -43,11 +43,11 @@ App({
     id: null, //用户的id(首页goToIndex会用到)
     regFlag: false, //用于判断用户已注册(和缓存中的token一起代表用户已经登录)
     shopName: "鲟回-失物招领",
-    //domain: "http://47.114.85.211:8999/api",
+    //domain: "http://114.55.139.151:9888/api",
     //domain: "http://192.168.0.116:8889/api",
-    domain: "https://ciwei.opencs.cn/api",
-    static_file_domain: "https://ciwei.opencs.cn",
-    //static_file_domain: "http://47.114.85.211:8999",
+    domain: "https://xunhui.opencs.cn/api",
+    static_file_domain: "https://xunhui.opencs.cn",
+    //static_file_domain: "http://114.55.139.151:9888",
     //static_file_domain: "http://192.168.0.116:8889",
     member_status: 1, //用户状态
     op_status: 2,
