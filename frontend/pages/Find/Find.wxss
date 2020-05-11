@@ -149,7 +149,7 @@ swiper-item image {
 }
 
 .type-box {
-  width: 185rpx;
+  width: 247rpx;
   box-sizing: content-box;
   font-size: 26rpx;
   color: #A0522D;

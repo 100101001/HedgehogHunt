@@ -71,20 +71,21 @@ Page({
         url: '',
       },
       {
-        slogans: ['购买二维码', '享受失物闪寻'],
+        slogans: ['购买寻物码', '享受失物闪寻'],
         img: '/images/more/qrcode.png',
         nav: '立刻购买 >',
         act: "goBuy",
         url: "/pages/Mine/userinfo/index"
       },
       {
-        slogans: ['邀请好友获取二维码', '领取现金红包'],
+        slogans: ['邀请好友获取寻物码', '领取现金红包'],
         img: '/images/more/invite.png',
         nav: '立刻邀请 >',
         act: "goInvite",
         url: ''
       },
     ],
+    has_subscribe: true,
     invite_tutorial_hidden: true,
     subscribe_hidden: true
   },
@@ -113,6 +114,21 @@ Page({
       subscribe_hidden: true
     })
   },
+  closeAndRemoveActivity: function(){
+    if(this.data.has_subscribe) {
+      this.data.activities.splice(0, 1);
+      this.setData({
+        has_subscribe: false,
+        activities: this.data.activities,
+        load_ok: true
+      });
+    }
+  },
+  keepActivity: function () {
+    this.setData({
+      load_ok: true
+    });
+  },
   goInvite: function() {
     this.setData({
       invite_tutorial_hidden: false
@@ -132,13 +148,13 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
-    let obj = wx.getLaunchOptionsSync();//获取当前小程序的场景值
-    if(!this.data.getLaunchOptionsSyncArr.includes(obj.scene)) {
-      this.data.activities.splice(0, 1);
-      this.setData({
-        activities: this.data.activities
-      })
-    }
+    // let obj = wx.getLaunchOptionsSync();//获取当前小程序的场景值
+    // if(!this.data.getLaunchOptionsSyncArr.includes(obj.scene)) {
+    //   this.data.activities.splice(0, 1);
+    //   this.setData({
+    //     activities: this.data.activities
+    //   })
+    // }
   },
 
   /**
@@ -250,7 +266,7 @@ Page({
    */
   onShareAppMessage: function () {
     return {
-      title: '快来鲟回失物招领获取你的专属二维码吧',
+      title: '快来鲟回失物招领获取你的专属寻物码吧',
       path: '/pages/Mine/userinfo/index',
       success: function (res) {
         wx.showToast({

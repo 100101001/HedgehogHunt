@@ -643,7 +643,7 @@ App({
           this.globalData.isFreqScanQrcode = true;
           this.alert({
             title: '防恶意扫码提示',
-            content: '贴有本二维码的' + data['goods_name'] + '在' + data['found_time'] + '被拾到后扫码归还！如果你归还的物品重复请取消，否则确定继续。',
+            content: '贴有本寻物码的' + data['goods_name'] + '在' + data['found_time'] + '被拾到后扫码归还！如果你归还的物品重复请取消，否则确定继续。',
             showCancel: true,
             cb_confirm: this.freqOtherScanQrcode, //必须注册，操作留痕
             cb_cancel: this.cancelQrcodeScan

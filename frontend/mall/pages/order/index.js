@@ -216,7 +216,7 @@ Page({
     let qrcodePrice = app.globalData.qrcodePrice
     app.alert({
       title: '温馨提示',
-      content: '您还没有闪寻码无法下单，是否加' + qrcodePrice + '元随单购买？',
+      content: '您还没有寻物码无法下单，是否加' + qrcodePrice + '元随单购买？',
       showCancel: true,
       cb_confirm:  () => {
         //将二维码加入订单产品列表

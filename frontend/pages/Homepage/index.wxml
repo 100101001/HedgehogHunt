@@ -9,7 +9,7 @@
 
 <lyx-modal hidden="{{subscribe_hidden}}" noCancel="true" confirmText="关闭" bindconfirm="closeSubscribe" title="点击关注">
   <view class="official-account">
-    <official-account></official-account>
+    <official-account bind:error="closeAndRemoveActivity" bind:load="keepActivity"></official-account>
   </view>
 </lyx-modal>
 
@@ -39,13 +39,13 @@
     </view>
   </view>
 
-  <view class="activity-center-container">
+  <view class="activity-center-container" wx:if="{{load_ok}}">
     <view class="activity-center-header">活动中心</view>
     <view class="activity-cards-container">
       <view class="activity-card" wx:for="{{activities}}" wx:key="index">
         <view class="activity-text-img">
           <view class="activity-text">
-            <block class="activity-slogans" wx:for="{{item.slogans}}">
+            <block class="activity-slogans" wx:for="{{item.slogans}}" wx:key="index">
               <text class="activity-slogan">{{item}}</text>
             </block>
             <text class="activity-nav" catchtap="clickNav" data-id="{{index}}">{{item.nav}}</text>

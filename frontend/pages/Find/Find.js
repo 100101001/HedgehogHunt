@@ -40,6 +40,9 @@ Page({
         name: '已答谢'
       }
     ]);
+    if (business_type === 0) {
+      categories.splice(1,1);
+    }
     wx.setNavigationBarTitle({
       title: business_type? '失物招领' : '寻物启事',
     });

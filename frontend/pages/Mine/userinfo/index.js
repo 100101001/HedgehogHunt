@@ -597,9 +597,9 @@ Page({
   smsTips: function() {
     let content = '';
     if (this.data.userInfo.has_qrcode){
-      content = '如果你有二维码，但是没有短信条数，且账户余额不足1毛。当发生扫码归还时，你将收不到系统及时的短信通知。'
+      content = '如果你有寻物码，但是没有短信条数，且账户余额不足1毛。当发生扫码归还时，你将收不到系统及时的短信通知。'
     } else {
-      content = '获取二维码，系统赠送你免费的5条短信哦！'
+      content = '获取寻物码，系统赠送你免费的5条短信哦！'
     }
     app.alert({
       title: '短信提示',

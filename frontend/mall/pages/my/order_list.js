@@ -111,7 +111,7 @@ const onQrcodeSuccess = function (only_special = false, order_sn = "") {
     autoSendGoods(order_sn)
   }
   wx.showToast({
-    title: '购买闪寻码成功',
+    title: '购买寻物码成功',
     icon: 'success',
     mask: true,
     duration: 800,
@@ -122,8 +122,8 @@ const onQrcodeSuccess = function (only_special = false, order_sn = "") {
           content: '已发放5次免费的失物通知！',
           cb_confirm: () => {
             app.alert({
-              title: '查看提示',
-              content: '在入口页【我的】—【个人信息】查看您的专属闪寻码',
+              title: '寻物码查看',
+              content: '入口页【我的】—【个人信息】',
             })
           }
         })
