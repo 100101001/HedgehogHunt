@@ -1,0 +1,32 @@
+2020-05-10 11:18:28,791 - ERROR - Received unregistered task of type 'sync2.incr_read_count_to_db'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+http://docs.celeryq.org/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+'[[], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (77b)
+Traceback (most recent call last):
+  File "/home/ellen/repos/HedgehogHunt/backend/ciwei/venv/lib/python3.6/site-packages/celery/worker/consumer/consumer.py", line 562, in on_task_received
+    strategy = strategies[type_]
+KeyError: 'sync2.incr_read_count_to_db'
+2020-05-11 02:25:00,096 - ERROR - Received unregistered task of type 'sync2.incr_read_count_to_db'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+http://docs.celeryq.org/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+'[[], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (77b)
+Traceback (most recent call last):
+  File "/home/ellen/repos/HedgehogHunt/backend/ciwei/venv/lib/python3.6/site-packages/celery/worker/consumer/consumer.py", line 562, in on_task_received
+    strategy = strategies[type_]
+KeyError: 'sync2.incr_read_count_to_db'

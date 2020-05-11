@@ -131,9 +131,9 @@
 
 起worker和beat的命令
    
-    celery -A application.celery worker -Q log_queue,sync_queue,recommend_queue,subscribe_queue,sms_queue
-    celery -A application.celery beat
-
+    celery -A application.celery worker -Q log_queue,sync_queue,recommend_queue,subscribe_queue,sms_queue -l info 
+    celery -A application.celery beat  -l info --detach
+    # celery beat -A celery_schedule -l info -f logging/schedule_tasks.log --detach
 参考资料
 
 * [Flask-Celery-Background-Task](https://flask.palletsprojects.com/en/1.1.x/patterns/celery/)
@@ -145,3 +145,4 @@
 * [空间距离计算](http://www.cocoachina.com/articles/10238)
 * [Celery-Flask-RMQ最佳实践](https://www.jianshu.com/p/807efde55d81)
 * [Celery-Flask 发短信](https://blog.csdn.net/weixin_40612082/article/details/81149592?fps=1&locationNum=2)
+* [Celery 配置日志输出文件](https://www.cnblogs.com/zhangweijie01/p/11813215.html)

@@ -11,12 +11,10 @@ class TestQrCode(ApiBaseTest):
     def setUp(self) -> None:
         super().setUp()
         from common.models.ciwei.Member import Member
-        self.member1 = Member()
-        self.member1.openid = 'opLxO5Q3CloBEmwcarKrF_kSA574'
-        self.member1.nickname = 'lyx'
-        self.member2 = Member()
-        self.member2.openid = 'opLxO5fubMUl7GdPFgZOUaDHUik8'
-        self.member2.nickname = 'ellen li'
+        self.member1 = Member(openid='opLxO5Q3CloBEmwcarKrF_kSA574', mobile='', avatar='', nickname='lyx')
+        self.member2 = Member(openid='opLxO5fubMUl7GdPFgZOUaDHUik8', mobile='', avatar='', nickname='ellen li')
+        self.member1.name = '李依璇'
+        self.member2.name = '李佩璇'
         db.session.add(self.member1)
         db.session.add(self.member2)
         db.session.commit()

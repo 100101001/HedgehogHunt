@@ -688,10 +688,8 @@ class FoundGoodsHandler(CommonGoodsHandler):
             # 作者查看对方操作的时间
             if goods_status == 2:
                 op_time = goods_info.confirm_time
-            elif goods_status == 3:
-                op_time = goods_info.finish_time
             else:
-                op_time = goods_info.thank_time
+                op_time = goods_info.finish_time
             data.update({'op_time': op_time.strftime("%Y-%m-%d %H:%M")})
         if goods_status == 4:
             thanks = super()._getThanksInfo(goods_info.id)

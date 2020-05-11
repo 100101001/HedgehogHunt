@@ -1,4 +1,13 @@
-2020-05-08 20:05:07,511 - INFO - Connected to amqp://root:**@127.0.0.1:5672/ciwei
-2020-05-08 20:05:07,538 - INFO - mingle: searching for neighbors
-2020-05-08 20:05:08,577 - INFO - mingle: all alone
-2020-05-08 20:05:08,620 - INFO - celery@ubuntu ready.
+2020-05-11 00:45:00,083 - INFO - Scheduler: Sending due task auto_close_expire_order_every_quarter (mall.auto_close_expire_order)
+2020-05-11 01:00:00,090 - INFO - Scheduler: Sending due task auto_close_expire_order_every_quarter (mall.auto_close_expire_order)
+2020-05-11 01:15:00,081 - INFO - Scheduler: Sending due task auto_close_expire_order_every_quarter (mall.auto_close_expire_order)
+2020-05-11 01:30:00,090 - INFO - Scheduler: Sending due task auto_close_expire_order_every_quarter (mall.auto_close_expire_order)
+2020-05-11 01:45:00,092 - INFO - Scheduler: Sending due task auto_close_expire_order_every_quarter (mall.auto_close_expire_order)
+2020-05-11 02:00:00,092 - INFO - Scheduler: Sending due task auto_close_expire_order_every_quarter (mall.auto_close_expire_order)
+2020-05-11 02:15:00,091 - INFO - Scheduler: Sending due task auto_close_expire_order_every_quarter (mall.auto_close_expire_order)
+2020-05-11 02:25:00,091 - INFO - Scheduler: Sending due task incr_read_count_to_db_every_day (sync2.incr_read_count_to_db)
+2020-05-11 02:30:00,090 - INFO - Scheduler: Sending due task auto_close_expire_order_every_quarter (mall.auto_close_expire_order)
+2020-05-11 02:45:00,092 - INFO - Scheduler: Sending due task auto_close_expire_order_every_quarter (mall.auto_close_expire_order)
+2020-05-11 03:00:00,095 - INFO - Scheduler: Sending due task auto_close_expire_order_every_quarter (mall.auto_close_expire_order)
+2020-05-11 03:15:00,092 - INFO - Scheduler: Sending due task auto_close_expire_order_every_quarter (mall.auto_close_expire_order)
+2020-05-11 03:30:00,098 - INFO - Scheduler: Sending due task auto_close_expire_order_every_quarter (mall.auto_close_expire_order)
