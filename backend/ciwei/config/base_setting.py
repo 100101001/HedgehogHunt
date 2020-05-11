@@ -47,7 +47,7 @@ CELERYBEAT_SCHEDULE = {
         'options': {'queue': 'mall_queue', 'routing_key': 'for_mall', 'delivery_mode': 'transient'}  # 定时清理的消息如果丢失是没有关系的
     },
     'incr_read_count_to_db_every_day': {
-        'task': 'sync2.incr_read_count_to_db',
+        'task': 'sync.incr_read_count_to_db',
         'schedule':  crontab(minute=25, hour=2),  # 每天的凌晨执行任务
         'options': {'queue': 'sync_queue', 'routing_key': 'for_sync'}
     }

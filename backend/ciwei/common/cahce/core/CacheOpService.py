@@ -50,7 +50,6 @@ def setMarkCache(goods_id=0, marks=None):
     :return:
     """
     mark_key = CacheKeyGetter.markKey(goods_id)
-    # redis_conn_db_1.sadd(mark_key, -1)  # 占位符可以用来判断缓存命中
     mark_member_ids = set(str(i.member_id) for i in marks)
     mark_member_ids.add('-1')
     for m_id in mark_member_ids:

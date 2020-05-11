@@ -12,7 +12,7 @@ class Application(Flask):
     def __init__(self, import_name, template_folder=None, static_folder=None, root_path=None):
         super(Application, self).__init__(import_name, template_folder=template_folder, static_folder=static_folder,
                                           root_path=root_path)
-
+        self.config.from_pyfile('config/base_setting.py')
         self.config.from_pyfile('config/base_setting_docker.py')
         self.config.from_pyfile('config/production_setting.py')
         # if 'ops_config' in os.environ:
