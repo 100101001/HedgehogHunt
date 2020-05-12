@@ -12,3 +12,16 @@ ES = {
     'URL': 'http://es:9200',
     'INDEX': 'goods_test'
 }
+
+# cache 缓存的配置
+REDIS = {
+    'CACHE_REDIS_HOST': 'redis',
+    'CACHE_REDIS_PORT': 6379,
+    'CACHE_REDIS_DB': {
+        'HOT': 5,
+        'CAS': 6,
+        'LOST': 7,
+        'FOUND': 8
+    },
+    'CACHE_REDIS_PASSWORD': 'lyx147'
+}

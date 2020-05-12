@@ -11,7 +11,7 @@ import uuid
 
 from application import APP_CONSTANTS
 from common.cahce import CacheKeyReverse
-from common.cahce.core import CacheKeyGetter, redis_conn_db_1
+from common.cahce.core import CacheKeyGetter, redis_conn_cache
 from common.libs.Helper import queryToDict
 from common.loggin.time import time_log
 from common.models.ciwei.Goods import Good
@@ -28,17 +28,17 @@ def setMemberCache(member_info=None):
         return
     mem_key = CacheKeyGetter.memberKey(member_info.id)
     if isinstance(member_info, dict):
-        redis_conn_db_1.set(mem_key, json.dumps(member_info))
+        redis_conn_cache.set(mem_key, json.dumps(member_info))
     else:
-        redis_conn_db_1.set(mem_key, json.dumps(queryToDict(member_info)))
-    redis_conn_db_1.expire(mem_key, 3600)
+        redis_conn_cache.set(mem_key, json.dumps(queryToDict(member_info)))
+    redis_conn_cache.expire(mem_key, 3600)
 
 
 def setThankInfoCache(thank_info=None):
     thank_key = CacheKeyGetter.thankKey(thank_info.goods_id)
-    redis_conn_db_1.set(thank_key, json.dumps({'summary': thank_info.summary, 'thank_price': str(thank_info.thank_price),
+    redis_conn_cache.set(thank_key, json.dumps({'summary': thank_info.summary, 'thank_price': str(thank_info.thank_price),
                                     'nickname': thank_info.nickname, 'avatar': thank_info.avatar}))
-    redis_conn_db_1.expire(thank_key, 3600)
+    redis_conn_cache.expire(thank_key, 3600)
 
 
 @time_log
@@ -53,8 +53,8 @@ def setMarkCache(goods_id=0, marks=None):
     mark_member_ids = set(str(i.member_id) for i in marks)
     mark_member_ids.add('-1')
     for m_id in mark_member_ids:
-        redis_conn_db_1.sadd(mark_key, m_id)
-    redis_conn_db_1.expire(mark_key, 3600)
+        redis_conn_cache.sadd(mark_key, m_id)
+    redis_conn_cache.expire(mark_key, 3600)
     return mark_member_ids
 
 
@@ -69,9 +69,9 @@ def addPreMarkCache(goods_id=0, member_id=0):
     :return:
     """
     mark_key = CacheKeyGetter.markKey(goods_id)
-    if redis_conn_db_1.smembers(mark_key):
-        redis_conn_db_1.sadd(mark_key, member_id)
-        redis_conn_db_1.expire(mark_key, 3600)
+    if redis_conn_cache.smembers(mark_key):
+        redis_conn_cache.sadd(mark_key, member_id)
+        redis_conn_cache.expire(mark_key, 3600)
 
 
 @time_log
@@ -85,8 +85,8 @@ def removePreMarkCache(found_ids=None, member_id=0):
     """
     for found_id in found_ids:
         m_key = CacheKeyGetter.markKey(found_id)
-        redis_conn_db_1.srem(m_key, member_id)
-        redis_conn_db_1.expire(m_key, 3600)
+        redis_conn_cache.srem(m_key, member_id)
+        redis_conn_cache.expire(m_key, 3600)
 
 
 @time_log
@@ -95,11 +95,11 @@ def setUsersCache(users=None, is_all=False):
     for user in users:
         if user is not None:
             # 设置 user_id -> member_Id
-            redis_conn_db_1.hset(all_user_key, user.member_id, json.dumps(queryToDict(user)))
+            redis_conn_cache.hset(all_user_key, user.member_id, json.dumps(queryToDict(user)))
     if is_all:
         is_all_key = CacheKeyGetter.isAllUserKey()
-        redis_conn_db_1.hset(all_user_key, is_all_key, APP_CONSTANTS['is_all_user_val'])
-    redis_conn_db_1.expire(all_user_key, 3600)
+        redis_conn_cache.hset(all_user_key, is_all_key, APP_CONSTANTS['is_all_user_val'])
+    redis_conn_cache.expire(all_user_key, 3600)
 
 
 @time_log
@@ -110,8 +110,8 @@ def setGoodsIncrReadCache(goods_id=0):
     :return:
     """
     read_key = CacheKeyGetter.goodsReadKey(goods_id)
-    redis_conn_db_1.incr(read_key, 1)
-    redis_conn_db_1.expire(read_key, 3600 * 24 * 7)  # 一天内的累计阅读新增
+    redis_conn_cache.incr(read_key, 1)
+    redis_conn_cache.expire(read_key, 3600 * 24 * 7)  # 一天内的累计阅读新增
 
 
 def syncAndClearGoodsIncrReadCache():
@@ -122,15 +122,15 @@ def syncAndClearGoodsIncrReadCache():
     from application import db
     # 获取所有阅读量的key
     read_key_pattern = CacheKeyGetter.goodsReadKeyPrefixPattern()
-    keys = redis_conn_db_1.keys(read_key_pattern)
+    keys = redis_conn_cache.keys(read_key_pattern)
     for k in keys:
-        incr_views = int(redis_conn_db_1.get(k))
+        incr_views = int(redis_conn_cache.get(k))
         goods_id = CacheKeyReverse.goodsReadKey(read_key=k)
         Good.query.filter_by(id=goods_id).update({'view_count': Good.view_count + incr_views},
                                                  synchronize_session=False)
     db.session.commit()
     # 全部同步后批量删除
-    redis_conn_db_1.delete(*keys)
+    redis_conn_cache.delete(*keys)
 
 
 def setWxToken(token_data=None):
@@ -140,8 +140,8 @@ def setWxToken(token_data=None):
     :return:
     """
     wx_token_key = CacheKeyGetter.wxTokenKey()
-    redis_conn_db_1.set(wx_token_key, token_data.get('access_token'))
-    redis_conn_db_1.expire(wx_token_key, int(token_data.get('expires_in', 7200)) - 200)
+    redis_conn_cache.set(wx_token_key, token_data.get('access_token'))
+    redis_conn_cache.expire(wx_token_key, int(token_data.get('expires_in', 7200)) - 200)
 
 
 def setSmsVerifyCode(member_id=None, mobile='', code=''):
@@ -153,8 +153,8 @@ def setSmsVerifyCode(member_id=None, mobile='', code=''):
     :return:
     """
     sms_key = CacheKeyGetter.smsVerifyKey(member_id)
-    redis_conn_db_1.hset(sms_key, mobile, code)
-    redis_conn_db_1.expire(sms_key, 300)
+    redis_conn_cache.hset(sms_key, mobile, code)
+    redis_conn_cache.expire(sms_key, 300)
 
 
 def setLoginSession(member=None):
@@ -168,13 +168,13 @@ def setLoginSession(member=None):
         while True:
             tmp_token = str(uuid.uuid4()).replace('-', '')
             tmp_key = CacheKeyGetter.sessionKey(tmp_token)
-            if not redis_conn_db_1.exists(tmp_key):
+            if not redis_conn_cache.exists(tmp_key):
                 break
         return tmp_token, tmp_key
     token, session_key = __getUniqueLoginToken()
     session_body = '{0}#{1}'.format(member.id, member.openid)
-    redis_conn_db_1.set(session_key, session_body)
-    redis_conn_db_1.expire(session_key, 1800)
+    redis_conn_cache.set(session_key, session_body)
+    redis_conn_cache.expire(session_key, 1800)
     return token
 
 

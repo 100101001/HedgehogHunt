@@ -17,3 +17,16 @@ ES = {
     'URL': 'http://es:9200',
     'INDEX': 'goods'
 }
+
+REDIS = {
+    'CACHE_REDIS_HOST': 'redis',
+    'CACHE_REDIS_PORT': 6379,
+    'CACHE_REDIS_DB': {
+        'HOT': 1,
+        'CAS': 2,
+        'LOST': 3,
+        'FOUND': 4
+    },
+    'CACHE_REDIS_PASSWORD': 'lyx147'
+}
+

@@ -53,25 +53,30 @@ class CasLua:
 
 
 # 基于redis的乐观锁
-redis_pool_db_2 = redis.ConnectionPool(host=app.config['REDIS']['CACHE_REDIS_HOST'],
-                                       port=app.config['REDIS']['CACHE_REDIS_PORT'], password=app.config['REDIS']['CACHE_REDIS_PASSWORD'], db=2, max_connections=10,
-                                       decode_responses=True)
-redis_conn_private = redis.StrictRedis(connection_pool=redis_pool_db_2)
-cas = CasLua(flask_redis=redis_conn_private)
+REDIS_CONF = app.config['REDIS']
+REDIS_HOST = REDIS_CONF['CACHE_REDIS_HOST']
+REDIS_PORT = REDIS_CONF['CACHE_REDIS_PORT']
+REDIS_PWD = REDIS_CONF['CACHE_REDIS_PASSWORD']
+REDIS_DBS = REDIS_CONF['CACHE_REDIS_DB']
+redis_pool_cas = redis.ConnectionPool(host=REDIS_HOST,
+                                      port=REDIS_PORT, password=REDIS_PWD, db=REDIS_DBS['CAS'], max_connections=10,
+                                      decode_responses=True)
+redis_conn_cas = redis.StrictRedis(connection_pool=redis_pool_cas)
+cas = CasLua(flask_redis=redis_conn_cas)
 # 由于数据库设计的非冗余导致的频繁数据库查询
-redis_pool_db_1 = redis.ConnectionPool(host=app.config['REDIS']['CACHE_REDIS_HOST'],
-                                       port=app.config['REDIS']['CACHE_REDIS_PORT'], password=app.config['REDIS']['CACHE_REDIS_PASSWORD'], db=1, max_connections=10,
-                                       decode_responses=True)
-redis_conn_db_1 = redis.StrictRedis(connection_pool=redis_pool_db_1)
+redis_pool_cache = redis.ConnectionPool(host=REDIS_HOST,
+                                        port=REDIS_PORT, password=REDIS_PWD, db=REDIS_DBS['HOT'], max_connections=10,
+                                        decode_responses=True)
+redis_conn_cache = redis.StrictRedis(connection_pool=redis_pool_cache)
 
 
 # 由于匹配，存放在3，4里的 cls -> {id,lng,lat,author_id} === biz_type:1
 # 由于匹配，存放在3，4里的 cls -> {id,lng,lat,author_id}  === biz_type:0
-redis_pool_db_3 = redis.ConnectionPool(host=app.config['REDIS']['CACHE_REDIS_HOST'],
-                                       port=app.config['REDIS']['CACHE_REDIS_PORT'], password=app.config['REDIS']['CACHE_REDIS_PASSWORD'], db=3, max_connections=10,
+redis_pool_lost = redis.ConnectionPool(host=REDIS_HOST,
+                                       port=REDIS_PORT, password=REDIS_PWD, db=REDIS_DBS['LOST'], max_connections=10,
                                        decode_responses=True)
-redis_conn_db_3 = redis.StrictRedis(connection_pool=redis_pool_db_3)
-redis_pool_db_4 = redis.ConnectionPool(host=app.config['REDIS']['CACHE_REDIS_HOST'],
-                                       port=app.config['REDIS']['CACHE_REDIS_PORT'], password=app.config['REDIS']['CACHE_REDIS_PASSWORD'], db=4, max_connections=10,
-                                       decode_responses=True)
-redis_conn_db_4 = redis.StrictRedis(connection_pool=redis_pool_db_4)
+redis_conn_lost = redis.StrictRedis(connection_pool=redis_pool_lost)
+redis_pool_found = redis.ConnectionPool(host=REDIS_HOST,
+                                        port=REDIS_PORT, password=REDIS_PWD, db=REDIS_DBS['FOUND'], max_connections=10,
+                                        decode_responses=True)
+redis_conn_found = redis.StrictRedis(connection_pool=redis_pool_found)

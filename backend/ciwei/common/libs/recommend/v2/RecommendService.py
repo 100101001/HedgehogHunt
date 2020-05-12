@@ -9,7 +9,7 @@
 import json
 
 from application import db, app, APP_CONSTANTS, es
-from common.cahce.core import redis_conn_db_3, redis_conn_db_4
+from common.cahce.core import redis_conn_lost, redis_conn_found
 from common.libs.Helper import queryToDict
 
 from common.libs.recommend.v2.DistanceService import DistanceService
@@ -114,7 +114,7 @@ class RecommendHandler:
     def __doFilterPossibleGoods_Redis(cls, goods_info=None, cls_dict=None):
         release_type = goods_info.business_type
         # 物品范围
-        redis_conn = redis_conn_db_3 if release_type else redis_conn_db_4
+        redis_conn = redis_conn_lost if release_type else redis_conn_found
 
         noun_keys = cls_dict['noun']
         noun_sets = set()

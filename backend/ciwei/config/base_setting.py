@@ -13,14 +13,14 @@ SQLALCHEMY_ECHO = True
 PAGE_SIZE = 50
 PAGE_DISPLAY = 10
 
-SQLALCHEMY_DATABASE_URI = 'mysql://root:wcx9517530@db/ciwei_db_test?charset=utf8mb4'
+SQLALCHEMY_DATABASE_URI = 'mysql://root:wcx9517530@47.102.201.193/ciwei_db_test?charset=utf8mb4'
 # SQLALCHEMY_DATABASE_URI = 'mysql://root:wcx9517530@188.131.240.205/ciwei_db1?charset=utf8mb4'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_ENCODING = 'utf-8'
 
 # celery 异步任务框架的配置
-BROKER_URL = 'amqp://root:qweasd123@rmq/ciwei'
-CELERY_RESULT_BACKEND = 'redis://:lyx147@redis/0'
+BROKER_URL = 'amqp://root:qweasd123@localhost:5672/ciwei'
+CELERY_RESULT_BACKEND = 'redis://:lyx147@localhost:6379/0'
 CELERY_TIMEZONE = 'Asia/Shanghai'
 CELERY_ENABLE_UTC = True
 # celery 日志文件
@@ -124,17 +124,20 @@ CELERY_ROUTES = {
 
 # cache 缓存的配置
 REDIS = {
-    'CACHE_TYPE': 'redis',
-    'CACHE_DEFAULT_TIMEOUT': 60*60*24,
-    'CACHE_REDIS_HOST': 'redis',
+    'CACHE_REDIS_HOST': 'localhost',
     'CACHE_REDIS_PORT': 6379,
-    'CACHE_REDIS_DB': 1,
+    'CACHE_REDIS_DB': {
+        'HOT': 1,
+        'CAS': 2,
+        'LOST': 3,
+        'FOUND': 4
+    },
     'CACHE_REDIS_PASSWORD': 'lyx147'
 }
 
 # elastic search 的配置
 ES = {
-    'URL': 'http://es:9200',
+    'URL': 'http://localhost:9200',
     'INDEX': 'goods'
 }
 

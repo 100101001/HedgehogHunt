@@ -9,7 +9,7 @@
 import json
 
 from application import app
-from common.cahce.core import redis_conn_db_3, redis_conn_db_4
+from common.cahce.core import redis_conn_lost, redis_conn_found
 from common.sync.core.base import synonyms
 from common.tasks.recommend.v2 import RecommendTasks
 
@@ -36,7 +36,7 @@ def __syncNewGoodsToRedis(goods_info=None):
     created_time = goods_info.created_time
     cls_list = synonyms.getWordClassesSync(goods_name)
     # 寻物放库3, 拾物放库4
-    redis_conn = redis_conn_db_3 if business_type == 0 else redis_conn_db_4
+    redis_conn = redis_conn_lost if business_type == 0 else redis_conn_found
     ele = json.dumps({
         # 关系数据库和地址筛选
         'id': goods_id,
@@ -71,7 +71,7 @@ def __syncDelGoodsToRedis(goods_id=0, business_type=0):
     :return:
     """
     # 寻物放库3, 拾物放库4
-    redis_conn = redis_conn_db_3 if business_type == 0 else redis_conn_db_4
+    redis_conn = redis_conn_lost if business_type == 0 else redis_conn_found
     word_cls = redis_conn.get(goods_id)
     if word_cls:
         # 物品在redis中
