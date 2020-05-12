@@ -7,7 +7,7 @@
 @desc: 
 """
 
-SQLALCHEMY_DATABASE_URI = 'mysql://root:wcx9517530@db/ciwei_db_test?charset=utf8mb4'
+SQLALCHEMY_DATABASE_URI = 'mysql://root:wcx9517530@db/ciwei_db?charset=utf8mb4'
 # celery 异步任务框架的配置
 BROKER_URL = 'amqp://root:qweasd123@rmq/ciwei'
 CELERY_RESULT_BACKEND = 'redis://:lyx147@redis/0'

@@ -8,7 +8,8 @@
 
 
 ##启动
-* export ops_config=local|production && python manage.py runserver
+
+     export ops_config=local|production && python manage.py runserver
 
 ##flask-sqlacodegen
 

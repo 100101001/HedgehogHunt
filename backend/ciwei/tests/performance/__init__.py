@@ -20,3 +20,12 @@ def response_time(func):
         return cost
 
     return run_time
+
+
+def concurrent_output(func):
+    @wraps(func)
+    def test_output(*args, **kwargs):
+        logger = args[0].f
+        logger.write('在 {} 秒的时间内， {} 个并发 {} 请求的平均响应时间为 {} 秒\n'.format(*func(*args, **kwargs)))
+
+    return test_output
