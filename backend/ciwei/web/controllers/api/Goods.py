@@ -786,6 +786,6 @@ def esInit():
         },
         "mappings": mappings
     }
-    from application import es
-    res = es.indices.create(index="goods", body=body)
+    from application import es, app
+    res = es.indices.create(index=app.config['ES']['INDEX'], body=body)
     return res
