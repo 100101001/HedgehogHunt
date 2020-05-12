@@ -28,7 +28,7 @@ services:
       TZ: Asia/Shanghai
     restart: always
 
-  # docker-enter ${container_id}
+
   # redis-cli 
   redis:
     # 指定镜像
@@ -108,7 +108,7 @@ services:
       TZ: Asia/Shanghai
     volumes:
       - ${mysql_data_dir}:/var/lib/mysql
-      - ${mysql_init_dir}:/docker-entrypoint-initdb.d/
+      - ${mysql_init_dir}:/docker-entrypoint-initdb.d
     restart: always
   
   # https://blog.csdn.net/bocai_xiaodaidai/article/details/92641534 多服务启动脚本
