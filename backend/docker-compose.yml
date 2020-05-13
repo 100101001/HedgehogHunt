@@ -6,30 +6,29 @@
 # https://www.cnblogs.com/sparkdev/p/9826520.html 配置使用环境变量
 # https://github.com/jpetazzo/nsenter docker-enter命令
 # https://www.shellhacks.com/docker-enter-container/ 进入docker容器
-# https://www.jianshu.com/p/bf802ea2d7cf 
+# https://www.jianshu.com/p/bf802ea2d7cf
 
 # 首先执行 sudo docker-compose build 构建不基于3rd镜像的web服务的镜像
 # 然后执行 sudo docker-compose up  不加服务名会启动所有的服务。首次起服务时，会拉取基于3rd镜像的服务所需的镜像。
-version: '3.1'  #"登录容器请执行:rabbitmq-plugins enable rabbitmq_management 才可>使用WEB管理页面"
+version: "3.1" #"登录容器请执行:rabbitmq-plugins enable rabbitmq_management 才可>使用WEB管理页面"
 services:
-
   # https://www.jenkins.io/zh/doc/book/installing/#%E5%9C%A8docker%E4%B8%AD%E4%B8%8B%E8%BD%BD%E5%B9%B6%E8%BF%90%E8%A1%8Cjenkins
   jenkins:
     image: jenkinsci/blueocean
     ports:
-     - 8080:8080
-     - 5050:5050
+      - 8080:8080
+      - 5050:5050
     volumes:
-     - ${jenkins_home}:/var/jenkins_home
-     - ${jenkins_socket}:/var/run/docker.sock
+      - ${jenkins_home}:/var/jenkins_home
+      - ${jenkins_socket}:/var/run/docker.sock
     user: root
     environment:
       JAVA_OPTS: -Djava.util.logging.config.file=${jenkins_logs}
       TZ: Asia/Shanghai
     restart: always
 
-
-  # redis-cli 
+  # redis-cli
+  # sysctl vm.overcommit_memory: 1
   redis:
     # 指定镜像
     image: redis:4
@@ -38,15 +37,15 @@ services:
       - 6379:6379
     volumes:
       # 目录映射
-      - ${redis_cnf_dir}:/usr/local/etc/redis
+      - ${redis_log_dir}:/var/log/redis
+      - ${redis_cnf_dir}:/etc/redis:ro
       - ${redis_data_dir}:/data
     environment:
       TZ: Asia/Shanghai
     command:
       # 执行的命令
-      redis-server --requirepass ${redis_pwd}
+      redis-server /etc/redis/redis.conf
     restart: always
-  
 
   # docker exec -it ${rabbit_container_id} /bin/bash 不需要进入容器赋予用户权限
   # rabbitmqctl  set_permissions -p ciwei root '.*' '.*' '.*'
@@ -66,14 +65,13 @@ services:
       RABBITMQ_DEFAULT_PASS: ${rmq_pwd}
       RABBITMQ_LOGS: ${rmq_log}
       RABBITMQ_SASL_LOGS: ${rmq_sasl}
-      RABBITMQ_ERLANG_COOKIE: ${rmq_erlang_ck} 
+      RABBITMQ_ERLANG_COOKIE: ${rmq_erlang_ck}
       TZ: Asia/Shanghai
     volumes:
       - ${rmq_data_dir}:/var/lib/rabbitmq
     restart: always
 
-
-# https://www.elastic.co/guide/en/elasticsearch/reference/6.4/docker.html#docker es官方docker配置的说明 
+  # https://www.elastic.co/guide/en/elasticsearch/reference/6.4/docker.html#docker es官方docker配置的说明
   es:
     image: elasticsearch:7.6.2
     expose:
@@ -88,11 +86,11 @@ services:
       - ${es_data_dir}:/usr/share/elasticsearch/data
       - ${es_log_dir}:/usr/share/elasticsearch/logs
     restart: always
- 
+
   # https://www.cnblogs.com/han-1034683568/p/6941337.html 配置 构建文件，自动执行SQL建库脚本
   # https://www.cnblogs.com/bolingcavalry/p/11495509.html 根据MYSQL镜像的entry文件，配置映射文件
-  # https://github.com/docker-library/mysql/blob/7397711170daed7ebba3bf373af143e5179906fc/5.7/Dockerfile 
-  # https://github.com/docker-library/mysql/blob/7397711170daed7ebba3bf373af143e5179906fc/5.7/docker-entrypoint.sh 
+  # https://github.com/docker-library/mysql/blob/7397711170daed7ebba3bf373af143e5179906fc/5.7/Dockerfile
+  # https://github.com/docker-library/mysql/blob/7397711170daed7ebba3bf373af143e5179906fc/5.7/docker-entrypoint.sh
   # ALTER TABLE `goods` drop column `target_price` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '发布者实际的手机号';
   # ALTER TABLE `goods` drop column `target_price`;
   # https://dev.mysql.com/doc/refman/8.0/en/sql-statements.html
@@ -110,7 +108,7 @@ services:
       - ${mysql_data_dir}:/var/lib/mysql
       - ${mysql_init_dir}:/docker-entrypoint-initdb.d
     restart: always
-  
+
   # https://blog.csdn.net/bocai_xiaodaidai/article/details/92641534 多服务启动脚本
   web:
     build:
@@ -125,10 +123,7 @@ services:
       PRODUCTION_TEST: ${production_test}
     volumes:
       - ${code_dir}:/code
-    command:
-      uwsgi --ini ${uwsgi_ini_file}
-      # celery -A application.celery worker -Q log_queue,sync_queue,recommend_queue,subscribe_queue,sms_queue,mall_queue -l info &
-      # celery -A application.celery beat -l info
+    command: bash /code/run_server.sh
     depends_on:
       - db
       - es
@@ -140,3 +135,4 @@ services:
       - redis
       - rmq
     restart: always
+

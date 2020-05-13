@@ -132,7 +132,7 @@
 起worker和beat的命令
    
     celery -A application.celery worker -Q log_queue,sync_queue,recommend_queue,subscribe_queue,sms_queue -l info 
-    celery -A application.celery beat  -l info --detach
+    celery -A application.celery beat  -l info --piddile=
     # celery beat -A celery_schedule -l info -f logging/schedule_tasks.log --detach
 参考资料
 
