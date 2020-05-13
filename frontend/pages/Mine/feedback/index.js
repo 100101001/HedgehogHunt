@@ -130,6 +130,9 @@ Page({
    */
   uploadImage: function (id, img_list) {
     let n = img_list.length;
+    if (n === 0) {
+      wx.showToast({title: '感谢反馈！', success: res => {setTimeout(wx.navigateBack, 750)}})
+    }
     for (let i = 1; i <= n; i++) {
       //正在上传第 i 张图片的loading
       this.setData({

@@ -898,7 +898,7 @@ Page({
     },
       {
         name: "mobile",
-        placeholder: business_type !== 0? "寄放处电话": "高危非必填",
+        placeholder: business_type !== 0? "寄放处电话": "高危可填无",
         kb_type: 'text',
         // hints: business_type !== 0? '寄放处的办公电话。否则可填客服号，代理致电您注册手机。': '谨防诈骗和骚扰电话。可留客服号，代理致电您注册手机。',
         value: "",
