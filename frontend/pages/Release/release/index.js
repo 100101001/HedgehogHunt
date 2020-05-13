@@ -212,6 +212,25 @@ Page({
     }
   },
   /**
+   * 对不知道怎么操作直接输入位置的用户进行提示
+   * @param e
+   */
+  toInputGetLocation: function (e) {
+    let loc_id = e.currentTarget.dataset.loc * 1;
+    if (this.data.os_location.length === 0 && loc_id === 2 || this.data.location.length === 0 && loc_id === 1) {
+      let content = '请点击获取位置';
+      if (loc_id === 2 && this.data.business_type === 0) {
+        content += '，不知道可留空'
+      } else if ((this.data.business_type === 1 || this.business_type === 2) && loc_id ===1) {
+        content += '，与发现地一样可留空'
+      }
+      app.alert({
+        title: '操作提示',
+        content: content
+      })
+    }
+  },
+  /**
    * 获取位置按钮，先授权，然后可以获取用户位置
    * @param e
    */
@@ -870,7 +889,7 @@ Page({
       value: business_type === 2  && info ? info.goods_name : "",  //归还帖自动填充归还的物品名
     }, {
       name: "owner_name",
-      hints: business_type === 0? '您的姓名，不会公布，仅用于筛选推荐': '物品上附有的物主身份信息，方便失主寻物',
+      // hints: business_type === 0? '您失物上附有的姓名，用于筛选推荐和拾者归还': '物品上附有的物主身份信息，方便失主寻物',
       placeholder: "例:可可" + (business_type===1?'，若没有请填无。': '') ,
       kb_type: 'text',
       label: business_type ? "失主姓名": "姓名",
@@ -879,9 +898,9 @@ Page({
     },
       {
         name: "mobile",
-        placeholder: "客服号17717852647",
+        placeholder: business_type !== 0? "寄放处电话": "高危非必填",
         kb_type: 'text',
-        hints: business_type !== 0? '寄放处的办公电话。否则可填客服号，代理致电您注册手机。': '谨防诈骗和骚扰电话。可留客服号，代理致电您注册手机。',
+        // hints: business_type !== 0? '寄放处的办公电话。否则可填客服号，代理致电您注册手机。': '谨防诈骗和骚扰电话。可留客服号，代理致电您注册手机。',
         value: "",
         label: "电话",
         icons: "/images/icons/mobile.png",

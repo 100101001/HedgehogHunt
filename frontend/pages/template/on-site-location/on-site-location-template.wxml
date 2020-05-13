@@ -1,24 +1,23 @@
 <!--pages/template/on-site-location/on-site-location-template.wxml-->
 <template name="on-site-location">
-  <view wx:if="{{!edit}}" id="need-tips">
-    <view class="tips-views" wx:if="{{business_type==0}}">你丢的位置，方便推荐筛选，不记得可留空。</view>
-    <view class="tips-views" wx:if="{{business_type==1}}">你发现失物的位置，方便失主寻物。</view>
-    <view class="tips-views" wx:if="{{business_type==2}}">你发现失物的位置，方便失主确认。</view>
-  </view>
+<!--  <view wx:if="{{!edit}}" id="need-tips">-->
+<!--&lt;!&ndash;    <view class="tips-views" wx:if="{{business_type==0}}">你丢的位置，方便推荐筛选，不记得可留空。</view>&ndash;&gt;-->
+<!--&lt;!&ndash;    <view class="tips-views" wx:if="{{business_type==1}}">你发现失物的位置，方便失主寻物。</view>&ndash;&gt;-->
+<!--&lt;!&ndash;    <view class="tips-views" wx:if="{{business_type==2}}">你发现失物的位置，方便失主确认。</view>&ndash;&gt;-->
+<!--  </view>-->
   <view class="item-container">
     <image src="/images/icons/location.png" mode="aspectFit"></image>
     <view class="label" wx:if="{{business_type==1 || business_type == 2}}">发现位置</view>
-    <view class="label" wx:if="{{business_type==0}}">丢失位置</view>
+    <view class="label" wx:else>丢失位置</view>
     <view class="get-location" data-loc="2" bindtap="getLocation">获取位置</view>
   </view>
 
-  <view class="location-name" wx:if="{{business_type==0}}">
-    <input name="location" data-loc="2" bindinput="listenLocationInput" disabled="{{os_location.length==0}}"
+  <view wx:if="{{business_type == 0}}" class="location-name" >
+    <input name="location" data-loc="2" bindinput="listenLocationInput" disabled="{{os_location.length==0}}" bindtap="toInputGetLocation"
            value="{{os_location[1]}}" placeholder="我也不知道给丢哪了，就不填了"></input>
   </view>
-
-  <view class="location-name" wx:if="{{business_type!=0}}" id="on-site-location">
-    <input name="location" data-loc="2" bindinput="listenLocationInput" disabled="{{os_location.length==0}}"
+  <view wx:else class="location-name" id="on-site-location">
+    <input name="location" data-loc="2" bindinput="listenLocationInput" disabled="{{os_location.length==0}}" bindtap="toInputGetLocation"
            value="{{os_location[1]}}" placeholder="若获取的地址不够精确可手动输入完善"></input>
   </view>
   <view class="hrz"></view>

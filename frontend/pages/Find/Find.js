@@ -1,4 +1,6 @@
 const app = getApp();
+const util = require("../../utils/util.js");
+const navigate = require("../template/navigate-bar/navigate-bar-template.js");
 Page({
   data: {
     banners: ["/images/logo.jpg"],
@@ -68,8 +70,17 @@ Page({
    */
   onShow: function () {
     //加载第一页的物品数据
+    this.setNavigationBar();
     this.setInitData();
     this.onPullDownRefresh();
+  },
+  setNavigationBar: function () {
+    let [isSelecteds, urls] = util.onNavigateTap(this.data.business_type? 1: 3);  //不传值代表没有页被选中
+    isSelecteds['showHintQrcode'] = app.globalData.showHintQrcode;  //用户有没有关闭
+    isSelecteds['regFlag'] = app.globalData.regFlag;  //用户注册
+    this.setData({
+      isSelecteds: isSelecteds
+    });
   },
   /**
    * catClick 如果切换了状态栏，就加载新的数据
@@ -427,6 +438,29 @@ Page({
     //刷新页面数据
     this.onLoadSetData(1-this.data.business_type)
     this.onShow()
+  },
+  //点击导航
+  onNavigateTap: function (event) {
+    let [isSelecteds, urls] = util.onNavigateTap( event.currentTarget.dataset.id * 1);
+    this.setData({
+      isSelecteds: isSelecteds
+    })
+    navigate.onNavigateTap(event, this)
+  },
+  tapOnHint: function (e) {
+    navigate.tapOnHint(this)
+  },
+  closeQrcodeHint: function (e) {
+    navigate.closeQrcodeHint(this)
+  },
+  toSeeQrcode: function () {
+    navigate.toSeeQrcode(this)
+  },
+  toGetQrcode: function () {
+    navigate.toGetQrcode(this)
+  },
+  toLogin: function () {
+    navigate.toLogin(this)
   }
 });
 

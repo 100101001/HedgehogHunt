@@ -425,16 +425,9 @@ Page({
    * toRechargeBalance 用户按下余额充值按钮显示输入充值金额的模态框
    */
   toRechargeBalance: function(){
-    app.alert({
-      title: '充值提示',
-      content: '余额可用于置顶，答谢，购物，短信付费等。提现额度为10元，确认充值？',
-      showCancel: true,
-      cb_confirm: ()=>{
-        this.setData({
-          hiddenBalanceRecharge: false
-        })
-      }
-    })
+    this.setData({
+      hiddenBalanceRecharge: false
+    });
   },
   /**
    * listenBalanceRecharge 监听用户输入的钱数
@@ -454,7 +447,7 @@ Page({
       //充值金额大于零才继续
       app.alert({
         title: '充值确认',
-        content: '您需要支付' + pay_price + '元，确认充值？',
+        content: '您需要支付' + pay_price + '元，可用于置顶，答谢，购物。提现额度为10元，确认充值？',
         showCancel: true,
         cb_confirm: () => {
           this.doBalanceRecharge(pay_price)
@@ -490,6 +483,49 @@ Page({
     this.setData({
       hiddenBalanceRecharge: true,
       balance_recharge_amount: ""
+    })
+  },
+  toIntroduce: function () {
+    this.setData({
+      hiddenIntroduceModal: false
+    })
+  },
+  cancelIntroduce: function(){
+    //停止播放并隐藏模态框
+    setTimeout(()=>{
+      this.setData({
+        hiddenIntroduceModal: true
+      })
+    }, 580)
+  },
+  toEditPhone: function () {
+    wx.navigateTo({
+      url: '/pages/Qrcode/Mobile/index'
+    });
+    this.cancelMobileEdit()
+  },
+
+  /******************************************************此部分以下暂时保留代码而已，前端页面元素已注释隐藏***********************************************8*****/
+  toLookupSms: function () {
+    this.setData({
+      hiddenSmsDetailModal: false
+    })
+  },
+  smsTips: function() {
+    let content = '';
+    if (this.data.userInfo.has_qrcode){
+      content = '如果你有寻物码，但是没有短信条数，且账户余额不足1毛。当发生扫码归还时，你将收不到系统及时的短信通知。'
+    } else {
+      content = '获取寻物码，系统赠送你免费的5条短信哦！'
+    }
+    app.alert({
+      title: '短信提示',
+      content: content
+    })
+  },
+  closeSmsDetail: function () {
+    this.setData({
+      hiddenSmsDetailModal: true
     })
   },
   /**
@@ -570,45 +606,4 @@ Page({
       hiddenSmsPkgModal: true
     })
   },
-  toIntroduce: function () {
-    this.setData({
-      hiddenIntroduceModal: false
-    })
-  },
-  cancelIntroduce: function(){
-    //停止播放并隐藏模态框
-    setTimeout(()=>{
-      this.setData({
-        hiddenIntroduceModal: true
-      })
-    }, 580)
-  },
-  toEditPhone: function () {
-    wx.navigateTo({
-      url: '/pages/Qrcode/Mobile/index'
-    });
-    this.cancelMobileEdit()
-  },
-  toLookupSms: function () {
-    this.setData({
-      hiddenSmsDetailModal: false
-    })
-  },
-  smsTips: function() {
-    let content = '';
-    if (this.data.userInfo.has_qrcode){
-      content = '如果你有寻物码，但是没有短信条数，且账户余额不足1毛。当发生扫码归还时，你将收不到系统及时的短信通知。'
-    } else {
-      content = '获取寻物码，系统赠送你免费的5条短信哦！'
-    }
-    app.alert({
-      title: '短信提示',
-      content: content
-    })
-  },
-  closeSmsDetail: function () {
-    this.setData({
-      hiddenSmsDetailModal: true
-    })
-  }
 })

@@ -12,13 +12,17 @@ const onNavigateTap = function (event, that) {
   if ((id === 4 || id === 2) && !app.loginTip()) {
     return
   }
-  //导航，并延时隐藏提示浮窗
-  wx.navigateTo({
-    url: app.globalData.navigateUrls[id],
-    success: () => {
-      hideHint(that)
-    }
-  })
+  if(id === 1 || id === 3){
+    that.businessTypeClick()
+  } else {
+    //导航，并延时隐藏提示浮窗
+    wx.navigateTo({
+      url: app.globalData.navigateUrls[id],
+      success: () => {
+        hideHint(that)
+      }
+    })
+  }
 }
 
 const closeQrcodeHint = function (that) {

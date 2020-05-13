@@ -10,8 +10,6 @@ page {
 }
 
 
-
-
 /***让状态切换栏吸附在顶部**/
 .fixed-tab{
   position: fixed;

@@ -45,7 +45,7 @@ const createOrder = function(data={}, cb_success = ()=>{}, that){
     data: data,
     success: (res) => {
       let resp = res.data;
-      if (resp['code'] != 200) {
+      if (resp['code'] !== 200) {
         app.alert({content: resp['msg']})
         that.setData({
           createOrderDisabled: false
@@ -303,7 +303,7 @@ Page({
   changeUseBalance: function (e) {
     useBalance.changeUseBalance(e, () => {
         this.setData({
-          use_balance: e.detail.value.length == 1
+          use_balance: e.detail.value.length === 1
         })
       }
     )

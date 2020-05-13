@@ -57,23 +57,29 @@ const orderPay = function (order_sn, cb_success = () => {}) {
  */
 const onOrderPaySuccess = function (order_sn = "", qr_code_num = 0, sms_pkg_num = 0, sms_num = 0, only_special = false) {
   if (qr_code_num) {
-    //操作member和qr_code表
+    // 操作member和qr_code表
+    // getQrcodeFromWechat(() => {
+    //   changeMemberSmsTimes(globalData.buyQrCodeFreeSmsTimes, () => {
+    //     onQrcodeSuccess(only_special, order_sn)  //自动发货和用户提示
+    //   }, onFailContactTech)
+    // }, onFailContactTech)
     getQrcodeFromWechat(() => {
-      changeMemberSmsTimes(globalData.buyQrCodeFreeSmsTimes, () => {
-        onQrcodeSuccess(only_special, order_sn)  //自动发货和用户提示
-      }, onFailContactTech)
-    }, onFailContactTech)
-  } else if (sms_pkg_num) {
-    //操作sms_pkg表
-    addSmsPkg(() => {
-      onSmsBuySuccess(order_sn, '短信包购买成功') //自动发货和用户提示
-    }, onFailContactTech)
-  } else if (sms_num) {
-    //操作qr_code表
-    changeMemberSmsTimes(sms_num, () => {
-      onSmsBuySuccess(order_sn, '短信购买成功') //自动发货和用户提示
+      onQrcodeSuccess(only_special, order_sn);
     }, onFailContactTech)
   }
+
+  // 以下部分充值短信暂时不要
+  // else if (sms_pkg_num) {
+  //   //操作sms_pkg表
+  //   addSmsPkg(() => {
+  //     onSmsBuySuccess(order_sn, '短信包购买成功') //自动发货和用户提示
+  //   }, onFailContactTech)
+  // } else if (sms_num) {
+  //   //操作qr_code表
+  //   changeMemberSmsTimes(sms_num, () => {
+  //     onSmsBuySuccess(order_sn, '短信购买成功') //自动发货和用户提示
+  //   }, onFailContactTech)
+  // }
 }
 
 /**
@@ -110,27 +116,11 @@ const onQrcodeSuccess = function (only_special = false, order_sn = "") {
   if (only_special) {
     autoSendGoods(order_sn)
   }
-  wx.showToast({
-    title: '购买寻物码成功',
-    icon: 'success',
-    mask: true,
-    duration: 800,
-    success: function () {
-      setTimeout(function () {
-        app.alert({
-          title: '赠品提示',
-          content: '已发放5次免费的失物通知！',
-          cb_confirm: () => {
-            app.alert({
-              title: '寻物码查看',
-              content: '入口页【我的】—【个人信息】',
-            })
-          }
-        })
-      }, 700)
-    }
-  })
-}
+  app.alert({
+    title: '寻物码查看',
+    content: '入口页【我的】-【个人信息】'
+  });
+};
 
 
 /**

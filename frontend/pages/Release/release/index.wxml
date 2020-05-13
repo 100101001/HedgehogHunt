@@ -1,12 +1,12 @@
 <import src="../../template/use-balance/use-balance.wxml"></import>
-<import src="../../template/warn/warn-template.wxml" />
+<!--<import src="../../template/warn/warn-template.wxml" />-->
 <view class="container" wx:if="{{dataReady}}">
   <loading hidden="{{loadingHidden}}" wx:if="{{ !upload_qrcode }}">上传第{{i}}张图片..</loading>
-  <template is="warn-template" data="{{...textArray}}" />
+<!--  <template is="warn-template" data="{{...textArray}}" />-->
 
 
   <form class="goods-box" bindsubmit="formSubmit">
-    <view class="price-and-location" id="to-make-up-owner-name">
+    <view class="priThe name field of the search field can search not the user's nickname, but the name he filled in. If he doesn't fill in, he can't search by namece-and-location" id="to-make-up-owner-name">
 
       <!--文本输入框：物品名，失主名-->
       <block wx:for="{{items}}" wx:key="index" wx:for-index="idx">
@@ -37,8 +37,8 @@
 
       <!--放置地址选择器和输入框-->
       <view class="tips-views" wx:if="{{business_type==0}}">你的常驻地址，方便拾者就近归还。</view>
-      <view class="tips-views" wx:if="{{business_type==1}}">你寄放失物的地址，方便失主前往认领，与发现地一致可留空。</view>
-      <view class="tips-views" wx:if="{{business_type==2 && !info}}">你寄放失物的地址，方便失主前往认领。</view>
+<!--      <view class="tips-views" wx:if="{{business_type==1}}">你寄放失物的地址，方便失主前往认领，与发现地一致可留空。</view>-->
+<!--      <view class="tips-views" wx:if="{{business_type==2 && !info}}">你寄放失物的地址，方便失主前往认领。</view>-->
       <view class="tips-views" wx:if="{{business_type == 2 && info}}">建议将物品归还到 <text style="font-size:26rpx;font-weight:600;opacity:1;">{{info_owner_name}}</text> 所在的以下位置，若是放置到自己方便的位置请获取位置提交</view>
       <view class="item-container">
         <image src="/images/icons/location.png" mode="aspectFit"></image>
@@ -47,7 +47,7 @@
         <view class="get-location" data-loc="1" bindtap="getLocation">获取位置</view>
       </view>
       <view class="location-name">
-        <input name="location" data-loc="1" bindinput="listenLocationInput" disabled="{{location.length==0}}"
+        <input name="location" data-loc="1" bindinput="listenLocationInput" disabled="{{location.length==0}}" bindtap="toInputGetLocation"
                value="{{location[1]}}" placeholder="{{business_type!=1 && !(business_type==2 && !info) ? '若获取的地址不够精确可手动输入完善': '和我发现的地点一样，就不填了'}}"></input>
       </view>
       <view class="hrz"></view>
@@ -67,8 +67,8 @@
         <image class="add-pic-icon" src="/images/icons/add-pics.png"></image>
       </view>
     </view>
-    <view class="tips-views" wx:if="{{business_type == 0}}">发布寻物启事前可以先去待领页看看有没有人发布失物招领~</view>
-    <view class="tips-views" wx:if="{{business_type == 1}}">发布失物招领前可以先去待寻页看看有没有人发布寻物启事~</view>
+    <view class="tips-views" wx:if="{{business_type == 0}}">发布寻物启事前可以先去拾物页看看有没有人发布失物招领~</view>
+    <view class="tips-views" wx:if="{{business_type == 1}}">发布失物招领前可以先去失物页看看有没有人发布寻物启事~</view>
     <view class="hrz"></view>
     <view class="summary-container">
       <view class="tips-views">物品描述</view>

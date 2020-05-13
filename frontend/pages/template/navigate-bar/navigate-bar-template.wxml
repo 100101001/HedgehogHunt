@@ -19,25 +19,25 @@
 			<view class="arrow"></view>
 		</view>
 		<view class="navigate_icon_container">
-			<view catchtap='onNavigateTap' class="home_icon_container" data-id="0" hover-class="navigator-clicked" hover-stay-time="1000">
+			<view catchtap='onNavigateTap' class="home_icon_container" data-id="0">
 				<image class="our_icon" style='width:77rpx; height:70rpx' src="{{isSelected0? '/images/icons/home_select.png':'/images/icons/home.png'}}"></image>
 				<view class="icon_text" wx:if="{{isSelected0}}" style="color:#f7931e">校园周边</view>
 				<view class="icon_text" wx:if="{{!isSelected0}}" style="color:#b3b3b3">校园周边</view>
 			</view>
 
-			<view catchtap='onNavigateTap' class="icon_container" data-id="1" hover-class="navigator-clicked" hover-stay-time="1000">
+			<view catchtap='onNavigateTap' class="icon_container" data-id="1">
 				<image class="our_icon" style='width:60rpx; height:70rpx' src="{{isSelected1? '/images/icons/find_select.png':'/images/icons/find.png'}}"></image>
 				<view class="icon_text" wx:if="{{isSelected1}}" style="color:#f7931e">拾物</view>
 				<view class="icon_text" wx:if="{{!isSelected1}}" style="color:#b3b3b3">拾物</view>
 			</view>
 
-			<view catchtap='onNavigateTap' class="find_icon_container" data-id="3" hover-class="navigator-clicked" hover-stay-time="1000">
+			<view catchtap='onNavigateTap' class="find_icon_container" data-id="3">
 				<image class="our_icon" style='width:60rpx; height:70rpx' src="{{isSelected3? '/images/icons/lost_select.png':'/images/icons/lost.png'}}"></image>
 				<view class="icon_text" wx:if="{{isSelected3}}" style="color:#f7931e">失物</view>
 				<view class="icon_text" wx:if="{{!isSelected3}}" style="color:#b3b3b3">失物</view>
 			</view>
 
-			<view catchtap='onNavigateTap' class="icon_container" data-id="4" hover-class="navigator-clicked" hover-stay-time="1000">
+			<view catchtap='onNavigateTap' class="icon_container" data-id="4">
 				<image class="our_icon" style='width:77rpx; height:64rpx' src="{{isSelected4? '/images/icons/mine_select.png':'/images/icons/mine.png'}}"></image>
 				<view class="icon_text" wx:if="{{isSelected4}}" style="color:#f7931e">我的</view>
 				<view class="icon_text" wx:if="{{!isSelected4}}" style="color:#b3b3b3">我的</view>
@@ -45,7 +45,7 @@
 			</view>
 		</view>
 
-		<view catchtap='onNavigateTap' class="release_icon_container" data-id="2" hover-class="navigator-clicked" hover-stay-time="1000">
+		<view catchtap='onNavigateTap' class="release_icon_container" data-id="2">
 			<image class="release_icon" style='width:126rpx; height:126rpx' src="{{isSelected2? '/images/icons/release_select.png':'/images/icons/release.png'}}"></image>
 			<view class="release_text" wx:if="{{isSelected2}}" style="color:#f7931e">发布</view>
 			<view class="release_text" wx:if="{{!isSelected2}}" style="color:#b3b3b3">发布</view>

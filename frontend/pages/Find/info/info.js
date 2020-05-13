@@ -1259,18 +1259,19 @@ Page({
       if(!is_auth) {
         if (status === 1) {
           content = '还无人归还，如果你捡到了，赶紧归还吧~'
-        }
-        let is_returner = info['is_returner'];
-        if (is_returner) {
-          if (status === 2) {
-            content = '请耐心等待失主确认并取回~'
-          } else if(status === 3) {
-            content = '感谢您的举手之劳，失主已经取回了~'
-          } else if (status === 4) {
-            content = is_auth? '您的感谢是拾者归还的最大动力~': '感谢您的举手之劳，失主已经取回了~'
-          }
         } else {
-          content = '失物已经收到了归还~'
+          let is_returner = info['is_returner'];
+          if (is_returner) {
+            if (status === 2) {
+              content = '请耐心等待失主确认并取回~'
+            } else if(status === 3) {
+              content = '感谢您的举手之劳，失主已经取回了~'
+            } else if (status === 4) {
+              content = is_auth? '您的感谢是拾者归还的最大动力~': '感谢您的举手之劳，失主已经取回了~'
+            }
+          } else {
+            content = '失物已经收到了归还~'
+          }
         }
       }
       else {

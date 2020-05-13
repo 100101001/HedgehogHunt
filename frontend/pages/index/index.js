@@ -34,7 +34,7 @@ Page({
       member_status: member_status
     });
     wx.navigateTo({
-      url: '/pages/Homepage/index',
+      url: '/pages/Find/Find',
     })
   },
   onLoad: function (options) {

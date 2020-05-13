@@ -33,8 +33,8 @@
         <text wx:if="{{info.business_type === 0}}" style="color: #f7931e;">#丢失#</text>
         <text wx:if="{{info.business_type === 2}}" style="color: #f7931e;">#归还#</text>
         <view class="goods_owner">{{info.goods_name}}</view>
-        <view class="goods_owner" wx:if="{{info.business_type !== 2 && !info.is_auth}}">{{tools.protectName(info.owner_name)}}</view>
-        <view class="goods_owner" wx:else>{{info.owner_name}}</view>
+<!--        <view class="goods_owner" wx:if="{{info.business_type !== 2 && !info.is_auth}}">{{tools.protectName(info.owner_name)}}</view>-->
+        <view class="goods_owner">{{info.owner_name}}</view>
       </view>
       <view class="goods-status">
         <view class="goods-price" style="color:#999;font-size:24rpx;">浏览{{info.view_count}}次</view>
