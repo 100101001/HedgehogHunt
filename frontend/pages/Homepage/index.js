@@ -3,19 +3,20 @@ const util = require("../../utils/util.js");
 const app = getApp();
 
 
-
 /**
  * simpleMemberInfo 用户是否有二维码
  * @param cb_complete
  * @param cb_fail  服务器无响应时，设置为默认的用户信息
  */
-const simpleMemberInfo = function (cb_complete=()=>{}, cb_fail=()=>{}) {
+const simpleMemberInfo = function (cb_complete = () => {
+}, cb_fail = () => {
+}) {
   wx.request({
     url: app.buildUrl("/member/simple/info"),
     header: app.getRequestHeader(),
     success: (res) => {
       let resp = res.data;
-      if (resp['code']!==200) {
+      if (resp['code'] !== 200) {
         cb_fail()
         app.alert({content: resp['msg']});
         return
@@ -35,7 +36,7 @@ Page({
    * 页面的初始数据
    */
   data: {
-    navigators : [
+    navigators: [
       {
         label: '我的发布',
         url: '/pages/Record/index?op_status=0'
@@ -75,7 +76,7 @@ Page({
         img: '/images/more/qrcode.png',
         nav: '立刻购买 >',
         act: "goBuy",
-        url: "/pages/Mine/userinfo/index"
+        url: ''
       },
       {
         slogans: ['邀请好友获取寻物码', '领取现金红包'],
@@ -89,33 +90,47 @@ Page({
     invite_tutorial_hidden: true,
     subscribe_hidden: true
   },
-  execute: function(method_name='') {
-    let methods_map = {'goInvite': this.goInvite,
-                       'goSubscribeOfficial': this.openSubscribe
-                      };
+  execute: function (method_name = '') {
+    let methods_map = {
+      'goInvite': this.goInvite,
+      'goSubscribeOfficial': this.openSubscribe,
+      'goBuy': this.goBuy
+    };
     methods_map[method_name]()
   },
-  clickNav: function(e){
+  clickNav: function (e) {
     let target = this.data.activities[e.currentTarget.dataset.id];
     if (target.url) {
-      wx.showLoading({title: '跳转中', success: res => {setTimeout(wx.hideLoading, 500)}});
-      wx.navigateTo({url: target.url});
+
     } else {
-      this.execute(target.act)
+      this.execute(target.act);
     }
   },
-  openSubscribe: function() {
+  jumpTo: function (url = '') {
+    wx.showLoading({
+      title: '跳转中', success: (res) => {
+        setTimeout(wx.hideLoading, 500)
+      }
+    });
+    wx.navigateTo({url: url});
+  },
+  goBuy: function () {
+    if (app.loginTip()) {
+      this.jumpTo('/pages/Mine/userinfo/index')
+    }
+  },
+  openSubscribe: function () {
     this.setData({
       subscribe_hidden: false,
     })
   },
-  closeSubscribe: function(){
+  closeSubscribe: function () {
     this.setData({
       subscribe_hidden: true
     })
   },
-  closeAndRemoveActivity: function(){
-    if(this.data.has_subscribe) {
+  closeAndRemoveActivity: function () {
+    if (this.data.has_subscribe) {
       this.data.activities.splice(0, 1);
       this.setData({
         has_subscribe: false,
@@ -129,18 +144,18 @@ Page({
       load_ok: true
     });
   },
-  goInvite: function() {
+  goInvite: function () {
     this.setData({
       invite_tutorial_hidden: false
     })
     setTimeout(this.closeInvite, 3500)
   },
-  closeInvite: function(){
+  closeInvite: function () {
     this.setData({
       invite_tutorial_hidden: true
     })
   },
-  setInitActivityData: function(){
+  setInitActivityData: function () {
     this.closeSubscribe();
     this.closeInvite();
   },
@@ -148,13 +163,6 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
-    // let obj = wx.getLaunchOptionsSync();//获取当前小程序的场景值
-    // if(!this.data.getLaunchOptionsSyncArr.includes(obj.scene)) {
-    //   this.data.activities.splice(0, 1);
-    //   this.setData({
-    //     activities: this.data.activities
-    //   })
-    // }
   },
 
   /**
@@ -176,7 +184,7 @@ Page({
   /**
    * 导航栏(浮窗)设置
    */
-  setNavigationBar: function(){
+  setNavigationBar: function () {
     let [isSelecteds, urls] = util.onNavigateTap();  //不传值代表没有页被选中
     isSelecteds['showHintQrcode'] = app.globalData.showHintQrcode;  //用户有没有关闭
     isSelecteds['regFlag'] = app.globalData.regFlag;  //用户注册
@@ -189,7 +197,7 @@ Page({
   /**
    * 设置用户身份信息（已注册和未主册都要）
    */
-  setUserInfo: function (regFlag=false) {
+  setUserInfo: function (regFlag = false) {
     if (!regFlag) {
       //未注册，设置默认头像
       this.setDefaultUserInfo()
@@ -210,7 +218,7 @@ Page({
       simpleMemberInfo(cb_complete, this.setDefaultUserInfo)
     }
   },
-  setDefaultUserInfo: function(){
+  setDefaultUserInfo: function () {
     let userInfo = app.globalData.unRegUserInfo;
     this.setData({
       total_new: 0,
@@ -221,17 +229,10 @@ Page({
   /**
    * 快速跳转"我的","购物"页面
    */
-  quickLink: function (e){
-    if(!app.loginTip()){
-      return;
+  quickLink: function (e) {
+    if (app.loginTip()) {
+      this.jumpTo(e.currentTarget.dataset.url);
     }
-    wx.showLoading({title:'正在跳转'});
-    wx.navigateTo({
-      url: e.currentTarget.dataset.url,
-      success : res=> {
-        setTimeout(wx.hideLoading, 300)
-      }
-    })
   },
   /**
    * 生命周期函数--监听页面隐藏
@@ -281,7 +282,7 @@ Page({
   onNavigateTap: function (event) {
     navigate.onNavigateTap(event, this)
   },
-  tapOnHint: function(e){
+  tapOnHint: function (e) {
     navigate.tapOnHint(this)
   },
   closeQrcodeHint: function (e) {
