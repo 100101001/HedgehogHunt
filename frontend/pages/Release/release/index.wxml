@@ -23,7 +23,6 @@
                    type="{{item.kb_type}}"
                    bindinput="listenerInput"
                    data-id="{{idx}}"
-                   bindtap="{{item.act}}"
             ></input>
           </view>
         </view>
@@ -47,8 +46,10 @@
         <view class="get-location" data-loc="1" bindtap="getLocation">获取位置</view>
       </view>
       <view class="location-name">
-        <input name="location" data-loc="1" bindinput="listenLocationInput" disabled="{{location.length==0}}" bindtap="toInputGetLocation"
-               value="{{location[1]}}" placeholder="{{business_type!=1 && !(business_type==2 && !info) ? '若获取的地址不够精确可手动输入完善': '和我发现的地点一样，就不填了'}}"></input>
+        <input wx:if="{{business_type==0}}" name="location" data-loc="1" bindinput="listenLocationInput" disabled="{{location.length==0}}" bindtap="toInputGetLocation"
+               value="{{location[1]}}" placeholder="我不方便透露，就不填了"></input>
+        <input wx:else name="location" data-loc="1" bindinput="listenLocationInput" disabled="{{location.length==0}}" bindtap="toInputGetLocation"
+               value="{{location[1]}}" placeholder="{{business_type!=1 && !(business_type==2 && !info) ? '点击上方按钮获取位置，若不够精确可再手动输入完善': '和我发现的地点一样，就不填了'}}"></input>
       </view>
       <view class="hrz"></view>
       <!--放置地址选择器和输入框-->

@@ -218,9 +218,9 @@ Page({
   toInputGetLocation: function (e) {
     let loc_id = e.currentTarget.dataset.loc * 1;
     if (this.data.os_location.length === 0 && loc_id === 2 || this.data.location.length === 0 && loc_id === 1) {
-      let content = '请点击获取位置';
-      if (loc_id === 2 && this.data.business_type === 0) {
-        content += '，不知道可留空'
+      let content = '请点击上方按钮获取位置';
+      if (this.data.business_type === 0) {
+        content += loc_id === 2 ? '，不知道可留空': '，可留空'
       } else if ((this.data.business_type === 1 || this.business_type === 2) && loc_id ===1) {
         content += '，与发现地一样可留空'
       }
@@ -416,7 +416,7 @@ Page({
     } else if (business_type === 0) {
       // 寻物启事必须填写居住地点
       data = {
-        location: this.data.location.length ? this.data.location[1] : "",
+        // location: this.data.location.length ? this.data.location[1] : "",
         goods_name: items[0].value,
         mobile: items[2].value,
         owner_name: items[1].value,
@@ -903,8 +903,7 @@ Page({
         // hints: business_type !== 0? '寄放处的办公电话。否则可填客服号，代理致电您注册手机。': '谨防诈骗和骚扰电话。可留客服号，代理致电您注册手机。',
         value: "",
         label: "电话",
-        icons: "/images/icons/mobile.png",
-        act: 'copyClientMobile'
+        icons: "/images/icons/mobile.png"
       }
     ];
     if (globalData.isScanQrcode) {
@@ -934,21 +933,21 @@ Page({
       os_location: info && !info.os_location.equals(globalData.default_loc)? info.os_location.slice(): [] //归还帖自动填充归还物品的发现地址
     })
   },
-  copyClientMobile: function(e){
-    let idx = e.currentTarget.dataset.id;
-    let items = this.data.items;
-    if (!items[idx].value) {
-      wx.setClipboardData({
-        data: globalData.client_mobile,
-        success: (res) => {
-          wx.showToast({
-            title: '客服号已复制',
-            duration: 500
-          })
-        }
-      })
-    }
-  },
+  // copyClientMobile: function(e){
+  //   let idx = e.currentTarget.dataset.id;
+  //   let items = this.data.items;
+  //   if (!items[idx].value) {
+  //     wx.setClipboardData({
+  //       data: globalData.client_mobile,
+  //       success: (res) => {
+  //         wx.showToast({
+  //           title: '客服号已复制',
+  //           duration: 500
+  //         })
+  //       }
+  //     })
+  //   }
+  // },
   /**
    * setTopAndBalanceUseInitData 在 {@link setInitData} 初始化置顶组件
    */

@@ -18,7 +18,7 @@
   </view>
   <view wx:else class="location-name" id="on-site-location">
     <input name="location" data-loc="2" bindinput="listenLocationInput" disabled="{{os_location.length==0}}" bindtap="toInputGetLocation"
-           value="{{os_location[1]}}" placeholder="若获取的地址不够精确可手动输入完善"></input>
+           value="{{os_location[1]}}" placeholder="点击上方按钮获取位置，若不够精确可再手动输入完善"></input>
   </view>
   <view class="hrz"></view>
 </template>
