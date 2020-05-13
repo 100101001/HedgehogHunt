@@ -147,7 +147,7 @@ page{
 .content {
   margin-top: -20rpx;
   font-size: 24rpx;
-  font-weight: 600;
+  font-weight: bold;
   color: #999;
   text-align:left;
 }

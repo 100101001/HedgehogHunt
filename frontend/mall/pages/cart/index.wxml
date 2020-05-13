@@ -17,7 +17,7 @@
 	</view>
 
 	<view class="goodsList" wx:if="{{ list.length }}">
-		<view class="a-gooods" wx:for="{{ list }}" wx:key="{{index}}">
+		<view class="a-gooods" wx:for="{{ list }}" wx:key="index">
 			<view class="a-goods-conts {{item.active? 'active':''}}" bindtap="selectTap" data-index="{{index}}">
 				<view class="goods-info">
 					<view class="img-box">
