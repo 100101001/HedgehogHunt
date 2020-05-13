@@ -218,14 +218,14 @@ Page({
   toInputGetLocation: function (e) {
     let loc_id = e.currentTarget.dataset.loc * 1;
     if (this.data.os_location.length === 0 && loc_id === 2 || this.data.location.length === 0 && loc_id === 1) {
-      let content = '请点击上方按钮获取位置';
+      let content;
       if (this.data.business_type === 0) {
-        content += loc_id === 2 ? '，不知道可留空': '，可留空'
+        content = loc_id === 2 ? '不知道可留空': '可留空'
       } else if ((this.data.business_type === 1 || this.business_type === 2) && loc_id ===1) {
-        content += '，与发现地一样可留空'
+        content = '与发现地一样可留空'
       }
       app.alert({
-        title: '操作提示',
+        title: '请点击橙色按钮获取位置',
         content: content
       })
     }
