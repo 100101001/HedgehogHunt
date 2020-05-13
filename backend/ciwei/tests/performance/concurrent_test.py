@@ -11,12 +11,37 @@
 """
 
 # 同一接口的并发请求，检查功能与性能
-
-from threading import Thread
+from concurrent.futures._base import wait, ALL_COMPLETED
+from concurrent.futures.thread import ThreadPoolExecutor
+from threading import Thread, Lock
 
 import requests
 
 from tests.performance import response_time, concurrent_output
+
+
+class ConcurrentTestV2:
+    def __init__(self):
+        self.pool = ThreadPoolExecutor(max_workers=10, thread_name_prefix='test_')
+        self.tasks = []
+        self._lock = Lock()
+        self.cost = 0
+        self.run_times = 0
+
+    def run(self, func, *args):
+        future = self.pool.submit(func, *args)
+        future.add_done_callback(self._calResponseTimeCallback)
+        self.tasks.append(future)
+
+    def _calResponseTimeCallback(self, future):
+        with self._lock:
+            self.run_times += 1
+            self.cost += future.result()
+
+    def avgResponseTime(self):
+        wait(self.tasks, return_when=ALL_COMPLETED)
+        return round(self.cost/self.run_times, 4)
+
 
 
 class ConcurrentTest(Thread):
@@ -89,7 +114,7 @@ class TestInitiator:
 
     def __init__(self):
         self.f = open('outputs/current_test.log', 'w')
-
+        self.test_executor = ConcurrentTestV2()
 
     def runAll(self):
         all_tests = self.__testMethods()
@@ -101,7 +126,7 @@ class TestInitiator:
     def __del__(self):
         self.f.close()
 
-    def initiate(self, func, concurrent_num=100, argsGen=None):
+    def old_initiate(self, func, concurrent_num=100, argsGen=None):
         ths = []
 
         @response_time
@@ -122,6 +147,14 @@ class TestInitiator:
 
         return call_duration, concurrent_num, func.__name__, __calAverage()
 
+    def initiate(self, func, concurrent_num=100, argsGen=None):
+        @response_time
+        def __concurrentApiCall():
+            for i in range(concurrent_num):
+                self.test_executor.run(func, *argsGen() if argsGen else ())
+        call_duration = round(__concurrentApiCall(), 4)
+        return call_duration, concurrent_num, func.__name__, self.test_executor.avgResponseTime()
+
     @concurrent_output
     def test_initiateSearch(self):
         import random
@@ -132,14 +165,13 @@ class TestInitiator:
             goods_name = ''.join([chr(random.randint(0x4e00, 0x9fbf)) for _ in range(3)])
             return mix_kw, owner_name, goods_name
 
-        concurrent_num = 1000
+        concurrent_num = 100
         return self.initiate(RestfulApis.searchGoods, concurrent_num, searchFilterGen)
 
     @concurrent_output
     def test_initiateHint(self):
-        concurrent_num = 1000
+        concurrent_num = 100
         return self.initiate(RestfulApis.getNewHint, concurrent_num)
-
 
     def __testMethods(self):
         return list(filter(lambda m: m.startswith("test_")

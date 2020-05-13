@@ -20,9 +20,9 @@ from common.models.ciwei.logs.thirdservice.AcsSmsSendLog import AcsSmsSendLog
 
 
 class SmsNotifyHandler:
-    def __init__(self, openid, now=datetime.datetime.now()):
+    def __init__(self, openid):
         self.openid = openid
-        self.now = now
+        self.now = datetime.datetime.now()
         self.receiver = Member.getUnblockedByOpenid(openid=self.openid)
         self.charger = None
 

@@ -38,9 +38,9 @@ class AcsSmsSendLog(db.Model):
     created_time = db.Column(db.DateTime, nullable=False, default=datetime.now, comment='创建时间')
 
     @staticmethod
-    def hasRecentLostNotify(openid='', now=datetime.now(), interval=dt.timedelta(weeks=1)):
+    def hasRecentLostNotify(openid='', interval=dt.timedelta(weeks=1)):
         return db.session.query(func.count(AcsSmsSendLog.id)).filter(AcsSmsSendLog.rcv_openid == openid,
                                                                      AcsSmsSendLog.template_id ==
                                                                      app.config['ACS_SMS']['TEMP_IDS']['NOTIFY'],
                                                                      AcsSmsSendLog.acs_code == "OK",
-                                                                     AcsSmsSendLog.created_time >= now - interval).scalar() > 0
+                                                                     AcsSmsSendLog.created_time >= datetime.now() - interval).scalar() > 0

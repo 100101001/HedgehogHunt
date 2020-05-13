@@ -12,10 +12,10 @@ from application import app
 
 
 class ConflictException(Exception):
-    def __init__(self, log_error=None, func_name=None, now=datetime.now()):
+    def __init__(self, log_error=None, func_name=None):
         self.log_error = log_error
         self.func_name = func_name
-        self.at = now
+        self.at = datetime.now()
 
     def log(self):
         app.logger.error('{0} 在 {1} 抛出了服务异常 {2}'.format(self.func_name, self.at, self.log_error))

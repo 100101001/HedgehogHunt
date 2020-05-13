@@ -106,7 +106,7 @@ class Good(db.Model):
 
 
     def __init__(self, author_info=None, business_type=0, mobile='', name='', owner_name='', summary='',
-                 os_location='', location='', top_expire=datetime.now()):
+                 os_location='', location='', top_expire=None):
         """
         发布物品
         """
@@ -122,7 +122,8 @@ class Good(db.Model):
         self.owner_name = owner_name
         self.os_location = os_location.replace(',', '###')
         self.location = location.replace(',', '###')
-        self.top_expire_time = top_expire
+        if top_expire:
+            self.top_expire_time = top_expire
         db.session.add(self)
 
 

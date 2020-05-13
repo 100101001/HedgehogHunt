@@ -713,14 +713,14 @@ class FoundGoodsHandler(CommonGoodsHandler):
         GoodsCasUtil.set(ok_goods_id, exp_val=-status, new_val=status)
 
     @classmethod
-    def _preMarkFound(cls, goods_id=0, status=0, member_id=0, now=datetime.datetime.now(), **kwargs):
+    def _preMarkFound(cls, goods_id=0, status=0, member_id=0, **kwargs):
         if not GoodsCasUtil.exec(goods_id, status, -status):
             # 取消认领会 2——> 1，所以设置 -status
             return False, '操作冲突，请稍后重试'
         # 预认领事务
         super()._preMarkGoods(member_id=member_id, goods_id=goods_id, business_type=1)
         if status == 1:
-            Good.batch_update(Good.id == goods_id, Good.status == status, val={'status': 2, 'confirm_time': now},
+            Good.batch_update(Good.id == goods_id, Good.status == status, val={'status': 2, 'confirm_time': datetime.datetime.now()},
                               rds=-1)
         db.session.commit()
         # 认领缓存
