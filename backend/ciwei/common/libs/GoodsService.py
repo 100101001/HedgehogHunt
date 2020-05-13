@@ -304,6 +304,14 @@ class LostGoodsHandler(CommonGoodsHandler):
         :param release_info:
         :return:
         """
+        os_location = release_info.get('os_location')
+        if not os_location:
+            # 有参数但是是空的
+            os_location = APP_CONSTANTS['default_lost_loc']
+        location = release_info.get('os_location')
+        if not location:
+            # 有参数但是是空的
+            location = APP_CONSTANTS['default_lost_loc']
         now = datetime.datetime.now()
         top_expire = now if not int(release_info.get('is_top', 0)) else \
             now + datetime.timedelta(days=int(release_info['days']))
@@ -312,8 +320,8 @@ class LostGoodsHandler(CommonGoodsHandler):
                            name=release_info.get('goods_name'),
                            owner_name=release_info.get('owner_name', '无'),
                            summary=release_info.get('summary', '无'),
-                           os_location=release_info.get('os_location', APP_CONSTANTS['default_lost_loc']),
-                           location=release_info.get('location', APP_CONSTANTS['default_lost_loc']),
+                           os_location= os_location,
+                           location=location,
                            top_expire=top_expire)
         db.session.flush()
         return model_goods
