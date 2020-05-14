@@ -274,11 +274,10 @@ class GoodsRecordSearchHandler:
             },
             "from": 0,
             "size": 0,
-            "sort": {
-                "top_expire_time": {
-                    "order": "desc"
-                }
-            }
+            "sort": [
+                {"_score": {"order": "desc"}},
+                {"top_expire_time": {"order": "desc"}}
+            ]
         }
         return query
 
@@ -308,11 +307,8 @@ class GoodsRecordSearchHandler:
             },
             "from": 0,
             "size": 0,
-            "sort": {
-                "id": {
-                    "order": "desc"
-                }
-            }
+            "sort": [{"_score": {"order": "desc"}},
+                     {"id": {"order": "desc"}}]
         }
         return query
 

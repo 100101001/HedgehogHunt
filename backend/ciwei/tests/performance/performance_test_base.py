@@ -238,6 +238,6 @@ class RestfulApis:
         return url
 
     def getRequestHeaders(self):
-        auth = 'tWLx72rgkDXur5bA6/2OoeWWffKmiGA5Lc8ET223kHMUfTx/DNXL8WFrOgjY+X19'
+        auth = 'nnba8zOmAxvgYJDy743sLeWWffKmiGA5Lc8ET223kHMUfTx/DNXL8WFrOgjY+X19'
         content_type = 'application/x-www-form-urlencoded'
         return {'Authorization': auth, 'content-type': content_type}
