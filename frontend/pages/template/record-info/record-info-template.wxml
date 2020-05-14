@@ -52,7 +52,10 @@
       <view bindtap="copyMobile" data-mobile="{{info.mobile}}">
         <image class="loc_icon" src="/images/icons/mobile.png"></image>
         <view class="loc_text">电话：{{info.mobile}} <text style="font-size:24rpx;opacity:0.7;">(点击复制)</text></view>
-        <view wx:if="{{is_user}}" class="loc_text">用户电话：{{info.member_mobile}} <text style="font-size:24rpx;opacity:0.7;">(点击复制)</text></view>
+      </view>
+      <view  wx:if="{{is_user}}" bindtap="copyMobile" data-mobile="{{info.mobile}}">
+        <image class="loc_icon" src="/images/icons/mobile.png"></image>
+        <view class="loc_text">用户电话：{{info.member_mobile}} <text style="font-size:24rpx;opacity:0.7;">(点击复制)</text></view>
       </view>
     </view>
 
