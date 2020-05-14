@@ -385,9 +385,9 @@ CREATE TABLE `member`  (
 -- ----------------------------
 -- Records of member
 -- ----------------------------
-INSERT INTO `member` VALUES (100001, 0, '管理员', '', 4.73, 300, 'bPk3u33u+sqUiuxJ/+ubfQ==', '李佩璇', '', 2, 'https://wx.qlogo.cn/mmopen/vi_32/7jCR4QflwchksTBcyakicSepWVQdfbHIQL2glRrkY7ic52iaXqfuBb2tlQ8ELlaGWZDXFgKM4zAMeQZSiaaJtibI3gQ/132', '20200316/687bee77-e5bf-44b8-b341-d63f1abdc853.jpg', 0, 'opLxO5fubMUl7GdPFgZOUaDHUik8', 1, '2020-04-19 00:10:04', '2020-03-08 09:31:56');
-INSERT INTO `member` VALUES (100002, 0, 'L  yx', '', 14.48, 520, 'FEuNz7OnlvGGiV3s9PN14A==', 'LYX', '', 2, 'https://wx.qlogo.cn/mmopen/vi_32/SV42VibIREXs9x9LsPerNKSmtID351W69g7SAzfoWXYqbvBiaJtcPyUp4yAnedJlyWuiamGTnDAibdo4I4ibeiaeQaug/132', '20200329/ce40c3ef-2959-4a35-85a4-7f2c6b688cbe.jpg', 26, 'opLxO5Q3CloBEmwcarKrF_kSA574', 1, '2020-04-19 00:32:32', '2020-03-17 20:09:58');
-INSERT INTO `member` VALUES (100004, 0, 'lee', '', 0.00, 45, 'uAf+f73qyqB4LqA2KIPcEA==', '李佩璇', '', 2, 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKeoQUBJZ40FDibYOQKAYJJGXxMWZ8FehDrNZ4gYw98qwMaCyPBwDd1kbLqa1Z3mUTOdAZjchIYcLw/132', '20200326/6bbaf16e-7d19-4b41-af30-5394c7491dd0.jpg', 0, 'opLxO5cE7MXKPxj2ndOxnvxkoek0', 1, '2020-04-15 07:35:30', '2020-03-26 13:09:20');
+INSERT INTO `member` VALUES (100001, 0, '管理员', '', 4.73, 300, 'bPk3u33u+sqUiuxJ/+ubfQ==', '李佩璇', '', 2, 'https://wx.qlogo.cn/mmopen/vi_32/7jCR4QflwchksTBcyakicSepWVQdfbHIQL2glRrkY7ic52iaXqfuBb2tlQ8ELlaGWZDXFgKM4zAMeQZSiaaJtibI3gQ/132', '', 0, 'opLxO5fubMUl7GdPFgZOUaDHUik8', 1, '2020-04-19 00:10:04', '2020-03-08 09:31:56');
+INSERT INTO `member` VALUES (100002, 0, 'L  yx', '', 14.48, 520, 'FEuNz7OnlvGGiV3s9PN14A==', 'LYX', '', 2, 'https://wx.qlogo.cn/mmopen/vi_32/SV42VibIREXs9x9LsPerNKSmtID351W69g7SAzfoWXYqbvBiaJtcPyUp4yAnedJlyWuiamGTnDAibdo4I4ibeiaeQaug/132', '', 26, 'opLxO5Q3CloBEmwcarKrF_kSA574', 1, '2020-04-19 00:32:32', '2020-03-17 20:09:58');
+INSERT INTO `member` VALUES (100004, 0, 'lee', '', 0.00, 45, 'uAf+f73qyqB4LqA2KIPcEA==', '李佩璇', '', 2, 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKeoQUBJZ40FDibYOQKAYJJGXxMWZ8FehDrNZ4gYw98qwMaCyPBwDd1kbLqa1Z3mUTOdAZjchIYcLw/132', '', 0, 'opLxO5cE7MXKPxj2ndOxnvxkoek0', 1, '2020-04-15 07:35:30', '2020-03-26 13:09:20');
 INSERT INTO `member` VALUES (100005, 0, '测试号小猪', '', 0.00, 0, '17717852647', '测试号', '', 0, '', '', 0, 'opLxO5QaspLK7XKWg546kYZStiYk', 1, '2020-04-08 22:12:59', '2020-04-08 22:12:59');
 INSERT INTO `member` VALUES (100007, 0, '', '', 0.00, 0, '', 'ceshi', '', 0, '', '', 0, '..', 1, '2020-04-18 18:55:35', '2020-04-18 18:55:35');
 

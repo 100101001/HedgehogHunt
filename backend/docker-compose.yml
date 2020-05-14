@@ -13,25 +13,25 @@
 version: "3.1" #"登录容器请执行:rabbitmq-plugins enable rabbitmq_management 才可>使用WEB管理页面"
 services:
   # https://www.jenkins.io/zh/doc/book/installing/#%E5%9C%A8docker%E4%B8%AD%E4%B8%8B%E8%BD%BD%E5%B9%B6%E8%BF%90%E8%A1%8Cjenkins
-  jenkins:
-    container_name: backend_jenkins_1
-    image: jenkinsci/blueocean
-    ports:
-      - 8080:8080
-      - 5050:5050
-    volumes:
-      - ${jenkins_home}:/var/jenkins_home
-      - ${jenkins_socket}:/var/run/docker.sock
-    user: root
-    environment:
-      JAVA_OPTS: -Djava.util.logging.config.file=${jenkins_logs}
-      TZ: Asia/Shanghai
-    restart: always
+  # jenkins:
+  #   container_name: backend_jenkins
+  #   image: jenkinsci/blueocean
+  #   ports:
+  #     - 8080:8080
+  #     - 5050:5050
+  #   volumes:
+  #     - ${jenkins_home}:/var/jenkins_home
+  #     - ${jenkins_socket}:/var/run/docker.sock
+  #   user: root
+  #   environment:
+  #     JAVA_OPTS: -Djava.util.logging.config.file=${jenkins_logs}
+  #     TZ: Asia/Shanghai
+  #   restart: always
 
   # redis-cli
   # sysctl vm.overcommit_memory: 1
   redis:
-    container_name: backend_redis_1
+    container_name: backend_redis
     # 指定镜像
     image: redis:4
     ports:
@@ -52,7 +52,7 @@ services:
   # docker exec -it ${rabbit_container_id} /bin/bash 不需要进入容器赋予用户权限
   # rabbitmqctl  set_permissions -p ciwei root '.*' '.*' '.*'
   rmq:
-    container_name: backend_rmq_1
+    container_name: backend_rmq
     image: rabbitmq:3.6.10-management
     expose:
       - "15672"
@@ -76,7 +76,7 @@ services:
 
   # https://www.elastic.co/guide/en/elasticsearch/reference/6.4/docker.html#docker es官方docker配置的说明
   es:
-    container_name: backend_es_1
+    container_name: backend_es
     image: elasticsearch:7.6.2
     expose:
       - "9200"
@@ -99,7 +99,7 @@ services:
   # ALTER TABLE `goods` drop column `target_price`;
   # https://dev.mysql.com/doc/refman/8.0/en/sql-statements.html
   db:
-    container_name: backend_db_1
+    container_name: backend_db
     image: mysql:5.7
     expose:
       - "33060"
@@ -116,7 +116,7 @@ services:
 
   # https://blog.csdn.net/bocai_xiaodaidai/article/details/92641534 多服务启动脚本
   web:
-    container_name: backend_web_1
+    container_name: backend_web
     build:
       context: .
       dockerfile: Dockerfile
