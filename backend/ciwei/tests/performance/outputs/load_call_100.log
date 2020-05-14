@@ -1,0 +1,215 @@
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=3&business_type=1&p=70&mix_kw=网具&owner_name=喻某&filter_address=同济大学四平路校区-经纬楼
+请求URL: https://xunhui.opencs.cn/api/member/info
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=1&business_type=0&p=62&mix_kw=雨具&owner_name=施某&filter_address=同济大学-一二九运动场
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=2&business_type=0&p=2&mix_kw=龙卡&owner_name=韩某&filter_address=上海市同济医院分院
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=1&business_type=1&p=0&mix_kw=高压线&owner_name=柏某&filter_address=同济大学-游泳馆
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=专线&owner_name=沈某&p=2&op_status=1&only_new=false&business_type=2
+请求URL: https://xunhui.opencs.cn/api/goods/create
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=1&business_type=1&p=66&mix_kw=教师证&owner_name=朱某&filter_address=同济大学四平路校区医学院
+请求URL: https://xunhui.opencs.cn/api/member/info
+请求URL: https://xunhui.opencs.cn/api/member/info
+searchGoods 请求的响应时间为 0.1254 秒
+请求URL: https://xunhui.opencs.cn/api/goods/create
+getInfoMember 请求的响应时间为 0.1281 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=板烟&owner_name=范某&p=4&op_status=5&only_new=true&business_type=0
+searchGoods 请求的响应时间为 0.156 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=胸卡&owner_name=吴某&p=9&op_status=3&only_new=false&business_type=2
+searchGoods 请求的响应时间为 0.173 秒
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=0&business_type=0&p=30&mix_kw=钉鞋&owner_name=韦某&filter_address=上海市同济医院分院
+searchGoods 请求的响应时间为 0.1954 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+searchRecordGoods 请求的响应时间为 0.1981 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=胸卡&owner_name=水某&p=1&op_status=2&only_new=false&business_type=1
+getInfoMember 请求的响应时间为 0.1828 秒
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=2&business_type=1&p=5&mix_kw=烤烟&owner_name=范某&filter_address=同济大学嘉定校区-同心楼
+searchGoods 请求的响应时间为 0.2102 秒
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=3&business_type=0&p=88&mix_kw=跑鞋&owner_name=鲍某&filter_address=同济大学四平路校区-网球场
+getInfoMember 请求的响应时间为 0.1852 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=窑具&owner_name=马某&p=8&op_status=5&only_new=false&business_type=2
+请求URL: https://xunhui.opencs.cn/api/goods/end-create
+searchRecordGoods 请求的响应时间为 0.1673 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+searchRecordGoods 请求的响应时间为 0.2228 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+请求URL: https://xunhui.opencs.cn/api/goods/end-create
+searchGoods 请求的响应时间为 0.2041 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=同轴电缆&owner_name=谢某&p=7&op_status=4&only_new=true&business_type=0
+getNewHintGoods 请求的响应时间为 0.1908 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=贺年片&owner_name=郑某&p=7&op_status=4&only_new=true&business_type=2
+searchGoods 请求的响应时间为 0.1653 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+searchGoods 请求的响应时间为 0.1693 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=下岗证&owner_name=苗某&p=2&op_status=0&only_new=false&business_type=2
+searchRecordGoods 请求的响应时间为 0.1697 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+searchRecordGoods 请求的响应时间为 0.2132 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+releaseGoods 请求的响应时间为 0.4167 秒
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=4&business_type=1&p=87&mix_kw=教师证&owner_name=鲁某&filter_address=同济大学-文远楼
+getNewHintGoods 请求的响应时间为 0.1765 秒
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=1&business_type=1&p=42&mix_kw=演出证&owner_name=陶某&filter_address=同济大学-游泳馆
+getNewHintGoods 请求的响应时间为 0.212 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+releaseGoods 请求的响应时间为 0.4396 秒
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=1&business_type=1&p=82&mix_kw=账户卡&owner_name=谢某&filter_address=同济大学-游泳馆
+getInfoMember 请求的响应时间为 0.1588 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+searchRecordGoods 请求的响应时间为 0.1888 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+searchRecordGoods 请求的响应时间为 0.1861 秒
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=1&business_type=0&p=74&mix_kw=画具&owner_name=柳某&filter_address=同济大学四平路校区-图书馆
+getInfoMember 请求的响应时间为 0.1882 秒
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=0&business_type=0&p=41&mix_kw=餐具&owner_name=苗某&filter_address=同济大学-一·二九礼堂
+searchGoods 请求的响应时间为 0.1687 秒
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=1&business_type=0&p=89&mix_kw=合格证&owner_name=华某&filter_address=同济大学四平路校区-网球场
+getInfoMember 请求的响应时间为 0.1893 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+searchRecordGoods 请求的响应时间为 0.2544 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+searchGoods 请求的响应时间为 0.1942 秒
+请求URL: https://xunhui.opencs.cn/api/goods/create
+getNewHintGoods 请求的响应时间为 0.1958 秒
+请求URL: https://xunhui.opencs.cn/api/goods/create
+searchGoods 请求的响应时间为 0.1816 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+getInfoMember 请求的响应时间为 0.1654 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+getNewHintGoods 请求的响应时间为 0.2027 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+searchGoods 请求的响应时间为 0.1943 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+searchGoods 请求的响应时间为 0.1816 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+searchGoods 请求的响应时间为 0.1977 秒
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=3&business_type=0&p=78&mix_kw=挽具&owner_name=赵某&filter_address=同济大学嘉定校区-同心楼
+getNewHintGoods 请求的响应时间为 0.1792 秒
+请求URL: https://xunhui.opencs.cn/api/goods/create
+getInfoMember 请求的响应时间为 0.1992 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+getInfoMember 请求的响应时间为 0.1504 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+请求URL: https://xunhui.opencs.cn/api/goods/end-create
+请求URL: https://xunhui.opencs.cn/api/goods/end-create
+getNewHintGoods 请求的响应时间为 0.1916 秒
+请求URL: https://xunhui.opencs.cn/api/goods/create
+getInfoMember 请求的响应时间为 0.1671 秒
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=0&business_type=0&p=20&mix_kw=天线&owner_name=王某&filter_address=同济大学四平路校区-图书馆
+getNewHintGoods 请求的响应时间为 0.1494 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+getInfoMember 请求的响应时间为 0.1765 秒
+请求URL: https://xunhui.opencs.cn/api/goods/create
+searchGoods 请求的响应时间为 0.1694 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+getInfoMember 请求的响应时间为 0.1773 秒
+请求URL: https://xunhui.opencs.cn/api/goods/create
+请求URL: https://xunhui.opencs.cn/api/goods/end-create
+getNewHintGoods 请求的响应时间为 0.2125 秒
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=3&business_type=1&p=84&mix_kw=合格证&owner_name=潘某&filter_address=同济大学-一二九运动场
+searchGoods 请求的响应时间为 0.1623 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+请求URL: https://xunhui.opencs.cn/api/goods/end-create
+getNewHintGoods 请求的响应时间为 0.1828 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+releaseGoods 请求的响应时间为 0.4443 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+请求URL: https://xunhui.opencs.cn/api/goods/end-create
+releaseGoods 请求的响应时间为 0.4731 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=厨具&owner_name=朱某&p=3&op_status=3&only_new=false&business_type=1
+请求URL: https://xunhui.opencs.cn/api/goods/end-create
+getNewHintGoods 请求的响应时间为 0.2156 秒
+请求URL: https://xunhui.opencs.cn/api/goods/create
+releaseGoods 请求的响应时间为 0.385 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+searchGoods 请求的响应时间为 0.1624 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=记分卡&owner_name=曹某&p=1&op_status=0&only_new=false&business_type=2
+getInfoMember 请求的响应时间为 0.1365 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+getInfoMember 请求的响应时间为 0.1775 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+releaseGoods 请求的响应时间为 0.4204 秒
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=2&business_type=1&p=23&mix_kw=账户卡&owner_name=酆某&filter_address=同济大学嘉定校区-同心楼
+getInfoMember 请求的响应时间为 0.1883 秒
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=1&business_type=1&p=19&mix_kw=假证&owner_name=赵某&filter_address=同济大学嘉定校区-济人楼
+getInfoMember 请求的响应时间为 0.1729 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+searchRecordGoods 请求的响应时间为 0.2227 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+releaseGoods 请求的响应时间为 0.4273 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+getInfoMember 请求的响应时间为 0.1532 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+searchRecordGoods 请求的响应时间为 0.168 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=叶子烟&owner_name=窦某&p=0&op_status=1&only_new=true&business_type=2
+请求URL: https://xunhui.opencs.cn/api/goods/end-create
+releaseGoods 请求的响应时间为 0.4617 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+searchGoods 请求的响应时间为 0.1458 秒
+请求URL: https://xunhui.opencs.cn/api/goods/create
+searchGoods 请求的响应时间为 0.1547 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=胸卡&owner_name=苗某&p=9&op_status=5&only_new=false&business_type=2
+getInfoMember 请求的响应时间为 0.1325 秒
+请求URL: https://xunhui.opencs.cn/api/goods/create
+getInfoMember 请求的响应时间为 0.1791 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=出入证&owner_name=鲍某&p=2&op_status=5&only_new=false&business_type=2
+getInfoMember 请求的响应时间为 0.1429 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+getInfoMember 请求的响应时间为 0.1608 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+getInfoMember 请求的响应时间为 0.1674 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=龙卡&owner_name=柏某&p=10&op_status=0&only_new=true&business_type=1
+searchRecordGoods 请求的响应时间为 0.2153 秒
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=2&business_type=0&p=65&mix_kw=假证&owner_name=吴某&filter_address=同济大学四平路校区北楼
+getNewHintGoods 请求的响应时间为 0.2148 秒
+请求URL: https://xunhui.opencs.cn/api/goods/create
+releaseGoods 请求的响应时间为 0.4765 秒
+请求URL: https://xunhui.opencs.cn/api/goods/create
+请求URL: https://xunhui.opencs.cn/api/goods/end-create
+searchRecordGoods 请求的响应时间为 0.2104 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+searchRecordGoods 请求的响应时间为 0.2055 秒
+请求URL: https://xunhui.opencs.cn/api/goods/create
+getNewHintGoods 请求的响应时间为 0.178 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=下岗证&owner_name=俞某&p=6&op_status=0&only_new=true&business_type=1
+getNewHintGoods 请求的响应时间为 0.1746 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=监督卡&owner_name=范某&p=2&op_status=2&only_new=true&business_type=0
+请求URL: https://xunhui.opencs.cn/api/goods/end-create
+searchRecordGoods 请求的响应时间为 0.2234 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=钉鞋&owner_name=邹某&p=4&op_status=6&only_new=true&business_type=1
+searchGoods 请求的响应时间为 0.1754 秒
+请求URL: https://xunhui.opencs.cn/api/goods/search?status=3&business_type=1&p=40&mix_kw=牌证&owner_name=何某&filter_address=同济大学-游泳馆
+请求URL: https://xunhui.opencs.cn/api/goods/end-create
+getNewHintGoods 请求的响应时间为 0.1568 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=优待证&owner_name=秦某&p=7&op_status=4&only_new=false&business_type=2
+请求URL: https://xunhui.opencs.cn/api/goods/end-create
+searchRecordGoods 请求的响应时间为 0.1718 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+searchRecordGoods 请求的响应时间为 0.1773 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=纸卡&owner_name=孙某&p=3&op_status=2&only_new=true&business_type=0
+searchGoods 请求的响应时间为 0.1172 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=爱心卡&owner_name=许某&p=1&op_status=2&only_new=true&business_type=0
+searchRecordGoods 请求的响应时间为 0.1595 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+releaseGoods 请求的响应时间为 0.4592 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+请求URL: https://xunhui.opencs.cn/api/goods/end-create
+releaseGoods 请求的响应时间为 0.5018 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+searchRecordGoods 请求的响应时间为 0.128 秒
+请求URL: https://xunhui.opencs.cn/api/member/info
+releaseGoods 请求的响应时间为 0.3338 秒
+请求URL: https://xunhui.opencs.cn/api/record/search?status=1&mix_kw=爱心卡&owner_name=严某&p=6&op_status=0&only_new=true&business_type=1
+searchRecordGoods 请求的响应时间为 0.1734 秒
+请求URL: https://xunhui.opencs.cn/api/goods/create
+getNewHintGoods 请求的响应时间为 0.1882 秒
+请求URL: https://xunhui.opencs.cn/api/member/new/hint
+getNewHintGoods 请求的响应时间为 0.1462 秒
+releaseGoods 请求的响应时间为 0.4692 秒
+getNewHintGoods 请求的响应时间为 0.1667 秒
+getInfoMember 请求的响应时间为 0.1387 秒
+searchRecordGoods 请求的响应时间为 0.2072 秒
+getNewHintGoods 请求的响应时间为 0.1601 秒
+searchRecordGoods 请求的响应时间为 0.1484 秒
+releaseGoods 请求的响应时间为 0.4782 秒
+getNewHintGoods 请求的响应时间为 0.102 秒
+请求URL: https://xunhui.opencs.cn/api/goods/end-create
+releaseGoods 请求的响应时间为 0.2214 秒

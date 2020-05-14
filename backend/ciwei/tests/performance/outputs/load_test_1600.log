@@ -1,0 +1,1 @@
+在 0.7927 秒的时间内异步发出 1600 个并发 callGetInfoMember,callGetNewHintsGoods,callReleaseGoods,callSearchGoods,callSearchRecordsGoods 请求的平均响应时间为 0.2208 秒

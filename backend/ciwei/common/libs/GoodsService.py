@@ -136,6 +136,7 @@ class CommonGoodsHandler:
             "location": location_list,
             "os_location": os_location_list,
             "mobile": goods_info.mobile,
+            "author_mobile": goods_info.author_mobile,
             # 物品帖子作者信息
             "is_auth": is_auth,  # 是否查看自己发布的帖子(不能进行状态操作，可以编辑)
             "auther_id": goods_info.member_id,
@@ -702,6 +703,7 @@ class FoundGoodsHandler(CommonGoodsHandler):
         if goods_status == 5:
             # 申诉的时间
             data.update({'op_time': goods_info.appeal_time.strftime("%Y-%m-%d %H:%M")})
+
         return data
 
     @classmethod

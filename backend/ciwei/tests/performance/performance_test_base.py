@@ -16,7 +16,7 @@ from concurrent.futures import wait, ALL_COMPLETED
 from tests.performance import response_time, log_api_param
 
 
-class ApiCallExecutor:
+class ApiAsyncCallExecutor:
     def __init__(self):
         self.pool = ThreadPoolExecutor(max_workers=10, thread_name_prefix='test_')
         self.tasks = []
@@ -48,7 +48,7 @@ class RestfulApisCallerAsync:
     def __init__(self, TEST_LOG_FILE_PATH, API_LOG_FILE_PATH):
         self.f = open('outputs/{}'.format(TEST_LOG_FILE_PATH), 'w')
         self.arg_gen = GoodsArgGen()
-        self.test_executor = ApiCallExecutor()
+        self.test_executor = ApiAsyncCallExecutor()
         self.apis = RestfulApis(API_LOG_FILE_PATH)
         self._callers = self.getAllCallers()
 
@@ -73,8 +73,8 @@ class RestfulApisCallerAsync:
     def avgResponseTime(self):
         return self.test_executor.avgResponseTime()
 
-    def getAllGoodsCallers(self):
-        return list(filter(lambda m: m.startswith("call") and m.endswith("Goods")
+    def getAllModuleCallers(self, module_name='Goods'):
+        return list(filter(lambda m: m.startswith("call") and m.endswith(module_name)
                                      and callable(getattr(self, m)), dir(self)))
 
     def getAllCallers(self):
@@ -188,16 +188,24 @@ class RestfulApis:
                                               'mix_kw': mix_kw,
                                               'owner_name': owner_name,
                                               'filter_address': address})
-        # url += '?status=0&' \
-        #        'mix_kw={0}&owner_name={1}&p=1&business_type={2}&filter_address={3}'.format(mix_kw, owner_name,
-        #                                                                                    random.randint(0, 1),
-        #                                                                                    address)
-        # url = 'https://xunhui.opencs.cn/api/goods/search?status=0&' \
-        #       'mix_kw={0}&owner_name={1}&p=1&business_type={2}&filter_address={3}'.format(mix_kw, owner_name,
-        #                                                                                   random.randint(0, 1), address)
         resp = requests.get(url=url)
         if resp.status_code != 200:
             raise Exception('出错了')
+
+    @response_time
+    def infoGoods(self):
+        op_status = random.randint(-1, 6)
+        url = self.buildApi('/goods/info', {'id': random.randint(1, 1000),
+                                            'read': random.randint(0, 1),
+                                            'op_status': op_status})
+        if not random.randint(0, 5):
+            # 5个人中有1个注册
+            resp = requests.get(url=url, headers=self.getRequestHeaders())
+        else:
+            resp = requests.get(url=url)
+        if resp.status_code != 200:
+            raise Exception('出错了')
+
 
     @response_time
     def searchRecordGoods(self, mix_kw='', owner_name=''):
@@ -237,7 +245,10 @@ class RestfulApis:
         url = "{}{}{}".format(self.domain, suffix, buildQueryString())
         return url
 
-    def getRequestHeaders(self):
-        auth = 'nnba8zOmAxvgYJDy743sLeWWffKmiGA5Lc8ET223kHMUfTx/DNXL8WFrOgjY+X19'
+    def getRequestHeaders(self, other=False):
+        auth = 'nnba8zOmAxvgYJDy743sLeWWffKmiGA5Lc8ET223kHMUfTx/DNXL8WFrOgjY+X19' if not other else ''
         content_type = 'application/x-www-form-urlencoded'
         return {'Authorization': auth, 'content-type': content_type}
+
+
+

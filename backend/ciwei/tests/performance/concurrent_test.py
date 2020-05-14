@@ -18,7 +18,7 @@ from tests.performance.performance_test_base import RestfulApisCallerAsync
 class ConcurrentTestInitiator(RestfulApisCallerAsync):
     def __init__(self):
         super(ConcurrentTestInitiator, self).__init__('concurrent_test.log', 'concurrent_call.log')
-        self._callers = self.getAllGoodsCallers()
+        self._callers = self.getAllModuleCallers()
 
     @concurrent_output
     def runAll(self, mixed_concurrent_num=10):
@@ -28,7 +28,7 @@ class ConcurrentTestInitiator(RestfulApisCallerAsync):
                 self.random_call()
 
         call_duration = round(__concurrentApiCall(), 4)
-        return call_duration, mixed_concurrent_num, ','.join(self.getAllGoodsCallers()), self.avgResponseTime()
+        return call_duration, mixed_concurrent_num, ','.join(self.getAllModuleCallers()), self.avgResponseTime()
 
 
 if __name__ == '__main__':
