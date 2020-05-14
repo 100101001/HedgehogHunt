@@ -8,7 +8,7 @@ ADD ./ciwei /code
 
 WORKDIR /code
 
-# https://pypi.tuna.tsinghua.edu.cn/simple 大包阿里云经常请求超时，更换下述豆瓣镜像源
+# https://pypi.tuna.tsinghua.edu.cn/simple 大包经常请求超时，更换下述豆瓣镜像源
 RUN pip install -r requirements-versioned.txt -i https://pypi.doubanio.com/simple/
 
 # ENTRYPOINT ["run_server.sh"] 

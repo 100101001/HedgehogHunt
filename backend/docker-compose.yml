@@ -14,6 +14,7 @@ version: "3.1" #"登录容器请执行:rabbitmq-plugins enable rabbitmq_manageme
 services:
   # https://www.jenkins.io/zh/doc/book/installing/#%E5%9C%A8docker%E4%B8%AD%E4%B8%8B%E8%BD%BD%E5%B9%B6%E8%BF%90%E8%A1%8Cjenkins
   jenkins:
+    container_name: backend_jenkins_1
     image: jenkinsci/blueocean
     ports:
       - 8080:8080
@@ -30,6 +31,7 @@ services:
   # redis-cli
   # sysctl vm.overcommit_memory: 1
   redis:
+    container_name: backend_redis_1
     # 指定镜像
     image: redis:4
     ports:
@@ -50,6 +52,7 @@ services:
   # docker exec -it ${rabbit_container_id} /bin/bash 不需要进入容器赋予用户权限
   # rabbitmqctl  set_permissions -p ciwei root '.*' '.*' '.*'
   rmq:
+    container_name: backend_rmq_1
     image: rabbitmq:3.6.10-management
     expose:
       - "15672"
@@ -73,6 +76,7 @@ services:
 
   # https://www.elastic.co/guide/en/elasticsearch/reference/6.4/docker.html#docker es官方docker配置的说明
   es:
+    container_name: backend_es_1
     image: elasticsearch:7.6.2
     expose:
       - "9200"
@@ -95,6 +99,7 @@ services:
   # ALTER TABLE `goods` drop column `target_price`;
   # https://dev.mysql.com/doc/refman/8.0/en/sql-statements.html
   db:
+    container_name: backend_db_1
     image: mysql:5.7
     expose:
       - "33060"
@@ -111,6 +116,7 @@ services:
 
   # https://blog.csdn.net/bocai_xiaodaidai/article/details/92641534 多服务启动脚本
   web:
+    container_name: backend_web_1
     build:
       context: .
       dockerfile: Dockerfile

@@ -1,0 +1,10 @@
+select 5
+flushdb
+select 6
+flushdb
+select 7
+flushdb
+select 8
+flushdb
+select 9
+flushdb
