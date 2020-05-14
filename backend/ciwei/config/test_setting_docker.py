@@ -7,6 +7,7 @@
 @desc: 
 """
 SQLALCHEMY_DATABASE_URI = 'mysql://root:wcx9517530@db/ciwei_db_test?charset=utf8mb4'
+CELERY_RESULT_BACKEND = 'redis://:lyx147@redis/5'
 # elastic search 的配置
 ES = {
     'URL': 'http://es:9200',
@@ -18,10 +19,10 @@ REDIS = {
     'CACHE_REDIS_HOST': 'redis',
     'CACHE_REDIS_PORT': 6379,
     'CACHE_REDIS_DB': {
-        'HOT': 5,
-        'CAS': 6,
-        'LOST': 7,
-        'FOUND': 8
+        'HOT': 6,
+        'CAS': 7,
+        'LOST': 8,
+        'FOUND': 9
     },
     'CACHE_REDIS_PASSWORD': 'lyx147'
 }
