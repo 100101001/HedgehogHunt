@@ -221,7 +221,7 @@ Page({
       let content;
       if (this.data.business_type === 0) {
         content = loc_id === 2 ? '不知道可留空': '可留空'
-      } else if ((this.data.business_type === 1 || this.business_type === 2) && loc_id ===1) {
+      } else if ((this.data.business_type === 1 || this.data.business_type === 2) && loc_id ===1) {
         content = '与发现地一样可留空'
       }
       app.alert({

@@ -58,7 +58,7 @@ Page({
       owner_name: '',  // 物主名
       filter_address: '',  // 搜索栏的地址关键词
       loadingMore: true,  // 更多数据未加载
-      hasQrcode: app.globalData.has_qrcode
+      hasQrcode: app.globalData.has_qrcode // 二维码
     });
   },
   //轮播图变化
