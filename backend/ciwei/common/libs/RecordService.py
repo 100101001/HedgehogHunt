@@ -84,7 +84,7 @@ def makeRecordData(item=None, op_status=0, status=0, now=None):
         "location": item.location.split("###")[1] if show_record_loc else "",  # 归还贴和发布贴概要可看地址
         "summary": item.summary,
         "business_type": item.business_type,
-        "status": item.status,
+        "status": int(item.status),
         "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
         "main_image": UrlManager.buildImageUrl(item.main_image),
         "selected": False,  # 供前端选中删除记录用的属性
