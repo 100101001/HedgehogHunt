@@ -437,6 +437,7 @@ class ReturnGoodsHandler(CommonGoodsHandler):
             if not scan_goods or not notify_id:
                 return
             scan_goods.qr_code_openid = notify_id
+            scan_goods.status = 1
             db.session.add(scan_goods)
             MemberService.updateCredits(member_id=scan_goods.member_id)
             # 通知
