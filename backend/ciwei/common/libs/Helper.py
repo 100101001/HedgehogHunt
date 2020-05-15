@@ -176,12 +176,13 @@ def selectFilterObj(obj, field):
     return ret
 
 
-def getUuid():
+def getUuid(namespace='order'):
     # uuid基本可以保证唯一性
     # 根据设备硬件生成32位的随机字符串
     # uuid4可能会重复，所以使用uuid5
     now = datetime.datetime.now()
-    uuid_now = str(uuid.uuid5(uuid.NAMESPACE_DNS, now.strftime("%Y%m%d%H%M%S"))).replace("-", "")
+    uuid_namespace = uuid.uuid5(uuid.NAMESPACE_DNS, namespace)
+    uuid_now = str(uuid.uuid5(uuid_namespace, now.strftime("%Y%m%d%H%M%S%f"))).replace("-", "")
     return uuid_now
 
 

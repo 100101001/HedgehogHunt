@@ -280,6 +280,7 @@ class MemberHandler:
             'trade_type': 'JSAPI',
             'openid': consumer.openid
         }
+
         pay_sign_data = cls.wechat.get_pay_info(pay_data=pay_data)
         if not pay_sign_data:
             return None

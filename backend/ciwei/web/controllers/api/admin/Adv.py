@@ -53,7 +53,7 @@ def createAdvs():
     model_adv.updated_time=model_adv.created_time=getCurrentDate()
 
     #判断uuid是否唯一，是否已经被使用过
-    uuid_now=getUuid()
+    uuid_now=getUuid('ciwei_adv')
 
     record=Adv.query.filter_by(uu_id=uuid_now).first()
     if record:

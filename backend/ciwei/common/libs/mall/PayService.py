@@ -1,22 +1,16 @@
 # -*- coding: utf-8 -*-
 import datetime
 import decimal
-import hashlib
 import json
-import random
-import time
 
 from application import db
-from common.libs.Helper import getCurrentDate
+from common.libs.Helper import getCurrentDate, getUuid
 from common.libs.mall.ProductService import ProductService
-from common.models.ciwei.BalanceOder import BalanceOrder
 from common.models.ciwei.Member import Member
-from common.models.ciwei.logs.thirdservice.BalanceOrderCallbackData import BalanceOrderCallbackData
 from common.models.ciwei.mall.Order import Order
 from common.models.ciwei.mall.OrderCallBackData import OrderCallbackData
 from common.models.ciwei.mall.OrderProduct import OrderProduct
 from common.models.ciwei.mall.Product import Product
-from common.models.ciwei.mall.ProductSaleChangeLog import ProductSaleChangeLog
 
 
 class PayService:
@@ -254,12 +248,9 @@ class PayService:
         """
         :return:不重复的流水号
         """
-        m = hashlib.md5()
         while True:
             # 毫秒级时间戳-千万随机数
-            sn_str = "%s-%s" % (int(round(time.time() * 1000)), random.randint(0, 9999999))
-            m.update(sn_str.encode("utf-8"))
-            sn = m.hexdigest()
+            sn = getUuid(namespace='ciwei_product_order')
             if not Order.query.filter_by(order_sn=sn).first():
                 break
         return sn

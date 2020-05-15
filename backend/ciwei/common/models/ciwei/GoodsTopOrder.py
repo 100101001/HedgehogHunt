@@ -6,15 +6,14 @@
 @file: GoodsTopOrder.py
 @desc: 
 """
-import hashlib
-import random
-import time
+from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy.dialects.mssql import TINYINT
 from sqlalchemy.dialects.mysql import INTEGER
+
 from application import db
-from datetime import datetime
+from common.libs.Helper import getUuid
 
 
 class GoodsTopOrder(db.Model):
@@ -66,12 +65,9 @@ class GoodsTopOrder(db.Model):
         """
         :return:不重复的流水号
         """
-        m = hashlib.md5()
         while True:
             # 毫秒级时间戳-千万随机数
-            sn_str = "{0}-{1}".format(round(time.time() * 1000), random.randint(0, 9999999))
-            m.update(sn_str.encode("utf-8"))
-            sn = m.hexdigest()
+            sn = getUuid('ciwei_goods_top_order')
             if not cls.getByOrderSn(sn):
                 break
         return sn
