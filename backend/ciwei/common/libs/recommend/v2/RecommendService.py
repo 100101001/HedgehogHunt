@@ -173,7 +173,7 @@ class RecommendHandler:
         for kw in should_syms:
             should.append({'match': {'name': kw}})
 
-        must = [{'match': {'name': ''}},  # 会循环填充
+        must = [{'match_phrase': {'name': ''}},  # 会循环填充
                 {'match': {'business_type': 1 - goods_info.business_type}},  # 互相匹配
                 {'match': {'status': 1}}]  # 只配待认领和待寻回的：看会员操作情况，如果乱认领的很多那么就改成 1~2
         must_not = {'match': {'member_id': goods_info.member_id}}  # 不配自己发布的
@@ -190,7 +190,7 @@ class RecommendHandler:
 
         possibles = []
         for noun in must_syms:  # must_syms中只有名词自己
-            must[0]['match']['name'] = noun
+            must[0]['match_phrase']['name'] = noun
             res = es.search(index=app.config['ES']['INDEX'], body=body)
             for item in res['hits']['hits']:
                 data = item['_source']

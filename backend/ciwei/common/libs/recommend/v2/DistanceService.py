@@ -70,7 +70,7 @@ class DistanceService:
             distance = self.calSimplifyDistance(lng1=eval(found_gps[1]), lat1=eval(found_gps[0]),
                                                 lng2=eval(str(lng2)), lat2=eval(str(lat2)))
             app.logger.warn('物品' + str(item.get('id')) + '距离捡到的物品距离为: ' + str(distance))
-            if distance < 300:
+            if distance < 150:
                 # 直线距离300m内的才算数
                 ret_list.append(item)
         return ret_list
