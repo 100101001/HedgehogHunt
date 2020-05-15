@@ -1105,8 +1105,9 @@ Page({
    * doDeleteSelected 纯粹的批量删除操作
    */
   doDeleteSelected: function (id_list = []) {
+    let url = this.data.op_status*1 === 4? '/report/goods/delete' : '/record/delete';
     wx.request({
-      url: app.buildUrl("/record/delete"),
+      url: app.buildUrl(url),
       header: app.getRequestHeader(),
       data: {
         op_status: this.data.op_status,

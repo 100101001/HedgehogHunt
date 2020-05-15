@@ -27,7 +27,6 @@ Page({
           id: 3,
           name: '已隐藏'
         },
-
         {
           id: 4,
           name: '举报者'
@@ -373,8 +372,9 @@ Page({
         id_list.push(curItem.id);
       }
     }
+    let url = this.data.op_status*1 === 4? '/report/thanks/delete' : '/thanks/delete';
     wx.request({
-      url: app.buildUrl("/thanks/delete"),
+      url: app.buildUrl(url),
       header: app.getRequestHeader(),
       data: {
         id_list: id_list,

@@ -336,7 +336,6 @@ Page({
       }
     })
   },
-
   toDeleteReport: function(e){
     app.alert({
       content: '确认删除？',
@@ -350,7 +349,7 @@ Page({
    */
   deleteReport: function(){
     wx.request({
-      url: app.buildUrl('/record/delete'),
+      url: app.buildUrl('/report/goods/delete'),
       header: app.getRequestHeader(),
       data: {
         id_list: [this.data.goods_id],
