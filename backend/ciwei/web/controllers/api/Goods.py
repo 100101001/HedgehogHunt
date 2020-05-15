@@ -307,6 +307,7 @@ def goodsSearch():
                 "auther_name": item.get('nickname'),
                 "avatar": item.get('avatar'),
                 "selected": False,
+                "status": int(item.get('status')),
                 "status_desc": status_desc(item.get('status')),  # 静态属性，返回状态码对应的文字
                 "top": datetime.datetime.strptime(item.get('top_expire_time'), "%Y-%m-%dT%H:%M:%S") > now
             }
