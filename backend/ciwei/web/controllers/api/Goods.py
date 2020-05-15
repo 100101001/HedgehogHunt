@@ -316,7 +316,7 @@ def goodsSearch():
     # 失/拾 一页信息 是否已加载到底
     resp['code'] = 200
     resp['data']['list'] = data_goods_list
-    resp['data']['has_more'] = len(data_goods_list) >= APP_CONSTANTS['page_size'] and p < APP_CONSTANTS[
+    resp['data']['has_more'] = len(goods_list) >= APP_CONSTANTS['page_size'] and p < APP_CONSTANTS[
         'max_pages_allowed']  # 由于深度分页的性能问题，限制页数(鼓励使用更好的搜索条件获取较少的数据量)
     return resp
 
