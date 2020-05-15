@@ -107,14 +107,13 @@ def recordDelete():
     member_info = g.member_info
     if not member_info:
         resp['msg'] = "请先登陆"
-        return jsonify(resp)
+        return resp
     """
     op_status=0, 用户的发布记录
     op_status=1, 用户的认领记录
     op_status=5, 用户的归还通知
     op_status=6, 用户的申诉列表
     op_status=2, 用户的推荐列表
-    op_status=4, 管理员的举报列表
     """
     op_status = int(req.get('op_status', -1))
     id_list = param_getter['ids'](req.get('id_list', None))

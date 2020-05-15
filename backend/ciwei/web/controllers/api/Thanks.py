@@ -138,25 +138,25 @@ def thanksDelete():
     删除答谢举报
     :return:
     """
-    resp = {'code': -1, 'msg': '操作失败', 'data': {}}
+    resp = {'code': -1, 'msg': '', 'data': {}}
     member_info = g.member_info
     if not member_info:
         resp['msg'] = "请先登录"
         return resp
     req = request.values
     """
-    op_status=4,答谢举报
-    op_status=3,答谢记录 -- status = 0 收到的答谢 status=1 发出的答谢
+    status = 0 收到的答谢 status=1 发出的答谢
     """
-    op_status = int(req.get('op_status', -1))
     id_list = param_getter['ids'](req.get('id_list', None))
+    status = int(req.get('status', 2))
+    if status not in (0, 1) or id_list is None:
+        resp['msg'] = "操作失败"
+        return resp
 
-    status = int(req.get('status', 0))
-
-    op_res = RecordHandlers.get('thanks').delete().deal(op_status=op_status - status,
-                                                        thank_ids=id_list,
-                                                        member_id=member_info.id)
+    op_res = RecordHandlers.get('thanks').delete().deal(op_status=status,
+                                                        thank_ids=id_list)
     resp['code'] = 200 if op_res else -1
+    resp['msg'] = '操作成功' if op_res else '操作失败'
     return resp
 
 

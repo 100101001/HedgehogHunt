@@ -12,6 +12,7 @@ from sqlalchemy import and_, or_
 
 from application import db, APP_CONSTANTS
 from common.admin import UserService
+from common.admin.decorators import user_op
 from common.cahce.GoodsCasUtil import GoodsCasUtil
 from common.libs.UrlManager import UrlManager
 from common.models.ciwei.admin.Appeal import Appeal
@@ -197,21 +198,18 @@ class GoodsOpRecordDeleteHandler:
         return True
 
     @staticmethod
-    def _deleteGoodsReport(goods_ids=None, member_id=0, **kwargs):
+    @user_op
+    def _deleteGoodsReport(goods_ids=None, user=None, **kwargs):
         """
         管理员删除被举报的物品帖子
         :param goods_ids:
-        :param member_id:
+        :param user:
         :return:
         """
-        user_info = UserService.getUserByMid(member_id=member_id)
-        if not goods_ids or not user_info or user_info.level > 1:
-            return False
         Report.query.filter(Report.record_type == 1, Report.record_id.in_(goods_ids), Report.deleted_by == 0,
                             Report.status != 1). \
-            update({'deleted_by': user_info.uid}, synchronize_session=False)
+            update({'deleted_by': user.uid}, synchronize_session=False)
         db.session.commit()
-        return True
 
 
 class GoodsRecordSearchHandler:
@@ -375,8 +373,8 @@ class ThanksRecordDeleteHandler:
     具体有以下三种
     """
     __strategy_map = {
-        2: '_deleteMyThanks',
-        3: '_deleteMyReceivedThanks',
+        0: '_deleteMyReceivedThanks',
+        1: '_deleteMyThanks',
         4: '_deleteReportedThanks'
     }
 
@@ -414,21 +412,18 @@ class ThanksRecordDeleteHandler:
         return True
 
     @staticmethod
-    def _deleteReportedThanks(thank_ids=None, member_id=0, **kwargs):
+    @user_op
+    def _deleteReportedThanks(thank_ids=None, user=None, **kwargs):
         """
         删除已处理过的答谢举报记录
         管理员必须是admin
         :param thank_ids:
-        :param user_id:
+        :param user:
         :return:
         """
-        user_info = UserService.getUserByMid(member_id)  # 用户是否是管理员（前端可以传进来）
-        if not user_info or not thank_ids or user_info.level > 1:
-            return False
         Report.query.filter(Report.record_type == 0, Report.record_id.in_(thank_ids)). \
-            update({'deleted_by': user_info.uid}, synchronize_session=False)
+            update({'deleted_by': user.uid}, synchronize_session=False)
         db.session.commit()
-        return True
 
 
 class ThanksRecordSearchHandler:

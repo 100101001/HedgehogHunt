@@ -10,6 +10,7 @@ from flask import request, jsonify, g
 from application import APP_CONSTANTS, db
 from common.admin.ReportService import ReportHandlers, ReportRecordMakers
 from common.cahce.GoodsCasUtil import GoodsCasUtil
+from common.libs.Helper import param_getter
 from common.libs.RecordService import RecordHandlers
 from common.loggin.time import time_log
 from common.models.ciwei.Goods import Good
@@ -236,6 +237,68 @@ def reportThanksDeal():
     return resp
 
 
+@route_api.route('/report/goods/delete', methods=['GET', 'POST'])
+def reportGoodsDelete():
+    resp = {'code': -1, 'msg': '', 'data': {}}
+    req = request.values
+    # 检查登陆
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = "请先登陆"
+        return resp
+    """
+    op_status=4, 物品举报
+    """
+    op_status = int(req.get('op_status', -1))
+    if op_status != 4:
+        resp['msg'] = "操作失败"
+        return resp
+    id_list = param_getter['ids'](req.get('id_list', None))
+    op_res, op_msg = RecordHandlers.get('goods').delete().deal(op_status,
+                                                               goods_ids=id_list,
+                                                               # 管理员权限信息
+                                                               member_id=member_info.id,
+                                                               level=1)
+    resp['code'] = 200 if op_res else -1
+    resp['msg'] = op_msg
+    return resp
+
+
+
+@route_api.route("/report/thanks/delete", methods=['GET', 'POST'])
+@time_log
+def reportThanksDelete():
+    """
+    删除自己收到和发出的答谢记录
+    删除答谢举报
+    :return:
+    """
+    resp = {'code': -1, 'msg': '', 'data': {}}
+    member_info = g.member_info
+    if not member_info:
+        resp['msg'] = "请先登录"
+        return resp
+    req = request.values
+    """
+    op_status=4,答谢举报
+    """
+    op_status = int(req.get('op_status', -1))
+    if op_status != 4:
+        resp['msg'] = "操作失败"
+        return resp
+
+    id_list = param_getter['ids'](req.get('id_list', None))
+    op_res, op_msg = RecordHandlers.get('thanks').delete().deal(op_status=op_status,
+                                                                thank_ids=id_list,
+                                                                # 管理员身份审核信息
+                                                                member_id=member_info.id,
+                                                                level=1)
+    resp['code'] = 200 if op_res else -1
+    resp['msg'] = op_msg
+    return resp
+
+
+
 @route_api.route("/member/blocked/search", methods=['GET', 'POST'])
 @time_log
 def memberBlockedSearch():
@@ -280,4 +343,4 @@ def memberBlockedSearch():
     resp['data']['list'] = data_member_list
     resp['data']['has_more'] = len(data_member_list) >= page_size and p < APP_CONSTANTS[
         'max_pages_allowed']  # 由于深度分页的性能问题，限制页数(鼓励使用更好的搜索条件获取较少的数据量)
-    return jsonify(resp)
+    return resp
