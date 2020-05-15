@@ -204,9 +204,9 @@ class MemberHandler:
         # 归还状态细分
         return_new = len(return_goods)
         # 会员待取回的归还记录(待确认的寻物归还和待取回的二维码归还)
-        normal_return_new = len(list(filter(lambda item: item.return_goods_id != 0, return_goods)))
-        scan_return_new = min(return_new - normal_return_new, 99)
-        normal_return_new = min(normal_return_new, 99)
+        # normal_return_new = len(list(filter(lambda item: item.return_goods_id != 0, return_goods)))
+        # scan_return_new = min(return_new - normal_return_new, 99)
+        # normal_return_new = min(normal_return_new, 99)
         return_new = min(return_new, 99)
         # 获取会员未读的答谢记录
         thanks_new = db.session.query(func.count(Thank.id)).filter_by(target_member_id=member.id,
@@ -227,8 +227,7 @@ class MemberHandler:
             },
             'return_new': return_new,  # 推荐（记录索引）
             'return': {
-                'wait': normal_return_new,
-                'doing': scan_return_new
+                'wait': return_new
             }
         }  # 首页
 
