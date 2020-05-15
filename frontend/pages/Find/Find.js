@@ -5,7 +5,8 @@ Page({
   data: {
     banners: ["/images/logo.jpg"],
     activeCategoryId: 1,
-    categories: null
+    categories: null,
+    hasQrcode: false
   },
   onLoad: function (options) {
     wx.getSystemInfo({
@@ -56,7 +57,8 @@ Page({
       goods_name: '',  // 物品名
       owner_name: '',  // 物主名
       filter_address: '',  // 搜索栏的地址关键词
-      loadingMore: true  // 更多数据未加载
+      loadingMore: true,  // 更多数据未加载
+      hasQrcode: app.globalData.has_qrcode
     });
   },
   //轮播图变化
