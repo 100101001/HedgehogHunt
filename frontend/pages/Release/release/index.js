@@ -428,7 +428,7 @@ Page({
         // 寻物归还所有必填
         data = {
           os_location: this.data.os_location.length ? this.data.os_location[1] : "",  //
-          location: this.data.location.length ? this.data.location[1] : "",
+          // location: this.data.location.length ? this.data.location[1] : "",
           goods_name: items[0].value,
           mobile: items[2].value,
           owner_name: items[1].value,
@@ -481,8 +481,9 @@ Page({
     if (location.length === 0 && (business_type === 1 || business_type ===2 && globalData.isScanQrcode)) {
       //失物招领发帖时，再三询问是否真的一致，确保信息正确
       this.confirmEmptiness(data)
-    } else if (business_type === 2 && !globalData.isScanQrcode && location.equals(this.data.info.location)){
-      this.confirmReturnPutLocUnchanged(data)
+    } else if (business_type === 2 && !globalData.isScanQrcode && (location.equals(this.data.info.location) || location.length === 0)){
+      //是归还帖，并且放置位置和失主住址一样或者留空了
+      this.confirmReturnPutLocUnchanged(data,  location.length !== 0)
     } else {
       this.continueToRelease(data);
     }
@@ -829,7 +830,7 @@ Page({
         msg = "扫码归还成功";
         navigate = () => {
           wx.redirectTo({
-            url: '/pages/Homepage/index'
+            url: '/pages/Mine/Mine'
           })
         }
       }
