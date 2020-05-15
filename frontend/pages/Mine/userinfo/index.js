@@ -237,6 +237,7 @@ Page({
           avatar: info['avatar'],
           nickname: info['nickname'],
           name: info['name'],
+          editName: info['name'],
           mobile: info['mobile'],
           balance: util.toFixed(info['balance'],2),
           has_qrcode: info['has_qrcode'],
@@ -299,9 +300,7 @@ Page({
   },
   confirmNameEdit: function (e) {
     if (!this.data.editName) {
-      app.alert({
-        content: '姓名不能为空'
-      })
+      this.showToast('姓名不能为空!', 'none')
       return
     }
     if (this.data.name === this.data.editName) {
