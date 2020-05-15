@@ -8,6 +8,8 @@ from application import db
 from datetime import datetime
 import datetime as dt
 
+from common.libs.CryptService import Cipher
+
 
 class Good(db.Model):
     __tablename__ = 'goods'
@@ -104,6 +106,9 @@ class Good(db.Model):
         }
         return report_status_mapping[str(self.report_status)]
 
+    @property
+    def decrypt_auther_mobile(self):
+        return Cipher.decrypt(text=self.author_mobile)
 
     def __init__(self, author_info=None, business_type=0, mobile='', name='', owner_name='', summary='',
                  os_location='', location='', top_expire=None):

@@ -136,7 +136,7 @@ class CommonGoodsHandler:
             "location": location_list,
             "os_location": os_location_list,
             "mobile": goods_info.mobile,
-            "author_mobile": goods_info.author_mobile,
+            "author_mobile": goods_info.decrypt_auther_mobile,
             # 物品帖子作者信息
             "is_auth": is_auth,  # 是否查看自己发布的帖子(不能进行状态操作，可以编辑)
             "auther_id": goods_info.member_id,
@@ -431,10 +431,9 @@ class ReturnGoodsHandler(CommonGoodsHandler):
             扫码归还结束发帖
             ES同步和发送短信
             :param scan_goods:
-            :param notify_id:
             :return:
             """
-            # 链接归还的对象，直接就是对方的物品(如若不是可举报)
+            # 链接归还的对象，直接就是对方的物品(如若不是可举报), notify_id是外部参数
             if not scan_goods or not notify_id:
                 return
             scan_goods.qr_code_openid = notify_id
@@ -744,7 +743,7 @@ class FoundGoodsHandler(CommonGoodsHandler):
             取消认领后,可能没有人人领
             :return:
             """
-            no_marks = []
+            no_marks_goods = []
             for found_id in goods_ids:
                 marks = CacheQueryService.getMarkCache(goods_id=found_id)  # found_id 对应认领的member_id的集合
                 if marks:
@@ -755,8 +754,8 @@ class FoundGoodsHandler(CommonGoodsHandler):
                     no_mark = Mark.isNoMarkOn(goods_id=found_id)
                 if no_mark and GoodsCasUtil.exec(found_id, 2, 1):
                     # 这里不会出问题，因为认领那里，进入后设置成了负的，缓存和数据库都提交后，才会被设置成2。
-                    no_marks.append(found_id)
-            return no_marks
+                    no_marks_goods.append(found_id)
+            return no_marks_goods
 
         super()._cancelPremark(goods_ids=goods_ids, member_id=member_id)
         if status == 2:

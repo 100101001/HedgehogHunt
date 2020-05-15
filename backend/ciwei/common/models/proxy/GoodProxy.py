@@ -10,6 +10,8 @@
 from datetime import datetime
 from decimal import Decimal
 
+from common.libs.CryptService import Cipher
+
 
 class GoodProxy:
     now = datetime.now()
@@ -56,7 +58,10 @@ class GoodProxy:
                 '2': '预认领',
                 '3': '已认领',
                 '4': '已答谢',
-                '5': '申诉中',
+                '5': '申诉中',  # 兼容
+                '12': '申诉中',
+                '13': '申诉中',
+                '14': '申诉中',
                 '-1': '已删除',
                 '-2': '已删除',
                 '-3': '已删除',
@@ -97,3 +102,8 @@ class GoodProxy:
             '5': '封发布者',
         }
         return report_status_mapping[str(self.report_status)]
+
+
+    @property
+    def decrypt_auther_mobile(self):
+        return Cipher.decrypt(text=self.author_mobile)
