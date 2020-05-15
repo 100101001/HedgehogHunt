@@ -182,24 +182,26 @@ Page({
       content: "为维护平台环境，欢迎举报恶搞、诈骗、私人广告、色情等违规信息！同时，恶意举报将会被封号，请谨慎操作，确认举报？",
       showCancel: true,
       cb_confirm: () => {
-        this.doReportGoods(e.currentTarget.dataset.id)
+        this.doReportGoods(e.currentTarget.dataset.id, e.currentTarget.dataset.status)
       }
     });
   },
   /**
    * 举报物品
    * @param id
+   * @param goods_status
    */
-  doReportGoods: function (id = -1) {
+  doReportGoods: function (id = -1, goods_status=0) {
     wx.showLoading({
       title: '信息提交中..'
     });
+    let status = this.data.activeCategoryId;
     wx.request({
       url: app.buildUrl("/report/goods"),
       header: app.getRequestHeader(),
       data: {
         id: id,
-        status: this.data.activeCategoryId   //操作冲突检测
+        status: status? status: goods_status   //操作冲突检测，以及全部标签卡进行兼容
       },
       success: function (res) {
         let resp = res.data;
@@ -212,7 +214,10 @@ Page({
         wx.showToast({
           title: '举报成功，感谢！',
           icon: 'success',
-          duration: 1000
+          duration: 1000,
+          success: (res) => {
+            this.onPullDownRefresh()
+          }
         });
       },
       fail: function (res) {
