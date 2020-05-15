@@ -1237,7 +1237,7 @@ Page({
         if (status === 1) {
           content = '还无人认领，如果是你丢的，赶紧认领吧~'
         } else if (status === 2) {
-          content = show_location? '你已在线认领了，赶紧去取回来吧~': '他人已在线认领，如果是你的东西，你可以继续点击认领查看地址去取回，或者点击申诉。'
+          content = show_location? '你已在线认领了，赶紧去取回来吧~': '他人已在线认领，如果是你的东西，你可以继续点击认领查看地址去取回。'
         } else if(status === 3) {
           content = show_location? '恭喜取回，快去答谢发布者吧~': '他人已取回，如果是你的东西，请赶紧申诉我们会第一时间处理！'
         } else if (status === 4) {
