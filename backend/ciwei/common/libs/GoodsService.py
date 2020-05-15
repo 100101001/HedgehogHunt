@@ -394,14 +394,18 @@ class ReturnGoodsHandler(CommonGoodsHandler):
         :param is_scan_return:
         :return:
         """
+        os_location = release_info.get('os_location', APP_CONSTANTS['default_lost_loc'])
+        location = release_info.get('location')
+        if not location:
+            location = os_location
         owner_name = "鲟回码主" if is_scan_return else release_info.get('owner_name', '无')
         model_goods = Good(author_info=author_info, business_type=2,
                            mobile=release_info.get('mobile', '无'),
                            name=release_info.get('goods_name'),
                            owner_name=owner_name,
                            summary=release_info.get('summary', '无'),
-                           os_location=release_info.get('os_location', APP_CONSTANTS['default_lost_loc']),
-                           location=release_info.get('location', APP_CONSTANTS['default_lost_loc']))
+                           os_location=os_location,
+                           location=location)
         db.session.flush()
         return model_goods
 

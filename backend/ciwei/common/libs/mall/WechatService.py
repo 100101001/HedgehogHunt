@@ -52,18 +52,20 @@ class WeChatService:
         app.logger.info(r.text)
         if r.status_code == 200:
             prepay_id = self.xml_to_dict(r.text).get('prepay_id')
-            pay_sign_data = {
-                'appId': pay_data.get('appid'),
-                'timeStamp': pay_data.get('out_trade_no'),
-                'nonceStr': pay_data.get('nonce_str'),
-                'package': 'prepay_id={0}'.format(prepay_id),
-                'signType': 'MD5'
-            }
-            pay_sign = self.create_sign(pay_sign_data)
-            pay_sign_data.pop('appId')
-            pay_sign_data['paySign'] = pay_sign
-            pay_sign_data['prepay_id'] = prepay_id
-            return pay_sign_data
+            if prepay_id:
+                pay_sign_data = {
+                    'appId': pay_data.get('appid'),
+                    'timeStamp': pay_data.get('out_trade_no'),
+                    'nonceStr': pay_data.get('nonce_str'),
+                    'package': 'prepay_id={0}'.format(prepay_id),
+                    'signType': 'MD5'
+                }
+                pay_sign = self.create_sign(pay_sign_data)
+                pay_sign_data.pop('appId')
+                pay_sign_data['paySign'] = pay_sign
+                pay_sign_data['prepay_id'] = prepay_id
+                return pay_sign_data
+            return False
 
         return False
 
