@@ -109,6 +109,7 @@ services:
       MYSQL_DATABASE: ${mysql_db}
       MYSQL_ROOT_PASSWORD: ${mysql_root_pwd}
       TZ: Asia/Shanghai
+      LANG: C.UTF-8
     volumes:
       - ${mysql_data_dir}:/var/lib/mysql
       - ${mysql_init_dir}:/docker-entrypoint-initdb.d
