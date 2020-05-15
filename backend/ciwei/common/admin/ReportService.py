@@ -390,6 +390,7 @@ class ReportRecordMakers:
             "location": location_list,
             "business_type": goods.business_type,
             "mobile": goods.mobile,
+            "author_mobile": goods.decrypt_auther_mobile,
             "status_desc": str(goods.status_desc),
             "status": goods.status,
             # 作者和举报信息
