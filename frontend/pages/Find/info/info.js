@@ -272,6 +272,7 @@ Page({
         }
         let data = resp['data'];
         this.setData({
+          dataReady:true,
           infos: {
             info: data['info'],
             loadingHidden: true,
