@@ -63,7 +63,7 @@ class GoodsCasUtil:
         return True
 
     @classmethod
-    def set(cls, *goods_ids, exp_val=0, new_val=0):
+    def set(cls, goods_ids=None, exp_val=0, new_val=0):
         """
         不会起冲突，只是设置
         :param goods_ids:

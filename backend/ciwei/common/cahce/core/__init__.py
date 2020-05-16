@@ -10,9 +10,6 @@ import redis
 
 from application import app
 
-if __name__ == "__main__":
-    pass
-
 
 class CasLua:
     def __init__(self, flask_redis):
@@ -24,7 +21,7 @@ class CasLua:
         local ok2 = ARGV[1] == val
         if ok1 or ok2 then
             redis.call('set', KEYS[1], ARGV[2])
-            redis.call('expire', KEYS[1], 3600)
+            redis.call('expire', KEYS[1], 1800)
             return 1
         else
             return 0
@@ -37,7 +34,7 @@ class CasLua:
         for i=1, len - 1 do
             if ARGV[i] == 'nil' and not val or ARGV[i] == val then
                 redis.call('set', KEYS[1], ARGV[len])
-                redis.call('expire', KEYS[1], 3600)
+                redis.call('expire', KEYS[1], 1800)
                 return 1
             end
         end

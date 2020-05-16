@@ -713,15 +713,15 @@ class FoundGoodsHandler(CommonGoodsHandler):
     @classmethod
     def _sendFoundToSys(cls, goods_ids=None, status=1, **kwargs):
         # CAS并发保护
-        ok_goods_id = GoodsCasUtil.filter(goods_ids, exp_val=status, new_val=-status)
+        ok_goods_ids = GoodsCasUtil.filter(goods_ids, exp_val=status, new_val=-status)
         updated = {'member_id': APP_CONSTANTS['sys_author']['member_id'],
                    'openid': APP_CONSTANTS['sys_author']['openid'],
                    'nickname': APP_CONSTANTS['sys_author']['nickname'],
                    'avatar': APP_CONSTANTS['sys_author']['avatar']}
-        Good.batch_update(Good.status == status, Good.id.in_(ok_goods_id), val=updated)
+        Good.batch_update(Good.status == status, Good.id.in_(ok_goods_ids), val=updated)
         db.session.commit()
         # CAS并发保护
-        GoodsCasUtil.set(ok_goods_id, exp_val=-status, new_val=status)
+        GoodsCasUtil.set(ok_goods_ids, exp_val=-status, new_val=status)
 
     @classmethod
     def _preMarkFound(cls, goods_id=0, status=0, member_id=0, **kwargs):
