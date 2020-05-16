@@ -208,8 +208,8 @@ class NoModifiedHandler:
     @classmethod
     def filter(cls, edit_info=None, goods_info=None, **kwargs):
         if edit_info and edit_info.get('modified'):
-            Recommend.query.filter(Recommend.found_goods_id == goods_info.id,
-                                   Recommend.status > 0).update({'status': 0}, synchronize_session=False)
+            Recommend.renewOldRecommend(goods_info)
+
             db.session.commit()
         next_handler = cls.next
         if next_handler:
@@ -222,8 +222,7 @@ class ModifiedHandler(RecommendHandler):
     @classmethod
     def filter(cls, edit_info=None, goods_info=None, **kwargs):
         if edit_info and edit_info.get('need_recommend'):
-            Recommend.query.filter(Recommend.found_goods_id == goods_info.id,
-                                   Recommend.status >= 0).update({'status': -Recommend.status-1}, synchronize_session=False)
+            Recommend.invalidatePrevRecommend(goods_info)
             super()._doAutoRecommendGoods(goods_info=goods_info, edit=True)
             return
         next_handler = cls.next
