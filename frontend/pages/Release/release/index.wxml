@@ -75,7 +75,8 @@
     <view class="hrz"></view>
     <view class="summary-container">
       <view class="tips-views">物品描述</view>
-      <textarea class="summary" maxlength="{{false}}" name="summary" placeholder="{{summary_placeholder}}" value="{{summary_value}}" bindinput="listenSummaryInput"></textarea>
+      <textarea class="summary" maxlength="{{false}}" name="summary" placeholder="{{summary_placeholder}}" value="{{summary_value}}"
+                bindinput="listenSummaryInput"></textarea>
     </view>
     <view class="hrz1"></view>
     <!--寻物启事的置顶组件-->
