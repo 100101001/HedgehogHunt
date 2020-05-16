@@ -198,7 +198,7 @@ Page({
         }
       });
       //发布记录
-      title = '发布记录';
+      title = '我遗失的';
       check_cat = [
         {
           id: 1,  //goods的status
@@ -222,7 +222,7 @@ Page({
         business_type: 0
       })
     } else if (op_status === 1) {
-      title = '认领记录';
+      title = '我的认领';
       //认领记录（后端是Mark表的status不是Goods表的status）
       check_cat = [
         {
@@ -239,7 +239,7 @@ Page({
         }
       ];
     } else if (op_status === 5) {
-      title = '归还通知';
+      title = '归还我的';
       //归还记录（后端是Goods表的status但因为business_type==2所以不用考虑和外部同步）
       check_cat = [
         {
@@ -281,7 +281,7 @@ Page({
       ]
     }
     else if (op_status === 6){
-      title = '申诉记录';
+      title = '我的申诉';
       check_cat = [{
         id: 0,
         name: '待处理',
@@ -1173,8 +1173,10 @@ Page({
   businessTypeClick: function () {
     let infos = this.data.infos;
     let business_type = this.data.business_type;
+    let topTitle;
     if (business_type === 0) {
       //寻-->失
+      topTitle = "我捡到的";
       infos.check_cat = [
         {
           id: 1,
@@ -1199,6 +1201,7 @@ Page({
       business_type = 1
     } else if (business_type === 1) {
       //失->还
+      topTitle = "我归还的";
       infos.check_cat = [
         {
           id: 0,
@@ -1223,6 +1226,7 @@ Page({
       business_type = 2
     } else {
       //还->寻
+      topTitle = "我遗失的";
       infos.check_cat = [
         {
           id: 1,
@@ -1250,6 +1254,7 @@ Page({
       infos: infos,
       business_type: business_type
     });
+    wx.setNavigationBarTitle({title: topTitle})
     //重新加载页面
     this.onPullDownRefresh();
   },

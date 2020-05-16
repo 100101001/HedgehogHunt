@@ -442,7 +442,7 @@ Page({
     }
     let location = this.data.location;
     let business_type = this.data.business_type;
-    if (location.length === 4 && location[1].length === "" && (business_type === 1 || business_type ===2)) {
+    if (location.length === 4 && location[1].length === 0 && (business_type === 1 || business_type ===2)) {
       //失物招领发帖时，再三询问是否真的一致，确保信息正确
       this.confirmSame(data)
     } else {
