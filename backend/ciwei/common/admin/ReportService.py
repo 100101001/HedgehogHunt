@@ -378,6 +378,9 @@ class ReportRecordMakers:
         location_list = goods.location.split("###")
         location_list[2] = eval(location_list[2])
         location_list[3] = eval(location_list[3])
+        os_location_list = goods.os_location.split("###")
+        os_location_list[2] = eval(os_location_list[2])
+        os_location_list[3] = eval(os_location_list[3])
         goods_info = {
             "id": goods.id,
             "goods_name": goods.name,
@@ -388,6 +391,7 @@ class ReportRecordMakers:
             "pics": [UrlManager.buildImageUrl(i) for i in goods.pics.split(",")],
             "updated_time": str(goods.updated_time),
             "location": location_list,
+            "os_location": os_location_list,
             "business_type": goods.business_type,
             "mobile": goods.mobile,
             "author_mobile": goods.decrypt_auther_mobile,
