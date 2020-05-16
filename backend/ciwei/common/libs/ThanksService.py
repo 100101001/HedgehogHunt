@@ -170,7 +170,7 @@ class ThankHandler:
     def __updateThankedReturnStatus(cls, return_id=0):
         if not return_id:
             return
-        lost_id = Good.getLinkId(return_id, batch=False)
+        lost_id = Good.getLinkId([return_id], batch=False)
         # 对方可能正好删除了归还帖子，但寻物贴只有答谢者自己才能删除的帖子，不可能并发操作
         updated = {'status': 4, 'thank_time': datetime.now()}
         GoodsCasUtil.exec_wrap(lost_id[0], ['nil', 3], 4)  # 寻物贴只有自己能操作状态，所以不会冲突

@@ -175,7 +175,9 @@ class Good(db.Model):
         cls.query.filter(*filters).update(val, redis_arg=rds)
 
     @classmethod
-    def getLinkId(cls, *goods_ids, batch=True):
+    def getLinkId(cls, goods_ids=None, batch=True):
+        if goods_ids is None:
+            goods_ids = []
         query = cls.query.filter(cls.id.in_(goods_ids)).with_entities(cls.return_goods_id)
         if batch:
             return query.distinct().all()
