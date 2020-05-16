@@ -83,6 +83,11 @@ Page({
     this.setData({
       isSelecteds: isSelecteds
     });
+    util.getNewRecommend((data)=> {
+      this.setData({
+        total_new: data.total_new
+      })
+    })
   },
   /**
    * catClick 如果切换了状态栏，就加载新的数据
