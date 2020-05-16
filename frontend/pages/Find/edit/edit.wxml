@@ -5,13 +5,19 @@
     <view class="price-and-location">
 
       <!--文本输入框：物品名，失主名-->
-      <block wx:for="{{items}}" wx:key="index">
+      <block wx:for="{{items}}" wx:key="index" wx:for-index="idx">
         <view class="hrz"></view>
         <view class="item-container">
           <image src="{{item.icons}}" mode="aspectFit"></image>
           <view class="label">{{item.label}}</view>
           <view class="inputbox">
-            <input name="{{item.name}}" bindfocus="{{item.act}}" placeholder="{{item.placeholder}}" value="{{item.value}}" type="{{item.kb_type}}"></input>
+            <input name="{{item.name}}"
+                   data-id="{{idx}}"
+                   bindinput="listenerInput"
+                   bindfocus="{{item.act}}"
+                   placeholder="{{item.placeholder}}"
+                   value="{{item.value}}"
+                   type="{{item.kb_type}}"></input>
           </view>
         </view>
       </block>
@@ -26,12 +32,17 @@
       <view class="item-container">
         <image src="/images/icons/location.png" mode="aspectFit"></image>
         <view class="label" wx:if="{{ business_type }}">放置位置</view>
-        <view class="label" wx:if="{{!business_type }}">住址</view>
+        <view class="label" wx:else>住址</view>
         <view class="get-location" data-loc="1" bindtap="getLocation">获取位置</view>
       </view>
       <!--归还帖可见放置提示-->
       <view class="location-name">
-        <input name="location" data-loc="1" bindinput="listenLocationInput" disabled="{{location.length==0}}" value="{{location[1]}}" placeholder="若获取的地址不够精确可手动输入完善"></input>
+        <input wx:if="{{business_type==0}}" name="location" data-loc="1" bindinput="listenLocationInput" disabled="{{location.length==0}}" bindtap="toInputGetLocation"
+               value="{{location[1]}}" placeholder="我不方便透露，就不填了"></input>
+        <!---归还和拾物--->
+        <input wx:else name="location" data-loc="1" bindinput="listenLocationInput" disabled="{{location.length==0}}" bindtap="toInputGetLocation"
+               value="{{location[1]}}" placeholder="和我发现的地点一样，就不填了"></input>
+<!--        <input name="location" data-loc="1" bindinput="listenLocationInput" disabled="{{location.length==0}}" value="{{location[1]}}" placeholder="若获取的地址不够精确可手动输入完善"></input>-->
       </view>
       <view class="hrz"></view>
     </view>
@@ -52,7 +63,11 @@
     <view class="hrz"></view>
     <view class="summary-container">
       <view class="tips-views">物品描述</view>
-      <textarea class="summary" maxlength="{{false}}" name="summary" placeholder="{{summary_placeholder}}" value="{{summary_value}}"></textarea>
+      <textarea class="summary" maxlength="{{false}}"
+                bindinput="listenSummaryInput"
+                name="summary"
+                placeholder="{{summary_placeholder}}"
+                value="{{summary_value}}"></textarea>
     </view>
     <view class="hrz1"></view>
 

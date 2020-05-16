@@ -129,10 +129,11 @@ Page({
     //从详情页进入编辑，info是原来的帖子数据
     let info = JSON.parse(options.info);
     this.setData({
-      origin_info: info
+      origin_info: info,
+      origin_location: info.location.slice(),
+      origin_os_location: info.os_location.slice()
     });
     this.onLoadSetData(info);
-
     if (options.top) {
       //从详情页去置顶过来的，页面将直接滚动到置顶部分，供用户进行后续操作
       setTimeout(()=>{
@@ -141,6 +142,42 @@ Page({
     }
   },
   onShow: function() {},
+  /**
+   * 姓名，物品，手机输入
+   * @param e
+   */
+  listenerInput: function(e) {
+    let idx = e.currentTarget.dataset.id;
+    let items = this.data.items;
+    items[idx].value = e.detail.value;
+    this.setData({
+      items: items
+    })
+  },
+  listenSummaryInput: function (e) {
+    this.setData({
+      summary_value: e.detail.value
+    })
+  },
+  /**
+   * 对习惯点击地址输入框获取位置的的用户进行提示
+   * @param e
+   */
+  toInputGetLocation: function (e) {
+    let loc_id = e.currentTarget.dataset.loc * 1;
+    if (this.data.os_location.length === 0 && loc_id === 2 || this.data.location.length === 0 && loc_id === 1) {
+      let content;
+      if (this.data.business_type === 0) {
+        content = loc_id === 2 ? '不知道可留空': '可留空'
+      } else if ((this.data.business_type === 1 || this.data.business_type === 2) && loc_id ===1) {
+        content = '与发现地一样可留空'
+      }
+      app.alert({
+        title: '请点击橙色按钮获取位置',
+        content: content
+      })
+    }
+  },
   /**
    * 获取位置按钮，先授权，然后可以获取用户位置
    * @param e
@@ -225,11 +262,29 @@ Page({
    * @param info
    */
   onLoadSetData: function(info) {
+    info = this.dealWithLocationPlaceHolder(info);
     this.setEditFormInitData(info);
     //寻物启事且原来不是置顶帖需要的置顶信息
     if (!info.business_type && !info.top) {
       this.setTopAndBalanceUseInitData()
     }
+  },
+  /**
+   * 后端对于留空的地址进行了默认填充，这里避免编辑者看到，将默认地址置空
+   * @param info
+   * @returns {{}}
+   */
+  dealWithLocationPlaceHolder: function(info={}) {
+    if (info.location.equals(globalData.default_loc)) {
+      info.location = []
+    }
+    if (info.os_location.equals(globalData.default_loc)) {
+      info.os_location = []
+    }
+    this.setData({
+      info: info
+    });
+    return info;
   },
   /**
    * setEditFormInitData 编辑的表单数据初始化
@@ -251,7 +306,8 @@ Page({
       placeholder: "例:校园卡",
       label: tips_obj['goods_name'],
       icons: "/images/icons/goods_name.png",
-      value: info.goods_name
+      value: info.goods_name,
+      kb_type: 'text',
     },
       {
         name: "owner_name",
@@ -259,13 +315,15 @@ Page({
         label: tips_obj['owner_name'],
         icons: "/images/icons/discount_price.png",
         value: info.owner_name,
+        kb_type: 'text',
       },
       {
         name: "mobile",
         placeholder: "高危非必填",
         label: tips_obj['mobile'],
         icons: "/images/icons/mobile.png",
-        value: info.mobile
+        value: info.mobile,
+        kb_type: 'text'
       }
     ];
     let summary_placeholder = "";
@@ -285,7 +343,7 @@ Page({
       goods_id: info.id,
       location: info.location.slice(),  //为了比对编辑是否修改了内容，slice使得副本修改不影响原info
       os_location: info.os_location.slice(),  //为了比对编辑是否修改了内容，slice使得副本修改不影响原info
-      top: info.top, //原来是否置顶
+      top: info.business_type !== 0? false : info.top, //原来是否置顶
       submitDisable: false
     });
   },
@@ -367,7 +425,11 @@ Page({
   //表单提交
   formSubmit: function (e) {
     this.setData({submitDisable: true});
-    let data = e.detail.value;
+    // let data = e.detail.value;
+    // 表单只包含输入项: items和summary，以及location[1]
+    // 获得需要判空的数据
+    let data = this.getEssentialData(this.data.items);
+    console.log(data)
     if (app.judgeEmpty(data, this.data.tips_obj)) {
       this.setData({submitDisable: false});
       return;
@@ -378,11 +440,45 @@ Page({
       this.setData({submitDisable: false});
       return;
     }
+    let location = this.data.location;
+    let business_type = this.data.business_type;
+    if (location.length === 0 && (business_type === 1 || business_type ===2)) {
+      //失物招领发帖时，再三询问是否真的一致，确保信息正确
+      this.confirmSame(data)
+    } else {
+      // 正常设置非输入的数据：地址，business_type，图片等
+      this.continueToRelease(data);
+    }
+  },
+  confirmSame: function(data) {
+    app.alert({
+      title: '发布提示',
+      content: '放置地点是很重要的取物线索，确认放置地点与发现地点一致？',
+      showCancel: true,
+      cb_confirm: () => {
+        //准备发布数据
+        this.continueToRelease(data);
+      },
+      cb_cancel: () => {
+        //滚动到事发地点位置
+        setTimeout(() => {
+          this.setData({
+            submitDisable: false
+          });
+          util.goToPoint('#to-make-up-location')
+        }, 200)
+      }
+    })
+  },
+  /**
+   * 发布信息通过校验{@link toRelease}后继续发帖
+   */
+  continueToRelease: function (data = {}) {
     // 用于冲突检测
     data['status'] = this.data.origin_info.status;
-
+    // 除了纯输入以外的数据设置
     data['business_type'] = this.data.business_type;
-    data['img_list'] = img_list;
+    data['img_list'] = this.data.imglist;
     data['location'] = this.data.location;
     data['os_location'] = this.data.os_location;
     data['id'] = this.data.goods_id;
@@ -390,7 +486,43 @@ Page({
     data['is_top'] = this.data.isTop && !this.data.top ? 1 : 0;
     data['days'] = this.data.isTop && !this.data.top ? this.data.top_days : 0;
     this.detectRecommendInfoModified(data);
-    this.toUploadData(data)
+    if (this.data.business_type === 0) {
+      // 失物不知道恢复为不知道的处理
+      data['location'] = data['location'].length === 0 ? this.data.origin_location : data['location'];
+      data['os_location'] = data['os_location'].length === 0 ? this.data.origin_os_location : data['os_location']
+    } else {
+      // 拾物和归还的放置地点为空，则设置与发现地点一样
+      data['location'] = data['location'][1].length === 0 ? data['os_location'] : data['location'];
+    }
+    this.toUploadData(data);
+  },
+  /**
+   * 必填信息的数据，后续判空用
+   * @param items
+   * @returns {*}
+   */
+  getEssentialData: function (items = []) {
+    let data;
+    let business_type = this.data.business_type;
+    if (business_type === 1 || business_type === 2) {
+      // 失物招领和归还贴必须填写发现地点
+      data = {
+        os_location: this.data.os_location.length ? this.data.os_location[1] : "",  //
+        goods_name: items[0].value,
+        mobile: items[2].value,
+        owner_name: items[1].value,
+        summary: this.data.summary_value
+      };
+    } else if (business_type === 0) {
+      //寻物启事地点都可以留空
+      data = {
+        goods_name: items[0].value,
+        mobile: items[2].value,
+        owner_name: items[1].value,
+        summary: this.data.summary_value
+      };
+    }
+    return data;
   },
   /**
    * 标识推荐信息的改变
@@ -553,7 +685,10 @@ Page({
     })
   },
   endCreate: function(id) {
-
+    //图片上传完成了
+    this.setData({
+      loadingHidden: true
+    });
     wx.request({
       url: app.buildUrl("/goods/end-create"),
       method: 'POST',
