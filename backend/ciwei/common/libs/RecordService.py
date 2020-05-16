@@ -89,10 +89,11 @@ def makeRecordData(item=None, op_status=0, status=0, now=None):
         "main_image": UrlManager.buildImageUrl(item.main_image),
         "selected": False,  # 供前端选中删除记录用的属性
         "unselectable": is_appealed or is_pre_mark_fail or unconfirmed_returned_lost or is_reported,  # 前端编辑禁止选中
+        # 是否为置顶记录
         "top": item.top_expire_time > now if op_status else datetime.datetime.strptime(item.top_expire_time,
                                                                                        "%Y-%m-%dT%H:%M:%S") > now,
-        # 是否为置顶记录
-        "updated_time": str(item.updated_time)
+
+        "updated_time": str(item.updated_time).replace('T', ' '),
     }
     return record
 

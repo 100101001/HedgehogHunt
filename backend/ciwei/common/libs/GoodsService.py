@@ -398,7 +398,7 @@ class ReturnGoodsHandler(CommonGoodsHandler):
         location = release_info.get('location')
         if not location:
             location = os_location
-        owner_name = "鲟回码主" if is_scan_return else release_info.get('owner_name', '无')
+        owner_name = "寻物码主" if is_scan_return else release_info.get('owner_name', '无')
         model_goods = Good(author_info=author_info, business_type=2,
                            mobile=release_info.get('mobile', '无'),
                            name=release_info.get('goods_name'),

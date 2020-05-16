@@ -235,6 +235,8 @@ curl 操作
     curl -XPOST localhost:9200/goods/_delete_by_query -H "Content-Type:application/json" -d '{"query":{"match":{"business_type":1}}}'
     # 删除寻物
     curl -XPOST localhost:9200/goods/_delete_by_query -H "Content-Type:application/json" -d '{"query":{"match":{"business_type":0}}}'
+    # 按id删除
+    curl -XDELETE localhost:9200/goods/_doc/${id}?pretty
     # 查询所有记录
     curl localhost:9200/goods/_doc?pretty -H "Content-Type:application/json" -d '{"query":{"match_all":{}}}'
     # 按id查询
