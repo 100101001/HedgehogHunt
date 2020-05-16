@@ -442,7 +442,7 @@ Page({
     }
     let location = this.data.location;
     let business_type = this.data.business_type;
-    if (location.length === 4 && location[1].length === 0 && (business_type === 1 || business_type ===2)) {
+    if ((business_type === 1 || business_type ===2) && location.length === 4 && location[1].length === 0) {
       //失物招领发帖时，再三询问是否真的一致，确保信息正确
       this.confirmSame(data)
     } else {
@@ -488,8 +488,18 @@ Page({
     this.detectRecommendInfoModified(data);
     if (this.data.business_type === 0) {
       // 失物不知道恢复为不知道的处理
-      data['location'] = data['location'].length === 0 ? this.data.origin_location : data['location'];
-      data['os_location'] = data['os_location'].length === 0 ? this.data.origin_os_location : data['os_location']
+      let location = data['location'];
+      if (location.length === 0) {
+        data['location'] = this.data.origin_location
+      } else if (location.length === 4 && location[1].length === 0) {
+        data['location'] = globalData.default_loc
+      }
+      let os_location = data['os_location'];
+      if (os_location.length === 0) {
+        data['os_location'] = this.data.origin_os_location
+      } else if (os_location.length === 4 && os_location[1].length === 0) {
+        data['os_location'] = globalData.default_loc
+      }
     } else {
       // 拾物和归还的放置地点为空，则设置与发现地点一样
       data['location'] = data['location'][1].length === 0 ? data['os_location'] : data['location'];

@@ -520,6 +520,17 @@ Page({
     data['is_top'] = this.data.isTop ? 1 : 0;
     data['days'] = this.data.isTop ? this.data.top_days : 0;
     data['edit'] = 0; //标记是发布，匹配用
+    if (this.data.business_type === 0) {
+      // 寻物启事可能失主清空了，这里手动清空坐标信息
+      let location = data['location'];
+      data['location'] = location.length === 4 && location[1].length === 0? []: location;
+      let os_location = data['os_location'];
+      data['os_location'] = os_location.length === 4 && os_location[1].length === 0? []: os_location;
+    } else {
+      // 拾物和归还的放置地点为空，则设置与发现地点一样
+      let location = data['location'];
+      data['location'] = location.length === 4 && location[1].length === 0 ? [] : location;
+    }
     this.handleRelease(data)
   },
   /**
