@@ -89,6 +89,6 @@
     </view>
 
     <!--发布按钮-->
-    <button class="submit-btn" form-type="submit" disabled="{{submitDisable}}">提交发布</button>
+    <button class="submit-btn" form-type="submit" disabled="{{submitDisable}}">编辑提交</button>
   </form>
 </view>

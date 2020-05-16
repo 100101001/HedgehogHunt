@@ -103,6 +103,7 @@
   margin: 20rpx 0 20rpx 30rpx;
   padding: 10rpx;
   border-radius: 10rpx;
+  letter-spacing: 5rpx;
 }
 
 .input-hints {
@@ -177,6 +178,7 @@
   width: 580rpx;
   margin: 20rpx auto;
   border-radius: 10rpx;
+  letter-spacing: 5rpx;
 }
 
 .tips-btn {
