@@ -229,8 +229,11 @@ Page({
   /**
    * 打开地图进行导航
    */
-  toNavigate: function () {
-    let location = this.data.infos.info.location;
+  toNavigate: function (e) {
+    let id = e.currentTarget.dataset.id * 1;
+    let info = this.data.infos.info;
+    let location = id === 1? info.location: info.os_location;
+    console.log(id)
     wx.openLocation({ //​使用微信内置地图查看位置。
       latitude: location[2], //要去的纬度-地址
       longitude: location[3], //要去的经度-地址
