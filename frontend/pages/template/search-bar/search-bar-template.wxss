@@ -121,6 +121,16 @@ margin-right: 8rpx;
     background-color: #f7931e;
     font-size:32rpx;
     color:#ffffff;
+    letter-spacing: 3rpx;
+}
+.op-btn button {
+ border-radius: 0;
+}
+.op-btn button[disabled] {
+color: #fff !important;
+background-color: #ccc !important;
+border-color: #ccc !important;
+border-radius: 0 !important;
 }
 
 .jiesuan-box .to-pay-btn .grey{
