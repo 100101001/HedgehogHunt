@@ -453,7 +453,7 @@ Page({
    * @see handleRelease
    */
   toRelease: function () {
-    //防止重复地点击
+    // 防止重复地点击发帖，导致一个时间点内发出一模一样的多个帖子
     this.setData({
       submitDisable: true
     });
@@ -476,25 +476,23 @@ Page({
       });
       return
     }
+    //对放置地点进行确认
     let location = this.data.location;
     let business_type = this.data.business_type;
-    if (location.length === 0 && (business_type === 1 || business_type ===2 && globalData.isScanQrcode)) {
-      //失物招领发帖时，再三询问是否真的一致，确保信息正确
-      this.confirmEmptiness(data)
-    } else if (business_type === 2 && !globalData.isScanQrcode && (location.equals(this.data.info.location) || location.length === 0)){
-      //是归还帖，并且放置位置和失主住址一样或者留空了
-      this.confirmReturnPutLocUnchanged(data,  location.length !== 0)
+    if (location.length === 0 && (business_type === 1 || business_type ===2)) {
+      // 失物招领和归还发帖时，放置留空，需确认是否真的一致，确保信息正确；寻物启事不给居住地址也不进行询问
+      this.confirmSame(data, false);
+    } else if (location.length !==0 && this.data.info && location.equals(this.data.info.location)){
+      // 失物归还的放置位置和失主住址一样
+      this.confirmSame(data, true);
     } else {
       this.continueToRelease(data);
     }
   },
-  confirmReturnPutLocUnchanged: function (data) {
-    this.confirmEmptiness(data, true);
-  },
-  confirmEmptiness: function(data, is_return=false) {
+  confirmSame: function(data, not_empty=false) {
     app.alert({
       title: '发布提示',
-      content: '放置地点是很重要的取物线索，确认放置地点' + (is_return ? '就是失主所在位置？' : '与发现地点一致？'),
+      content: '放置地点是很重要的取物线索，确认放置地点' + (not_empty ? '就是失主所在位置？' : '与发现地点一致？'),
       showCancel: true,
       cb_confirm: () => {
         //准备发布数据
@@ -724,7 +722,7 @@ Page({
       },
       name: 'file', //文件名，不要修改，Flask直接读取
       success: (res) => {
-        if (img_list.length == i) {
+        if (img_list.length === i) {
           this.toEndCreate(id)
         }
       },
@@ -1014,7 +1012,7 @@ Page({
   changeUseBalance: function (e) {
     useBalance.changeUseBalance(e, () => {
       this.setData({
-        use_balance: e.detail.value.length == 1
+        use_balance: e.detail.value.length === 1
       })
     })
   }
