@@ -34,10 +34,12 @@
 							</view>
 						</view>
 						<view class="status-container {{op_status===4? 'lefter':''}}" wx:if="{{parseFloat(item.reward)}}">{{item.reward}}</view>
-						<view  wx:if="{{op_status===4}}" class="block-user" catchtap="toBlock" data-report_status="5" data-id="{{item.id}}">拉黑答谢者</view>
-						<view wx:else  class="report" catchtap="toReport" data-index="{{index}}">
+						<view wx:if="{{op_status===4}}" class="block-user" catchtap="toBlock" data-report_status="5" data-id="{{item.id}}">拉黑答谢者</view>
+						<view wx:if="{{op_status!==4 && check_status_id === 0}}"  class="report" catchtap="toReport" data-index="{{index}}">
 							<image src="/images/icons/report.png"></image>
 							<text>举报</text>
+						</view>
+						<view wx:if="{{op_status!==4 && check_status_id === 1}}"  class="report">
 						</view>
 					</view>
 
