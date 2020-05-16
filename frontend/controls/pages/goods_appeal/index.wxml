@@ -55,7 +55,7 @@
   <view><text class="label">手机：</text>{{stuff.mobile}}</view>
   <view><text class="label">放置位置：</text>{{stuff.loc}}</view>
   <view><text class="label">描述：</text>{{stuff.summary}}</view>
-  <view class="op-btn see-result" bindtap="openResult">处理结果</view>
+  <view class="op-btn see-result" bindtap="openResult" wx:if="{{status}}">处理结果</view>
 </lyx-modal>
 
 

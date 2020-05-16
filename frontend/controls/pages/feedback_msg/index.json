@@ -1,5 +1,6 @@
 {
   "usingComponents": {
     "lyx-modal": "/components/lyx-modal/lyx-modal"
-  }
+  },
+  "navigationBarTitleText": "用户反馈"
 }
