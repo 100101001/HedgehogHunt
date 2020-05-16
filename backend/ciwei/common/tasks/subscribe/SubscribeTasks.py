@@ -18,7 +18,7 @@ from common.tasks.log import LogTasks
 SUB_DATE_FORMAT = APP_CONSTANTS['sub_time_format']
 
 
-@celery.task(name='subscribe.return_finish_batch', property=1, ignore_result=True)
+@celery.task(name='subscribe.found_finish_batch', property=1, ignore_result=True)
 def send_found_finish_msg_in_batch(gotback_founds=None):
     """
     发送公开招领的东西已取回
