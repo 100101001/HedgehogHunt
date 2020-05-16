@@ -146,17 +146,17 @@ class MemberHandler:
     @classmethod
     def _getDetailedInfo(cls, member=None):
         def __getSmsDetailedInfo():
-            pkgs = MemberSmsPkg.getAllValidPkg(member_id=member.id)
+            # pkgs = MemberSmsPkg.getAllValidPkg(member_id=member.id)
             p_times = 0  # 计算套餐包有效期内总数量
             pkg_data_list = []
-            for item in pkgs:
-                p_time = item.left_notify_times
-                tmp_data = {
-                    'num': p_time,
-                    'expire': item.expired_time.strftime(format="%Y-%m-%d")
-                }
-                p_times += p_time
-                pkg_data_list.append(tmp_data)
+            # for item in pkgs:
+            #     p_time = item.left_notify_times
+            #     tmp_data = {
+            #         'num': p_time,
+            #         'expire': item.expired_time.strftime(format="%Y-%m-%d")
+            #     }
+            #     p_times += p_time
+            #     pkg_data_list.append(tmp_data)
             m_times = member.left_notify_times  # 计算按量购买的数量
             total = p_times + m_times
             return total, m_times, pkg_data_list
