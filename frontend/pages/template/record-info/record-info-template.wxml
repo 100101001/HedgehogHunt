@@ -44,25 +44,40 @@
 
     <!--不是管理员必须能认领才能看到地址和联络区-->
     <view class="location" wx:if="{{show_location && !is_user}}">
-      <view bindtap="toNavigate" class="navigate-container" wx:if="{{info.location[1] !== '不知道'}}">
+      <view wx:if="{{info.location[1] !== '不知道'}}" bindtap="toNavigate" class="navigate-container" >
           <image class="loc_icon" src="/images/icons/navigate.png"></image>
-          <view class="loc_text">{{info.location[1]}}<text style="font-size:24rpx;opacity:0.7;"> (点击地址可导航)</text></view>
+          <view class="loc_text">{{info.business_type ===0? '住址：': '放置地：'}}{{info.location[1]}}<text style="font-size:24rpx;opacity:0.7;"> (点击导航)</text></view>
       </view>
       <view class="hrz" wx:if="{{info.location[1] !== '不知道'}}"></view>
+      <view wx:if="{{info.business_type === 0}}" bindtap="{{info.os_location[1]!=='不知道'? 'toNavigate': ''}}" class="navigate-container">
+        <image class="loc_icon" src="/images/icons/navigate.png"></image>
+        <view class="loc_text">丢失地：{{info.os_location[1]}}<text style="font-size:24rpx;opacity:0.7;"></text></view>
+      </view>
+      <view class="hrz" wx:if="{{info.business_type === 0}}"></view>
       <view bindtap="copyMobile" data-mobile="{{info.mobile}}">
         <image class="loc_icon" src="/images/icons/mobile.png"></image>
         <view class="loc_text">电话：{{info.mobile}} <text style="font-size:24rpx;opacity:0.7;">(点击复制)</text></view>
       </view>
     </view>
-
+    <view class="location" wx:if="{{!show_location && !is_user && info.business_type === 0}}">
+      <view bindtap="{{info.os_location[1]!=='不知道'? 'toNavigate': ''}}" class="navigate-container">
+        <image class="loc_icon" src="/images/icons/navigate.png"></image>
+        <view class="loc_text">丢失地：{{info.os_location[1]}}<text style="font-size:24rpx;opacity:0.7;"></text></view>
+      </view>
+    </view>
 
     <!--管理员什么都能看到-->
     <view class="location" wx:if="{{is_user}}">
-      <view bindtap="toNavigate" class="navigate-container" wx:if="{{info.location[1] !== '不知道'}}">
+      <view wx:if="{{info.location[1] !== '不知道'}}" bindtap="toNavigate" class="navigate-container" >
         <image class="loc_icon" src="/images/icons/navigate.png"></image>
-        <view class="loc_text">{{info.location[1]}}<text style="font-size:24rpx;opacity:0.7;"> (点击地址可导航)</text></view>
+        <view class="loc_text">{{info.business_type === 0? '住址：': '放置地：'}}{{info.location[1]}}<text style="font-size:24rpx;opacity:0.7;"> (点击导航)</text></view>
       </view>
       <view class="hrz" wx:if="{{info.location[1] !== '不知道'}}"></view>
+      <view wx:if="{{info.business_type === 0}}" bindtap="{{info.os_location[1]!=='不知道'? 'toNavigate': ''}}" class="navigate-container">
+        <image class="loc_icon" src="/images/icons/navigate.png"></image>
+        <view class="loc_text">丢失地：{{info.os_location[1]}}<text style="font-size:24rpx;opacity:0.7;"></text></view>
+      </view>
+      <view class="hrz" wx:if="{{info.business_type === 0}}"></view>
       <view bindtap="copyMobile" data-mobile="{{info.mobile}}">
         <image class="loc_icon" src="/images/icons/mobile.png"></image>
         <view class="loc_text">电话：{{info.mobile}} <text style="font-size:24rpx;opacity:0.7;">(点击复制)</text></view>
@@ -356,8 +371,8 @@
         <view class="join-shop-cart" catchtap="goCheckReturnGoods"
               data-id="{{info.return_goods_id}}" wx:if="{{info.return_goods_id}}" >查看原寻物贴</view>
         <!--给码主用作查看余额所剩好了-->
-        <view class="join-shop-cart" catchtap="goCheckSms" wx:if="{{!info.is_auth && !info.return_goods_id}}">查看短信余额</view>
-        <view class="join-shop-cart" wx:if="{{info.is_auth && !info.return_goods_id}}">扫码归还的物品</view>
+<!--        <view class="join-shop-cart" catchtap="goCheckSms" wx:if="{{!info.is_auth && !info.return_goods_id}}">查看短信余额</view>-->
+        <view class="join-shop-cart" wx:if="{{!info.return_goods_id}}">扫码归还的物品</view>
         <!--状态操作区: 寻物者和码主可确认取回-->
         <view wx:if="{{!info.is_auth}}" class="now-buy" catchtap="gotBackReturnGoods" >确认取回</view>
         <view wx:else class="now-buy" catchtap="goTips">待取回</view>
