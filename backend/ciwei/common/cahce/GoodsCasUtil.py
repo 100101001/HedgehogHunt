@@ -28,7 +28,7 @@ class GoodsCasUtil:
         """
         total_num = len(op_ids)
         for i in range(total_num):
-            ok1 = cls.lock.exec(cls.getIntId(op_ids[i]), op_exp, op_new)
+            ok1 = cls.lock.exec_wrap(cls.getIntId(op_ids[i]), [op_exp, 'nil'], op_new)
             ok2 = cls.lock.exec_wrap(cls.getIntId(pair_ids[i]), [pair_exp, 'nil'], pair_new)
             if not ok1 or not ok2:
                 for o in range(i):
