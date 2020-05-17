@@ -370,9 +370,12 @@ class GoodsRecordSearchHandler:
         """
         rule = and_(Recommend.target_member_id == member_id,
                     Recommend.status == 0 if only_new else Recommend.status >= 0,
-                    Good.status == status)
-        return Good.query.join(Recommend,
-                               Good.id == Recommend.found_goods_id).distinct(Good.id).add_entity(Recommend).filter(rule)
+                    Good.status == status,
+                    Good.id == Recommend.found_goods_id)
+        from sqlalchemy import func
+        return db.session.query(func.distinct(Good), Recommend).filter(rule)
+        # return Good.query.join(Recommend,
+        #                        Good.id == Recommend.found_goods_id).distinct(Good.id).add_entity(Recommend).filter(rule)
 
 
 class ThanksRecordDeleteHandler:
