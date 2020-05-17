@@ -515,7 +515,7 @@ class ReturnGoodsHandler(CommonGoodsHandler):
                           val={'status': 1, 'return_goods_id': 0, 'return_goods_openid': ''}, rds=1)
         # 归还贴
         Good.batch_update(Good.id.in_(return_ids), Good.status == status,
-                          val={'status': -Good.status, 'return_goods_id': 0, 'return_goods_openid': ''})
+                          val={'status': -status, 'return_goods_id': 0, 'return_goods_openid': ''})
         db.session.commit()
         return True, ''
 

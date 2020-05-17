@@ -151,7 +151,7 @@ class GoodsAppealHandler:
 
         # 公开信息的状态操作加锁
         Appeal.create(goods_id=goods_id, member_id=member_id)
-        Good.batch_update(Good.id == goods_id, Good.status == status, val={'status': Good.status + 10})
+        Good.batch_update(Good.id == goods_id, Good.status == status, val={'status': status + 10})
         return True, ''
 
     @staticmethod
