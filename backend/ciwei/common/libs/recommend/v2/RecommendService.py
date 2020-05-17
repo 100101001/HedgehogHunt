@@ -15,6 +15,7 @@ from common.libs.Helper import queryToDict
 from common.libs.recommend.v2.DistanceService import DistanceService
 from common.libs.recommend.v2.SynonymsService import SynonymsService
 from common.models.ciwei.Recommend import Recommend
+from common.models.proxy.GoodProxy import GoodProxy
 from common.tasks.subscribe import SubscribeTasks
 
 
@@ -63,7 +64,9 @@ class RecommendHandler:
             # 有需要发送消息的，异步批量的发送订阅消息
             app.logger.info("发送订阅消息")
             SubscribeTasks.send_recommend_subscribe_in_batch.delay(lost_list=need_notification,
-                                                                   found_goods=queryToDict(goods_info))
+                                                                   found_goods=goods_info.__dict__ if isinstance(
+                                                                       goods_info, GoodProxy) else queryToDict(
+                                                                       goods_info))
 
     @classmethod
     def __addRecommendGoods(cls, target_member_id=0, found_goods_id=0, lost_goods_id=0, rel_score=1, edit=False):
@@ -82,7 +85,8 @@ class RecommendHandler:
         app.logger.info("本轮推荐结果： 拾物{0} 匹配上 失物{1}".format(found_goods_id, lost_goods_id))
         # 可能会有同一个拾物匹配上了不同的失物
         repeat_recommend = Recommend.query.filter_by(found_goods_id=found_goods_id,
-                                                     target_member_id=target_member_id).first()
+                                                     target_member_id=target_member_id,
+                                                     lost_goods_id=lost_goods_id).first()
         # 有但修改了
         if repeat_recommend and edit:
             repeat_recommend.status = 0
