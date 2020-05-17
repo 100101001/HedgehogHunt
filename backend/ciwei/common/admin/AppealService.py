@@ -168,7 +168,7 @@ class GoodsAppealHandler:
     @user_op
     def _setGoodsAppealDealt(appeal_id=0, user=None, result='', **kwargs):
         def __getUnsolvedById():
-            return Appeal.query.join(Good, Good.id == Appeal.goods_id).filter_by(id=appeal_id, status=0).add_entity(
+            return Appeal.query.filter(Appeal.id == appeal_id, Appeal.status == 0).join(Good, Good.id == Appeal.goods_id).add_entity(
                 Good).first()
 
         appeal, goods = __getUnsolvedById()
