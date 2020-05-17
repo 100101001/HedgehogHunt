@@ -1292,7 +1292,10 @@ Page({
         }
       }
     } else if (business_type === 2) {
-      if (status === 1) {
+      if (status === 0) {
+        content = '好像不是对方的物品哦，赶紧公开招领吧~'
+      }
+      else if (status === 1) {
         content = is_auth? '请耐心等待失主确认~': '快来确认是否是自己的失物~'
       } else if (status === 2) {
         content = is_auth? '失主已在线认领了，正在前往取回~': '快去放置地点取回失物吧~'

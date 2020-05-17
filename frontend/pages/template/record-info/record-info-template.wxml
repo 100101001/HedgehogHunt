@@ -151,7 +151,7 @@
         <!--还未确认归还的是否是自己的-->
         <view wx:if="{{!info.is_confirmed}}">
           <!--向寻物者提示归还时间--->
-          <view wx:if="{{info.is_auth}}" class="now-buy" catchtap="goTips" >归还待确认</view>
+          <view wx:if="{{info.is_auth}}" class="now-buy" catchtap="goTips" >有人归还了</view>
           <!--归还者可取消-->
           <view wx:else class="now-buy grey" catchtap="cancelReturnGoods">取消归还</view>
         </view>
@@ -385,8 +385,8 @@
           <view style='position:absolute;bottom:10rpx;margin-top:10rpx;color:#f7931e;'>返回</view>
         </view>
         <!--状态描述区--->
-        <view wx:if="{{info.return_goods_id}}" class="join-shop-cart" catchtap="goCheckReturnGoods" data-id="{{info.return_goods_id}}" wx:if="{{!info.is_origin_deleted}}">查看原寻物贴</view>
-        <view wx:if="{{info.return_goods_id}}" class="join-shop-cart grey" catchtap="goDeleteGotbackReturn" wx:if="{{info.is_origin_deleted}}">原寻物贴已被删</view>
+        <view wx:if="{{info.return_goods_id && !info.is_origin_deleted}}" class="join-shop-cart" catchtap="goCheckReturnGoods" data-id="{{info.return_goods_id}}">查看原寻物贴</view>
+        <view wx:if="{{info.return_goods_id && info.is_origin_deleted}}" class="join-shop-cart grey" catchtap="goDeleteGotbackReturn">原寻物贴已被删</view>
         <view wx:if="{{!info.return_goods_id}}" class="join-shop-cart">扫码归还物品</view>
 
         <!--状态操作区: -->
@@ -395,7 +395,7 @@
           <view wx:else class="now-buy" catchtap="openThank">答谢详情</view>
         </view>
         <view wx:else>
-          <view wx:if="{{info.status!==4}}" class="now-buy {{info.is_no_thanks? 'light-grey': ''}}" catchtap="goThanks" >{{info.is_no_thanks? '未答谢':'待答谢'}}</view>
+          <view wx:if="{{info.status!==4}}" class="now-buy {{info.is_no_thanks? 'light-grey': ''}}"  catchtap="goTips" >{{info.is_no_thanks? '未答谢':'待答谢'}}</view>
           <view wx:else class="now-buy" catchtap="openThank">答谢详情</view>
         </view>
       </view>
