@@ -371,8 +371,8 @@ class GoodsRecordSearchHandler:
         rule = and_(Recommend.target_member_id == member_id,
                     Recommend.status == 0 if only_new else Recommend.status >= 0,
                     Good.status == status)
-        return Good.query.join(Recommend,
-                               Recommend.found_goods_id == Good.id).add_entity(Recommend).filter(rule).distinct()
+        return Good.query.distinct().join(Recommend,
+                               Recommend.found_goods_id == Good.id).add_entity(Recommend).filter(rule)
 
 
 class ThanksRecordDeleteHandler:
