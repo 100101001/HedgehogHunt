@@ -809,8 +809,8 @@ CREATE TABLE `user`  (
   `created_time` timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '插入时间',
   PRIMARY KEY (`uid`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '管理员表' ROW_FORMAT = Dynamic;
-INSERT INTO `user` VALUES (4, 100002, 1, '李依璇', '17717090831', '17702113437@163.com', 2, 'https://wx.qlogo.cn/mmopen/vi_32/SV42VibIREXs9x9LsPerNKSmtID351W69g7SAzfoWXYqbvBiaJtcPyUp4yAnedJlyWuiamGTnDAibdo4I4ibeiaeQaug/132', 1, 0, '2020-04-23 15:46:54', '2020-04-23 15:46:54');
-INSERT INTO `user` VALUES (5, 100001, 1, '李佩璇', '17717852647', '290036208@qq.com', 2, 'https://wx.qlogo.cn/mmopen/vi_32/7jCR4QflwchksTBcyakicSepWVQdfbHIQL2glRrkY7ic52iaXqfuBb2tlQ8ELlaGWZDXFgKM4zAMeQZSiaaJtibI3gQ/132', 0, 0, '2020-05-01 13:56:51', '2020-04-24 21:08:54');
+INSERT INTO `user` VALUES (4, 100002, 1, '李依璇', '17717090831', '17702113437@163.com', 2, 'https://wx.qlogo.cn/mmopen/vi_32/SV42VibIREXs9x9LsPerNKSmtID351W69g7SAzfoWXYqbvBiaJtcPyUp4yAnedJlyWuiamGTnDAibdo4I4ibeiaeQaug/132', 1, 4, '2020-04-23 15:46:54', '2020-04-23 15:46:54');
+INSERT INTO `user` VALUES (5, 100001, 1, '李佩璇', '17717852647', '290036208@qq.com', 2, 'https://wx.qlogo.cn/mmopen/vi_32/7jCR4QflwchksTBcyakicSepWVQdfbHIQL2glRrkY7ic52iaXqfuBb2tlQ8ELlaGWZDXFgKM4zAMeQZSiaaJtibI3gQ/132', 0, 4, '2020-05-01 13:56:51', '2020-04-24 21:08:54');
 
 -- ----------------------------
 -- Table structure for wechat_server_api_log
