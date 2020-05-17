@@ -11,7 +11,6 @@ import datetime
 from sqlalchemy import and_, or_
 
 from application import db, APP_CONSTANTS
-from common.admin import UserService
 from common.admin.decorators import user_op
 from common.cahce.GoodsCasUtil import GoodsCasUtil
 from common.libs.UrlManager import UrlManager
@@ -73,6 +72,8 @@ def makeRecordData(item=None, op_status=0, status=0, now=None):
                                 and not GoodsCasUtil.exec(item.return_goods_id, 2, 2)  # 如果看过那么一定有状态记录
     is_reported = item.report_status != 0
     show_record_loc = op_status == 0 or op_status == 5
+    from  application import app
+    app.logger.error(item)
     record = {
         "id": item.id,  # 供前端用户点击查看详情用的
         "new": recommend_status,
