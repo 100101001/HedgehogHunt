@@ -1,7 +1,14 @@
 //app.js
 
 const BloomFilter = require('./utils/bloomfilter').BloomFilter;
-
+String.prototype.trim = function() {
+  var str = this,
+    str = str.replace(/^\s\s*/, ''),
+    ws = /\s/,
+    i = str.length;
+  while (ws.test(str.charAt(--i)));
+  return str.slice(0, i + 1);
+};
 /**
  * 在扫码引导前判断扫码合理性
  * @param qrcode_openid
@@ -320,7 +327,7 @@ App({
    */
   judgeEmpty: function (json_obj, tips_obj) {
     for (let key in json_obj) {
-      if (json_obj[key]==undefined || json_obj[key] == null || json_obj[key].length === 0) {
+      if (json_obj[key]==undefined || json_obj[key] == null || json_obj[key].trim().length === 0) {
         this.alert({
           content: tips_obj[key] + "不能为空"
         })
