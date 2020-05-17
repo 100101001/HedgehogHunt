@@ -91,8 +91,8 @@ def makeRecordData(item=None, op_status=0, status=0, now=None):
         "selected": False,  # 供前端选中删除记录用的属性
         "unselectable": is_appealed or is_pre_mark_fail or unconfirmed_returned_lost or is_reported,  # 前端编辑禁止选中
         # 是否为置顶记录
-        "top": item.top_expire_time > now if op_status else datetime.datetime.strptime(item.top_expire_time,
-                                                                                       "%Y-%m-%dT%H:%M:%S") > now,
+        "top": item.top_expire_time > now if op_status else datetime.datetime.strptime(item.top_expire_time.replace('T', ' '),
+                                                                                       "%Y-%m-%d %H:%M:%S") > now,
 
         "updated_time": str(item.updated_time).replace('T', ' '),
     }
