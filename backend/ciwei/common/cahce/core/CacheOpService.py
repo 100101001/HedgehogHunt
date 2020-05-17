@@ -130,8 +130,12 @@ def syncAndClearGoodsIncrReadCache():
     for k in keys:
         incr_views = int(redis_conn_cache.get(k))
         goods_id = CacheKeyReverse.goodsReadKey(read_key=k)
-        Good.query.filter_by(id=goods_id).update({'view_count': Good.view_count + incr_views},
-                                                 synchronize_session=False)
+        # elastic search 可以不需要view count
+        goods = Good.getById(goods_id)
+        goods.view_count += incr_views
+        db.session.add(goods)
+        # Good.query.filter_by(id=goods_id).update({'view_count': Good.view_count + incr_views},
+        #                                          synchronize_session=False)
     db.session.commit()
     # 全部同步后批量删除
     redis_conn_cache.delete(*keys)
