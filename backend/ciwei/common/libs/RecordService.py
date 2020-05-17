@@ -72,32 +72,36 @@ def makeRecordData(item=None, op_status=0, status=0, now=None):
                                 and not GoodsCasUtil.exec(item.return_goods_id, 2, 2)  # 如果看过那么一定有状态记录
     is_reported = item.report_status != 0
     show_record_loc = op_status == 0 or op_status == 5
-    from  application import app
-    app.logger.error(item)
-    record = {
-        "id": item.id,  # 供前端用户点击查看详情用的
-        "new": recommend_status,
-        # 不存在时置不是new记录
-        "auther_name": item.nickname,
-        "avatar": item.avatar,
-        "goods_name": item.name,
-        "owner_name": item.owner_name,
-        "location": item.location.split("###")[1] if show_record_loc else "",  # 归还贴和发布贴概要可看地址
-        "os_location": item.os_location.split("###")[1] if show_record_loc else "",
-        "summary": item.summary,
-        "business_type": item.business_type,
-        "status": int(item.status),
-        "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
-        "main_image": UrlManager.buildImageUrl(item.main_image),
-        "selected": False,  # 供前端选中删除记录用的属性
-        "unselectable": is_appealed or is_pre_mark_fail or unconfirmed_returned_lost or is_reported,  # 前端编辑禁止选中
-        # 是否为置顶记录
-        "top": item.top_expire_time > now if op_status else datetime.datetime.strptime(item.top_expire_time.replace('T', ' '),
-                                                                                       "%Y-%m-%d %H:%M:%S") > now,
+    from application import app
+    try:
+        top_time = item.top_expire_time if op_status else datetime.datetime.strptime(
+            item.top_expire_time.split('.')[0].replace('T', ' '), "%Y-%m-%d %H:%M:%S")
+        record = {
+            "id": item.id,  # 供前端用户点击查看详情用的
+            "new": recommend_status,
+            # 不存在时置不是new记录
+            "auther_name": item.nickname,
+            "avatar": item.avatar,
+            "goods_name": item.name,
+            "owner_name": item.owner_name,
+            "location": item.location.split("###")[1] if show_record_loc else "",  # 归还贴和发布贴概要可看地址
+            "os_location": item.os_location.split("###")[1] if show_record_loc else "",
+            "summary": item.summary,
+            "business_type": item.business_type,
+            "status": int(item.status),
+            "status_desc": str(item.status_desc),  # 静态属性，返回状态码对应的文字
+            "main_image": UrlManager.buildImageUrl(item.main_image),
+            "selected": False,  # 供前端选中删除记录用的属性
+            "unselectable": is_appealed or is_pre_mark_fail or unconfirmed_returned_lost or is_reported,  # 前端编辑禁止选中
+            # 是否为置顶记录
+            "top": top_time > now,
+            "updated_time": str(item.updated_time).replace('T', ' '),
+        }
+        return record
+    except Exception:
+        app.logger.error(item)
+        return None
 
-        "updated_time": str(item.updated_time).replace('T', ' '),
-    }
-    return record
 
 
 class GoodsOpRecordDeleteHandler:

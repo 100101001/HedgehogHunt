@@ -296,24 +296,28 @@ def goodsSearch():
             if not GoodsCasUtil.exec_wrap(item_id, [item_status, 'nil'], item_status):
                 continue
             from application import app
-            app.logger.error(item)
-            tmp_data = {
-                "id": item_id,
-                "goods_name": item.get('name'),
-                "owner_name": item.get('owner_name'),
-                "updated_time": item.get('updated_time').replace('T', ' '),
-                "business_type": item.get('business_type'),
-                "summary": item.get('summary'),
-                "main_image": UrlManager.buildImageUrl(item.get('main_image')),
-                "auther_id": item.get('member_id'),
-                "auther_name": item.get('nickname'),
-                "avatar": item.get('avatar'),
-                "selected": False,
-                "status": int(item.get('status')),
-                "status_desc": status_desc(item.get('status')),  # 静态属性，返回状态码对应的文字
-                "top": datetime.datetime.strptime(item.get('top_expire_time').replace('T', ' '), "%Y-%m-%d %H:%M:%S") > now
-            }
-            data_goods_list.append(tmp_data)
+            try:
+                top_time = datetime.datetime.strptime(item.get('top_expire_time').split('.')[0].replace('T', ' '),
+                                                      "%Y-%m-%d %H:%M:%S")
+                tmp_data = {
+                    "id": item_id,
+                    "goods_name": item.get('name'),
+                    "owner_name": item.get('owner_name'),
+                    "updated_time": item.get('updated_time').replace('T', ' '),
+                    "business_type": item.get('business_type'),
+                    "summary": item.get('summary'),
+                    "main_image": UrlManager.buildImageUrl(item.get('main_image')),
+                    "auther_id": item.get('member_id'),
+                    "auther_name": item.get('nickname'),
+                    "avatar": item.get('avatar'),
+                    "selected": False,
+                    "status": int(item.get('status')),
+                    "status_desc": status_desc(item.get('status')),  # 静态属性，返回状态码对应的文字
+                    "top": top_time > now
+                }
+                data_goods_list.append(tmp_data)
+            except Exception:
+                app.logger.error(item)
 
     # 失/拾 一页信息 是否已加载到底
     resp['code'] = 200
