@@ -61,6 +61,7 @@ def recordSearch():
     goods_list = RecordHandlers.get('goods').search().deal(op_status,
                                                            member_id=member_info.id, member_openid=member_info.openid,
                                                            biz_type=int(req.get('business_type')), status=status,
+                                                           only_new=req.get('only_new') == "true",
                                                            # 搜索栏和分页排序参数
                                                            owner_name=req.get('owner_name'),
                                                            goods_name=req.get('mix_kw'),
