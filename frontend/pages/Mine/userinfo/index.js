@@ -266,9 +266,17 @@ Page({
           app.alert({content: resp['msg']});
           return;
         }
-        this.setData({
-          hiddenMobileModal: false
-        })
+        wx.showLoading({
+          title: '去绑定', success: (res) => {
+            setTimeout(wx.hideLoading, 300)
+          }
+        });
+        wx.navigateTo({
+          url: '/pages/Qrcode/Mobile/index'
+        });
+        // this.setData({
+        //   hiddenMobileModal: false
+        // })
       },
       fail: (res) => {
         app.serverBusy()
