@@ -296,7 +296,7 @@ def goodsSearch():
             if not GoodsCasUtil.exec_wrap(item_id, [item_status, 'nil'], item_status):
                 continue
             from application import app
-            app.logger.error(tmp_data)
+            app.logger.error(item)
             tmp_data = {
                 "id": item_id,
                 "goods_name": item.get('name'),
