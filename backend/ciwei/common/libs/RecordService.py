@@ -368,9 +368,11 @@ class GoodsRecordSearchHandler:
         :param only_new:
         :return:
         """
+        from sqlalchemy import func
         rule = and_(Recommend.target_member_id == member_id,
                     Recommend.status == 0 if only_new else Recommend.status >= 0,
-                    Good.status == status)
+                    Good.status == status,
+                    func.distinct(Recommend.found_goods_id))
         return Good.query.join(Recommend,
                                Recommend.found_goods_id == Good.id).add_entity(Recommend).filter(rule)
 
