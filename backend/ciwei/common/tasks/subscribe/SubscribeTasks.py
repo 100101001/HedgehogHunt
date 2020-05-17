@@ -125,7 +125,7 @@ def send_thank_subscribe(thank_info=None):
         "thing1": {"value": thank_info.get('nickname')},
         "amount2": {"value": str(thank_info.get('thank_price', 0))},
         "thing3": {"value": thank_info.get('summary')},
-        "date4": {"value": getCurrentDate()}
+        "date4": {"value": getCurrentDate(date_format="%Y-%m-%d %H:%M")}
     }
     openid = Good.query.filter_by(id=thank_info.get('goods_id')).with_entities(Good.openid).first()
     if openid:
