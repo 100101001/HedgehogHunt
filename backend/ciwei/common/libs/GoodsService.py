@@ -489,8 +489,10 @@ class ReturnGoodsHandler(CommonGoodsHandler):
                          'op_time': goods_info.confirm_time.strftime("%Y-%m-%d %H:%M")}
             data.update(more_data)
         elif goods_status in (3, 4):
-            lost_goods_status = Good.query.filter_by(id=lost_goods_id).with_entities(Good.status).first()
-            is_origin_del = lost_goods_status[0] < 0
+            is_origin_del = False
+            if lost_goods_id:
+                lost_goods_status = Good.query.filter_by(id=lost_goods_id).with_entities(Good.status).first()
+                is_origin_del = lost_goods_status[0] < 0
             op_time = goods_info.finish_time if goods_status == 3 else goods_info.thank_time
             more_data = {'return_goods_id': lost_goods_id,
                          'is_origin_deleted': is_origin_del,  # 寻物已删
