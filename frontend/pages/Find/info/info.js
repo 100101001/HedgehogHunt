@@ -1257,6 +1257,9 @@ Page({
           content = '感谢您的举手之劳，失主已经取回了~'
         }
       }
+      if (status > 10) {
+        content = "物品认领可能被冒领，正在申诉中！"
+      }
     }
     else if (business_type === 0){
       if(!is_auth) {
