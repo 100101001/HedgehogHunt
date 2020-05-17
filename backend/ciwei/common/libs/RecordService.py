@@ -268,6 +268,7 @@ class GoodsRecordSearchHandler:
         biz_type_must = {"match": {"business_type": biz_type}}
         # status_must = {"match": {"status": status}} if status != 0 else {}
         # must = [biz_type_must, report_status_must, status_must]
+        # https://www.elastic.co/guide/cn/elasticsearch/guide/current/bool-query.html
         must = [biz_type_must, report_status_must]
         status_should = [{"match": {"status": status}}] if status != 0 else [{"match": {"status": 1}}, {"match": {"status": 2}}, {"match": {"status": 3}}, {"match": {"status": 4}}]
         query = {
