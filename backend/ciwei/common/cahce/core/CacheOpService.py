@@ -15,6 +15,8 @@ from common.cahce.core import CacheKeyGetter, redis_conn_cache
 from common.libs.Helper import queryToDict
 from common.loggin.time import time_log
 from common.models.ciwei.Goods import Good
+from common.models.proxy.MemberProxy import MemberProxy
+from common.models.proxy.UserProxy import UserProxy
 
 
 @time_log
@@ -29,6 +31,8 @@ def setMemberCache(member_info=None):
     mem_key = CacheKeyGetter.memberKey(member_info.id)
     if isinstance(member_info, dict):
         redis_conn_cache.set(mem_key, json.dumps(member_info))
+    elif isinstance(member_info, MemberProxy):
+        redis_conn_cache.set(mem_key, json.dumps(member_info.__dict__))
     else:
         redis_conn_cache.set(mem_key, json.dumps(queryToDict(member_info)))
     redis_conn_cache.expire(mem_key, 3600)
@@ -95,7 +99,7 @@ def setUsersCache(users=None, is_all=False):
     for user in users:
         if user is not None:
             # 设置 user_id -> member_Id
-            redis_conn_cache.hset(all_user_key, user.member_id, json.dumps(queryToDict(user)))
+            redis_conn_cache.hset(all_user_key, user.member_id, json.dumps(user.__dict__ if isinstance(user, UserProxy) else queryToDict(user)))
     if is_all:
         is_all_key = CacheKeyGetter.isAllUserKey()
         redis_conn_cache.hset(all_user_key, is_all_key, APP_CONSTANTS['is_all_user_val'])
