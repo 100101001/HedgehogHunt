@@ -961,7 +961,7 @@ Page({
                 showCancel: true,
                 cb_confirm: () => {
                   //把自己发布的归还贴删除
-                  doCancelReturnGoods(info.return_goods_id, info.status)
+                  doCancelReturnGoods(info.return_goods_id, 1) //这里不能用info.status因为，info是寻物启事
                 }
               })
             }
