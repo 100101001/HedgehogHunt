@@ -80,9 +80,9 @@ class RecommendHandler:
         if not target_member_id or not found_goods_id:
             return False
         app.logger.info("本轮推荐结果： 拾物{0} 匹配上 失物{1}".format(found_goods_id, lost_goods_id))
+        # 可能会有同一个拾物匹配上了不同的失物
         repeat_recommend = Recommend.query.filter_by(found_goods_id=found_goods_id,
-                                                     target_member_id=target_member_id,
-                                                     lost_goods_id=lost_goods_id).first()
+                                                     target_member_id=target_member_id).first()
         # 有但修改了
         if repeat_recommend and edit:
             repeat_recommend.status = 0
