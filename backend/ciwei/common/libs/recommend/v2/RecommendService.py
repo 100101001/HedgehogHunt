@@ -83,14 +83,16 @@ class RecommendHandler:
         if not target_member_id or not found_goods_id:
             return False
         app.logger.info("本轮推荐结果： 拾物{0} 匹配上 失物{1}".format(found_goods_id, lost_goods_id))
-        # 可能会有同一个拾物匹配上了不同的失物
+        # 可能会匹配上不同的，这里就只给一个用户匹配上一个拾物，取最接近的失物ID记录
         repeat_recommend = Recommend.query.filter_by(found_goods_id=found_goods_id,
-                                                     target_member_id=target_member_id,
-                                                     lost_goods_id=lost_goods_id).first()
+                                                     target_member_id=target_member_id).first()
+
         # 有但修改了
         if repeat_recommend and edit:
             repeat_recommend.status = 0
-            repeat_recommend.rel_score = rel_score
+            if repeat_recommend.rel_score < rel_score:
+                repeat_recommend.rel_score = rel_score
+                repeat_recommend.lost_goods_id = lost_goods_id
             db.session.add(repeat_recommend)
         # 没有
         elif not repeat_recommend:

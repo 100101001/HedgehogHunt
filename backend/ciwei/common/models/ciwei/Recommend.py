@@ -36,13 +36,13 @@ class Recommend(db.Model):
     @classmethod
     def invalidatePrevRecommend(cls, goods_info=None):
         # 将推荐置为无效
-        Recommend.query.filter(or_(Recommend.found_goods_id == goods_info.id, Recommend.lost_goods_id == goods_info.id),
-                               Recommend.status >= 0).update({'status': -Recommend.status - 1},
-                                                             synchronize_session=False)
+        cls.query.filter(or_(cls.found_goods_id == goods_info.id, cls.lost_goods_id == goods_info.id),
+                         cls.status >= 0).update({'status': -cls.status - 1},
+                                                 synchronize_session=False)
 
     @classmethod
     def renewOldRecommend(cls, goods_info=None):
         if goods_info.business_type == 1:
             # 如果是失物招领，更新推荐记录为未读
-            Recommend.query.filter(Recommend.found_goods_id == goods_info.id,
-                                   Recommend.status > 0).update({'status': 0}, synchronize_session=False)
+            cls.query.filter(cls.found_goods_id == goods_info.id,
+                             cls.status > 0).update({'status': 0}, synchronize_session=False)

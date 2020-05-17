@@ -70,7 +70,6 @@ def recordSearch():
                                                            order_rule=order_rule)
     # 将对应的用户信息取出来，组合之后返回
     record_list = []
-    record_id_set = set()
     if goods_list:
         now = datetime.datetime.now()
         for item in goods_list:
@@ -79,14 +78,10 @@ def recordSearch():
                 goods = GoodProxy()
                 goods.__dict__ = item
                 item = goods
-            # 物品去重
-            goods_id = int(item.id) if op_status != 2 else int(item.Good.id)
-            if goods_id not in record_id_set:
-                record_id_set.add(goods_id)
-                # 只返回状态没有被并发改变的物品
-                record = RecordService.makeRecordData(item=item, op_status=op_status, status=status, now=now)
-                if record:
-                    record_list.append(record)
+            # 只返回状态没有被并发改变的物品
+            record = RecordService.makeRecordData(item=item, op_status=op_status, status=status, now=now)
+            if record:
+                record_list.append(record)
 
     resp['code'] = 200
     resp['data']['list'] = record_list
