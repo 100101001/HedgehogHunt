@@ -290,7 +290,7 @@ def goodsSearch():
         now = datetime.datetime.now()
         for item in goods_list:
             # 只返回符合用户期待的状态的物品
-            score = item.get('_score')
+            # score = item.get('_score')
             item = item.get('_source')
             item_id = item.get('id')
             item_status = item.get('status')
@@ -315,8 +315,8 @@ def goodsSearch():
                     "status": int(item.get('status')),
                     "status_desc": status_desc(item.get('status')),  # 静态属性，返回状态码对应的文字
                     "top": top_time > now,
-                    "score": score,
-                    "top_expire": item.get('top_expire_time')
+                    # "score": score,
+                    # "top_expire": item.get('top_expire_time')
                 }
                 data_goods_list.append(tmp_data)
             except Exception:
