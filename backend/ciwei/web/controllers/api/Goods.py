@@ -313,7 +313,9 @@ def goodsSearch():
                     "selected": False,
                     "status": int(item.get('status')),
                     "status_desc": status_desc(item.get('status')),  # 静态属性，返回状态码对应的文字
-                    "top": top_time > now
+                    "top": top_time > now,
+                    "score": item.get('_score'),
+                    "top_expire": item.get('top_expire_time')
                 }
                 data_goods_list.append(tmp_data)
             except Exception:

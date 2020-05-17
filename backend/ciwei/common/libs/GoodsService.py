@@ -536,8 +536,9 @@ class ReturnGoodsHandler(CommonGoodsHandler):
             # 寻物启
             Good.batch_update(Good.id.in_(lost_ids), Good.status == 2,
                               val={'status': 1, 'return_goods_id': 0, 'return_goods_openid': ''}, rds=1)
+            now = datetime.datetime.now()
             Good.batch_update(Good.id.in_(return_ids), Good.status == status,
-                              val={'status': 1, 'business_type': 1, 'top_expire_time': datetime.datetime.now(),
+                              val={'status': 1, 'business_type': 1, 'top_expire_time': now, 'updated_time': now,
                                    'return_goods_id': 0, 'return_goods_openid': ''}, rds=1)
         db.session.commit()
         return True, ''
