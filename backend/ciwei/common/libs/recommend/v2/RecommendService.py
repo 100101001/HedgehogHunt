@@ -43,7 +43,7 @@ class RecommendHandler:
         goods_list = cls.__doFilterPossibleGoods(goods_info)
         # 记录需要发送订阅消息的lost_goods
         # 新增推荐记录
-        need_notification = []
+        need_notification = set()
         for good in goods_list:
             good_id = good.get('id')
             target_member_id = good.get('member_id') if release_type == 1 else goods_info.member_id  # 获得寻物启示贴主id
@@ -57,7 +57,7 @@ class RecommendHandler:
 
             if new_recommend and release_type == 1:
                 # 如果发布了失物招领，需要给新匹配上的寻物启示发匹配成功通知
-                need_notification.append(good)
+                need_notification.add(good.get('openid'))
         db.session.commit()
         app.logger.info("推荐结束：物品ID {0}, 编辑推荐 {1}".format(goods_info.id, edit))
         if need_notification:

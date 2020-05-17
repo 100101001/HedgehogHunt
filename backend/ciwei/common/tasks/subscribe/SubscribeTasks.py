@@ -98,14 +98,14 @@ def send_recommend_subscribe_in_batch(lost_list=None, found_goods=None):
         "thing3": {"value": found_goods.get('location').split('###')[1]},
     }
 
-    for lost_goods in lost_list:
+    for lost_member in lost_list:
         # 失物匹配成功通知
         """
         匹配物品 Wilson篮球  {{thing1.DATA}}
         捡拾时间 2020年3月24日 20:20 {{time2.DATA}}
         放置地点 129运动场 {{thing3.DATA}}
         """
-        send_subscribe.delay(openid=lost_goods.get('openid'), template="recommend", data=recommend_data)
+        send_subscribe.delay(openid=lost_member, template="recommend", data=recommend_data)
 
 
 @celery.task(name='subscribe.send_thank_subscribe', property=1)
