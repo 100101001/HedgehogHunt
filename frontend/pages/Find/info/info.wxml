@@ -8,5 +8,5 @@
     <text class="thank-nickname">{{thanks.nickname}}</text>
   </view>
   <view><text class="bold-text">文字：</text>{{thanks.summary}}</view>
-  <view><text class="bold-text">赏金：</text>{{thanks.price}}</view>
+  <view><text class="bold-text">赏金：</text>{{thanks.price}} 元</view>
 </lyx-modal>

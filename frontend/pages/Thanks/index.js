@@ -281,15 +281,14 @@ Page({
   toThankPayWithBalance: function() {
     let thank_pay = this.data.thank_pay;
     let fee_hint_content = "";
-    if (thank_pay - 0.01 <= this.data.total_balance) {
-      //纯余额支付
-      fee_hint_content ='将从您的余额扣除' + (thank_pay-0.01) + '元。'
-    } else {
-      //支付+余额
-      let balance = this.data.balance;  //垫付的金额
-      let pay_price = util.toFixed(thank_pay - balance, 2);
-      fee_hint_content = '从账户扣除' + balance + '元后，您需支付' + pay_price + '元。'
-    }
+    // if (thank_pay - 0.01 <= this.data.total_balance) {
+    //   fee_hint_content ='将从您的余额扣除' + (thank_pay-0.01) + '元。'
+    // } else {
+    //
+    // }
+    let balance = this.data.balance;  //垫付的金额
+    let pay_price = util.toFixed(thank_pay - balance, 2);
+    fee_hint_content = '从账户扣除' + balance + '元后，您需支付' + pay_price + '元。'
     app.alert({
       title: '扣费提示',
       content: fee_hint_content,
