@@ -707,7 +707,7 @@ class FoundGoodsHandler(CommonGoodsHandler):
         if goods_status == 4:
             thanks = super()._getThanksInfo(goods_info.id)
             data.update({'thank_info': thanks})
-        if goods_status == 5:
+        if goods_status > 10:
             # 申诉的时间
             data.update({'op_time': goods_info.appeal_time.strftime("%Y-%m-%d %H:%M")})
 
