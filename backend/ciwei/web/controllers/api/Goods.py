@@ -304,7 +304,7 @@ def goodsSearch():
                     "id": item_id,
                     "goods_name": item.get('name'),
                     "owner_name": item.get('owner_name'),
-                    "updated_time": item.get('updated_time').replace('T', ' '),
+                    "updated_time": item.get('updated_time').split('.')[0].replace('T', ' '),
                     "business_type": item.get('business_type'),
                     "summary": item.get('summary'),
                     "main_image": UrlManager.buildImageUrl(item.get('main_image')),

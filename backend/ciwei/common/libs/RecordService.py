@@ -95,7 +95,7 @@ def makeRecordData(item=None, op_status=0, status=0, now=None):
             "unselectable": is_appealed or is_pre_mark_fail or unconfirmed_returned_lost or is_reported,  # 前端编辑禁止选中
             # 是否为置顶记录
             "top": top_time > now,
-            "updated_time": str(item.updated_time).replace('T', ' '),
+            "updated_time": str(item.updated_time).split('.')[0].replace('T', ' '),
         }
         return record
     except Exception:
