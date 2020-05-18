@@ -33,7 +33,8 @@ CONSTANTS = {
     'sub_time_format': '%Y年%m月%d日 %H:%M',
     'sys_author': {
         'member_id': '100001',
-        'openid': 'bPk3u33u+sqUiuxJ/+ubfQ==',
+        'openid': 'opLxO5fubMUl7GdPFgZOUaDHUik8',
+        'mobile': '无',
         'avatar': 'https://wx.qlogo.cn/mmopen/vi_32/7jCR4QflwchksTBcyakicSepWVQdfbHIQL2glRrkY7ic52iaXqfuBb2tlQ8ELlaGWZDXFgKM4zAMeQZSiaaJtibI3gQ/132',
         'nickname': '鲟回-管理员'
     },

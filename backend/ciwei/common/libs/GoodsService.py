@@ -719,6 +719,7 @@ class FoundGoodsHandler(CommonGoodsHandler):
         ok_goods_ids = GoodsCasUtil.filter(goods_ids, exp_val=status, new_val=-status)
         updated = {'member_id': APP_CONSTANTS['sys_author']['member_id'],
                    'openid': APP_CONSTANTS['sys_author']['openid'],
+                   'mobile': APP_CONSTANTS['sys_author']['mobile'],
                    'nickname': APP_CONSTANTS['sys_author']['nickname'],
                    'avatar': APP_CONSTANTS['sys_author']['avatar']}
         Good.batch_update(Good.status == status, Good.id.in_(ok_goods_ids), val=updated)
