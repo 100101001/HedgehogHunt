@@ -101,14 +101,23 @@ const returnToFoundGoodsInBatch = function (goods_ids = [], status=0) {
         return
       }
       //直接前往失物招领的发布页面
+      app.alert({
+        title: '公开成功',
+        content: '失主可在失物招领看到您的拾物',
+        cb_confirm: ()=>{
+          
+        }
+      })
       wx.showToast({
         title: '操作成功',
-        duration: 500,
+        duration: 1000,
         mask: true,
         success: res => {
-          wx.redirectTo({
-            url: '/pages/Find/Find?business_type=1'
-          })
+          setTimeout(()=>{
+            wx.redirectTo({
+              url: '/pages/Find/Find?business_type=1'
+            })
+          }, 1000)
         }
       })
     },
@@ -140,7 +149,13 @@ const giveUnmarkedFoundToSystem = function (goods_ids = [], status=1, that) {
       }
       //关闭编辑栏和刷新
       that.editTap();
-      that.onPullDownRefresh();
+      wx.showToast({
+        title: '操作成功',
+        duration: 1000,
+        success: res => {
+          setTimeout(that.onPullDownRefresh, 1000)
+        }
+      })
     },
     fail: res => {
       app.serverBusy()
