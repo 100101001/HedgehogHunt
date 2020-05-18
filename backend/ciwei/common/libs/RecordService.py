@@ -282,7 +282,7 @@ class GoodsRecordSearchHandler:
             "from": 0,
             "size": 0,
             "sort": [
-                # {"_score": {"order": "desc"}},
+                {"_score": {"order": "desc"}},
                 {"top_expire_time": {"order": "desc"}}
             ]
         }
