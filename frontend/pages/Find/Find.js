@@ -220,9 +220,9 @@ Page({
         wx.showToast({
           title: '举报成功，感谢！',
           icon: 'success',
-          duration: 1500,
+          duration: 2000,
           success: (res) => {
-            setTimeout(that.onPullDownRefresh, 1500)
+            setTimeout(that.onPullDownRefresh, 2000)
           }
         });
       },

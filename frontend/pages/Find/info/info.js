@@ -471,9 +471,9 @@ Page({
           wx.showToast({
             title: '举报成功，感谢反馈！',
             icon: 'success',
-            duration: 1000,
+            duration: 1500,
             success: (res) => {
-              setTimeout(wx.navigateBack, 600);
+              setTimeout(wx.navigateBack, 1500);
             }
           });
         }
