@@ -61,7 +61,7 @@ def es_search(func):
             search_bar_must.append({"match": {"owner_name": owner_name}})
         goods_name = kwargs.get('goods_name')
         if goods_name:
-            search_bar_must.append({"match": {"name": {"query": goods_name, "minimum_should_match": "90%", "boost": 5}}})
+            search_bar_must.append({"match": {"name": {"query": goods_name, "minimum_should_match": "90%"}}})
         os_location = kwargs.get('filter_address')
         if os_location:
             search_bar_must.append({"match": {"loc": os_location}})

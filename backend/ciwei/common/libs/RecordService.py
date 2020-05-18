@@ -269,6 +269,8 @@ class GoodsRecordSearchHandler:
         # status_must = {"match": {"status": status}} if status != 0 else {}
         # must = [biz_type_must, report_status_must, status_must]
         # https://www.elastic.co/guide/cn/elasticsearch/guide/current/bool-query.html
+        # https://www.elastic.co/guide/cn/elasticsearch/guide/current/relevance-is-broken.html
+        # https://www.elastic.co/guide/en/elasticsearch/reference/7.6/index.html
         must = [biz_type_must, report_status_must]
         status_should = [{"match": {"status": status}}] if status != 0 else [{"match": {"status": 1}}, {"match": {"status": 2}}, {"match": {"status": 3}}, {"match": {"status": 4}}]
         query = {
@@ -282,7 +284,7 @@ class GoodsRecordSearchHandler:
             "from": 0,
             "size": 0,
             "sort": [
-                {"_score": {"order": "desc"}},
+                # {"_score": {"order": "desc"}},
                 {"top_expire_time": {"order": "desc"}}
             ]
         }
