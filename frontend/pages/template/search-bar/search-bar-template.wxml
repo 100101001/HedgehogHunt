@@ -71,12 +71,29 @@
       <button wx:else class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected" disabled="{{true}}">禁止操作</button>
     </view>
 
+
+
     <view class="op-btn" wx:if="{{op_status==0 && business_type==2}}">
       <button class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected" wx:if="{{check_status_id==0}}" disabled="{{noSelect}}">公开</button>
       <button class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected" wx:if="{{check_status_id==1}}" disabled="{{noSelect}}">取消归还</button>
       <button class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected" wx:if="{{check_status_id==2}}" disabled="{{true}}">禁止操作</button>
       <button class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected" wx:if="{{check_status_id==3}}" disabled="{{noSelect}}">删除</button>
       <button class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected" wx:if="{{check_status_id==4}}" disabled="{{noSelect}}">删除</button>
+    </view>
+
+
+    <!--认领记录-->
+    <view class="op-btn" wx:if="{{op_status==1}}">
+      <!--给了两个选项-->
+      <button class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="confirmSelected"
+              wx:if="{{check_status_id==0 }}" disabled="{{noSelect}}">确认取回
+      </button>
+      <button class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected"
+              wx:if="{{check_status_id==1}}" disabled="{{noSelect}}">删除
+      </button>
+      <button class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected"
+              wx:if="{{check_status_id==2}}" disabled="{{noSelect}}">删除
+      </button>
     </view>
 
 
@@ -93,19 +110,12 @@
       </button>
     </view>
 
-    <!--认领记录-->
-    <view class="op-btn" wx:if="{{op_status==1}}">
-      <!--给了两个选项-->
-      <button class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="confirmSelected"
-            wx:if="{{check_status_id==0 }}" disabled="{{noSelect}}">确认取回
-      </button>
-      <button class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected"
-            wx:if="{{check_status_id==1}}" disabled="{{noSelect}}">删除
-      </button>
-      <button class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected"
-            wx:if="{{check_status_id==2}}" disabled="{{noSelect}}">删除
-      </button>
+    <!--申诉记录-->
+    <view class="op-btn" wx:if="{{op_status==6}}">
+      <button wx:if="{{check_status_id==0}}" class="to-pay-btn no-select">禁止操作 disabled="{{true}}"</button>
+      <button wx:else class="to-pay-btn {{noSelect?'no-select':''}}" bindtap="deleteSelected" disabled="{{noSelect}}">删除</button>
     </view>
+
 
     <!--管理员的举报记录-->
     <view class="op-btn" wx:if="{{op_status==4}}">

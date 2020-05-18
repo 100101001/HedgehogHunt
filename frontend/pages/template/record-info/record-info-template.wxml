@@ -295,7 +295,7 @@
       </view>
 
       <!--申诉处理中区-->
-      <view wx:if="{{info.status === 5}}">
+      <view wx:if="{{info.status > 10}}">
         <view class="footer-box">
           <view class="shop-cart-btn" catchtap="goHome">
             <image src="/images/icons/home_select.png"></image>

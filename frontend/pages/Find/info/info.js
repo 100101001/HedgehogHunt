@@ -1099,7 +1099,7 @@ Page({
           title: '认领详情',
           content: '失主于' + info.op_time + (status === 2 ? '在线认领了！' : '线下取回了！')
         })
-      } else if (status === 5) {
+      } else if (status > 10) {
         //所有人能可见申诉帖的人可见
         app.alert({
           title: '申诉详情',
