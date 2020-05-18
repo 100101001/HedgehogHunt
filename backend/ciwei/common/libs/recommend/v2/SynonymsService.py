@@ -20,7 +20,10 @@ class SynonymsService:
     @time_log
     def getWordClasses(self, input_word):
         key_words = self.extractKeywords(input_word)
-        noun = key_words[0]
+        if len(key_words) > 0:
+            noun = key_words[0]
+        else:
+            noun = input_word
         ret_dict = {
             'noun': self.sym_key.get(noun, []),  # ['类别KEY1', '类别KEY2'...]
             'adj': []   # ['类别KEY11', '类别KEY12', '类别KEY21', '类别KEY22'...]
@@ -34,7 +37,10 @@ class SynonymsService:
     @time_log
     def getSearchWords(self, input_word):
         key_words = self.extractKeywords(input_word)
-        noun = key_words[0]
+        if len(key_words) > 0:
+            noun = key_words[0]
+        else:
+            noun = input_word
         ret_dict = {
             'noun': self.sym_dict.get(noun, [noun]),  # ['长裙', '长纱'...]
             'adj': []  # [淡黄', '嫩黄'..., '蓝色', '青色'...]
