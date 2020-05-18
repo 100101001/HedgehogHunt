@@ -58,13 +58,16 @@ def es_search(func):
         search_bar_must = []
         owner_name = kwargs.get('owner_name')
         if owner_name:
-            search_bar_must.append({"match": {"owner_name": owner_name}})
+            search_bar_must.append({"match": {"owner_name": {"query": owner_name, "minimum_should_match": "50%"}}})
+            # search_bar_must.append({"match": {"owner_name": owner_name}})
         goods_name = kwargs.get('goods_name')
         if goods_name:
-            search_bar_must.append({"match": {"name": {"query": goods_name, "minimum_should_match": "90%"}}})
+            # search_bar_must.append({"match": {"name": {"query": goods_name, "minimum_should_match": "90%"}}})
+            search_bar_must.append({"match_phrase": {"name": goods_name}})
         os_location = kwargs.get('filter_address')
         if os_location:
-            search_bar_must.append({"match": {"loc": os_location}})
+            # search_bar_must.append({"match": {"loc": os_location}})
+            search_bar_must.append({"match": {"loc": {"query": os_location, "minimum_should_match": "50%"}}})
         query['query']['bool']['must'].extend(search_bar_must)
 
         # 分页
