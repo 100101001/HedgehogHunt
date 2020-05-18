@@ -203,7 +203,7 @@ Page({
   },
   toSendThanks: function (e) {
     this.setData({canSendThank: false});
-    if (this.data.thanks_text === "") {
+    if (this.data.thanks_text.trim().length === 0) {
       app.alert({
         title: '温馨提示',
         content: '别忘了用文字传递感谢~'
