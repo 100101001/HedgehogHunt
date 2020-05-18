@@ -388,12 +388,8 @@ Page({
       this.setData({
         imglist: imglist,
         flush: false,
+        pic_status: imglist.length < 9
       });
-      if (imglist.length < 9) {
-        this.setData({
-          pic_status: true,
-        });
-      }
     }
   },
   /**
@@ -678,7 +674,7 @@ Page({
     for (let i = 1; i <= img_list.length; i++) {
       this.setData({
         i: i
-      })
+      });
       if (img_list_status[i - 1]) {
         //图片存在，则更新
         this.updateImage(id, img_list, i)
@@ -704,6 +700,13 @@ Page({
         img_url: img_list[i - 1]
       },
       success: res => {
+        if(res.data.code!==200){
+          app.alert({
+            title: i,
+            content: res.data.msg
+          })
+          return
+        }
         if (img_list.length === i) {
           this.toEndCreate(id)
         }
@@ -734,7 +737,7 @@ Page({
       name: 'file', //文件名，不要修改，Flask直接读取
       success: (res) => {
         if (img_list.length === i) {
-          this.toEndCreate(id)
+          setTimeout(()=>{this.toEndCreate(id)}, 700)
         }
       },
       fail: (res) => {
@@ -858,7 +861,7 @@ Page({
       icon: 'success',
       duration: 1000,
       success: res => {
-        setTimeout(navigate, 800)
+        setTimeout(navigate, 1000)
       }
     });
   },
