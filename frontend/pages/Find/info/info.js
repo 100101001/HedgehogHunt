@@ -163,27 +163,9 @@ Page({
    * @returns {{path: string, success: success, title: *}}
    */
   onShareAppMessage: function (Options) {
-    let business_type = this.data.info.business_type;
-    let type_name;
-    let end;
-    let start;
-    if (business_type === 1) {
-      type_name = "失物招领：" + this.data.info.goods_name;
-      end = "有你或者你朋友丢失的东西吗？快来看看吧";
-    } else {
-      type_name = "寻物启事：" + this.data.info.goods_name;
-      end = "你有看到过吗？帮忙看看吧";
-    }
-    let is_auth = this.data.info.is_auth;
-    if (is_auth) {
-      start = "我在【鲟回-失物招领】"
-    } else {
-      start = "有人在【鲟回-失物招领】"
-    }
-    let title_msg = start + type_name + end;
     return {
-      title: title_msg,
-      path: '/pages/index/index?goods_id=' + this.data.info.id,
+      title: '我在【鲟回-失物招领】找东西，你也快来看看吧~',
+      path: '/pages/Find/info/info?goods_id=' + this.data.infos.info.id,
       success: function (res) {
         wx.request({
           url: app.buildUrl('/member/share'),
@@ -205,7 +187,6 @@ Page({
       }
     }
   },
-
   onLoad: function (options) {
     let goods_id = options.goods_id * 1;
     let op_status = options.op_status;

@@ -133,7 +133,7 @@ Page({
   onShareAppMessage: function (Options) {
     return {
       title: '我在【鲟回-失物招领】找东西，你也快来看看吧~',
-      path: '/pages/index/index',
+      path: '/pages/Find/Find?business_type='+ this.data.business_type,
       success:  (res) => {
         wx.request({
           url: app.buildUrl('/member/share'),
@@ -200,6 +200,7 @@ Page({
     wx.showLoading({
       title: '信息提交中..'
     });
+    let that = this;
     let status = this.data.activeCategoryId;
     wx.request({
       url: app.buildUrl("/report/goods"),
@@ -219,9 +220,9 @@ Page({
         wx.showToast({
           title: '举报成功，感谢！',
           icon: 'success',
-          duration: 1000,
+          duration: 1500,
           success: (res) => {
-            this.onPullDownRefresh()
+            setTimeout(that.onPullDownRefresh, 1500)
           }
         });
       },
