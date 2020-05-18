@@ -8,6 +8,7 @@
 """
 from application import db, APP_CONSTANTS, app
 from common.admin.decorators import user_op
+from common.cahce.GoodsCasUtil import GoodsCasUtil
 from common.libs import LogService
 from common.libs.UrlManager import UrlManager
 from common.models.ciwei.Goods import Good
@@ -106,7 +107,9 @@ class GoodsReportHandler(ReportHandler):
     @classmethod
     def _reportGoods(cls, reporting_goods=None, reporting_member=None):
         if reporting_goods.business_type == 2 and reporting_goods.status < 3 and reporting_goods.return_goods_id:
-            Good.batch_update(Good.id == reporting_goods.return_goods_id, Good.status < 3, val={'status': 1}, rds=1)
+            # 举报了待确认或者待取回的归还帖子，失物自动变成待归还，并入库
+            GoodsCasUtil.exec_wrap(reporting_goods.return_goods_id, ['nil', 2], 1)
+            Good.batch_update(Good.id == reporting_goods.return_goods_id, Good.status == 2, val={'status': 1}, rds=1)
         super()._newStuffReport(reporting_stuff=reporting_goods, reporting_member=reporting_member,
                                 record_type='goods')
 
