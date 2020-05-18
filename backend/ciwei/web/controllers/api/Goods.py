@@ -193,7 +193,7 @@ def goodsEndCreate():
     goods_id = int(req.get('id', -1))
     if goods_id == -1:
         return resp
-    init_goods = Good.query.filter_by(id=goods_id).first()
+    init_goods = Good.query.filter_by(id=goods_id).with_for_update().first()
     if not init_goods:
         return resp
     # 区分编辑和非编辑
