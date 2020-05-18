@@ -9,7 +9,7 @@
 
     <view class="pics-list">
       <view wx:for="{{imglist}}" class="pics-item" wx:key="index">
-        <image src="{{item}}" mode="aspectFill" bindtap="previewImage"></image>
+        <image src="{{item}}" mode="aspectFill" data-index="{{index}}" bindtap="previewImage"></image>
         <view class='del' bindtap='deleteImg' style='display:{{isDel}}' data-index="{{index}}">×</view>
       </view>
       <view class="add-view" wx:if="{{pic_status}}" bindtap='chooseLoadPics'>

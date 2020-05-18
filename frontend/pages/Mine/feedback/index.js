@@ -21,7 +21,7 @@ Page({
    */
   previewImage: function (e) {
     wx.previewImage({
-      current: e.target.dataset.src, // 当前显示图片的http链接
+      current: this.data.imglist[e.currentTarget.dataset.index], // 当前显示图片的http链接
       urls: this.data.imglist // 需要预览的图片http链接列表
     })
   },
@@ -39,6 +39,7 @@ Page({
       sourceType: ['album', 'camera'],
       success:  (res) => {
         imglist = app.addImages(res.tempFiles, imglist);
+        console.log(imglist.length)
         //显示
         this.setData({
           imglist: imglist,
@@ -83,6 +84,11 @@ Page({
         let url = "/feedback/create";
         data['has_img'] = img_list.length;
         this.uploadData(data, url, img_list);
+      },
+      cb_cancel: ()=>{
+        this.setData({
+          submit_disabled: false
+        });
       }
     })
   },
@@ -140,7 +146,7 @@ Page({
         loadingHidden: false,
       });
       //为
-      this.addImage(img_list[i-1], id,  n)
+      this.addImage(img_list[i-1], id,  n, i)
     }
   },
   /**
@@ -148,8 +154,9 @@ Page({
    * @param image_file
    * @param feedback_id
    * @param total
+   * @param i
    */
-  addImage: function(image_file='', feedback_id=0, total=0){
+  addImage: function(image_file='', feedback_id=0, total=0, i=0){
     //图片不存在，则重新上传
     wx.uploadFile({
       url: app.buildUrl('/feedback/add-pics'), //接口地址
@@ -159,6 +166,9 @@ Page({
       name: 'file',//文件名，不要修改，Flask直接读取
       success:  (res) => {
          // 后端判断什么时候结束创建
+        if(total === i) {
+          wx.showToast({title: '感谢反馈！', success: res => {setTimeout(wx.navigateBack, 750)}})
+        }
       },
       fail:  (res) => {
         this.setData({

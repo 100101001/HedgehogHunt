@@ -63,10 +63,11 @@
   text-align: center;
   color:#fff;
   position:fixed;
-  left:530rpx;
-  top:1070rpx;
+  left:550rpx;
+  top:720rpx;
   padding: 3rpx 30rpx 3rpx 30rpx;
   border-radius: 40rpx;
+  z-index:10;
 }
 
 
