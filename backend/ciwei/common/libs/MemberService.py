@@ -190,9 +190,10 @@ class MemberHandler:
                            or_(Good.return_goods_openid == member.openid,
                                Good.qr_code_openid == member.openid))
         # 一次性获取推荐失物和归还物品
-        goods_list = Good.query.filter(or_(recommend_rule, return_rule)).with_entities(Good.business_type,
-                                                                                       Good.status,
-                                                                                       Good.return_goods_id).all()
+        goods_list = Good.query.filter(or_(recommend_rule, return_rule), Good.report_status == 0).with_entities(
+            Good.business_type,
+            Good.status,
+            Good.return_goods_id).all()
         # 分割推荐与归还
         recommend_goods = list(filter(lambda item: item.business_type == 1, goods_list))
         return_goods = list(filter(lambda item: item.business_type == 2, goods_list))
