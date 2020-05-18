@@ -4,7 +4,7 @@ import decimal
 from sqlalchemy.dialects.mssql import TINYINT
 from sqlalchemy.dialects.mysql import INTEGER
 
-from application import db
+from application import db, app
 from datetime import datetime
 import datetime as dt
 
@@ -190,6 +190,7 @@ class Good(db.Model):
         :param pic:
         :return:
         """
+        app.logger.error(self.pics)
         if not self.pics:
             pics_list = []
         else:
