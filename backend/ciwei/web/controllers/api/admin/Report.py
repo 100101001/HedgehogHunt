@@ -47,9 +47,10 @@ def reportGoods():
         resp['msg'] = "该条信息已被举报过，管理员处理中"
         return resp
 
-    if not GoodsCasUtil.exec(goods_id, status, -status):  # 用户视图中以为的状态正确，进入critical op 区
+    if not GoodsCasUtil.exec_wrap(goods_id, ['nil', status], -status):  # 用户视图中以为的状态正确，进入critical op 区
         resp['msg'] = "操作冲突，请稍后重试"
-        return jsonify(resp)
+        return resp
+
     # 物品举报标记
     ReportHandlers.get('goods').deal(1, reporting_goods=reporting_goods, reporting_member=member_info)
     db.session.commit()
