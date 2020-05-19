@@ -72,7 +72,6 @@ class RecommendHandler:
     def __addRecommendGoods(cls, target_member_id=0, found_goods_id=0, lost_goods_id=0, rel_score=1, edit=False):
         """
         增加新的记录，进行防重
-        归还和通知会加进推荐
         :param rel_score:
         :param edit:
         :param target_member_id:
@@ -84,16 +83,12 @@ class RecommendHandler:
             return False
         app.logger.info("本轮推荐结果： 拾物{0} 匹配上 失物{1}".format(found_goods_id, lost_goods_id))
         # 可能会匹配上不同的，这里就只给一个用户匹配上一个拾物，取最接近的失物ID记录
-        repeat_recommend = Recommend.query.filter_by(found_goods_id=found_goods_id,
-                                                     target_member_id=target_member_id,
-                                                     lost_goods_id=lost_goods_id).first()
-
+        repeat_found_recommends = Recommend.getExistFoundRecommend(found_id=found_goods_id, member_id=target_member_id)
+        # 单独记录推荐对
+        repeat_recommend = Recommend.filterSamePair(lost_id=lost_goods_id, same_found=repeat_found_recommends)
         # 有但修改了
         if repeat_recommend and edit:
             repeat_recommend.status = 0
-            # if repeat_recommend.rel_score < rel_score:
-            #     repeat_recommend.rel_score = rel_score
-            #     repeat_recommend.lost_goods_id = lost_goods_id
             repeat_recommend.rel_score = rel_score
             db.session.add(repeat_recommend)
         # 没有
@@ -104,8 +99,8 @@ class RecommendHandler:
             model_recommend.lost_goods_id = lost_goods_id
             model_recommend.rel_score = rel_score
             db.session.add(model_recommend)
-        # 是新的推荐
-        return repeat_recommend is None
+        # 是新的拾物推荐
+        return len(repeat_found_recommends) > 0
 
     @classmethod
     def __doFilterPossibleGoods(cls, goods_info=None):

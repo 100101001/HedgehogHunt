@@ -53,3 +53,13 @@ class Recommend(db.Model):
                          cls.target_member_id == member_id).with_entities(cls.found_goods_id, cls.status).all()
         for item in id_status:
             status_map[item.found_goods_id] += item.status
+
+    @classmethod
+    def getExistFoundRecommend(cls, found_id=0, member_id=0):
+        return Recommend.query.filter_by(found_goods_id=found_id,
+                                         target_member_id=member_id).all()
+
+    @classmethod
+    def filterSamePair(cls, lost_id=0, same_found=None):
+        same_pair = list(filter(lambda item: item.id == lost_id, same_found))
+        return same_pair[0] if len(same_pair) > 0 else None
