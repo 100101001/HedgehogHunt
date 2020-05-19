@@ -69,8 +69,9 @@ def recordSearch():
                                                            report_rule=report_rule,
                                                            order_rule=order_rule)
 
-    recommend_status_map = {item.id: 0 for item in goods_list}
+    recommend_status_map = None
     if op_status == 2:
+        recommend_status_map = {item.id: 0 for item in goods_list}
         Recommend.getStatus(goods_list, member_info.id, recommend_status_map)
     # 将对应的用户信息取出来，组合之后返回
     record_list = []
