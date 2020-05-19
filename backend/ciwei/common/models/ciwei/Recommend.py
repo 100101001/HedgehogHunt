@@ -56,8 +56,8 @@ class Recommend(db.Model):
 
     @classmethod
     def getExistFoundRecommend(cls, found_id=0, member_id=0):
-        return Recommend.query.filter_by(found_goods_id=found_id,
-                                         target_member_id=member_id).all()
+        return cls.query.filter_by(found_goods_id=found_id,
+                                   target_member_id=member_id).all()
 
     @classmethod
     def filterSamePair(cls, lost_id=0, same_found=None):
