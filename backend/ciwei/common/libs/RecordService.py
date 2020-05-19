@@ -328,12 +328,9 @@ class GoodsRecordSearchHandler:
         :param status:
         :return:
         """
-        return db.session.query(Good).filter(Good.id == Mark.goods_id).filter(Mark.member_id == member_id,
+        return Good.query.join(Mark, Good.id == Mark.goods_id).filter(Mark.member_id == member_id,
                                                                       Mark.status == status,
                                                                       Good.business_type == 1)
-        # return Good.query.join(Mark, Good.id == Mark.goods_id).filter(Mark.member_id == member_id,
-        #                                                               Mark.status == status,
-        #                                                               Good.business_type == 1)
 
     @staticmethod
     @db_search()
@@ -375,7 +372,8 @@ class GoodsRecordSearchHandler:
         rule = and_(Recommend.target_member_id == member_id,
                     Recommend.status == 0 if only_new else Recommend.status >= 0,
                     Good.status == status)
-        return db.session.query(Good).distinct().filter(rule, Good.id == Recommend.found_goods_id)
+        return Good.query.join(Recommend,
+                               Good.id == Recommend.found_goods_id).distinct().filter(rule)
 
 
 class ThanksRecordDeleteHandler:
