@@ -9,7 +9,8 @@
 		<!--记录列表-->
 		<block wx:for="{{infos.list}}" wx:key="index">
 			<view class="goods_message">
-				<radio class="radio" hidden="{{infos.saveHidden}}" data-index="{{index}}" bindtap="selectTap" checked="{{item.selected}}" />
+				<radio class="radio" hidden="{{infos.saveHidden}}" data-index="{{index}}" bindtap="selectTap" checked="{{item.selected}}"
+							 disabled="{{item.unselectable}}"/>
 				<view class=".goods_container">
 
 					<!--举报者--->
@@ -21,7 +22,7 @@
 								<text class="release_date">{{item.report_updated_time}}</text>
 							</view>
 						</view>
-						<view class="block-user" bindtap="toBlock" data-report_status="4" data-id="{{item.id}}">拉黑举报者</view>
+						<view wx:if="{{check_status_id < 4}}" class="block-user" bindtap="toBlock" data-report_status="4" data-id="{{item.id}}">拉黑举报者</view>
 					</view>
 
 					<!--答谢发布者--->
@@ -34,7 +35,7 @@
 							</view>
 						</view>
 						<view wx:if="{{item.reward !== '0.00'}}" class="status-container {{op_status===4? 'lefter':''}}">{{item.reward}}元</view>
-						<view wx:if="{{op_status===4}}" class="block-user" catchtap="toBlock" data-report_status="5" data-id="{{item.id}}">拉黑答谢者</view>
+						<view wx:if="{{op_status===4 && check_status_id < 4}}" class="block-user" catchtap="toBlock" data-report_status="5" data-id="{{item.id}}">拉黑答谢者</view>
 						<view wx:if="{{op_status!==4 && check_status_id === 0}}"  class="report" catchtap="toReport" data-index="{{index}}">
 							<image src="/images/icons/report.png"></image>
 							<text>举报</text>
@@ -49,15 +50,16 @@
 						<text style='color: #f7931e; font-size:20rpx'>#{{item.business_desc}}#</text>
 						<view class="goods_owner">{{item.goods_name}}</view>
 						<view class="goods_owner">{{item.owner_name}}</view>
-						<view class="goods_owner" wx:if="{{item.status==0}}">NEW</view>
+						<view class="goods_owner new" wx:if="{{item.status==0}}">NEW</view>
+						<view class="reported" wx:if="{{item.unselectable}}">待处理</view>
 					</view>
 					<!--答谢描述--->
 					<view class="goods_content">{{item.summary}}</view>
 					<!----->
 					<view class="horizon" wx:if="{{item.report_id}}"></view>
 					<view class="block-btn-container" wx:if="{{item.report_id}}">
-						<view class="recover-thank" bindtap="toBlock" data-report_status="2" data-id="{{item.id}}">无违规</view>
-						<view class="block-thank" bindtap="toBlock" data-report_status="3" data-id="{{item.id}}">屏蔽</view>
+						<view wx:if="{{check_status_id < 2}}" class="recover-thank" bindtap="toBlock" data-report_status="2" data-id="{{item.id}}">无违规</view>
+						<view wx:if="{{check_status_id < 3}}" class="block-thank" bindtap="toBlock" data-report_status="3" data-id="{{item.id}}">屏蔽</view>
 					</view>
 				</view>
 			</view>

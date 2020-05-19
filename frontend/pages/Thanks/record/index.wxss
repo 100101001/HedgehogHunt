@@ -278,7 +278,19 @@ radio .wx-radio-input.wx-radio-input-checked::before {
   justify-content: center;
   background-color: #f7931e;
 }
-
+. new{
+ background-color: rgba(247,147,30, 0.75);
+}
+.reported{
+  padding: 3rpx 10rpx 3rpx 10rpx;
+  border-radius: 20rpx;
+  color: #f7931e;
+  border: 5rpx solid #f7931e;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+}
 .block-btn-container{
   display: flex;
   flex-direction: row;
@@ -338,6 +350,6 @@ radio .wx-radio-input.wx-radio-input-checked::before {
   box-shadow:4rpx 4rpx 10rpx #333333;
 }
 .block-thank {
-  background-color:  #999;
+  background-color:  #cdcdcd;
   box-shadow:4rpx 4rpx 10rpx #333333;
 }

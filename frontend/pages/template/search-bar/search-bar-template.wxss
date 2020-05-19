@@ -122,6 +122,7 @@ margin-right: 8rpx;
     font-size:32rpx;
     color:#ffffff;
     letter-spacing: 3rpx;
+    z-index: 10;
 }
 .op-btn button {
  border-radius: 0;

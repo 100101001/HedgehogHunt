@@ -12,7 +12,7 @@ Page({
     let infos = {
       list: [],
       saveHidden: true,
-      only_new: true
+      only_new: false
     };
     if (op_status === 4) {
       infos['check_cat'] = [{
@@ -389,7 +389,19 @@ Page({
           });
           return
         }
-        this.onPullDownRefresh();
+
+        wx.showToast({
+          title: '操作成功',
+          icon:'none',
+          duration: 900,
+          mask: true,
+          success: res=> {
+            setTimeout(()=>{
+              this.editTap();
+              this.onPullDownRefresh();
+            }, 900)
+          }
+        })
       },
       fail: (res) => {
         app.serverBusy();
@@ -460,13 +472,14 @@ Page({
     let infos = this.data.infos;
     //选择一次分类时返回选中值
     let old_status_id = infos.check_status_id;
-    infos.check_status_id = e.currentTarget.id;
+    let new_status_id = e.currentTarget.id * 1;
+    infos.check_status_id = new_status_id;
     this.setData({
       infos: infos,
-      check_status_id: e.currentTarget.id,
+      check_status_id: new_status_id,
     });
     //如果不一致
-    if (old_status_id !== infos.check_status_id) {
+    if (old_status_id !== new_status_id) {
       this.onPullDownRefresh()
     }
   },
@@ -484,13 +497,14 @@ Page({
     let infos = this.data.infos;
     //选择一次分类时返回选中值
     let old_status_id = infos.check_status_id;
-    infos.check_status_id = e.currentTarget.id;
+    let new_status_id = e.currentTarget.id * 1;
+    infos.check_status_id = new_status_id;
     this.setData({
       infos: infos,
-      check_status_id: e.currentTarget.id,
+      check_status_id: new_status_id,
     });
     //如果不一致
-    if (old_status_id !== infos.check_status_id) {
+    if (old_status_id !== new_status_id) {
       this.onPullDownRefresh()
     }
   },

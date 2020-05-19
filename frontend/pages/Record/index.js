@@ -1139,9 +1139,18 @@ Page({
           return
         }
         //关闭编辑栏
-        this.editTap();
-        //刷新
-        this.onPullDownRefresh();
+        wx.showToast({
+          title: '操作成功',
+          icon:'none',
+          duration: 900,
+          mask: true,
+          success: (res)=> {
+            setTimeout(()=>{
+              this.editTap();
+              this.onPullDownRefresh();
+            }, 900)
+          }
+        });
       },
       fail: (res) => {
         app.serverBusy();

@@ -117,7 +117,7 @@
 }
 
 .new_item{
-    display: flex;
+  display: flex;
   padding: 3rpx 10rpx 3rpx 10rpx;
   margin-left: 60rpx;
   border-radius: 40rpx;
@@ -125,7 +125,7 @@
   text-align: center;
   color: #fff;
   justify-content: center;
-  background-color: #f7931e;
+  background-color: rgba(247,147,30, 0.75);
 }
 
 .content_container {
