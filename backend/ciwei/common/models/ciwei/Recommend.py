@@ -50,6 +50,6 @@ class Recommend(db.Model):
     @classmethod
     def getStatus(cls, goods_list=None, member_id=0, status_map=None):
         id_status = cls.query.filter(cls.found_goods_id.in_([item.id for item in goods_list]),
-                         cls.target_member_id == member_id).with_entity(cls.found_goods_id, cls.status).all()
+                         cls.target_member_id == member_id).with_entities(cls.found_goods_id, cls.status).all()
         for item in id_status:
             status_map[item.found_goods_id] += item.status
