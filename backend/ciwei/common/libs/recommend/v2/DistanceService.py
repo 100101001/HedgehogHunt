@@ -58,6 +58,9 @@ class DistanceService:
         :param found_location: "上海市黄浦区南京西路399号###上海明天广场JW万豪酒店###31.23038###121.4697"
         :return: [] 符合距离条件的物品
         """
+        if found_location == app.config['CONSTANTS']['default_lost_loc']:
+            # 遗失地址不知道，那么所有匹配上的拾物都返回
+            return goods_list
         found_gps = found_location.split("###")[-2:]
         ret_list = []
         for item in goods_list:
@@ -68,10 +71,10 @@ class DistanceService:
                 ret_list.append(item)
                 continue
             distance = self.calSimplifyDistance(lng1=eval(found_gps[1]), lat1=eval(found_gps[0]),
-                                                lng2=eval(str(lng2)), lat2=eval(str(lat2)))
+                                                lng2=lng2, lat2=lat2)
             app.logger.warn('物品' + str(item.get('id')) + '距离捡到的物品距离为: ' + str(distance))
             if distance < 150:
-                # 直线距离300m内的才算数
+                # 直线距离150m内的才算数
                 ret_list.append(item)
         return ret_list
 

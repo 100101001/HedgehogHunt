@@ -68,6 +68,10 @@ def recordSearch():
                                                            p=p,
                                                            report_rule=report_rule,
                                                            order_rule=order_rule)
+
+    recommend_status_map = {item.id: 0 for item in goods_list}
+    if op_status == 2:
+        Recommend.getStatus(goods_list, member_info.id, recommend_status_map)
     # 将对应的用户信息取出来，组合之后返回
     record_list = []
     if goods_list:
@@ -79,7 +83,7 @@ def recordSearch():
                 goods.__dict__ = item
                 item = goods
             # 只返回状态没有被并发改变的物品
-            record = RecordService.makeRecordData(item=item, op_status=op_status, status=status, now=now)
+            record = RecordService.makeRecordData(item=item, op_status=op_status, status=status, now=now, recommend_status_map=recommend_status_map)
             if record:
                 record_list.append(record)
 

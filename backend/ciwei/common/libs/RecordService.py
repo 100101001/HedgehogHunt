@@ -49,18 +49,16 @@ def searchBarFilter(owner_name='', address='', goods_name='', record_type=0):
     return and_(*rules)
 
 
-def makeRecordData(item=None, op_status=0, status=0, now=None):
+def makeRecordData(item=None, op_status=0, status=0, now=None, recommend_status_map=None):
     """
     拼装记录数据
+    :param recommend_status_map:
     :param now:
     :param item:
     :param op_status:
     :param status:
     :return:
     """
-    recommend_status = 1
-    if op_status == 2:
-        item, recommend_status = item.Good, item.Recommend.status
     item_id = item.id
     item_status = item.status
     if not GoodsCasUtil.exec_wrap(item_id, [item_status, 'nil'], item_status):  # 物品状态发生了变更
@@ -78,7 +76,7 @@ def makeRecordData(item=None, op_status=0, status=0, now=None):
             item.top_expire_time.split('.')[0].replace('T', ' '), "%Y-%m-%d %H:%M:%S")
         record = {
             "id": item.id,  # 供前端用户点击查看详情用的
-            "new": recommend_status,
+            "new": recommend_status_map.get(item.id, 1) if op_status == 2 else 1,
             # 不存在时置不是new记录
             "auther_name": item.nickname,
             "avatar": item.avatar,
@@ -375,7 +373,7 @@ class GoodsRecordSearchHandler:
                     Recommend.status == 0 if only_new else Recommend.status >= 0,
                     Good.status == status)
         return Good.query.join(Recommend,
-                               Good.id == Recommend.found_goods_id).add_entity(Recommend).filter(rule)
+                               Good.id == Recommend.found_goods_id).distinct().filter(rule)
 
 
 class ThanksRecordDeleteHandler:
