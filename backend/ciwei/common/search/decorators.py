@@ -33,6 +33,10 @@ def db_search(out_num=1, query_index=0):
             offset = (p - 1) * page_size
             # 举报的filter可有可无
             report_rule = kwargs.get('report_rule')
+            from application import app
+            app.loggger.error(report_rule)
+            app.loggger.error(kwargs)
+            app.loggger.error(args)
             if report_rule is not None:
                 query.filter(report_rule)
             # 排序规则必须有
