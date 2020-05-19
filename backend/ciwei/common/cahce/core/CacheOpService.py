@@ -138,7 +138,8 @@ def syncAndClearGoodsIncrReadCache():
                                                  synchronize_session=False)
     db.session.commit()
     # 全部同步后批量删除
-    redis_conn_cache.delete(*keys)
+    if keys:
+        redis_conn_cache.delete(*keys)
 
 
 def setWxToken(token_data=None):
