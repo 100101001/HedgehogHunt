@@ -454,7 +454,7 @@ Page({
       //充值金额大于零才继续
       app.alert({
         title: '充值确认',
-        content: '您需要支付' + pay_price + '元，可用于置顶，答谢，购物。提现额度为10元，确认充值？',
+        content: '您需要支付' + pay_price + '元，可用于置顶，答谢，购物。余额满10元能够提现，确认充值？',
         showCancel: true,
         cb_confirm: () => {
           this.doBalanceRecharge(pay_price)
