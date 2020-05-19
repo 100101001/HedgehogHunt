@@ -26,19 +26,15 @@ def db_search(out_num=1, query_index=0):
 
             # 搜索条件可有可无，目前支持物品和答谢记录搜索
             search_rule = RecordService.searchBarFilter(owner_name=kwargs.get('owner_name'),
-                                                        goods_name=kwargs.get('mix_kw'),
+                                                        goods_name=kwargs.get('goods_name'),
                                                         record_type=int(kwargs.get('record_type', 1)))
             p = max(int(kwargs.get('p', 1)), 1)
             page_size = APP_CONSTANTS['page_size']
             offset = (p - 1) * page_size
             # 举报的filter可有可无
             report_rule = kwargs.get('report_rule')
-            from application import app
-            app.loggger.error(report_rule)
-            app.loggger.error(kwargs)
-            app.loggger.error(args)
             if report_rule is not None:
-                query.filter(report_rule)
+                query = query.filter(report_rule)
             # 排序规则必须有
             order_rule = kwargs.get('order_rule')
             model_list = query.filter(search_rule).order_by(order_rule).offset(offset).limit(page_size).all()
