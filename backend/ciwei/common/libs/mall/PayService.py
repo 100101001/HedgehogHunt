@@ -181,7 +181,6 @@ class PayService:
                     stock_cnt_before_change = tmp_product_info.stock_cnt
                     tmp_product_info.stock_cnt = stock_cnt_before_change + item.product_num
                     db.session.add(tmp_product_info)
-                    db.session.commit()
                     # 库存变更日志
                     ProductService.setStockChangeLog(product_id=item.product_id, quantity=item.product_num,
                                                      note="订单取消", stock_cnt=stock_cnt_before_change)
@@ -189,7 +188,6 @@ class PayService:
         # 更新Order状态 => 0
         order_info.status = 0
         db.session.add(order_info)
-        db.session.commit()
 
         # 用户余额增回
         if order_info.discount_type == "账户余额":
@@ -198,8 +196,7 @@ class PayService:
             if member_info:
                 member_info.balance += order_info.discount_price
                 db.session.add(member_info)
-                db.session.commit()
-
+        db.session.commit()
         return True
 
     def orderSuccess(self, order_info=None, params=None):
