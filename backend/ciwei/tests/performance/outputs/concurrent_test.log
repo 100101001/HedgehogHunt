@@ -1,0 +1,1 @@
+在 0.4637 秒的时间内异步发出 1000 个并发 callGetNewHintsGoods,callReleaseGoods,callSearchGoods,callSearchRecordsGoods 请求的平均响应时间为 0.3076 秒

@@ -33,4 +33,4 @@ class ConcurrentTestInitiator(RestfulApisCallerAsync):
 
 if __name__ == '__main__':
     test_runner = ConcurrentTestInitiator()
-    test_runner.runAll(1)
+    test_runner.runAll(1000)

@@ -206,6 +206,13 @@ class RestfulApis:
         if resp.status_code != 200:
             raise Exception('出错了')
 
+    @response_time
+    def premarkGoods(self):
+        url = self.buildApi('/goods/apply', {'id': random.randint(1, 1000),
+                                            'status': random.randint(1, 2)})
+        resp = requests.get(url=url)
+        if resp.status_code != 200:
+            raise Exception('出错了')
 
     @response_time
     def searchRecordGoods(self, mix_kw='', owner_name=''):
