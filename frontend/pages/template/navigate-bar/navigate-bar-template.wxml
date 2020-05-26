@@ -21,20 +21,20 @@
 		<view class="navigate_icon_container">
 			<view catchtap='onNavigateTap' class="home_icon_container" data-id="0">
 				<image class="our_icon" style='width:77rpx; height:70rpx' src="{{isSelected0? '/images/icons/home_select.png':'/images/icons/home.png'}}"></image>
-				<view class="icon_text" wx:if="{{isSelected0}}" style="color:#f7931e">校园周边</view>
-				<view class="icon_text" wx:if="{{!isSelected0}}" style="color:#b3b3b3">校园周边</view>
+				<view class="icon_text" wx:if="{{isSelected0}}" style="color:#f7931e">周边</view>
+				<view class="icon_text" wx:if="{{!isSelected0}}" style="color:#b3b3b3">周边</view>
 			</view>
 
 			<view catchtap='onNavigateTap' class="icon_container" data-id="1">
 				<image class="our_icon" style='width:60rpx; height:70rpx' src="{{isSelected1? '/images/icons/find_select.png':'/images/icons/find.png'}}"></image>
-				<view class="icon_text" wx:if="{{isSelected1}}" style="color:#f7931e">拾物</view>
-				<view class="icon_text" wx:if="{{!isSelected1}}" style="color:#b3b3b3">拾物</view>
+				<view class="icon_text" wx:if="{{isSelected1}}" style="color:#f7931e">待领</view>
+				<view class="icon_text" wx:if="{{!isSelected1}}" style="color:#b3b3b3">待领</view>
 			</view>
 
 			<view catchtap='onNavigateTap' class="find_icon_container" data-id="3">
 				<image class="our_icon" style='width:60rpx; height:70rpx' src="{{isSelected3? '/images/icons/lost_select.png':'/images/icons/lost.png'}}"></image>
-				<view class="icon_text" wx:if="{{isSelected3}}" style="color:#f7931e">失物</view>
-				<view class="icon_text" wx:if="{{!isSelected3}}" style="color:#b3b3b3">失物</view>
+				<view class="icon_text" wx:if="{{isSelected3}}" style="color:#f7931e">急寻</view>
+				<view class="icon_text" wx:if="{{!isSelected3}}" style="color:#b3b3b3">急寻</view>
 			</view>
 
 			<view catchtap='onNavigateTap' class="icon_container" data-id="4">
