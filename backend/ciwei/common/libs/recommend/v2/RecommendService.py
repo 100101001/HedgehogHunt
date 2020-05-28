@@ -100,7 +100,7 @@ class RecommendHandler:
             model_recommend.rel_score = rel_score
             db.session.add(model_recommend)
         # 是新的拾物推荐
-        return len(repeat_found_recommends) > 0
+        return len(repeat_found_recommends) == 0
 
     @classmethod
     def __doFilterPossibleGoods(cls, goods_info=None):
