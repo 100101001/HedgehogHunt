@@ -361,7 +361,7 @@ Page({
     });
     //新的recommend和return的数量
     this.onPullDownRefresh();
-    this.updateTips();
+    //this.updateTips();
   },
   /**
    * onPullDownRefresh 刷新页面
@@ -381,6 +381,7 @@ Page({
     } else {
       //匹配更新new计数
       this.getGoodsList();
+      this.updateTips();
     }
   },
   /**
