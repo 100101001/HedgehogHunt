@@ -37,7 +37,8 @@ def db_search(out_num=1, query_index=0):
                 query = query.filter(report_rule)
             # 排序规则必须有
             order_rule = kwargs.get('order_rule')
-            model_list = query.filter(search_rule).order_by(order_rule).offset(offset).limit(page_size).all()
+            mul_or = isinstance(order_rule, tuple)
+            model_list = query.filter(search_rule).order_by(*order_rule if mul_or else order_rule).offset(offset).limit(page_size).all()
 
             if out_num == 1:
                 return model_list

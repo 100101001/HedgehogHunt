@@ -57,7 +57,7 @@ def recordSearch():
 
     p = int(req.get('p', 1))
     report_rule = Good.report_status == 0 if op_status == 2 else Good.report_status.in_([0, 1])
-    order_rule = Recommend.rel_score.desc() if op_status == 2 else Good.id.desc()
+    order_rule = (Recommend.created_time.desc(), Recommend.rel_score.desc()) if op_status == 2 else Good.id.desc()
     goods_list = RecordHandlers.get('goods').search().deal(op_status,
                                                            member_id=member_info.id, member_openid=member_info.openid,
                                                            biz_type=int(req.get('business_type')), status=status,
