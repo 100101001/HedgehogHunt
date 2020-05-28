@@ -33,7 +33,8 @@
   display: flex;
   background-color: rgba(0, 51, 255, 0.35);
   border-radius: 40rpx;
-  padding: 15rpx 0rpx 15rpx 30rpx;
+  padding: 8rpx 0rpx 8rpx 30rpx;
+  align-items: center;
 }
 .hint-qrcode-text {
   color: rgba(255, 255, 255, 1);
@@ -47,10 +48,12 @@
 }
 /***浮窗关闭的 x **/
 .close-hint-container{
-  padding: 20rpx 20rpx;
+/*  padding: 0 0 0 10%;*/
+  padding: 0 10rpx;
   position: absolute;
-  left: 530rpx;
-  top: -5rpx;
+  left: 91%;
+/*  left: 540rpx;*/
+/*  top: -5rpx;*/
 }
 .close-hint {
   display: inline-block;

@@ -44,7 +44,7 @@
     <view class="title">账户余额</view>
     <view class="content2">¥ {{balance}}</view>
     <view class="next">
-      <view hover-class="recharge_btn_clicked" hover-stay-time="500" class="recharge_btn intro" bindtap="toRechargeBalance">充值</view>
+<!--      <view hover-class="recharge_btn_clicked" hover-stay-time="500" class="recharge_btn intro" bindtap="toRechargeBalance">充值</view>-->
       <view class="recharge_btn" bindtap="onWithDrawTap">提现</view>
     </view>
   </view>
