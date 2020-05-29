@@ -38,7 +38,8 @@ def db_search(out_num=1, query_index=0):
             # 排序规则必须有
             order_rule = kwargs.get('order_rule')
             mul_or = isinstance(order_rule, tuple)
-            model_list = query.filter(search_rule).order_by(*order_rule if mul_or else order_rule).offset(offset).limit(page_size).all()
+            order_rule = order_rule if mul_or else (order_rule, )
+            model_list = query.filter(search_rule).order_by(*order_rule).offset(offset).limit(page_size).all()
 
             if out_num == 1:
                 return model_list
