@@ -76,7 +76,7 @@
     <view>手机：{{stuff.mobile}}</view>
     <view>放置位置：{{stuff.loc}}</view>
     <view>描述：{{stuff.summary}}</view>
-    <view class="op-btn reason-btn" catchtap="openReason">申诉理由</view>
+    <view class="op-btn reason-btn" catchtap="openReason" wx:if="{{op_status===2}}">申诉理由</view>
   </view>
   <view wx:else>
     <view>被答谢者ID： {{stuff.thanked_mid}}</view>

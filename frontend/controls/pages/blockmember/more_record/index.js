@@ -49,6 +49,7 @@ Page({
       url: app.buildUrl('/member/blocked/record'),
       header: app.getRequestHeader(),
       data: {
+        p: this.data.p,
         id: this.data.id,  //会员ID
         stuff_type: this.data.stuff_type //拉黑类型
       },
