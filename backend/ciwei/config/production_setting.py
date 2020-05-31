@@ -10,4 +10,4 @@ APP = {
     #'domain':'https://all.opencs.cn.w.kunlungr.com'
 }
 
-RELEASE_VERSION="20191023001"
+RELEASE_VERSION="20200531112"

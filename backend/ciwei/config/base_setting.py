@@ -207,15 +207,15 @@ APP = {
 }
 
 ACS_SMS = {
-    'ACCESS_KEY_ID': 'LTAIiT0TFPLB4i4j',
-    'ACCESS_KEY_SECRET': 'UVOjJwxTnT1kv5GpvY4BX7YMDhgWOu',
+    'ACCESS_KEY_ID': 'LTAI4GEuK9b5nVMDxamtip5h',
+    'ACCESS_KEY_SECRET': 'rNp1tYU7rf0B37cDJqk6TOJAlKB99Z',
     'TEMP_IDS': {
-        'VERIFY': 'SMS_186612670',
-        'NOTIFY': 'SMS_186598289'
+        'VERIFY': 'SMS_191801364',
+        'NOTIFY': 'SMS_191831342'
     },
     'SIGN_NAMES': {
-        'VERIFY': '应寻',
-        'NOTIFY': '闪寻'
+        'VERIFY': '鲟回失物招领',
+        'NOTIFY': '鲟回失物招领'
     }
 }
 
