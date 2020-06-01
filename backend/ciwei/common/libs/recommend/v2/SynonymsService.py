@@ -50,10 +50,21 @@ class SynonymsService:
             ret_dict['adj'].extend(vec)
         return ret_dict
 
+    # @classmethod
+    # @time_log
+    # def extractKeywords(cls, search_words):
+    #     key_words = jieba.analyse.extract_tags(search_words)
+    #     return key_words
+
     @classmethod
     @time_log
     def extractKeywords(cls, search_words):
-        key_words = jieba.analyse.extract_tags(search_words)
+        key_words_noun = jieba.analyse.extract_tags(search_words, allowPOS=('n', ))
+        key_words_adj = jieba.analyse.extract_tags(search_words)
+        key_words = key_words_noun
+        for w in key_words_adj:
+            if w not in key_words:
+                key_words.append(w)
         return key_words
 
     def getWordClassesSync(self, input_word):
