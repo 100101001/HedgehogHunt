@@ -80,9 +80,9 @@ def listenGoodsStatusChange(target, new_val, old_val, e):
         if session:
             session._redis_arg = val
 
-    if old_val != new_val and target.business_type != 2 and target.report_status == 0:
+    if target.business_type != 2 and target.report_status == 0:
         # 将redis参数设置到模型的会话参数中去
-        if old_val == 1:
+        if old_val != new_val and old_val == 1:
             __setRedisArgs(-1)
         elif new_val == 1:
             __setRedisArgs(1)
