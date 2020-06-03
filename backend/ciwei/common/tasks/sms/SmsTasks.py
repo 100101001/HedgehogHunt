@@ -34,8 +34,8 @@ def notifyQrcodeOwner(params=None):
     # 判断是否发送短信
     # if not handler.validUser() or handler.tooFreq() or not handler.hasCharger():
     #     return
-    if handler.validUser() and not handler.tooFreq():
-        handler.sendSmsNotify(goods_name=goods_name, location=put_location, trig_rcv=trig_rcv)
+    if handler.validUser() and not handler.tooFreq() and not handler.hasUnconfirmedScanReturn():
+        handler.sendSmsNotify(goods_name=goods_name, location=put_location[1], trig_rcv=trig_rcv)
         db.session.commit()
     # send_ok = handler.sendSmsNotify(goods_name=goods_name, location=put_location, trig_rcv=trig_rcv)
     # if send_ok:

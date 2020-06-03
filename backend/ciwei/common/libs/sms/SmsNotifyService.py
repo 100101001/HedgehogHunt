@@ -12,6 +12,7 @@ from decimal import Decimal
 from application import db
 from common.libs.CryptService import Cipher
 from common.libs.sms import SMSService
+from common.models.ciwei.Goods import Good
 from common.models.ciwei.Member import Member
 from common.models.ciwei.MemberSmsPkg import MemberSmsPkg
 from common.models.ciwei.logs.thirdservice.AcsSmsSendLog import AcsSmsSendLog
@@ -36,6 +37,13 @@ class SmsNotifyHandler:
         :return:
         """
         return AcsSmsSendLog.hasRecentLostNotify(openid=self.openid, interval=interval)
+
+    def hasUnconfirmedScanReturn(self):
+        """
+        有未确认的扫码归还
+        :return:
+        """
+        return Good.getNewlyScanReturn(self.openid) is not None
 
     def sendSmsNotify(self, goods_name='', location='', trig_rcv=None):
         """
