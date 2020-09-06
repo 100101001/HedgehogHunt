@@ -11,3 +11,4 @@ frontend/.idea/
 *.pid
 *.log
 *.sock
+.vscode/
