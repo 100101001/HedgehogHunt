@@ -36,8 +36,8 @@ class Good(db.Model):
     return_goods_id = db.Column(INTEGER(11, unsigned=True), nullable=True, default=0, comment="归还的寻物启示ID")
     return_goods_openid = db.Column(db.String(80), nullable=True, index=True, default='', comment="扫描上传信息的二维码id")
     status = db.Column(TINYINT(), index=True, nullable=False, default=-1, comment="1:待, 2:预, "
-                                                                                 "3:已, "
-                                                                                 "4:已答谢")
+                                                                                  "3:已, "
+                                                                                  "4:已答谢")
     view_count = db.Column(INTEGER(11, unsigned=True), nullable=False, index=True, default=0, comment="总浏览次数")
     top_expire_time = db.Column(db.DateTime, nullable=False, index=True, default=datetime.now,
                                 comment='置顶过期时间')
@@ -130,7 +130,6 @@ class Good(db.Model):
         if top_expire:
             self.top_expire_time = top_expire
         db.session.add(self)
-
 
     def edit(self, edit_info=None, now=datetime.now()):
         """

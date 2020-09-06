@@ -4,7 +4,7 @@
 @contact: 17702113437@163.com
 @time: 2020/4/26 下午3:00
 @file: listeners.py
-@desc: 
+@desc: 同步物品数据到E，和redis
 """
 from flask_sqlalchemy import event
 
@@ -21,6 +21,7 @@ def prepareSyncGoodsParameter(bulk_update, **kwargs):
     """
     一次数据库事务中，批量更新goods后，
     获取到更新过的物品ID，将构造的同步参数设置到session此次DB事务的session中去
+
     :param bulk_update:
     :param kwargs:
     :return:
@@ -61,7 +62,8 @@ def prepareSyncGoodsParameter(bulk_update, **kwargs):
 @event.listens_for(db.session, 'after_commit')
 def batchSyncUpdatedGoodsToEsAndEsAfterCommit(session):
     """
-    提交后，检查有没有bulk_updated的同步需求，并进行同步
+    监听提交事件（批量更新的提交），同步更新到ES，以及操作到redis
+
     :param session:
     :return:
     """
@@ -73,6 +75,16 @@ def batchSyncUpdatedGoodsToEsAndEsAfterCommit(session):
 
 @event.listens_for(Good.status, 'set')
 def listenGoodsStatusChange(target, new_val, old_val, e):
+    """
+    监听单个物品状态更新事件，设置redis操作参数
+
+    :param target:
+    :param new_val:
+    :param old_val:
+    :param e:
+    :return:
+    """
+
     def __setRedisArgs(val):
         # 将redis参数设置到模型的会话参数中去
         state = getattr(target, '_sa_instance_state', None)  # 一个下划线，标示可以更改，只是受到保护
@@ -89,7 +101,17 @@ def listenGoodsStatusChange(target, new_val, old_val, e):
 
 
 @event.listens_for(Good.report_status, 'set')
-def listenGoodsStatusChange(target, new_val, old_val, e):
+def listenGoodsReportStatusChange(target, new_val, old_val, e):
+    """
+    监听单个物品举报事件，设置redis操作参数
+
+    :param target:
+    :param new_val:
+    :param old_val:
+    :param e:
+    :return:
+    """
+
     def __setRedisArgs(val):
         # 将redis参数设置到模型的会话参数中去
         state = getattr(target, '_sa_instance_state', None)  # 一个下划线，标示可以更改，只是受到保护
@@ -107,7 +129,8 @@ def listenGoodsStatusChange(target, new_val, old_val, e):
 @event.listens_for(Good, 'after_update')
 def syncUpdatedGoodsAfterCommit(mapper, connection, target):
     """
-    非批量更新接口，同步物品
+    监听单个物品更新保存后事件，同步到ES，并在redis执行对应操作
+
     :param mapper:
     :param connection:
     :param target:
@@ -130,7 +153,8 @@ def syncUpdatedGoodsAfterCommit(mapper, connection, target):
 @event.listens_for(Good, 'after_insert')
 def syncNewGoodsAfterCommit(mapper, connection, target):
     """
-    插入新数据后，同步到ES
+    监听单个物品插入事件，同步到ES
+
     :param mapper:
     :param connection:
     :param target:
@@ -147,4 +171,12 @@ def syncNewGoodsAfterCommit(mapper, connection, target):
 
 @event.listens_for(Member, 'after_update')
 def syncMemberToCacheAfterUpdate(mapper, connection, target):
+    """
+    更新了会员字段，同步更新缓存
+
+    :param mapper:
+    :param connection:
+    :param target:
+    :return:
+    """
     CacheOpService.setMemberCache(member_info=target)
