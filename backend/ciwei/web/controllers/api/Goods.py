@@ -54,6 +54,7 @@ def topOrderCallback():
 def goodsCreate():
     """
     预发帖
+
     :return: 图片->是否在服务器上 , 前端再次上传真正需要上传的图片
     """
     resp = {'code': -1, 'msg': '', 'data': {}}
@@ -84,6 +85,7 @@ def goodsCreate():
 def goodsEdit():
     """
     更新物品信息
+
     :return: 物品id,图片名->是否在服务器上
     """
     resp = {'code': -1, 'msg': '数据上传失败', 'data': {}}
@@ -148,6 +150,7 @@ def goodsAddPics():
 def goodsUpdatePics():
     """
     更新物品图片
+
     :return: 成功
     """
     resp = {'code': -1, 'msg': '上传数据失败'}
@@ -254,69 +257,35 @@ def goodsSearch():
                                                            owner_name=req.get('owner_name'),
                                                            goods_name=req.get('mix_kw'),
                                                            filter_address=req.get('filter_address'),
+                                                           order_rule=Good.top_expire_time.desc(),
                                                            p=p)
-
-    def status_desc(goods_status):
-        if goods_status < 0:
-            return '已删除'
-        if business_type == 1:
-            status_mapping = {
-                '1': '待认领',
-                '2': '预认领',
-                '3': '已认领',
-                '4': '已答谢',
-                '5': '申诉中',
-            }
-        elif business_type == 0:
-            status_mapping = {
-                '1': '待寻回',
-                '2': '预寻回',
-                '3': '已寻回',
-                '4': '已答谢'
-            }
-        else:  # 归还贴子
-            status_mapping = {
-                '0': '已拒绝',
-                '1': '待确认',
-                '2': '待取回',
-                '3': '已取回',
-                '4': '已答谢'
-            }
-        return status_mapping[str(goods_status)]
-
     data_goods_list = []
     if goods_list:
         # 所有发布者 id -> Member
         now = datetime.datetime.now()
         for item in goods_list:
             # 只返回符合用户期待的状态的物品
-            score = item.get('_score')
-            item = item.get('_source')
-            item_id = item.get('id')
-            item_status = item.get('status')
+            item_id = item.id
+            item_status = item.status
             if not GoodsCasUtil.exec_wrap(item_id, [item_status, 'nil'], item_status):
                 continue
             from application import app
             try:
-                top_time = datetime.datetime.strptime(item.get('top_expire_time').split('.')[0].replace('T', ' '),
-                                                      "%Y-%m-%d %H:%M:%S")
                 tmp_data = {
                     "id": item_id,
-                    "goods_name": item.get('name'),
-                    "owner_name": item.get('owner_name'),
-                    "updated_time": item.get('updated_time').split('.')[0].replace('T', ' '),
-                    "business_type": item.get('business_type'),
-                    "summary": item.get('summary'),
-                    "main_image": UrlManager.buildImageUrl(item.get('main_image')),
-                    "auther_id": item.get('member_id'),
-                    "auther_name": item.get('nickname'),
-                    "avatar": item.get('avatar'),
+                    "goods_name": item.name,
+                    "owner_name": item.owner_name,
+                    "updated_time": str(item.updated_time),
+                    "business_type": item.business_type,
+                    "summary": item.summary,
+                    "main_image": UrlManager.buildImageUrl(item.main_image),
+                    "auther_id": item.member_id,
+                    "auther_name": item.nickname,
+                    "avatar": item.avatar,
                     "selected": False,
-                    "status": int(item.get('status')),
-                    "status_desc": status_desc(item.get('status')),  # 静态属性，返回状态码对应的文字
-                    "top": top_time > now,
-                    "score": score,
-                    "top_expire": item.get('top_expire_time')
+                    "status": item.status,
+                    "status_desc": item.status_desc,  # 静态属性，返回状态码对应的文字
+                    "top": item.top_expire_time > now
                 }
                 data_goods_list.append(tmp_data)
             except Exception:
@@ -733,8 +702,8 @@ def esInit():
                 "type": "keyword"
             },
             "author_mobile": {
-              "type": "keyword",
-              "index": "false"
+                "type": "keyword",
+                "index": "false"
             },
             "mobile": {
                 "type": "keyword",

@@ -6,21 +6,21 @@
 @file: RecordService.py
 @desc: 
 """
-import datetime
 
 from sqlalchemy import and_, or_
 
 from application import db, APP_CONSTANTS
 from common.admin.decorators import user_op
 from common.cahce.GoodsCasUtil import GoodsCasUtil
+from common.consts import LOST
 from common.libs.UrlManager import UrlManager
-from common.models.ciwei.admin.Appeal import Appeal
 from common.models.ciwei.Goods import Good
 from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Recommend import Recommend
-from common.models.ciwei.admin.Report import Report
 from common.models.ciwei.Thanks import Thank
-from common.search.decorators import db_search, es_search
+from common.models.ciwei.admin.Appeal import Appeal
+from common.models.ciwei.admin.Report import Report
+from common.search.decorators import db_search
 
 
 def searchBarFilter(owner_name='', address='', goods_name='', record_type=0):
@@ -66,14 +66,15 @@ def makeRecordData(item=None, op_status=0, status=0, now=None, recommend_status_
     is_pre_mark_fail = item_status != 2 and status == 0 and op_status == 1  # 物品状态已经不是预认领，但认领记录确是预认领
     is_appealed = item_status == 5 and op_status in (0, 1, 6)  # 物品状态为 5 标示正在做申诉处理
     # 查看状态为预寻回的发布过的寻物记录，没有确认归还是自己的，所以不能批量操作确认取回
-    unconfirmed_returned_lost = item.business_type == 0 and op_status == 0 and item.status == 2 \
-                                and not GoodsCasUtil.exec(item.return_goods_id, 2, 2)  # 如果看过那么一定有状态记录
+    unconfirmed_returned_lost = \
+        item.business_type == LOST \
+        and op_status == 0 and \
+        item.status == 2 and \
+        not GoodsCasUtil.exec(item.return_goods_id, 2, 2)  # 如果看过那么一定有状态记录
     is_reported = item.report_status != 0
     show_record_loc = op_status == 0 or op_status == 5
     from application import app
     try:
-        top_time = item.top_expire_time if op_status else datetime.datetime.strptime(
-            item.top_expire_time.split('.')[0].replace('T', ' '), "%Y-%m-%d %H:%M:%S")
         record = {
             "id": item.id,  # 供前端用户点击查看详情用的
             "new": recommend_status_map.get(item.id, 1) if op_status == 2 else 1,
@@ -92,14 +93,13 @@ def makeRecordData(item=None, op_status=0, status=0, now=None, recommend_status_
             "selected": False,  # 供前端选中删除记录用的属性
             "unselectable": is_appealed or is_pre_mark_fail or unconfirmed_returned_lost or is_reported,  # 前端编辑禁止选中
             # 是否为置顶记录
-            "top": top_time > now,
-            "updated_time": str(item.updated_time).split('.')[0].replace('T', ' '),
+            "top": item.top_expire_time > now,
+            "updated_time": str(item.updated_time),
         }
         return record
     except Exception:
         app.logger.error(item)
         return None
-
 
 
 class GoodsOpRecordDeleteHandler:
@@ -153,7 +153,7 @@ class GoodsOpRecordDeleteHandler:
             return False
         Mark.query.filter(Mark.member_id == member_id,
                           Mark.status == status,
-                          Mark.goods_id.in_(goods_ids)).update({'status': -Mark.status-1}, synchronize_session=False)
+                          Mark.goods_id.in_(goods_ids)).update({'status': -Mark.status - 1}, synchronize_session=False)
         db.session.commit()
         return True
 
@@ -183,7 +183,8 @@ class GoodsOpRecordDeleteHandler:
         if not goods_ids or not member_id:
             return
         Recommend.query.filter(Recommend.target_member_id == member_id,
-                               Recommend.found_goods_id.in_(goods_ids)).update({'status': -Recommend.status-1}, synchronize_session=False)
+                               Recommend.found_goods_id.in_(goods_ids)).update({'status': -Recommend.status - 1},
+                                                                               synchronize_session=False)
         db.session.commit()
         return True
 
@@ -252,8 +253,45 @@ class GoodsRecordSearchHandler:
                                                                            Report.status == report_status,
                                                                            Report.deleted_by == 0)
 
+    # @staticmethod
+    # @es_search
+    # def _getPublicRelease(biz_type=0, status=0, **kwargs):
+    #     """
+    #     公开的物品帖子记录
+    #     :param biz_type:
+    #     :param status:
+    #     :param kwargs:
+    #     :return:
+    #     """
+    #     report_status_must = {"match": {"report_status": 0}}  # 举报帖子将暂时隐藏
+    #     biz_type_must = {"match": {"business_type": biz_type}}
+    #     # status_must = {"match": {"status": status}} if status != 0 else {}
+    #     # must = [biz_type_must, report_status_must, status_must]
+    #     # https://www.elastic.co/guide/cn/elasticsearch/guide/current/bool-query.html
+    #     # https://www.elastic.co/guide/cn/elasticsearch/guide/current/relevance-is-broken.html
+    #     # https://www.elastic.co/guide/en/elasticsearch/reference/7.6/index.html
+    #     must = [biz_type_must, report_status_must]
+    #     status_should = [{"match": {"status": status}}] if status != 0 else [{"match": {"status": 1}},
+    #                                                                          {"match": {"status": 2}},
+    #                                                                          {"match": {"status": 3}},
+    #                                                                          {"match": {"status": 4}}]
+    #     query = {
+    #         'query': {
+    #             "bool": {
+    #                 'must': must,
+    #                 'should': status_should,
+    #                 "minimum_should_match": 1
+    #             }
+    #         },
+    #         "from": 0,
+    #         "size": 0,
+    #         "sort": [
+    #             {"top_expire_time": {"order": "desc"}}
+    #         ]
+    #     }
+    #     return query
     @staticmethod
-    @es_search
+    @db_search()
     def _getPublicRelease(biz_type=0, status=0, **kwargs):
         """
         公开的物品帖子记录
@@ -262,61 +300,60 @@ class GoodsRecordSearchHandler:
         :param kwargs:
         :return:
         """
-        report_status_must = {"match": {"report_status": 0}}  # 举报帖子将暂时隐藏
-        biz_type_must = {"match": {"business_type": biz_type}}
-        # status_must = {"match": {"status": status}} if status != 0 else {}
-        # must = [biz_type_must, report_status_must, status_must]
-        # https://www.elastic.co/guide/cn/elasticsearch/guide/current/bool-query.html
-        # https://www.elastic.co/guide/cn/elasticsearch/guide/current/relevance-is-broken.html
-        # https://www.elastic.co/guide/en/elasticsearch/reference/7.6/index.html
-        must = [biz_type_must, report_status_must]
-        status_should = [{"match": {"status": status}}] if status != 0 else [{"match": {"status": 1}}, {"match": {"status": 2}}, {"match": {"status": 3}}, {"match": {"status": 4}}]
-        query = {
-            'query': {
-                "bool": {
-                    'must': must,
-                    'should': status_should,
-                    "minimum_should_match": 1
-                }
-            },
-            "from": 0,
-            "size": 0,
-            "sort": [
-                # {"_score": {"order": "desc"}},
-                {"top_expire_time": {"order": "desc"}}
-            ]
-        }
+        query = Good.query.filter(and_(Good.report_status == 0,
+                                       Good.business_type == biz_type))
+        if status:
+            query = query.filter(Good.status == status)
         return query
 
+    # @staticmethod
+    # @es_search
+    # def _getMyRelease(member_id=0, biz_type=0, status=0, **kwargs):
+    #     """
+    #     发布记录
+    #     :param member_id:
+    #     :param biz_type:
+    #     :param status:
+    #     :param kwargs:
+    #     :return:
+    #     """
+    #
+    #     report_status_should = [{"match": {"report_status": 0}}, {"match": {"report_status": 1}}]  # 举报帖子将暂时隐藏
+    #     biz_type_must = {"match": {"business_type": biz_type}}
+    #     status_must = {"match": {"status": status}}
+    #     member_must = {"match": {"member_id": member_id}}
+    #     must = [member_must, biz_type_must, status_must]
+    #     query = {
+    #         'query': {
+    #             "bool": {
+    #                 'must': must,
+    #                 'should': report_status_should,
+    #                 'minimum_should_match': 1
+    #             },
+    #         },
+    #         "from": 0,
+    #         "size": 0,
+    #         "sort": [{"_score": {"order": "desc"}},
+    #                  {"id": {"order": "desc"}}]
+    #     }
+    #     return query
+
     @staticmethod
-    @es_search
+    @db_search()
     def _getMyRelease(member_id=0, biz_type=0, status=0, **kwargs):
         """
         发布记录
+
         :param member_id:
         :param biz_type:
         :param status:
         :param kwargs:
         :return:
         """
-        report_status_should = [{"match": {"report_status": 0}}, {"match": {"report_status": 1}}]  # 举报帖子将暂时隐藏
-        biz_type_must = {"match": {"business_type": biz_type}}
-        status_must = {"match": {"status": status}}
-        member_must = {"match": {"member_id": member_id}}
-        must = [member_must, biz_type_must, status_must]
-        query = {
-            'query': {
-                "bool": {
-                    'must': must,
-                    'should': report_status_should,
-                    'minimum_should_match': 1
-                },
-            },
-            "from": 0,
-            "size": 0,
-            "sort": [{"_score": {"order": "desc"}},
-                     {"id": {"order": "desc"}}]
-        }
+        query = Good.query.filter(and_(Good.member_id == member_id,
+                                       Good.business_type == biz_type,
+                                       Good.status == status,
+                                       Good.report_status.in_([0, 1])))
         return query
 
     @staticmethod
@@ -324,6 +361,7 @@ class GoodsRecordSearchHandler:
     def _getMyMark(member_id=0, status=0, **kwargs):
         """
         获取认领记录
+
         :param member_id:
         :param status:
         :return:

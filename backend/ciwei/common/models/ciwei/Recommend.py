@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy import or_
 
 from application import db
+from common.consts import FOUND
 
 
 class Recommend(db.Model):
@@ -42,7 +43,13 @@ class Recommend(db.Model):
 
     @classmethod
     def renewOldRecommend(cls, goods_info=None):
-        if goods_info.business_type == 1:
+        """
+        物品信息更改，所以需要
+
+        :param goods_info:
+        :return:
+        """
+        if goods_info.business_type == FOUND:
             # 如果是失物招领，更新推荐记录为未读
             cls.query.filter(cls.found_goods_id == goods_info.id,
                              cls.status > 0).update({'status': 0}, synchronize_session=False)
@@ -50,7 +57,8 @@ class Recommend(db.Model):
     @classmethod
     def getStatus(cls, goods_list=None, member_id=0, status_map=None):
         id_status = cls.query.filter(cls.found_goods_id.in_([item.id for item in goods_list]),
-                         cls.target_member_id == member_id).with_entities(cls.found_goods_id, cls.status).all()
+                                     cls.target_member_id == member_id).with_entities(cls.found_goods_id,
+                                                                                      cls.status).all()
         for item in id_status:
             status_map[item.found_goods_id] += item.status
 

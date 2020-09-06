@@ -23,7 +23,7 @@ from common.models.ciwei.Mark import Mark
 from common.models.ciwei.Recommend import Recommend
 from common.models.ciwei.Thanks import Thank
 from common.models.ciwei.logs.thirdservice.GoodsTopOrderCallbackData import GoodsTopOrderCallbackData
-from common.tasks.recommend.v2 import RecommendTasks
+from common.tasks.recommend.v1 import RecommendTasks
 from common.tasks.sms import SmsTasks
 from common.tasks.subscribe import SubscribeTasks
 
@@ -151,7 +151,6 @@ class CommonGoodsHandler:
         }
         return data
 
-
     @classmethod
     def _getThanksInfo(cls, goods_id=0, lost_member=None):
         if goods_id:
@@ -163,8 +162,8 @@ class CommonGoodsHandler:
                     'nickname': thank_info.nickname, 'avatar': thank_info.avatar}
         else:
             return {'summary': '谢谢你', 'price': '0',
-                    'nickname': lost_member.nickname if lost_member else '鲟回', 'avatar': lost_member.avatar if lost_member else '/images/more/un_reg_user.png'}
-
+                    'nickname': lost_member.nickname if lost_member else '鲟回',
+                    'avatar': lost_member.avatar if lost_member else '/images/more/un_reg_user.png'}
 
     @classmethod
     def _preMarkGoods(cls, member_id=0, goods_id=0, business_type=1):
@@ -321,7 +320,7 @@ class LostGoodsHandler(CommonGoodsHandler):
                            name=release_info.get('goods_name'),
                            owner_name=release_info.get('owner_name', '无'),
                            summary=release_info.get('summary', '无'),
-                           os_location= os_location,
+                           os_location=os_location,
                            location=location,
                            top_expire=top_expire)
         db.session.flush()
@@ -669,7 +668,6 @@ class FoundGoodsHandler(CommonGoodsHandler):
         def __getMarks(goods_id=0):
             """
             是否预认领/认领了该物品(详情可否见放置地址)
-            :param member_id:
             :param goods_id:
             :return:
             """
@@ -735,7 +733,8 @@ class FoundGoodsHandler(CommonGoodsHandler):
         # 预认领事务
         super()._preMarkGoods(member_id=member_id, goods_id=goods_id, business_type=1)
         if status == 1:
-            Good.batch_update(Good.id == goods_id, Good.status == status, val={'status': 2, 'confirm_time': datetime.datetime.now()},
+            Good.batch_update(Good.id == goods_id, Good.status == status,
+                              val={'status': 2, 'confirm_time': datetime.datetime.now()},
                               rds=-1)
         db.session.commit()
         # 认领缓存

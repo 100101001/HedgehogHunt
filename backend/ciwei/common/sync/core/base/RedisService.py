@@ -11,7 +11,7 @@ import json
 from application import app
 from common.cahce.core import redis_conn_lost, redis_conn_found
 from common.sync.core.base import synonyms
-from common.tasks.recommend.v2 import RecommendTasks
+from common.tasks.recommend.v1 import RecommendTasks
 
 
 def syncNewGoodsToRedis(*args):

@@ -46,9 +46,8 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy(query_class=SyncQuery)
 db.init_app(app)
-from common.sync.db.listeners import *
-from common.loggin.db.listeners import *
-from common.models.triggers import *
+# 上线去掉redis和es的同步功能
+# from common.sync.db.listeners import *
 # 数据库迁移
 from flask_migrate import Migrate
 from flask_script import Manager
@@ -64,4 +63,3 @@ migrate.init_app(app, db)
 # app.add_template_global(UrlManager.buildImageUrl, 'buildImageUrl')
 
 # 引入www是测试需要勿删除
-from www import *

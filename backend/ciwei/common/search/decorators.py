@@ -44,7 +44,7 @@ def db_search(out_num=1, query_index=0):
             if out_num == 1:
                 return model_list
             else:
-                return (model_list, *out[1:])
+                return model_list, *out[1:]
 
         return search_and_paginate
 

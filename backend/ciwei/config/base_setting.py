@@ -36,7 +36,7 @@ CELERY_IMPORTS = (
     'common.tasks.sms.SmsTasks',
     'common.tasks.sync.SyncTasks',
     'common.tasks.subscribe.SubscribeTasks',
-    'common.tasks.recommend.v2.RecommendTasks'
+    'common.tasks.recommend.v1.RecommendTasks'
 )
 # celery 定时任务
 CELERYBEAT_SCHEDULE = {
@@ -48,7 +48,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'incr_read_count_to_db_every_day': {
         'task': 'sync.incr_read_count_to_db',
-        'schedule':  crontab(minute=25, hour=2),  # 每天的凌晨执行任务
+        'schedule': crontab(minute=25, hour=2),  # 每天的凌晨执行任务
         'options': {'queue': 'sync_queue', 'routing_key': 'for_sync'}
     }
 }
@@ -189,7 +189,7 @@ QR_CODE = {
 
 SUBSCRIBE_TEMPLATES = {
     'recommend': 'eT6wS62k3KzRNagqnZOd_Fuui0As0GBX7fYfpUSyi0Y',  # 给寻物启事发帖者发送匹配通知
-    'finished_found':  '_dAjVN6DHEewP_z01WhKXlZ7xY9nfs_OEtVbnBC88MU',  # 向失物招领发布者发送被取回的通知
+    'finished_found': '_dAjVN6DHEewP_z01WhKXlZ7xY9nfs_OEtVbnBC88MU',  # 向失物招领发布者发送被取回的通知
     'finished_return': '4JEcTuWKyXwYQM2kYbQoPkG8WBB52cKdsP9FxiSSqEY',  # 归还者归还时订阅，如果对方确认或者取回了，发送
     'return': 'bHZTF62ciS-03u8MmGe0cA7YMVHdGpwH-bY9wrmfDfY',  # 给寻物启事发帖者，如果有人归还就通知
     'thanks': 'MxeBoTL5FcGb8DGtQtsoesFS5VmEd67KlRtMAQj8hoI'  # 给失物招领发帖者发送答谢通知

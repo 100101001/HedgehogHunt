@@ -1,10 +1,10 @@
-flask
+flask~=1.1.2
 flask-sqlalchemy
 flask-sqlacodegen
 flask-debugtoolbar
 mysqlclient
 flask_script
-requests
+requests~=2.24.0
 # twilio
 # 阿里云短信通信
 aliyun-python-sdk-core-v3
@@ -20,13 +20,18 @@ uwsgi
 # 布隆过滤器
 pybloom_live
 # 提取用户输入的关键词
-jieba
+jieba~=0.42.1
 # 以下是测试依赖
-mock
+mock~=4.0.2
 coverage
 # 异步任务依赖
 flask_celery
 flask-redis
 # 搜索服务
-elasticsearch
-uwsgi
+elasticsearch~=7.9.1
+
+SQLAlchemy~=1.3.19
+numpy~=1.19.1
+Werkzeug~=1.0.1
+redis~=3.5.3
+celery~=4.4.7

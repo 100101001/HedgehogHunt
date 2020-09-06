@@ -75,21 +75,21 @@ services:
     restart: always
 
   # https://www.elastic.co/guide/en/elasticsearch/reference/6.4/docker.html#docker es官方docker配置的说明
-  es:
-    container_name: backend_es
-    image: elasticsearch:7.6.2
-    expose:
-      - "9200"
-    ports:
-      - 9200:9200
-    environment:
-      discovery.type: ${es_mode}
-      ES_JAVA_OPTS: ${es_java_opt}
-      TZ: Asia/Shanghai
-    volumes:
-      - ${es_data_dir}:/usr/share/elasticsearch/data
-      - ${es_log_dir}:/usr/share/elasticsearch/logs
-    restart: always
+  # es:
+  #   container_name: backend_es
+  #   image: elasticsearch:7.6.2
+  #   expose:
+  #     - "9200"
+  #   ports:
+  #     - 9200:9200
+  #   environment:
+  #     discovery.type: ${es_mode}
+  #     ES_JAVA_OPTS: ${es_java_opt}
+  #     TZ: Asia/Shanghai
+  #   volumes:
+  #     - ${es_data_dir}:/usr/share/elasticsearch/data
+  #     - ${es_log_dir}:/usr/share/elasticsearch/logs
+  #   restart: always
 
   # https://www.cnblogs.com/han-1034683568/p/6941337.html 配置 构建文件，自动执行SQL建库脚本
   # https://www.cnblogs.com/bolingcavalry/p/11495509.html 根据MYSQL镜像的entry文件，配置映射文件
@@ -133,12 +133,12 @@ services:
     command: bash /code/run_server.sh
     depends_on:
       - db
-      - es
+      # - es
       - redis
       - rmq
     links:
       - db
-      - es
+      # - es
       - redis
       - rmq
     restart: always
