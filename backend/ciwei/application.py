@@ -14,7 +14,8 @@ class Application(Flask):
                                           root_path=root_path)
         self.config.from_pyfile('config/base_setting.py')
         if os.environ.get('PRODUCTION') == '1':
-            self.config.from_pyfile('config/base_setting_docker.py')
+            #self.config.from_pyfile('config/base_setting_docker.py')
+            #self.config.from_pyfile('config/production_setting.py')
             self.config.from_pyfile('config/production_setting.py')
         if os.environ.get('PRODUCTION_TEST') == '1':
             self.config.from_pyfile('config/test_setting_docker.py')

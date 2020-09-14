@@ -5,8 +5,16 @@
 * RabbitMQ作异步任务的消息队列中间件
 
 
-    # 安装
+    # UBUNTU 安装
     sudo apt-get install rabbitmq-server
+    # CENTOS7 安装
+    yum -y update
+    yum -y install epel-release
+    yum -y update
+    yum -y install erlang socat
+    wget https://www.rabbitmq.com/releases/rabbitmq-server/v3.6.10/rabbitmq-server-3.6.10-1.el7.noarch.rpm
+    rpm –import https://www.rabbitmq.com/rabbitmq-release-signing-key.asc
+    rpm -Uvh rabbitmq-server-3.6.10-1.el7.noarch.rpm
     # 直接查看状态
     sudo service rabbitmq-server status
     # 开启web管理 http://192.168.0.116:15672/ 默认guest@guest

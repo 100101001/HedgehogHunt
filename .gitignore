@@ -12,3 +12,8 @@ frontend/.idea/
 *.log
 *.sock
 .vscode/
+backend/mysql/
+backend/rabbitmq/
+backend/redis/
+backend/ciwei/logs/
+.DS_Store
